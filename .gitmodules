@@ -1,0 +1,3 @@
+[submodule "HyoutaUtils"]
+	path = HyoutaUtils
+	url = https://github.com/AdmiralCurtiss/HyoutaUtils.git
