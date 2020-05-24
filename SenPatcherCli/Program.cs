@@ -26,6 +26,21 @@ namespace SenPatcherCli {
 					SenLib.Sen1.Sen1ExecutablePatches.PatchJumpR2NotebookSettings(outstream, info, true);
 				}
 			}
+
+			bool sen2 = true;
+			if (sen2) {
+				using (var outstream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel II\bin\Win32\ed8_2_PC_US_edited_with_tool.exe", FileMode.Create)) {
+					using (var instream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel II\bin\Win32\ed8_2_PC_US.exe", FileMode.Open, FileAccess.Read)) {
+						StreamUtils.CopyStream(instream, outstream);
+					}
+
+					var info = new SenLib.Sen2.Sen2ExecutablePatchEnglish();
+					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleAnimationAutoSkip(outstream, info, true);
+					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleStartAutoSkip(outstream, info, true);
+					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleSomethingAutoSkip(outstream, info, true);
+					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleResultsAutoSkip(outstream, info, true);
+				}
+			}
 		}
 	}
 }

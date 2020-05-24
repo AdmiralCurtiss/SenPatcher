@@ -48,7 +48,11 @@
     <Compile Include="Sen1\Sen1Mapper.cs" />
     <Compile Include="Sen1\Sen1SystemData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatcher.cs" />
+    <Compile Include="Sen2\Sen2ExecutablePatchEnglish.cs" />
+    <Compile Include="Sen2\Sen2ExecutablePatchJapanese.cs" />
+    <Compile Include="Sen2\Sen2ExecutablePatches.cs" />
+    <Compile Include="Sen2\Sen2ExecutablePatchInterface.cs" />
+    <Compile Include="Sen2\Sen2Mapper.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
   </ItemGroup>
   <ItemGroup>
