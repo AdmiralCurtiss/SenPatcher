@@ -41,6 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BranchHelper1Byte.cs" />
+    <Compile Include="BranchHelper4Byte.cs" />
+    <Compile Include="RegionHelper.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchJapanese.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchEnglish.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatches.cs" />
@@ -49,6 +52,7 @@
     <Compile Include="Sen1\Sen1SystemData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatchEnglish.cs" />
+    <Compile Include="Sen2\Sen2ExecutablePatches.BgmTiming.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatchJapanese.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatchInterface.cs" />
