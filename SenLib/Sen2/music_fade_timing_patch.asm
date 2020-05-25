@@ -78,16 +78,16 @@ remainder_increment:
 ;  edx / dword ptr [ebp-40h] = ticks_per_loop_remainder
 ;  ebx                       = counter
 ;        dword ptr [ebp-38h] = original_divisor
-;  eax / dword ptr [ebp-10h] = ticks_last low part
-;  ecx / dword ptr [ebp-0Ch] = ticks_last high part
+;  eax / dword ptr [ebp-20h] = ticks_per_loop low part
+;  ecx / dword ptr [ebp-1Ch] = ticks_per_loop high part
+;        dword ptr [ebp-10h] = ticks_last low part
+;        dword ptr [ebp-0Ch] = ticks_last high part
     add        ebx,edx                  ; counter += ticks_per_loop_remainder
     mov        edx,dword ptr [ebp-38h]  ; edx = original_divisor
     cmp        ebx,edx                  ; if counter >= original_divisor
     jb         exit_remainder_increment
-    add        eax,1                    ; ++ticks_last
-    adc        ecx,0
-    mov        dword ptr [ebp-10h],eax
-    mov        dword ptr [ebp-0Ch],ecx
+    add        dword ptr [ebp-10h],1    ; ++ticks_last
+    adc        dword ptr [ebp-0Ch],0
     sub        ebx,edx                  ; counter -= original_divisor
 exit_remainder_increment:
     jmp        time_pass_loop
