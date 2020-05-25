@@ -14,6 +14,19 @@
 .DATA
 .CODE
 
+REPEAT 128
+int 3
+ENDM
+
+entry_point:
+    push       ebp
+    mov        ebp,esp
+    sub        esp,7Ch
+    mov        ecx,dword ptr [ebp+8]
+    push       edi
+    push       esi
+    jmp        thread_mainloop
+
 REPEAT 1024
 int 3
 ENDM
@@ -35,7 +48,7 @@ do_compare:
     push        esi
     mov         esi,dword ptr [ecx]
     add         esi,dword ptr [edx]
-    mov         ecx,dword ptr [ebx]
+    mov         ecx,ebx
     adc         eax,dword ptr [edx+4]
     cmp         eax,dword ptr [ecx+4]
     jg          success
@@ -55,14 +68,28 @@ do_compare_end:
 
 
 remainder_increment:
-    inc        ebx      ; counter += 1
-    cmp        ebx,edx  ; if counter > ticks_per_loop_remainder
-    jbe        time_pass_loop_remainder_increment ; counter <= ticks_per_loop_remainder, go to loop
-    add        eax,1
+; this should be the equivalent of
+;   counter += ticks_per_loop_remainder
+;   if (counter >= original_divisor) {
+;       ++ticks_last
+;       counter -= original_divisor
+;   }
+; input:
+;  edx / dword ptr [ebp-40h] = ticks_per_loop_remainder
+;  ebx                       = counter
+;        dword ptr [ebp-38h] = original_divisor
+;  eax / dword ptr [ebp-10h] = ticks_last low part
+;  ecx / dword ptr [ebp-0Ch] = ticks_last high part
+    add        ebx,edx                  ; counter += ticks_per_loop_remainder
+    mov        edx,dword ptr [ebp-38h]  ; edx = original_divisor
+    cmp        ebx,edx                  ; if counter >= original_divisor
+    jb         exit_remainder_increment
+    add        eax,1                    ; ++ticks_last
     adc        ecx,0
     mov        dword ptr [ebp-10h],eax
     mov        dword ptr [ebp-0Ch],ecx
-time_pass_loop_remainder_increment:
+    sub        ebx,edx                  ; counter -= original_divisor
+exit_remainder_increment:
     jmp        time_pass_loop
 
 
@@ -78,25 +105,16 @@ ENDM
 ; compiles into 0x2B bytes
 
 thread_mainloop:
-    push       ebp
-    mov        ebp,esp
-
-    sub        esp,7Ch
-
-    mov        ecx,dword ptr [ebp+8]
-    push       edi
-    mov        edi,ecx
-    push       esi
-    xor        esi,esi
     push       ebx
+    mov        edi,ecx
+    xor        esi,esi
 
     test       dword ptr [edi+10h],7FFFFFFFh
     je         early_exit
 
 ; place frequency in ticks_per_second == ebp-28h (and ebp-24h, it's a 64bit val on 32bit cpu)
     lea        eax,[ebp-28h]
-    push       eax
-    call       QueryPerformanceFrequency
+    call       invoke_query_performance_frequency
     jmp        thread_mainloop_continue
 
 REPEAT 1024
@@ -109,10 +127,12 @@ ENDM
 thread_mainloop_continue:
 ; divide by N to get the time frequency we want the inner function to run at
 ; this division may have a remainder
+    mov eax,1000 ; divisor
+    mov dword ptr [ebp-38h],eax ; remember divisor for remainder_increment
+    push 0
+    push eax
     mov eax,dword ptr [ebp-24h]
     mov edx,dword ptr [ebp-28h]
-    push 0
-    push 3E8h ; divisor, 1000 in this case
     push eax
     push edx
     call _alldvrm
@@ -126,7 +146,7 @@ thread_mainloop_continue:
     mov eax,dword ptr [ebp-24h]
     mov edx,dword ptr [ebp-28h]
     push 0
-    push 5h ; multiplicator, 5 seconds should be reasonable
+    push 5 ; multiplicator, 5 seconds should be reasonable
     push eax
     push edx
     call _allmul
@@ -137,11 +157,10 @@ thread_mainloop_continue:
 
 ; initialize ticks_last == ebp-10h / ebp-0Ch
     lea        eax,[ebp-10h]
-    push       eax
-    call       QueryPerformanceCounter
+    call       invoke_query_performance_counter
 
     cmp        byte ptr [edi+54h],0
-    jne        first_loop_exit
+    jne        early_exit
     jmp        outer_loop
 
 REPEAT 1024
@@ -157,8 +176,7 @@ outer_loop:
 
 ; initialize ticks_now == ebp-18h / ebp-14h
     lea        eax,[ebp-18h]
-    push       eax
-    call       QueryPerformanceCounter
+    call       invoke_query_performance_counter
 
 ; if over reset time passed reset ticks_last
     lea        eax,[ebp-18h] ; ticks_now
@@ -183,13 +201,13 @@ time_pass_loop:
 
 exit_inner_loop:
 ; ticks_last += ticks_per_loop
-    mov        eax,dword ptr [ebp-20h]
+    mov        eax,dword ptr [ebp-20h] ; ticks_per_loop
     mov        ecx,dword ptr [ebp-1Ch]
-    add        dword ptr [ebp-10h],eax
+    add        dword ptr [ebp-10h],eax ; ticks_last
     adc        dword ptr [ebp-0Ch],ecx
 
 ; if ticks_per_loop_remainder != 0
-    mov        edx,dword ptr [ebp-40h]
+    mov        edx,dword ptr [ebp-40h] ; ticks_per_loop_remainder
     test       edx,edx
     je         time_pass_loop ; no remainder, just go back to loop
     jmp        remainder_increment
@@ -197,14 +215,13 @@ exit_inner_loop:
 go_to_sleep:
     lea        ecx,[edi+38h]
     call       unlock_mutex ; 0071E580h ; unlock_mutex
-    push       0
+    push       1
     call       invoke_sleep_milliseconds ; 0071DE50h ; invoke_sleep_milliseconds
     add        esp,4
 
     cmp        byte ptr [edi+54h],0
     je         outer_loop
 
-first_loop_exit:
 early_exit:
     pop        ebx
     pop        esi
@@ -252,16 +269,30 @@ int 3
 ENDM
 
 
-QueryPerformanceCounter:
+invoke_query_performance_counter:
+push ebp
+mov  ebp,esp
+push eax
+call dword ptr[QueryPerformanceCounter]
+pop  ebp
 ret
-REPEAT 15
+
+REPEAT 4
 int 3
 ENDM
-QueryPerformanceFrequency:
+
+invoke_query_performance_frequency:
+push ebp
+mov  ebp,esp
+push eax
+call dword ptr[QueryPerformanceFrequency]
+pop  ebp
 ret
-REPEAT 15
+
+REPEAT 4
 int 3
 ENDM
+
 lock_mutex:
 ret
 REPEAT 15
@@ -302,6 +333,15 @@ ret
 REPEAT 15
 int 3
 ENDM
-
+QueryPerformanceCounter:
+ret
+REPEAT 15
+int 3
+ENDM
+QueryPerformanceFrequency:
+ret
+REPEAT 15
+int 3
+ENDM
 
 END
