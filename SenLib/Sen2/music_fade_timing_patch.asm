@@ -2,11 +2,10 @@
 
 ; we have five code blocks here:
 ; 0x3D bytes
-; 0x30 bytes
-; 0x60 bytes <- this needs the 0x60 byte block
+; 0x2B bytes
+; 0x4E bytes
 ; 0x7F bytes <- this needs the original function location
 ; 0x49 bytes
-;               the other three can go wherever
 
 .586
 .XMM
@@ -76,7 +75,7 @@ ENDM
 ; ---------------------------------------------------------------------
 ; main function
 
-; compiles into 0x30 bytes
+; compiles into 0x2B bytes
 
 thread_mainloop:
     push       ebp
@@ -90,7 +89,6 @@ thread_mainloop:
     push       esi
     xor        esi,esi
     push       ebx
-    mov        ebx,0  ; we designate ebx as our remainder-counter, initialize to 0
 
     test       dword ptr [edi+10h],7FFFFFFFh
     je         early_exit
@@ -106,20 +104,10 @@ int 3
 ENDM
 
 ; ---------------------------------------------------------------------
-; compiles into 0x60 bytes
+; compiles into 0x4E bytes
 
 thread_mainloop_continue:
 ; divide by N to get the time frequency we want the inner function to run at
-    mov eax,dword ptr [ebp-24h]
-    mov edx,dword ptr [ebp-28h]
-    push 0
-    push 3E8h ; divisor, 1000 in this case
-    push eax
-    push edx
-    call _alldiv
-    mov dword ptr [ebp-20h],eax ; ebp-20h = low part of ticks_per_loop == [ticks_per_loop]
-    mov dword ptr [ebp-1Ch],edx ; ebp-1Ch = high part of ticks_per_loop
-
 ; this division may have a remainder
     mov eax,dword ptr [ebp-24h]
     mov edx,dword ptr [ebp-28h]
@@ -127,9 +115,11 @@ thread_mainloop_continue:
     push 3E8h ; divisor, 1000 in this case
     push eax
     push edx
-    call _allrem
-    mov dword ptr [ebp-40h],eax ; ebp-40h = low part of ticks_per_loop_remainder
-    ; mov dword ptr [ebp-3Ch],edx ; there is never a high part of the remainder, so we can skip this
+    call _alldvrm
+    mov dword ptr [ebp-20h],eax ; ebp-20h = low part of ticks_per_loop == [ticks_per_loop]
+    mov dword ptr [ebp-1Ch],edx ; ebp-1Ch = high part of ticks_per_loop
+    mov dword ptr [ebp-40h],ecx ; ebp-40h = low part of ticks_per_loop_remainder
+    ; mov dword ptr [ebp-3Ch],ebx ; there is never a high part of the remainder, so we can skip this
 
 ; multiply by N to get the time frequency when we should assume something happened and we should reset the timer
 ; eg. CPU went to sleep and woke back up later, or just a big lag spike where we never get a cycle -- unlikely, but hey
@@ -143,6 +133,7 @@ thread_mainloop_continue:
     mov dword ptr [ebp-30h],eax ; ebp-30h = low part of ticks_for_reset == [ticks_for_reset]
     mov dword ptr [ebp-2Ch],edx ; ebp-2Ch = high part of ticks_for_reset
 
+    xor        ebx,ebx  ; we designate ebx as our remainder-counter, initialize to 0
 
 ; initialize ticks_last == ebp-10h / ebp-0Ch
     lea        eax,[ebp-10h]
@@ -302,6 +293,11 @@ REPEAT 15
 int 3
 ENDM
 _allrem:
+ret
+REPEAT 15
+int 3
+ENDM
+_alldvrm:
 ret
 REPEAT 15
 int 3
