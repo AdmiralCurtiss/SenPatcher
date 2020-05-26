@@ -19,8 +19,24 @@ namespace SenLib {
 				throw new Exception("took more than available");
 			}
 
-			Address += bytes;
-			Remaining -= bytes;
+			uint naddr = Address + bytes;
+			uint nrem = Remaining - bytes;
+
+			Console.WriteLine("Took 0x{0:X} to 0x{1:X} (0x{4:X} bytes; 0x{2:X} left before, 0x{3:X} left now)", Address, naddr, Remaining, nrem, bytes);
+
+			Address = naddr;
+			Remaining = nrem;
+		}
+
+		public void TakeToAddress(long address) {
+			if (address < (long)Address) {
+				throw new Exception("took negative amount?");
+			}
+			ulong bytes = (ulong)(address - (long)Address);
+			if (bytes > uint.MaxValue) {
+				throw new Exception("took way too much");
+			}
+			Take((uint)bytes);
 		}
 	}
 }
