@@ -12,7 +12,7 @@ namespace SenLib.Sen2 {
 			// TODO: needs to be done for JP as well
 			var mapper = new Sen2Mapper();
 			// 1000 seems to be console-accurate, but making fades a little faster actually feels nicer with the fast PC loading times
-			uint divisor = 1200;
+			uint divisor = 1350;
 
 			state.InitCodeSpaceIfNeeded(binary);
 			RegionHelper region50a = state.Region50a;
@@ -283,9 +283,27 @@ namespace SenLib.Sen2 {
 				alldvrm.SetTarget(0x88e340);
 
 				// always jump the disallow-enqueue-while-same-track-playing branch
-				// TODO: figure out if this has side-effects!
+				// if we need a safer test, *(int*)(*(((int*)edi)+5)) in function at 0x41F846 (which is the currently-playing-bgm check, called at 0x57c803)
+				// seems to give us the pointer to the data structure containing the current volume/fade info of the bgm
+				// which seems to be:
+				//    +0x20 float: current volume
+				//    +0x24 float: fade start factor
+				//    +0x28 float: fade end factor
+				//    +0x2C float: target fade time in seconds
+				//    +0x30 float: current fade time in seconds
+				// (compare the fade adjustment function at 0x421da0, which is pretty clear)
+				// so we could inject a test for this at 0x57c80f to allow fades if and only if bgm is currently fading out
+				// by checking (current fade time < target fade time) && fade end factor == 0.0f
+				// but this doesn't actually seem to be necessary, as far as I can tell?
+				// still, figured I'd note this here in case it ends up being useful
 				_.Position = (long)mapper.MapRamToRom(0x57c80d);
 				_.WriteUInt8(0xeb);
+
+				// patch the bizarre and apparently intentional behavior that messes with the music timing when left shift or left ctrl are held
+				_.Position = (long)mapper.MapRamToRom(0x581f66);
+				_.WriteUInt32(0x3f800000, le);
+				_.Position = (long)mapper.MapRamToRom(0x581f7c);
+				_.WriteUInt32(0x3f800000, le);
 			}
 		}
 	}
