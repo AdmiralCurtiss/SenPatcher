@@ -21,5 +21,44 @@ namespace SenLib.Sen2 {
 		public long GetAddressJumpBattleStartAutoSkip() {
 			return 0x48388b;
 		}
+
+		public Sen2ExecutableCodeSpaceLocations GetCodeSpaceLocations() {
+			var c = new Sen2ExecutableCodeSpaceLocations();
+			c.Region50aAddress = 0x420c4b;
+			c.Region50aTarget = 0x4219cb;
+			c.Region50aLength = 0x50;
+			c.Region50bAddress = 0x4211fb;
+			c.Region50bTarget = 0x4219cb;
+			c.Region50bLength = 0x50;
+			c.Region51Address = 0x42143a;
+			c.Region51Target = 0x42161b;
+			c.Region51Length = 0x51;
+			c.Region60Address = 0x420d5b;
+			c.Region60Target = 0x42160b;
+			c.Region60Length = 0x60;
+			return c;
+		}
+
+		public Sen2ExecutableBgmTimingLocations GetBgmTimingPatchLocations() {
+			var a = new Sen2ExecutableBgmTimingLocations();
+			a.ThreadEntryPointAddress = 0x41dc30;
+			a.ThreadEntryPointLength = 0x10;
+			a.ThreadFunctionBodyAddress = 0x421f10;
+			a.ThreadFunctionBodyLength = 0x80;
+			a.QueryPerformanceFrequency = 0x8ea11c;
+			a.QueryPerformanceCounter = 0x8ea120;
+			a.LockMutex = 0x71e550;
+			a.UnlockMutex = 0x71e580;
+			a.InvokeSleepMilliseconds = 0x71de50;
+			a.UnknownFunction = 0x41e9f0;
+			a.AllMul = 0x816b40;
+			a.AllDvRm = 0x88e340;
+			a.InnerLoopAddsd = 0x8ec240; // this one probably actually not necessary but let's not mess with this too much...
+			a.InnerLoopDivss = 0x8ed254;
+			a.BgmAlreadyPlayingJump = 0x57c80d;
+			a.MultiplierWhenLCrtlHeld = 0x581f66;
+			a.MultiplierWhenLShiftHeld = 0x581f7c;
+			return a;
+		}
 	}
 }

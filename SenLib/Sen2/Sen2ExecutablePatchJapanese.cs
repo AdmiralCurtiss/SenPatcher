@@ -21,5 +21,13 @@ namespace SenLib.Sen2 {
 		public long GetAddressJumpBattleStartAutoSkip() {
 			return 0x4836eb;
 		}
+
+		public Sen2ExecutableCodeSpaceLocations GetCodeSpaceLocations() {
+			throw new NotImplementedException();
+		}
+
+		public Sen2ExecutableBgmTimingLocations GetBgmTimingPatchLocations() {
+			throw new NotImplementedException();
+		}
 	}
 }

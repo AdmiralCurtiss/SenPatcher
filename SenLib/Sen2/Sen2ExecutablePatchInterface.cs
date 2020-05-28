@@ -19,5 +19,11 @@ namespace SenLib.Sen2 {
 
 		// address of conditional jump statement for auto-skipping results when turbo button is held
 		long GetAddressJumpBattleResultsAutoSkip();
+
+		// addresses of regions that can be repurposed for extra code space
+		Sen2ExecutableCodeSpaceLocations GetCodeSpaceLocations();
+
+		// a whole bunch of addresses for the bgm timing patch
+		Sen2ExecutableBgmTimingLocations GetBgmTimingPatchLocations();
 	}
 }

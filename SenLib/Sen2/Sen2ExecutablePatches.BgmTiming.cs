@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen2 {
 	public static partial class Sen2ExecutablePatches {
-		public static void PatchMusicFadeTiming(Stream binary, Sen2ExecutablePatchState state) {
-			// TODO: needs to be done for JP as well
+		public static void PatchMusicFadeTiming(Stream binary, Sen2ExecutablePatchInterface patchInfo, Sen2ExecutablePatchState state, uint divisor) {
 			var mapper = new Sen2Mapper();
-			// 1000 seems to be console-accurate, but making fades a little faster actually feels nicer with the fast PC loading times
-			uint divisor = 1350;
+			var a = patchInfo.GetBgmTimingPatchLocations();
 
-			state.InitCodeSpaceIfNeeded(binary);
+			// divisor of 1000 seems to be console-accurate, but making fades a little faster actually feels nicer with the fast PC loading times
+
+			state.InitCodeSpaceIfNeeded(binary, patchInfo);
 			RegionHelper region50a = state.Region50a;
 			RegionHelper region50b = state.Region50b;
 			RegionHelper region60 = state.Region60;
@@ -49,20 +49,20 @@ namespace SenLib.Sen2 {
 			using (BranchHelper4Byte thread_mainloop = new BranchHelper4Byte(binary, mapper)) {
 				{
 					// this is the entry point of the function we're replacing, clear it out
-					binary.Position = (long)mapper.MapRamToRom((ulong)0x41dc30);
-					for (int i = 0; i < 0x10; ++i) {
+					binary.Position = (long)mapper.MapRamToRom((ulong)a.ThreadEntryPointAddress);
+					for (uint i = 0; i < a.ThreadEntryPointLength; ++i) {
 						binary.WriteUInt8(0xcc);
 					}
-					regionEntryPoint = new RegionHelper(0x41dc30, 0x10);
+					regionEntryPoint = new RegionHelper(a.ThreadEntryPointAddress, a.ThreadEntryPointLength);
 				}
 				{
 					// this is the body of the function we're replacing, clear it out
 					// don't ask me why this is split up like this
-					binary.Position = (long)mapper.MapRamToRom((ulong)0x421f10);
-					for (int i = 0; i < 0x80; ++i) {
+					binary.Position = (long)mapper.MapRamToRom((ulong)a.ThreadFunctionBodyAddress);
+					for (uint i = 0; i < a.ThreadFunctionBodyLength; ++i) {
 						binary.WriteUInt8(0xcc);
 					}
-					region80 = new RegionHelper(0x421f10, 0x80);
+					region80 = new RegionHelper(a.ThreadFunctionBodyAddress, a.ThreadFunctionBodyLength);
 				}
 
 				EndianUtils.Endianness be = EndianUtils.Endianness.BigEndian;
@@ -210,12 +210,13 @@ namespace SenLib.Sen2 {
 					_.WriteUInt16(0x8bc6, be);                             // mov        eax,esi
 					_.WriteUInt24(0xc1e81f, be);                           // shr        eax,1Fh
 					_.WriteUInt16(0x8b17, be);                             // mov        edx,dword ptr [edi]
-					_.WriteUInt64(0xf20f5804c540c28e, be);                 // addsd      xmm0,mmword ptr [eax*8+8EC240h]
-					_.WriteUInt8(0x00);
+					_.WriteUInt40(0xf20f5804c5, be);                       // addsd      xmm0,mmword ptr [eax*8+8EC240h]
+					_.WriteUInt32(a.InnerLoopAddsd, le);
 					_.WriteUInt8(0x51);                                    // push       ecx
 					_.WriteUInt16(0x8bcf, be);                             // mov        ecx,edi
 					_.WriteUInt32(0x660f5ac0, be);                         // cvtpd2ps   xmm0,xmm0
-					_.WriteUInt64(0xf30f5e0554d28e00, be);                 // divss      xmm0,dword ptr ds:[8ED254h]
+					_.WriteUInt32(0xf30f5e05, be);                         // divss      xmm0,dword ptr ds:[8ED254h]
+					_.WriteUInt32(a.InnerLoopDivss, le);
 					_.WriteUInt40(0xf30f594758, be);                       // mulss      xmm0,dword ptr [edi+58h]
 					_.WriteUInt40(0xf30f110424, be);                       // movss      dword ptr [esp],xmm0
 					_.WriteUInt24(0xff5268, be);                           // call       dword ptr [edx+68h]
@@ -228,22 +229,18 @@ namespace SenLib.Sen2 {
 				{
 					_.Position = (long)mapper.MapRamToRom(region60.Address);
 					invoke_query_performance_frequency.SetTarget(mapper.MapRomToRam((ulong)_.Position));
-					_.WriteUInt8(0x55);                // push ebp
-					_.WriteUInt16(0x8bec, be);         // mov  ebp,esp
 					_.WriteUInt8(0x50);                // push eax
-					_.WriteUInt48(0xff151ca18e00, be); // call dword ptr[QueryPerformanceFrequency]
-					_.WriteUInt8(0x5d);                // pop  ebp
+					_.WriteUInt16(0xff15, be);         // call dword ptr[QueryPerformanceFrequency]
+					_.WriteUInt32(a.QueryPerformanceFrequency);
 					_.WriteUInt8(0xc3);                // ret
 					region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 				{
 					_.Position = (long)mapper.MapRamToRom(region60.Address);
 					invoke_query_performance_counter.SetTarget(mapper.MapRomToRam((ulong)_.Position));
-					_.WriteUInt8(0x55);                // push ebp
-					_.WriteUInt16(0x8bec, be);         // mov  ebp,esp
 					_.WriteUInt8(0x50);                // push eax
-					_.WriteUInt48(0xff1520a18e00, be); // call dword ptr[QueryPerformanceCounter]
-					_.WriteUInt8(0x5d);                // pop  ebp
+					_.WriteUInt16(0xff15, be);         // call dword ptr[QueryPerformanceCounter]
+					_.WriteUInt32(a.QueryPerformanceCounter);
 					_.WriteUInt8(0xc3);                // ret
 					region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
@@ -275,12 +272,12 @@ namespace SenLib.Sen2 {
 					region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 
-				lock_mutex.SetTarget(0x71e550);
-				unlock_mutex.SetTarget(0x71e580);
-				invoke_sleep_milliseconds.SetTarget(0x71de50);
-				unknown_func.SetTarget(0x41e9f0);
-				allmul.SetTarget(0x816b40);
-				alldvrm.SetTarget(0x88e340);
+				lock_mutex.SetTarget(a.LockMutex);
+				unlock_mutex.SetTarget(a.UnlockMutex);
+				invoke_sleep_milliseconds.SetTarget(a.InvokeSleepMilliseconds);
+				unknown_func.SetTarget(a.UnknownFunction);
+				allmul.SetTarget(a.AllMul);
+				alldvrm.SetTarget(a.AllDvRm);
 
 				// always jump the disallow-enqueue-while-same-track-playing branch
 				// if we need a safer test, *(int*)(*(((int*)edi)+5)) in function at 0x41F846 (which is the currently-playing-bgm check, called at 0x57c803)
@@ -296,13 +293,13 @@ namespace SenLib.Sen2 {
 				// by checking (current fade time < target fade time) && fade end factor == 0.0f
 				// but this doesn't actually seem to be necessary, as far as I can tell?
 				// still, figured I'd note this here in case it ends up being useful
-				_.Position = (long)mapper.MapRamToRom(0x57c80d);
+				_.Position = (long)mapper.MapRamToRom(a.BgmAlreadyPlayingJump);
 				_.WriteUInt8(0xeb);
 
 				// patch the bizarre and apparently intentional behavior that messes with the music timing when left shift or left ctrl are held
-				_.Position = (long)mapper.MapRamToRom(0x581f66);
+				_.Position = (long)mapper.MapRamToRom(a.MultiplierWhenLCrtlHeld);
 				_.WriteUInt32(0x3f800000, le);
-				_.Position = (long)mapper.MapRamToRom(0x581f7c);
+				_.Position = (long)mapper.MapRamToRom(a.MultiplierWhenLShiftHeld);
 				_.WriteUInt32(0x3f800000, le);
 			}
 		}
