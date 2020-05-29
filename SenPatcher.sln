@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HyoutaUtils", "HyoutaUtils\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenPatcherCli", "SenPatcherCli\SenPatcherCli.csproj", "{E410E775-6F9A-48F2-B9E1-41BB2E4B1ECF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenPatcherGui", "SenPatcherGui\SenPatcherGui.csproj", "{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{E410E775-6F9A-48F2-B9E1-41BB2E4B1ECF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E410E775-6F9A-48F2-B9E1-41BB2E4B1ECF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E410E775-6F9A-48F2-B9E1-41BB2E4B1ECF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

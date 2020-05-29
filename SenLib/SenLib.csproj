@@ -61,6 +61,8 @@
     <Compile Include="Sen2\Sen2ExecutablePatchInterface.cs" />
     <Compile Include="Sen2\Sen2Mapper.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
+    <Compile Include="SenCommonPaths.cs" />
+    <Compile Include="SenVersionIdentifier.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HyoutaUtils\HyoutaPluginBase\HyoutaPluginBase.csproj">
