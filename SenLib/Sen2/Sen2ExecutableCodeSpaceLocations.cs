@@ -21,5 +21,8 @@ namespace SenLib.Sen2 {
 		public uint Region60Address;
 		public uint Region60Target;
 		public uint Region60Length;
+
+		public uint RegionDAddress;
+		public uint RegionDLength;
 	}
 }

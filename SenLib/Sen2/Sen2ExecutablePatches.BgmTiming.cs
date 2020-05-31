@@ -29,7 +29,7 @@ namespace SenLib.Sen2 {
 			using (BranchHelper4Byte lock_mutex = new BranchHelper4Byte(binary, mapper))
 			using (BranchHelper4Byte invoke_query_performance_counter = new BranchHelper4Byte(binary, mapper))
 			using (BranchHelper4Byte invoke_query_performance_frequency = new BranchHelper4Byte(binary, mapper))
-			using (BranchHelper4Byte unknown_func = new BranchHelper4Byte(binary, mapper))
+			using (BranchHelper4Byte process_sound_queue = new BranchHelper4Byte(binary, mapper))
 			using (BranchHelper4Byte unlock_mutex = new BranchHelper4Byte(binary, mapper))
 			using (BranchHelper1Byte do_compare_end = new BranchHelper1Byte(binary, mapper))
 			using (BranchHelper1Byte fail = new BranchHelper1Byte(binary, mapper))
@@ -202,7 +202,7 @@ namespace SenLib.Sen2 {
 					_.Position = (long)mapper.MapRamToRom(region50b.Address);
 					inner_loop.SetTarget(mapper.MapRomToRam((ulong)_.Position));
 					_.WriteUInt16(0x8bcf, be);                             // mov        ecx,edi
-					unknown_func.WriteJump5Byte(0xe8);                     // call       unknown_func
+					process_sound_queue.WriteJump5Byte(0xe8);              // call       unknown_func
 					_.WriteUInt24(0x83fe21, be);                           // cmp        esi,21h
 					post_every_33_iterations.WriteJump(0x72);              // jb         post_every_33_iterations
 					_.WriteUInt32(0x660f6ec6, be);                         // movd       xmm0,esi
@@ -275,26 +275,9 @@ namespace SenLib.Sen2 {
 				lock_mutex.SetTarget(a.LockMutex);
 				unlock_mutex.SetTarget(a.UnlockMutex);
 				invoke_sleep_milliseconds.SetTarget(a.InvokeSleepMilliseconds);
-				unknown_func.SetTarget(a.UnknownFunction);
+				process_sound_queue.SetTarget(a.ProcessSoundQueue);
 				allmul.SetTarget(a.AllMul);
 				alldvrm.SetTarget(a.AllDvRm);
-
-				// always jump the disallow-enqueue-while-same-track-playing branch
-				// if we need a safer test, *(int*)(*(((int*)edi)+5)) in function at 0x41F846 (which is the currently-playing-bgm check, called at 0x57c803)
-				// seems to give us the pointer to the data structure containing the current volume/fade info of the bgm
-				// which seems to be:
-				//    +0x20 float: current volume
-				//    +0x24 float: fade start factor
-				//    +0x28 float: fade end factor
-				//    +0x2C float: target fade time in seconds
-				//    +0x30 float: current fade time in seconds
-				// (compare the fade adjustment function at 0x421da0, which is pretty clear)
-				// so we could inject a test for this at 0x57c80f to allow fades if and only if bgm is currently fading out
-				// by checking (current fade time < target fade time) && fade end factor == 0.0f
-				// but this doesn't actually seem to be necessary, as far as I can tell?
-				// still, figured I'd note this here in case it ends up being useful
-				_.Position = (long)mapper.MapRamToRom(a.BgmAlreadyPlayingJump);
-				_.WriteUInt8(0xeb);
 
 				// patch the bizarre and apparently intentional behavior that messes with the music timing when left shift or left ctrl are held
 				_.Position = (long)mapper.MapRamToRom(a.MultiplierWhenLCrtlHeld);

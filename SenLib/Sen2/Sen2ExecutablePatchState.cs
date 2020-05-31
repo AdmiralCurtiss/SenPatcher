@@ -12,6 +12,7 @@ namespace SenLib.Sen2 {
 		public RegionHelper Region50b = null;
 		public RegionHelper Region60 = null;
 		public RegionHelper Region51 = null;
+		public RegionHelper RegionD = null;
 
 		public void InitCodeSpaceIfNeeded(Stream binary, Sen2ExecutablePatchInterface patchInfo) {
 			if (Region50a != null) {
@@ -68,6 +69,10 @@ namespace SenLib.Sen2 {
 				for (uint i = 0; i < c.Region51Length; ++i) {
 					binary.WriteUInt8(0xcc);
 				}
+			}
+			{
+				// this one is just a between-function padding, but good enough for a small snippet
+				RegionD = new RegionHelper(c.RegionDAddress, c.RegionDLength);
 			}
 		}
 	}

@@ -36,6 +36,10 @@ namespace SenLib.Sen2 {
 			c.Region60Address = 0x420ccb;
 			c.Region60Target = 0x42158b;
 			c.Region60Length = 0x60;
+
+			c.RegionDAddress = 0x41fbe3;
+			c.RegionDLength = 0xd;
+
 			return c;
 		}
 
@@ -50,7 +54,7 @@ namespace SenLib.Sen2 {
 			a.LockMutex = 0x71d4f0;
 			a.UnlockMutex = 0x71d520;
 			a.InvokeSleepMilliseconds = 0x71cdf0;
-			a.UnknownFunction = 0x41e9d0;
+			a.ProcessSoundQueue = 0x41e9d0;
 			a.AllMul = 0x815af0;
 			a.AllDvRm = 0x88d2c0;
 			a.InnerLoopAddsd = 0x8eb170;

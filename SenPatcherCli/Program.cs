@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SenPatcherCli {
 	public class Program {
 		public static void Main(string[] args) {
-			bool sen1 = true;
+			bool sen1 = false;
 			if (sen1) {
 				using (var outstream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel\ed8_edited_with_tool.exe", FileMode.Create)) {
 					using (var instream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel\ed8.exe", FileMode.Open, FileAccess.Read)) {
@@ -30,7 +30,7 @@ namespace SenPatcherCli {
 			bool sen2 = true;
 			if (sen2) {
 				using (var outstream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel II\bin\Win32\ed8_2_PC_US_edited_with_tool.exe", FileMode.Create)) {
-					using (var instream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel II\bin\Win32\ed8_2_PC_US.exe", FileMode.Open, FileAccess.Read)) {
+					using (var instream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel II\bin\Win32\ed8_2_PC_US.exe.senpatcher.bkp", FileMode.Open, FileAccess.Read)) {
 						StreamUtils.CopyStream(instream, outstream);
 					}
 
@@ -39,6 +39,10 @@ namespace SenPatcherCli {
 					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleStartAutoSkip(outstream, info, true);
 					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleSomethingAutoSkip(outstream, info, true);
 					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleResultsAutoSkip(outstream, info, true);
+
+					var state = new SenLib.Sen2.Sen2ExecutablePatchState();
+					SenLib.Sen2.Sen2ExecutablePatches.PatchMusicFadeTiming(outstream, info, state, 1350);
+					SenLib.Sen2.Sen2ExecutablePatches.PatchMusicQueueing(outstream, info, state);
 				}
 			}
 		}

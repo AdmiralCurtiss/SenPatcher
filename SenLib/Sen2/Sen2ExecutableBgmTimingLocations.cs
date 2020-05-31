@@ -16,7 +16,7 @@ namespace SenLib.Sen2 {
 		public uint LockMutex;
 		public uint UnlockMutex;
 		public uint InvokeSleepMilliseconds;
-		public uint UnknownFunction;
+		public uint ProcessSoundQueue;
 		public uint AllMul;
 		public uint AllDvRm;
 
