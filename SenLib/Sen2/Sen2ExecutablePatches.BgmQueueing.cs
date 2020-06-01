@@ -31,12 +31,12 @@ namespace SenLib.Sen2 {
 
 				// end of the uninitialized .data section, right before .rsrc, should be unused
 				// TODO: where is the actual information about the location/length of that section stored...?
-				uint address_of_dirty_flag = 0x1179ffc;
-				uint address_of_overwritable_write_sound_queue_4bytes_0x5 = 0x0041fdd7;
-				uint address_of_overwritable_write_sound_queue_4bytes_0x6 = 0x004219b9;
-				uint address_write_sound_queue_4bytes = 0x00422220;
-				uint end_of_sound_queue_processing = 0x0041f1a8;
-				uint address_of_is_playing_check_injection = 0x0057c7fb;
+				uint address_of_dirty_flag = a.AddressOfDirtyFlag;
+				uint address_of_overwritable_write_sound_queue_4bytes_0x5 = a.AddressOfOverwritableWriteSoundQueue4bytes_0x5;
+				uint address_of_overwritable_write_sound_queue_4bytes_0x6 = a.AddressOfOverwritableWriteSoundQueue4bytes_0x6;
+				uint address_write_sound_queue_4bytes = a.AddressWriteSoundQueue4bytes;
+				uint end_of_sound_queue_processing = a.EndOfSoundQueueProcessing;
+				uint address_of_is_playing_check_injection = a.AddressOfIsPlayingCheckInjection;
 
 				write_sound_queue_4bytes.SetTarget(address_write_sound_queue_4bytes);
 				lock_mutex.SetTarget(a.LockMutex);
@@ -152,6 +152,7 @@ namespace SenLib.Sen2 {
 					state.Region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 
+				// some old notes:
 
 				// 0x8eda84 -> FSound vftable
 				// 0x8ed0b4 -> FSoundBase vftable
@@ -165,6 +166,7 @@ namespace SenLib.Sen2 {
 				// +0x0C pointer to 1st FSoundChannelController* array
 				// +0x10 length of 2nd FSoundChannelController* array
 				// +0x14 pointer to 2nd FSoundChannelController* array
+				// +0x40 mutex handle for the bgm FSoundChannelController (?)
 				// +0x44 mutex handle for locking the sound queue (?)
 				// +0x5C base address of sound queue (ringbuffer?)
 				// +0x60 size of sound queue
@@ -196,6 +198,7 @@ namespace SenLib.Sen2 {
 				// (compare the fade adjustment function at 0x421da0, which is pretty clear)
 				// so we could inject a test for this at 0x57c80f to allow fades if and only if bgm is currently fading out
 				// by checking (current fade time < target fade time) && fade end factor == 0.0f
+				// or just the flag at 0x38, which seems to indicate that the track should be stopped (either after a fade or immediately)
 				// but this doesn't actually seem to be necessary, as far as I can tell?
 				// still, figured I'd note this here in case it ends up being useful
 				// _.Position = (long)mapper.MapRamToRom(a.BgmAlreadyPlayingJump);

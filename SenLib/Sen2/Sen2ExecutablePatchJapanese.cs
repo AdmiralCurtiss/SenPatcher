@@ -37,6 +37,13 @@ namespace SenLib.Sen2 {
 			c.Region60Target = 0x42158b;
 			c.Region60Length = 0x60;
 
+			c.Region41Address = 0x421aba; // command 0x2
+			c.Region41Target = 0x42196b; // command 0x6
+			c.Region41Length = 0x41;
+			c.Region32Address = 0x41fca9; // command 0x0
+			c.Region32Target = 0x420ed1; // command 0x8
+			c.Region32Length = 0x32;
+
 			c.RegionDAddress = 0x41fbe3;
 			c.RegionDLength = 0xd;
 
@@ -62,6 +69,13 @@ namespace SenLib.Sen2 {
 			a.BgmAlreadyPlayingJump = 0x57c49d;
 			a.MultiplierWhenLCrtlHeld = 0x581ba6;
 			a.MultiplierWhenLShiftHeld = 0x581bbc;
+
+			a.AddressOfDirtyFlag = 0x1174ffc;
+			a.AddressOfOverwritableWriteSoundQueue4bytes_0x5 = 0x41fdb7;
+			a.AddressOfOverwritableWriteSoundQueue4bytes_0x6 = 0x421949;
+			a.AddressWriteSoundQueue4bytes = 0x4221a0;
+			a.EndOfSoundQueueProcessing = 0x41f188;
+			a.AddressOfIsPlayingCheckInjection = 0x57c48b;
 			return a;
 		}
 	}

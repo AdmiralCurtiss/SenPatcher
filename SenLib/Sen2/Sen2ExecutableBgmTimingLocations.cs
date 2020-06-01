@@ -26,5 +26,13 @@ namespace SenLib.Sen2 {
 		public uint BgmAlreadyPlayingJump;
 		public uint MultiplierWhenLCrtlHeld;
 		public uint MultiplierWhenLShiftHeld;
+
+
+		public uint AddressOfDirtyFlag;
+		public uint AddressOfOverwritableWriteSoundQueue4bytes_0x5;
+		public uint AddressOfOverwritableWriteSoundQueue4bytes_0x6;
+		public uint AddressWriteSoundQueue4bytes;
+		public uint EndOfSoundQueueProcessing;
+		public uint AddressOfIsPlayingCheckInjection;
 	}
 }

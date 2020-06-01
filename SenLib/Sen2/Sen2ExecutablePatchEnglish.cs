@@ -69,6 +69,13 @@ namespace SenLib.Sen2 {
 			a.BgmAlreadyPlayingJump = 0x57c80d;
 			a.MultiplierWhenLCrtlHeld = 0x581f66;
 			a.MultiplierWhenLShiftHeld = 0x581f7c;
+
+			a.AddressOfDirtyFlag = 0x1179ffc;
+			a.AddressOfOverwritableWriteSoundQueue4bytes_0x5 = 0x41fdd7;
+			a.AddressOfOverwritableWriteSoundQueue4bytes_0x6 = 0x4219b9;
+			a.AddressWriteSoundQueue4bytes = 0x422220;
+			a.EndOfSoundQueueProcessing = 0x41f1a8;
+			a.AddressOfIsPlayingCheckInjection = 0x57c7fb;
 			return a;
 		}
 	}
