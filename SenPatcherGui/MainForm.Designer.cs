@@ -33,6 +33,7 @@
 			this.buttonCs2SteamEn = new System.Windows.Forms.Button();
 			this.buttonCs2GalaxyJp = new System.Windows.Forms.Button();
 			this.buttonCs2GalaxyEn = new System.Windows.Forms.Button();
+			this.labelVersion = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// buttonManuallySelect
@@ -135,11 +136,23 @@
 			this.buttonCs2GalaxyEn.UseVisualStyleBackColor = true;
 			this.buttonCs2GalaxyEn.Click += new System.EventHandler(this.buttonCs2GalaxyEn_Click);
 			// 
-			// Form1
+			// labelVersion
+			// 
+			this.labelVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.labelVersion.AutoSize = true;
+			this.labelVersion.Location = new System.Drawing.Point(437, 9);
+			this.labelVersion.Name = "labelVersion";
+			this.labelVersion.Size = new System.Drawing.Size(28, 13);
+			this.labelVersion.TabIndex = 10;
+			this.labelVersion.Text = "v0.0";
+			this.labelVersion.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			// 
+			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(477, 325);
+			this.Controls.Add(this.labelVersion);
 			this.Controls.Add(this.buttonCs2GalaxyJp);
 			this.Controls.Add(this.buttonCs2GalaxyEn);
 			this.Controls.Add(this.buttonCs2SteamJp);
@@ -150,7 +163,7 @@
 			this.Controls.Add(this.buttonCs1SteamEn);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.buttonManuallySelect);
-			this.Name = "Form1";
+			this.Name = "MainForm";
 			this.Text = "SenPatcher";
 			this.ResumeLayout(false);
 			this.PerformLayout();
@@ -169,6 +182,7 @@
 		private System.Windows.Forms.Button buttonCs2SteamEn;
 		private System.Windows.Forms.Button buttonCs2GalaxyJp;
 		private System.Windows.Forms.Button buttonCs2GalaxyEn;
+		private System.Windows.Forms.Label labelVersion;
 	}
 }
 
