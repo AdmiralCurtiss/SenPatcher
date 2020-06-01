@@ -146,8 +146,6 @@ namespace SenLib.Sen2 {
 					_.Position = (long)mapper.MapRamToRom(region80.Address);
 					outer_loop_4byte.SetTarget(mapper.MapRomToRam((ulong)_.Position));
 					outer_loop_1byte.SetTarget(mapper.MapRomToRam((ulong)_.Position));
-					_.WriteUInt24(0x8d4f38, be);                           // lea        ecx,[edi+38h]
-					lock_mutex.WriteJump5Byte(0xe8);                       // call       lock_mutex
 					_.WriteUInt24(0x8d45e8, be);                           // lea        eax,[ebp-18h]
 					invoke_query_performance_counter.WriteJump5Byte(0xe8); // call       invoke_query_performance_counter
 					_.WriteUInt24(0x8d45e8, be);                           // lea        eax,[ebp-18h] ; ticks_now
@@ -179,9 +177,7 @@ namespace SenLib.Sen2 {
 					time_pass_loop_1byte.WriteJump(0x74);                  // je         time_pass_loop ; no remainder, just go back to loop
 					remainder_increment.WriteJump5Byte(0xe9);              // jmp        remainder_increment
 					go_to_sleep.SetTarget(mapper.MapRomToRam((ulong)_.Position));
-					_.WriteUInt24(0x8d4f38, be);                           // lea        ecx,[edi+38h]
-					unlock_mutex.WriteJump5Byte(0xe8);                     // call       unlock_mutex
-					_.WriteUInt16(0x6a01, be);                             // push       1
+					_.WriteUInt16(0x6a00, be);                             // push       0
 					invoke_sleep_milliseconds.WriteJump5Byte(0xe8);        // call       invoke_sleep_milliseconds
 					_.WriteUInt24(0x83c404, be);                           // add        esp,4
 					_.WriteUInt32(0x807f5400, be);                         // cmp        byte ptr [edi+54h],0
@@ -199,20 +195,17 @@ namespace SenLib.Sen2 {
 				{
 					_.Position = (long)mapper.MapRamToRom(region50b.Address);
 					inner_loop.SetTarget(mapper.MapRomToRam((ulong)_.Position));
+					_.WriteUInt24(0x8d4f38, be);                           // lea        ecx,[edi+38h]
+					lock_mutex.WriteJump5Byte(0xe8);                       // call       lock_mutex
 					_.WriteUInt16(0x8bcf, be);                             // mov        ecx,edi
 					process_sound_queue.WriteJump5Byte(0xe8);              // call       unknown_func
 					_.WriteUInt24(0x83fe21, be);                           // cmp        esi,21h
 					post_every_33_iterations.WriteJump(0x72);              // jb         post_every_33_iterations
 					_.WriteUInt32(0x660f6ec6, be);                         // movd       xmm0,esi
-					_.WriteUInt32(0xf30fe6c0, be);                         // cvtdq2pd   xmm0,xmm0
-					_.WriteUInt16(0x8bc6, be);                             // mov        eax,esi
-					_.WriteUInt24(0xc1e81f, be);                           // shr        eax,1Fh
+					_.WriteUInt24(0x0f5bc0, be);                           // cvtdq2ps   xmm0,xmm0
 					_.WriteUInt16(0x8b17, be);                             // mov        edx,dword ptr [edi]
-					_.WriteUInt40(0xf20f5804c5, be);                       // addsd      xmm0,mmword ptr [eax*8+8EC240h]
-					_.WriteUInt32(a.InnerLoopAddsd, le);
 					_.WriteUInt8(0x51);                                    // push       ecx
 					_.WriteUInt16(0x8bcf, be);                             // mov        ecx,edi
-					_.WriteUInt32(0x660f5ac0, be);                         // cvtpd2ps   xmm0,xmm0
 					_.WriteUInt32(0xf30f5e05, be);                         // divss      xmm0,dword ptr ds:[8ED254h]
 					_.WriteUInt32(a.InnerLoopDivss, le);
 					_.WriteUInt40(0xf30f594758, be);                       // mulss      xmm0,dword ptr [edi+58h]
@@ -220,6 +213,8 @@ namespace SenLib.Sen2 {
 					_.WriteUInt24(0xff5268, be);                           // call       dword ptr [edx+68h]
 					_.WriteUInt24(0x83ee21, be);                           // sub        esi,21h
 					post_every_33_iterations.SetTarget(mapper.MapRomToRam((ulong)_.Position));
+					_.WriteUInt24(0x8d4f38, be);                           // lea        ecx,[edi+38h]
+					unlock_mutex.WriteJump5Byte(0xe8);                     // call       unlock_mutex
 					_.WriteUInt8(0x46);                                    // inc        esi
 					exit_inner_loop.WriteJump5Byte(0xe9);                  // jmp        exit_inner_loop
 					region50b.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));

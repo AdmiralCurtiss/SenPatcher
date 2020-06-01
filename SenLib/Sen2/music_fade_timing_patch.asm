@@ -1,12 +1,5 @@
 ; compile with: ml /c /Cx /coff music_fade_timing_patch.asm
 
-; we have five code blocks here:
-; 0x3D bytes
-; 0x2B bytes
-; 0x4E bytes
-; 0x7F bytes <- this needs the original function location
-; 0x49 bytes
-
 .586
 .XMM
 .MODEL FLAT, C
@@ -40,7 +33,6 @@ ENDM
 ;     return 1;
 ; return 0;
 
-; compiles into 0x3D bytes
 do_compare:
     push        ebx
     mov         ebx,eax
@@ -102,8 +94,6 @@ ENDM
 ; ---------------------------------------------------------------------
 ; main function
 
-; compiles into 0x2B bytes
-
 thread_mainloop:
     push       ebx
     mov        edi,ecx
@@ -122,7 +112,6 @@ int 3
 ENDM
 
 ; ---------------------------------------------------------------------
-; compiles into 0x4E bytes
 
 thread_mainloop_continue:
 ; divide by N to get the time frequency we want the inner function to run at
@@ -168,12 +157,8 @@ int 3
 ENDM
 
 ; ---------------------------------------------------------------------
-; compiles into 0x7F bytes
 
 outer_loop:
-    lea        ecx,[edi+38h]
-    call       lock_mutex ; 0071E550h ; lock_mutex
-
 ; initialize ticks_now == ebp-18h / ebp-14h
     lea        eax,[ebp-18h]
     call       invoke_query_performance_counter
@@ -213,9 +198,7 @@ exit_inner_loop:
     jmp        remainder_increment
 
 go_to_sleep:
-    lea        ecx,[edi+38h]
-    call       unlock_mutex ; 0071E580h ; unlock_mutex
-    push       1
+    push       0
     call       invoke_sleep_milliseconds ; 0071DE50h ; invoke_sleep_milliseconds
     add        esp,4
 
@@ -235,25 +218,21 @@ REPEAT 1024
 int 3
 ENDM
 
-; compiles into 0x49 bytes
-
 inner_loop:
+    lea        ecx,[edi+38h]
+    call       lock_mutex ; 0071E550h
     mov        ecx,edi
-    call       unknown_func ; 0041E9F0h
+    call       process_sound_queue ; 0041E9F0h
 
     cmp        esi,21h
     jb         post_every_33_iterations
 
 inner_if_condition:
     movd       xmm0,esi
-    cvtdq2pd   xmm0,xmm0
-    mov        eax,esi
-    shr        eax,1Fh
+    cvtdq2ps   xmm0,xmm0
     mov        edx,dword ptr [edi]
-    addsd      xmm0,mmword ptr [eax*8+8EC240h]
     push       ecx
     mov        ecx,edi
-    cvtpd2ps   xmm0,xmm0
     divss      xmm0,dword ptr ds:[8ED254h]
     mulss      xmm0,dword ptr [edi+58h]
     movss      dword ptr [esp],xmm0
@@ -261,6 +240,8 @@ inner_if_condition:
     sub        esi,21h
 
 post_every_33_iterations:
+    lea        ecx,[edi+38h]
+    call       unlock_mutex ; 0071E580h
     inc        esi
     jmp        exit_inner_loop
 
@@ -308,7 +289,7 @@ ret
 REPEAT 15
 int 3
 ENDM
-unknown_func:
+process_sound_queue:
 ret
 REPEAT 15
 int 3
