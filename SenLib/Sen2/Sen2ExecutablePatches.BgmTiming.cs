@@ -15,9 +15,7 @@ namespace SenLib.Sen2 {
 			// divisor of 1000 seems to be console-accurate, but making fades a little faster actually feels nicer with the fast PC loading times
 
 			state.InitCodeSpaceIfNeeded(binary, patchInfo);
-			RegionHelper region50a = state.Region50a;
 			RegionHelper region50b = state.Region50b;
-			RegionHelper region60 = state.Region60;
 			RegionHelper region51 = state.Region51;
 			RegionHelper regionEntryPoint = null;
 			RegionHelper region80 = null;
@@ -53,7 +51,7 @@ namespace SenLib.Sen2 {
 					for (uint i = 0; i < a.ThreadEntryPointLength; ++i) {
 						binary.WriteUInt8(0xcc);
 					}
-					regionEntryPoint = new RegionHelper(a.ThreadEntryPointAddress, a.ThreadEntryPointLength);
+					regionEntryPoint = new RegionHelper(a.ThreadEntryPointAddress, a.ThreadEntryPointLength, "Timing Thread Entry Point");
 				}
 				{
 					// this is the body of the function we're replacing, clear it out
@@ -62,7 +60,7 @@ namespace SenLib.Sen2 {
 					for (uint i = 0; i < a.ThreadFunctionBodyLength; ++i) {
 						binary.WriteUInt8(0xcc);
 					}
-					region80 = new RegionHelper(a.ThreadFunctionBodyAddress, a.ThreadFunctionBodyLength);
+					region80 = new RegionHelper(a.ThreadFunctionBodyAddress, a.ThreadFunctionBodyLength, "Timing Thread Body");
 				}
 
 				EndianUtils.Endianness be = EndianUtils.Endianness.BigEndian;
@@ -82,7 +80,7 @@ namespace SenLib.Sen2 {
 					regionEntryPoint.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 				{
-					_.Position = (long)mapper.MapRamToRom(region50a.Address);
+					_.Position = (long)mapper.MapRamToRom(state.Region41.Address);
 					remainder_increment.SetTarget(mapper.MapRomToRam((ulong)_.Position));
 					_.WriteUInt16(0x03da, be);                  // add        ebx,edx                  ; counter += ticks_per_loop_remainder
 					_.WriteUInt24(0x8b55c8, be);                // mov        edx,dword ptr [ebp-38h]  ; edx = original_divisor
@@ -93,10 +91,10 @@ namespace SenLib.Sen2 {
 					_.WriteUInt16(0x2bda, be);                  // sub        ebx,edx                  ; counter -= original_divisor
 					exit_remainder_increment.SetTarget(mapper.MapRomToRam((ulong)_.Position));
 					time_pass_loop_4byte.WriteJump5Byte(0xe9);  // jmp        time_pass_loop
-					region50a.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region41.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 				{
-					_.Position = (long)mapper.MapRamToRom(region60.Address);
+					_.Position = (long)mapper.MapRamToRom(state.Region41.Address);
 					thread_mainloop.SetTarget(mapper.MapRomToRam((ulong)_.Position));
 					_.WriteUInt8(0x53);                                      // push       ebx
 					_.WriteUInt16(0x8bf9, be);                               // mov        edi,ecx
@@ -106,7 +104,7 @@ namespace SenLib.Sen2 {
 					_.WriteUInt24(0x8d45d8, be);                             // lea        eax,[ebp-28h]
 					invoke_query_performance_frequency.WriteJump5Byte(0xe8); // call       invoke_query_performance_frequency
 					thread_mainloop_continue.WriteJump5Byte(0xe9);           // jmp        thread_mainloop_continue
-					region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region41.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 				{
 					_.Position = (long)mapper.MapRamToRom(region51.Address);
@@ -227,25 +225,25 @@ namespace SenLib.Sen2 {
 					region50b.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 				{
-					_.Position = (long)mapper.MapRamToRom(region60.Address);
+					_.Position = (long)mapper.MapRamToRom(state.Region41.Address);
 					invoke_query_performance_frequency.SetTarget(mapper.MapRomToRam((ulong)_.Position));
 					_.WriteUInt8(0x50);                // push eax
 					_.WriteUInt16(0xff15, be);         // call dword ptr[QueryPerformanceFrequency]
 					_.WriteUInt32(a.QueryPerformanceFrequency);
 					_.WriteUInt8(0xc3);                // ret
-					region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region41.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 				{
-					_.Position = (long)mapper.MapRamToRom(region60.Address);
+					_.Position = (long)mapper.MapRamToRom(state.Region32.Address);
 					invoke_query_performance_counter.SetTarget(mapper.MapRomToRam((ulong)_.Position));
 					_.WriteUInt8(0x50);                // push eax
 					_.WriteUInt16(0xff15, be);         // call dword ptr[QueryPerformanceCounter]
 					_.WriteUInt32(a.QueryPerformanceCounter);
 					_.WriteUInt8(0xc3);                // ret
-					region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region32.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 				{
-					_.Position = (long)mapper.MapRamToRom(region60.Address);
+					_.Position = (long)mapper.MapRamToRom(state.Region32.Address);
 					do_compare.SetTarget(mapper.MapRomToRam((ulong)_.Position));
 					_.WriteUInt8(0x53);                         // push        ebx
 					_.WriteUInt16(0x8bd8, be);                  // mov         ebx,eax
@@ -269,7 +267,7 @@ namespace SenLib.Sen2 {
 					_.WriteUInt8(0x5e);                         // pop         esi
 					_.WriteUInt8(0x5b);                         // pop         ebx
 					_.WriteUInt8(0xc3);                         // ret
-					region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region32.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 
 				lock_mutex.SetTarget(a.LockMutex);

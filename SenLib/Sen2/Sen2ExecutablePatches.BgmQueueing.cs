@@ -20,6 +20,10 @@ namespace SenLib.Sen2 {
 			using (BranchHelper4Byte clear_dirty_if_queue_empty = new BranchHelper4Byte(binary, mapper))
 			using (BranchHelper1Byte queue_not_empty = new BranchHelper1Byte(binary, mapper))
 			using (BranchHelper4Byte queue_empty_jump_back = new BranchHelper4Byte(binary, mapper))
+			using (BranchHelper4Byte check_if_should_enqueue = new BranchHelper4Byte(binary, mapper))
+			using (BranchHelper4Byte back_to_function = new BranchHelper4Byte(binary, mapper))
+			using (BranchHelper1Byte check_done_return_0 = new BranchHelper1Byte(binary, mapper))
+			using (BranchHelper1Byte check_done = new BranchHelper1Byte(binary, mapper))
 			using (BranchHelper4Byte write_sound_queue_4bytes = new BranchHelper4Byte(binary, mapper)) {
 				EndianUtils.Endianness be = EndianUtils.Endianness.BigEndian;
 				EndianUtils.Endianness le = EndianUtils.Endianness.LittleEndian;
@@ -27,11 +31,12 @@ namespace SenLib.Sen2 {
 
 				// end of the uninitialized .data section, right before .rsrc, should be unused
 				// TODO: where is the actual information about the location/length of that section stored...?
-				uint address_of_dirty_flag = 0x1179ffe;
+				uint address_of_dirty_flag = 0x1179ffc;
 				uint address_of_overwritable_write_sound_queue_4bytes_0x5 = 0x0041fdd7;
 				uint address_of_overwritable_write_sound_queue_4bytes_0x6 = 0x004219b9;
 				uint address_write_sound_queue_4bytes = 0x00422220;
 				uint end_of_sound_queue_processing = 0x0041f1a8;
+				uint address_of_is_playing_check_injection = 0x0057c7fb;
 
 				write_sound_queue_4bytes.SetTarget(address_write_sound_queue_4bytes);
 				lock_mutex.SetTarget(a.LockMutex);
@@ -84,7 +89,68 @@ namespace SenLib.Sen2 {
 					state.Region50a.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
 				}
 
-				// TODO: patch the code at ~0x57c80f to check whether the bgm is fading as well as the dirty flag
+				// patch the logic for when to skip enqueueing a bgm
+				{
+					_.Position = (long)mapper.MapRamToRom(address_of_is_playing_check_injection);
+					check_if_should_enqueue.WriteJump5Byte(0xe9);
+					for (int i = 0; i < 5; ++i) {
+						_.WriteUInt8(0x90); // clear instructions we no longer want here
+					}
+					back_to_function.SetTarget(mapper.MapRomToRam((ulong)_.Position));
+
+
+					_.Position = (long)mapper.MapRamToRom(state.Region60.Address);
+					check_if_should_enqueue.SetTarget(mapper.MapRomToRam((ulong)_.Position));
+
+					// load dirty flag
+					_.WriteUInt24(0x8d4e44, be);                 // lea  ecx,[esi+44h]
+					lock_mutex.WriteJump5Byte(0xe8);             // call lock_mutex
+					_.WriteUInt8(0xb8);                          // mov eax,(address of dirty flag)
+					_.WriteUInt32(address_of_dirty_flag, le);
+					_.WriteUInt16(0x8a00, be);                   // mov  al,byte ptr[eax]
+					_.WriteUInt16(0x8bf8, be);                   // mov  edi,eax
+					_.WriteUInt24(0x8d4e44, be);                 // lea  ecx,[esi+44h]
+					unlock_mutex.WriteJump5Byte(0xe8);           // call unlock_mutex
+
+					// lock on bgm state
+					_.WriteUInt24(0x8d4e40, be);                 // lea  ecx,[esi+40h]
+					lock_mutex.WriteJump5Byte(0xe8);             // call lock_mutex
+
+					// check is_playing_bgm()
+					_.WriteUInt16(0x8b06, be);                   // mov  eax,dword ptr[esi]
+					_.WriteUInt48(0x8b8094000000, be);           // mov  eax,dword ptr[eax+94h]
+					_.WriteUInt16(0x8bce, be);                   // mov  ecx,esi
+					_.WriteUInt16(0xffd0, be);                   // call eax         ; al is now 1 when bgm is playing, 0 if not
+					_.WriteUInt16(0x84c0, be);                   // test al,al
+					check_done.WriteJump(0x74);                  // je   check_done  ; if !is_playing_bgm() we're already done; this returns 0
+
+					// check dirty flag
+					_.WriteUInt16(0x8bc7, be);                   // mov  eax,edi
+					_.WriteUInt16(0x84c0, be);                   // test al,al                  ; al is now 1 when dirty, 0 if not
+					check_done_return_0.WriteJump(0x75);         // jne  check_done_return_0    ; if dirty return 0
+
+					// check bgm_is_fading()
+					_.WriteUInt24(0x8b4614, be);                 // mov  eax,dword ptr[esi+14h]
+					_.WriteUInt16(0x8b00, be);                   // mov  eax,dword ptr[eax]     ; eax is now pointing at the bgm sound channel
+					_.WriteUInt24(0x8a4038, be);                 // mov  al,byte ptr[eax+38h]   ; al is now 1 when fade is active, 0 if not
+					_.WriteUInt16(0x84c0, be);                   // test al,al
+					check_done_return_0.WriteJump(0x75);         // jne  check_done_return_0    ; if it's fading out return 0
+					_.WriteUInt8(0x40);                          // inc  eax
+					check_done.WriteJump(0xeb);                  // jmp  check_done             ; otherwise return 1
+
+					check_done_return_0.SetTarget(mapper.MapRomToRam((ulong)_.Position));
+					_.WriteUInt16(0x33c0, be);                   // xor  eax,eax
+
+					check_done.SetTarget(mapper.MapRomToRam((ulong)_.Position));
+					_.WriteUInt16(0x8bf8, be);                   // mov  edi,eax
+					_.WriteUInt24(0x8d4e40, be);                 // lea  ecx,[esi+40h]
+					unlock_mutex.WriteJump5Byte(0xe8);           // call unlock_mutex
+					_.WriteUInt16(0x8bc7, be);                   // mov  eax,edi
+					_.WriteUInt16(0x8bce, be);                   // mov  ecx,esi               ; restore ecx (probably unnecessary)
+					_.WriteUInt16(0x8b3e, be);                   // mov  edi,dword ptr[esi]    ; restore edi
+					back_to_function.WriteJump5Byte(0xe9);       // jmp  back_to_function
+					state.Region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+				}
 
 
 				// 0x8eda84 -> FSound vftable
@@ -132,8 +198,8 @@ namespace SenLib.Sen2 {
 				// by checking (current fade time < target fade time) && fade end factor == 0.0f
 				// but this doesn't actually seem to be necessary, as far as I can tell?
 				// still, figured I'd note this here in case it ends up being useful
-				_.Position = (long)mapper.MapRamToRom(a.BgmAlreadyPlayingJump);
-				_.WriteUInt8(0xeb);
+				// _.Position = (long)mapper.MapRamToRom(a.BgmAlreadyPlayingJump);
+				// _.WriteUInt8(0xeb);
 			}
 		}
 	}

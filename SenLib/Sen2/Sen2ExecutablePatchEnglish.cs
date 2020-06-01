@@ -37,6 +37,13 @@ namespace SenLib.Sen2 {
 			c.Region60Target = 0x42160b; // command 0xA
 			c.Region60Length = 0x60;
 
+			c.Region41Address = 0x421b2a; // command 0x2
+			c.Region41Target = 0x4219db; // command 0x6
+			c.Region41Length = 0x41;
+			c.Region32Address = 0x41fcc9; // command 0x0
+			c.Region32Target = 0x420f51; // command 0x8
+			c.Region32Length = 0x32;
+
 			c.RegionDAddress = 0x41fc03;
 			c.RegionDLength = 0xd;
 
