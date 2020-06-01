@@ -35,6 +35,7 @@
 			this.comboBoxTurboModeKey = new System.Windows.Forms.ComboBox();
 			this.buttonPatch = new System.Windows.Forms.Button();
 			this.label5 = new System.Windows.Forms.Label();
+			this.checkBoxFixHdTextureId = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -97,7 +98,7 @@
 			// checkBoxAllowR2InTurboMode
 			// 
 			this.checkBoxAllowR2InTurboMode.AutoSize = true;
-			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(97, 94);
+			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(97, 117);
 			this.checkBoxAllowR2InTurboMode.Name = "checkBoxAllowR2InTurboMode";
 			this.checkBoxAllowR2InTurboMode.Size = new System.Drawing.Size(280, 17);
 			this.checkBoxAllowR2InTurboMode.TabIndex = 6;
@@ -107,7 +108,7 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(94, 120);
+			this.label4.Location = new System.Drawing.Point(94, 143);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(87, 13);
 			this.label4.TabIndex = 7;
@@ -117,7 +118,7 @@
 			// 
 			this.comboBoxTurboModeKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboBoxTurboModeKey.FormattingEnabled = true;
-			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 117);
+			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 140);
 			this.comboBoxTurboModeKey.Name = "comboBoxTurboModeKey";
 			this.comboBoxTurboModeKey.Size = new System.Drawing.Size(126, 21);
 			this.comboBoxTurboModeKey.TabIndex = 8;
@@ -126,7 +127,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 225);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 233);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(440, 41);
 			this.buttonPatch.TabIndex = 9;
@@ -137,17 +138,30 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 147);
+			this.label5.Location = new System.Drawing.Point(94, 170);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(346, 52);
 			this.label5.TabIndex = 10;
 			this.label5.Text = resources.GetString("label5.Text");
 			// 
+			// checkBoxFixHdTextureId
+			// 
+			this.checkBoxFixHdTextureId.AutoSize = true;
+			this.checkBoxFixHdTextureId.Checked = true;
+			this.checkBoxFixHdTextureId.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxFixHdTextureId.Location = new System.Drawing.Point(97, 94);
+			this.checkBoxFixHdTextureId.Name = "checkBoxFixHdTextureId";
+			this.checkBoxFixHdTextureId.Size = new System.Drawing.Size(198, 17);
+			this.checkBoxFixHdTextureId.TabIndex = 11;
+			this.checkBoxFixHdTextureId.Text = "Fix Thor master quartz HD texture ID";
+			this.checkBoxFixHdTextureId.UseVisualStyleBackColor = true;
+			// 
 			// Sen1Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(465, 278);
+			this.ClientSize = new System.Drawing.Size(465, 286);
+			this.Controls.Add(this.checkBoxFixHdTextureId);
 			this.Controls.Add(this.label5);
 			this.Controls.Add(this.buttonPatch);
 			this.Controls.Add(this.comboBoxTurboModeKey);
@@ -179,5 +193,6 @@
 		private System.Windows.Forms.ComboBox comboBoxTurboModeKey;
 		private System.Windows.Forms.Button buttonPatch;
 		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.CheckBox checkBoxFixHdTextureId;
 	}
 }

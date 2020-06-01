@@ -70,6 +70,7 @@ namespace SenPatcherGui {
 				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 				bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
 				int turboKey = comboBoxTurboModeKey.SelectedIndex;
+				bool fixTextureIds = checkBoxFixHdTextureId.Checked;
 
 				if (removeTurboSkip) {
 					Sen1ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo, true);
@@ -83,6 +84,9 @@ namespace SenPatcherGui {
 					Sen1ExecutablePatches.PatchButtonBattleAnimationAutoSkip(ms, PatchInfo, (byte)turboKey);
 					Sen1ExecutablePatches.PatchButtonBattleResultsAutoSkip(ms, PatchInfo, (byte)turboKey);
 					Sen1ExecutablePatches.PatchButtonTurboMode(ms, PatchInfo, (byte)turboKey);
+				}
+				if (fixTextureIds) {
+					Sen1ExecutablePatches.PatchThorMasterQuartzString(ms, PatchInfo);
 				}
 
 				// write patched file

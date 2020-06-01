@@ -33,5 +33,9 @@ namespace SenLib.Sen1 {
 		public long GetAddressJumpR2NotebookSettings() {
 			return 0x6dfaf0;
 		}
+
+		public long GetRomAddressThorMasterQuartzTextureIdTypo() {
+			return 0x73adba;
+		}
 	}
 }

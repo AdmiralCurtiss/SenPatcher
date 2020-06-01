@@ -26,5 +26,8 @@ namespace SenLib.Sen1 {
 
 		// address of conditional jump statement for not displaying the R2 option in the settings when turbo is enabled
 		long GetAddressJumpR2NotebookSettings();
+
+		// address of extra character in the middle of texture ID string of Thor MQ, for the HQ texture pack
+		long GetRomAddressThorMasterQuartzTextureIdTypo();
 	}
 }

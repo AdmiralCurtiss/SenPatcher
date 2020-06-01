@@ -84,5 +84,12 @@ namespace SenLib.Sen1 {
 			}
 		}
 
+		public static void PatchThorMasterQuartzString(Stream binary, Sen1ExecutablePatchInterface patchInfo) {
+			binary.Position = patchInfo.GetRomAddressThorMasterQuartzTextureIdTypo();
+			long p = binary.Position;
+			byte[] tmp = binary.ReadUInt8Array(4);
+			binary.Position = p;
+			binary.Write(tmp, 1, 3);
+		}
 	}
 }
