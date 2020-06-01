@@ -59,6 +59,7 @@ namespace SenPatcherGui {
 				// patch data
 				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 				bool patchAudioThread = checkBoxPatchAudioThread.Checked;
+				bool patchBgmQueueing = checkBoxBgmEnqueueingLogic.Checked;
 
 				if (removeTurboSkip) {
 					Sen2ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo, true);
@@ -67,10 +68,15 @@ namespace SenPatcherGui {
 					Sen2ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, PatchInfo, true);
 				}
 
-				if (patchAudioThread) {
+				if (patchAudioThread || patchBgmQueueing) {
 					var state = new Sen2ExecutablePatchState();
-					int divisor = (int)numericUpDownTicksPerSecond.Value;
-					Sen2ExecutablePatches.PatchMusicFadeTiming(ms, PatchInfo, state, divisor <= 0 ? 1350 : (uint)divisor);
+					if (patchAudioThread) {
+						int divisor = (int)numericUpDownTicksPerSecond.Value;
+						Sen2ExecutablePatches.PatchMusicFadeTiming(ms, PatchInfo, state, divisor <= 0 ? 1350 : (uint)divisor);
+					}
+					if (patchBgmQueueing) {
+						Sen2ExecutablePatches.PatchMusicQueueing(ms, PatchInfo, state);
+					}
 				}
 
 				// write patched file
@@ -85,7 +91,7 @@ namespace SenPatcherGui {
 			}
 		}
 
-		private void checkBoxAllowR2InTurboMode_CheckedChanged(object sender, EventArgs e) {
+		private void checkBoxPatchAudioThread_CheckedChanged(object sender, EventArgs e) {
 			numericUpDownTicksPerSecond.Enabled = checkBoxPatchAudioThread.Checked;
 		}
 	}
