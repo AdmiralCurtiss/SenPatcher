@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,5 +19,51 @@ namespace SenLib {
 		public static readonly string Sen2JpExePath = @"bin\Win32\ed8_2_PC_JP.exe";
 
 		public static readonly string BackupPostfix = ".senpatcher.bkp";
+
+		private static string _SavedGamesFolder = null;
+		public static string SavedGamesFolder {
+			get {
+				if (_SavedGamesFolder == null) {
+					IntPtr str;
+					if (SHGetKnownFolderPath(new Guid("4C5C32FF-BB9D-43b0-B5B4-2D72E54EAAA4"), 0, IntPtr.Zero, out str) == 0) {
+						_SavedGamesFolder = Marshal.PtrToStringUni(str);
+					}
+					if (str != IntPtr.Zero) {
+						Marshal.FreeCoTaskMem(str);
+					}
+				}
+				if (_SavedGamesFolder == null) {
+					throw new Exception("Failed to get known Saved Games folder.");
+				}
+				return _SavedGamesFolder;
+			}
+		}
+
+		public static string Sen1SaveFolder {
+			get {
+				return Path.Combine(SavedGamesFolder, "FALCOM", "ed8");
+			}
+		}
+
+		public static string Sen1SystemDataFile {
+			get {
+				return Path.Combine(Sen1SaveFolder, "save511.dat");
+			}
+		}
+
+		public static string Sen2SaveFolder {
+			get {
+				return Path.Combine(SavedGamesFolder, "FALCOM", "ed8_2");
+			}
+		}
+
+		public static string Sen2SystemDataFile {
+			get {
+				return Path.Combine(Sen2SaveFolder, "save255.dat");
+			}
+		}
+
+		[DllImport("shell32.dll")]
+		static extern int SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken, out IntPtr ppszPath);
 	}
 }
