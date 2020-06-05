@@ -179,11 +179,11 @@ namespace SenLib.Sen2 {
 				// if we need a safer test, *(int*)(*(((int*)edi)+5)) in function at 0x41F846 (which is the currently-playing-bgm check, called at 0x57c803)
 				// seems to give us the pointer to the data structure containing the current volume/fade info of the bgm
 				// which seems to be:
-				//    +0x00 ptr: vftable
-				//    +0x04 ?
-				//    +0x08 ?
+				//    +0x00 ptr: FSoundChannelController::vftable
+				//    +0x04 ptr: FSound
+				//    +0x08 ptr: FSoundData
 				//    +0x0c ?
-				//    +0x10 ?
+				//    +0x10 ptr: FSoundStreamParamsWin32
 				//    +0x14 ?
 				//    +0x18 ?
 				//    +0x1C float: ?

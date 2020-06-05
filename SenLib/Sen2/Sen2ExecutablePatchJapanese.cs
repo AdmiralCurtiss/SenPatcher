@@ -76,6 +76,8 @@ namespace SenLib.Sen2 {
 			a.AddressWriteSoundQueue4bytes = 0x4221a0;
 			a.EndOfSoundQueueProcessing = 0x41f188;
 			a.AddressOfIsPlayingCheckInjection = 0x57c48b;
+
+			a.AddressOfSkipEnqueueOnSoundThreadSideInjection = 0x41ef17;
 			return a;
 		}
 	}

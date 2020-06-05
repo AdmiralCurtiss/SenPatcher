@@ -34,5 +34,7 @@ namespace SenLib.Sen2 {
 		public uint AddressWriteSoundQueue4bytes;
 		public uint EndOfSoundQueueProcessing;
 		public uint AddressOfIsPlayingCheckInjection;
+
+		public uint AddressOfSkipEnqueueOnSoundThreadSideInjection;
 	}
 }
