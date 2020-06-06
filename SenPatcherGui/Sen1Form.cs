@@ -100,5 +100,16 @@ namespace SenPatcherGui {
 				return;
 			}
 		}
+
+		private void buttonUnpatch_Click(object sender, EventArgs e) {
+			using (MemoryStream ms = Binary.CopyToMemory()) {
+				using (var fs = new FileStream(Path, FileMode.Create, FileAccess.Write)) {
+					ms.Position = 0;
+					StreamUtils.CopyStream(ms, fs);
+				}
+				MessageBox.Show("Original executable has been restored.");
+				return;
+			}
+		}
 	}
 }

@@ -37,6 +37,7 @@
 			this.label4 = new System.Windows.Forms.Label();
 			this.checkBoxBgmEnqueueingLogic = new System.Windows.Forms.CheckBox();
 			this.label6 = new System.Windows.Forms.Label();
+			this.buttonUnpatch = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownTicksPerSecond)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -73,7 +74,7 @@
 			// labelVersion
 			// 
 			this.labelVersion.AutoSize = true;
-			this.labelVersion.Location = new System.Drawing.Point(63, 30);
+			this.labelVersion.Location = new System.Drawing.Point(57, 30);
 			this.labelVersion.Name = "labelVersion";
 			this.labelVersion.Size = new System.Drawing.Size(16, 13);
 			this.labelVersion.TabIndex = 14;
@@ -91,7 +92,7 @@
 			// labelFile
 			// 
 			this.labelFile.AutoSize = true;
-			this.labelFile.Location = new System.Drawing.Point(48, 13);
+			this.labelFile.Location = new System.Drawing.Point(57, 13);
 			this.labelFile.Name = "labelFile";
 			this.labelFile.Size = new System.Drawing.Size(16, 13);
 			this.labelFile.TabIndex = 12;
@@ -188,11 +189,23 @@
 			this.label6.TabIndex = 26;
 			this.label6.Text = resources.GetString("label6.Text");
 			// 
+			// buttonUnpatch
+			// 
+			this.buttonUnpatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonUnpatch.Location = new System.Drawing.Point(282, 30);
+			this.buttonUnpatch.Name = "buttonUnpatch";
+			this.buttonUnpatch.Size = new System.Drawing.Size(188, 23);
+			this.buttonUnpatch.TabIndex = 27;
+			this.buttonUnpatch.Text = "Remove Patches / Restore Original";
+			this.buttonUnpatch.UseVisualStyleBackColor = true;
+			this.buttonUnpatch.Click += new System.EventHandler(this.buttonUnpatch_Click);
+			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(483, 476);
+			this.Controls.Add(this.buttonUnpatch);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.checkBoxBgmEnqueueingLogic);
 			this.Controls.Add(this.label4);
@@ -229,5 +242,6 @@
 		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.CheckBox checkBoxBgmEnqueueingLogic;
 		private System.Windows.Forms.Label label6;
+		private System.Windows.Forms.Button buttonUnpatch;
 	}
 }

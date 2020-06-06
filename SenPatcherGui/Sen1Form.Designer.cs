@@ -36,6 +36,7 @@
 			this.buttonPatch = new System.Windows.Forms.Button();
 			this.label5 = new System.Windows.Forms.Label();
 			this.checkBoxFixHdTextureId = new System.Windows.Forms.CheckBox();
+			this.buttonUnpatch = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -50,7 +51,7 @@
 			// labelFile
 			// 
 			this.labelFile.AutoSize = true;
-			this.labelFile.Location = new System.Drawing.Point(48, 13);
+			this.labelFile.Location = new System.Drawing.Point(57, 13);
 			this.labelFile.Name = "labelFile";
 			this.labelFile.Size = new System.Drawing.Size(16, 13);
 			this.labelFile.TabIndex = 1;
@@ -68,7 +69,7 @@
 			// labelVersion
 			// 
 			this.labelVersion.AutoSize = true;
-			this.labelVersion.Location = new System.Drawing.Point(63, 30);
+			this.labelVersion.Location = new System.Drawing.Point(57, 30);
 			this.labelVersion.Name = "labelVersion";
 			this.labelVersion.Size = new System.Drawing.Size(16, 13);
 			this.labelVersion.TabIndex = 3;
@@ -156,11 +157,23 @@
 			this.checkBoxFixHdTextureId.Text = "Fix Thor master quartz HD texture ID";
 			this.checkBoxFixHdTextureId.UseVisualStyleBackColor = true;
 			// 
+			// buttonUnpatch
+			// 
+			this.buttonUnpatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonUnpatch.Location = new System.Drawing.Point(265, 30);
+			this.buttonUnpatch.Name = "buttonUnpatch";
+			this.buttonUnpatch.Size = new System.Drawing.Size(188, 23);
+			this.buttonUnpatch.TabIndex = 12;
+			this.buttonUnpatch.Text = "Remove Patches / Restore Original";
+			this.buttonUnpatch.UseVisualStyleBackColor = true;
+			this.buttonUnpatch.Click += new System.EventHandler(this.buttonUnpatch_Click);
+			// 
 			// Sen1Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(465, 286);
+			this.Controls.Add(this.buttonUnpatch);
 			this.Controls.Add(this.checkBoxFixHdTextureId);
 			this.Controls.Add(this.label5);
 			this.Controls.Add(this.buttonPatch);
@@ -194,5 +207,6 @@
 		private System.Windows.Forms.Button buttonPatch;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.CheckBox checkBoxFixHdTextureId;
+		private System.Windows.Forms.Button buttonUnpatch;
 	}
 }
