@@ -1,6 +1,7 @@
 ﻿using HyoutaUtils;
 using SenLib;
 using SenLib.Sen1;
+using SenLib.Sen2;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -121,6 +122,37 @@ namespace SenPatcherGui {
 			}
 
 			new Sen1SystemDataForm(data, path, HyoutaUtils.EndianUtils.Endianness.LittleEndian).ShowDialog();
+		}
+
+		private void buttonCs2SystemDataAuto_Click(object sender, EventArgs e) {
+			OpenCs2SystemData(SenCommonPaths.Sen2SystemDataFile);
+		}
+
+		private void buttonCs2SystemDataManual_Click(object sender, EventArgs e) {
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.Filter = "CS2 System Data File (" + SenCommonPaths.Sen2SystemDataFilename + ")|" + SenCommonPaths.Sen2SystemDataFilename + "|All files (*.*)|*.*";
+				if (d.ShowDialog() == DialogResult.OK) {
+					OpenCs2SystemData(d.FileName);
+				}
+			}
+		}
+
+		private void OpenCs2SystemData(string path) {
+			if (!File.Exists(path)) {
+				MessageBox.Show("No file found at " + path + ".");
+				return;
+			}
+
+			Sen2SystemData data = null;
+			using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+				if (fs.Length != Sen2SystemData.FileLength) {
+					MessageBox.Show("Incorrect filesize for CS2 system data at " + path + ".");
+					return;
+				}
+				data = new Sen2SystemData(fs.CopyToMemory(), HyoutaUtils.EndianUtils.Endianness.LittleEndian);
+			}
+
+			new Sen2SystemDataForm(data, path, HyoutaUtils.EndianUtils.Endianness.LittleEndian).ShowDialog();
 		}
 	}
 }

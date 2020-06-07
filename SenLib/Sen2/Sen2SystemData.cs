@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen2 {
 	public class Sen2SystemData {
+		public const long FileLength = 120;
+
+
 		// possibly a game identifier, as this is the seventh mainline Kiseki game?
 		public uint Always7;
 

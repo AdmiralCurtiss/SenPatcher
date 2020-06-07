@@ -36,11 +36,13 @@
 			this.labelVersion = new System.Windows.Forms.Label();
 			this.buttonCs1SystemDataAuto = new System.Windows.Forms.Button();
 			this.buttonCs1SystemDataManual = new System.Windows.Forms.Button();
+			this.buttonCs2SystemDataManual = new System.Windows.Forms.Button();
+			this.buttonCs2SystemDataAuto = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// buttonManuallySelect
 			// 
-			this.buttonManuallySelect.Location = new System.Drawing.Point(16, 263);
+			this.buttonManuallySelect.Location = new System.Drawing.Point(16, 292);
 			this.buttonManuallySelect.Name = "buttonManuallySelect";
 			this.buttonManuallySelect.Size = new System.Drawing.Size(449, 21);
 			this.buttonManuallySelect.TabIndex = 0;
@@ -169,11 +171,33 @@
 			this.buttonCs1SystemDataManual.UseVisualStyleBackColor = true;
 			this.buttonCs1SystemDataManual.Click += new System.EventHandler(this.buttonCs1SystemDataManual_Click);
 			// 
+			// buttonCs2SystemDataManual
+			// 
+			this.buttonCs2SystemDataManual.Location = new System.Drawing.Point(235, 251);
+			this.buttonCs2SystemDataManual.Name = "buttonCs2SystemDataManual";
+			this.buttonCs2SystemDataManual.Size = new System.Drawing.Size(230, 21);
+			this.buttonCs2SystemDataManual.TabIndex = 14;
+			this.buttonCs2SystemDataManual.Text = "Edit CS2 System Data (Select Manually)";
+			this.buttonCs2SystemDataManual.UseVisualStyleBackColor = true;
+			this.buttonCs2SystemDataManual.Click += new System.EventHandler(this.buttonCs2SystemDataManual_Click);
+			// 
+			// buttonCs2SystemDataAuto
+			// 
+			this.buttonCs2SystemDataAuto.Location = new System.Drawing.Point(16, 251);
+			this.buttonCs2SystemDataAuto.Name = "buttonCs2SystemDataAuto";
+			this.buttonCs2SystemDataAuto.Size = new System.Drawing.Size(213, 21);
+			this.buttonCs2SystemDataAuto.TabIndex = 13;
+			this.buttonCs2SystemDataAuto.Text = "Edit CS2 System Data (Autodetect)";
+			this.buttonCs2SystemDataAuto.UseVisualStyleBackColor = true;
+			this.buttonCs2SystemDataAuto.Click += new System.EventHandler(this.buttonCs2SystemDataAuto_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(477, 299);
+			this.ClientSize = new System.Drawing.Size(477, 325);
+			this.Controls.Add(this.buttonCs2SystemDataManual);
+			this.Controls.Add(this.buttonCs2SystemDataAuto);
 			this.Controls.Add(this.buttonCs1SystemDataManual);
 			this.Controls.Add(this.buttonCs1SystemDataAuto);
 			this.Controls.Add(this.labelVersion);
@@ -209,6 +233,8 @@
 		private System.Windows.Forms.Label labelVersion;
 		private System.Windows.Forms.Button buttonCs1SystemDataAuto;
 		private System.Windows.Forms.Button buttonCs1SystemDataManual;
+		private System.Windows.Forms.Button buttonCs2SystemDataManual;
+		private System.Windows.Forms.Button buttonCs2SystemDataAuto;
 	}
 }
 
