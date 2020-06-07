@@ -133,10 +133,4 @@ mess with it, but I believe the selected default of 1350 sounds pretty
 good. A value of 1000 would be closer to PS3-accurate, but having
 BGM fades go a bit faster feels nicer with the PC loading times.</value>
   </data>
-  <data name="label6.Text" xml:space="preserve">
-    <value>Patches the BGM playing function to allow queueing the same track
-that is currently fading out, which fixes things like the wrong BGM
-playing when repeatedly transitioning between two areas, as well as
-the missing cutscene BGM bug in the Intermission.</value>
-  </data>
 </root>

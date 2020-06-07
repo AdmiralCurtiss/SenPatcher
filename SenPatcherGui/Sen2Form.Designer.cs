@@ -44,7 +44,7 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 228);
+			this.label5.Location = new System.Drawing.Point(94, 214);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(364, 182);
 			this.label5.TabIndex = 21;
@@ -111,7 +111,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 423);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 406);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(458, 41);
 			this.buttonPatch.TabIndex = 22;
@@ -124,7 +124,7 @@
 			this.checkBoxPatchAudioThread.AutoSize = true;
 			this.checkBoxPatchAudioThread.Checked = true;
 			this.checkBoxPatchAudioThread.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 176);
+			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 162);
 			this.checkBoxPatchAudioThread.Name = "checkBoxPatchAudioThread";
 			this.checkBoxPatchAudioThread.Size = new System.Drawing.Size(248, 17);
 			this.checkBoxPatchAudioThread.TabIndex = 17;
@@ -139,7 +139,7 @@
             0,
             0,
             0});
-			this.numericUpDownTicksPerSecond.Location = new System.Drawing.Point(275, 200);
+			this.numericUpDownTicksPerSecond.Location = new System.Drawing.Point(275, 186);
 			this.numericUpDownTicksPerSecond.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -162,7 +162,7 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(114, 202);
+			this.label4.Location = new System.Drawing.Point(114, 188);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(155, 13);
 			this.label4.TabIndex = 24;
@@ -185,9 +185,11 @@
 			this.label6.AutoSize = true;
 			this.label6.Location = new System.Drawing.Point(94, 114);
 			this.label6.Name = "label6";
-			this.label6.Size = new System.Drawing.Size(327, 52);
+			this.label6.Size = new System.Drawing.Size(338, 39);
 			this.label6.TabIndex = 26;
-			this.label6.Text = resources.GetString("label6.Text");
+			this.label6.Text = "Patches a few BGM related pieces of code to fix things like the wrong\r\nBGM playin" +
+    "g when repeatedly transitioning between two areas, as well\r\nas the missing cutsc" +
+    "ene BGM bug in the Intermission.";
 			// 
 			// buttonUnpatch
 			// 
@@ -204,7 +206,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(483, 476);
+			this.ClientSize = new System.Drawing.Size(483, 459);
 			this.Controls.Add(this.buttonUnpatch);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.checkBoxBgmEnqueueingLogic);
