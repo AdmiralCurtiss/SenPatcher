@@ -72,7 +72,7 @@ namespace SenPatcherGui {
 					var state = new Sen2ExecutablePatchState();
 					if (patchAudioThread) {
 						int divisor = (int)numericUpDownTicksPerSecond.Value;
-						Sen2ExecutablePatches.PatchMusicFadeTiming(ms, PatchInfo, state, divisor <= 0 ? 1350 : (uint)divisor);
+						Sen2ExecutablePatches.PatchMusicFadeTiming(ms, PatchInfo, state, divisor <= 0 ? 1000 : (uint)divisor);
 					}
 					if (patchBgmQueueing) {
 						Sen2ExecutablePatches.PatchMusicQueueingOnSoundThreadSide(ms, PatchInfo, state);

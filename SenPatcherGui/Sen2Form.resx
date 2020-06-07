@@ -129,8 +129,8 @@ This patch reimplements the audio thread to instead time itself using
 QueryPerformanceCounter(), which should be a lot more accurate.
 
 I've left the amount of timing ticks configurable in case you want to
-mess with it, but I believe the selected default of 1350 sounds pretty
-good. A value of 1000 would be closer to PS3-accurate, but having
-BGM fades go a bit faster feels nicer with the PC loading times.</value>
+mess with it. The default value of 1000 seems to be consistent with
+the intended timing in the PS3 version.
+</value>
   </data>
 </root>

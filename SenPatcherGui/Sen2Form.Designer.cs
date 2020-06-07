@@ -46,7 +46,7 @@
 			this.label5.AutoSize = true;
 			this.label5.Location = new System.Drawing.Point(94, 214);
 			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(364, 182);
+			this.label5.Size = new System.Drawing.Size(364, 169);
 			this.label5.TabIndex = 21;
 			this.label5.Text = resources.GetString("label5.Text");
 			// 
@@ -111,7 +111,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 406);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 393);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(458, 41);
 			this.buttonPatch.TabIndex = 22;
@@ -154,7 +154,7 @@
 			this.numericUpDownTicksPerSecond.Size = new System.Drawing.Size(68, 20);
 			this.numericUpDownTicksPerSecond.TabIndex = 23;
 			this.numericUpDownTicksPerSecond.Value = new decimal(new int[] {
-            1350,
+            1000,
             0,
             0,
             0});
@@ -206,7 +206,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(483, 459);
+			this.ClientSize = new System.Drawing.Size(483, 446);
 			this.Controls.Add(this.buttonUnpatch);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.checkBoxBgmEnqueueingLogic);
