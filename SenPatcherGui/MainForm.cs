@@ -80,17 +80,64 @@ namespace SenPatcherGui {
 				return;
 			}
 
-			if (actualVersion == SenVersion.Sen1_v1_6_En || actualVersion == SenVersion.Sen1_v1_6_Jp) {
-				new Sen1Form(path, binary, actualVersion.Value).ShowDialog();
-				return;
+			switch (actualVersion) {
+				case SenVersion.Sen1_v1_0_En:
+				case SenVersion.Sen1_v1_0_Jp:
+				case SenVersion.Sen1_v1_1_En:
+				case SenVersion.Sen1_v1_1_Jp:
+				case SenVersion.Sen1_v1_2_1_En:
+				case SenVersion.Sen1_v1_2_1_Jp:
+				case SenVersion.Sen1_v1_3_En:
+				case SenVersion.Sen1_v1_3_Jp:
+				case SenVersion.Sen1_v1_3_5_En:
+				case SenVersion.Sen1_v1_3_5_Jp:
+				case SenVersion.Sen1_v1_4_En:
+				case SenVersion.Sen1_v1_4_Jp:
+				case SenVersion.Sen1_v1_5_En:
+				case SenVersion.Sen1_v1_5_Jp:
+					MessageBox.Show("Your Cold Steel game is an older version than the ones supported by this patcher. Please update to version 1.6.");
+					break;
+				case SenVersion.Sen1_v1_6_En:
+				case SenVersion.Sen1_v1_6_Jp:
+					new Sen1Form(path, binary, actualVersion.Value).ShowDialog();
+					break;
+				case SenVersion.Sen1Launcher_v1_0:
+				case SenVersion.Sen1Launcher_v1_1:
+				case SenVersion.Sen1Launcher_v1_2_1:
+				case SenVersion.Sen1Launcher_v1_3_to_v1_5:
+				case SenVersion.Sen1Launcher_v1_6:
+					MessageBox.Show("Please select ed8.exe or ed8jp.exe instead of Sen1Launcher.exe.");
+					break;
+				case SenVersion.Sen2_v1_0_En:
+				case SenVersion.Sen2_v1_0_Jp:
+				case SenVersion.Sen2_v1_1_En:
+				case SenVersion.Sen2_v1_1_Jp:
+				case SenVersion.Sen2_v1_2_En:
+				case SenVersion.Sen2_v1_2_Jp:
+				case SenVersion.Sen2_v1_3_En:
+				case SenVersion.Sen2_v1_3_Jp:
+				case SenVersion.Sen2_v1_3_1_En:
+				case SenVersion.Sen2_v1_3_1_Jp:
+				case SenVersion.Sen2_v1_4_En:
+				case SenVersion.Sen2_v1_4_Jp:
+					MessageBox.Show("Your Cold Steel II game is an older version than the ones supported by this patcher. Please update to at least version 1.4.1.");
+					break;
+				case SenVersion.Sen2_v1_4_1_En:
+				case SenVersion.Sen2_v1_4_1_Jp:
+				case SenVersion.Sen2_v1_4_2_En:
+				case SenVersion.Sen2_v1_4_2_Jp:
+					new Sen2Form(path, binary, actualVersion.Value).ShowDialog();
+					break;
+				case SenVersion.Sen2Launcher_v1_0:
+				case SenVersion.Sen2Launcher_v1_1:
+				case SenVersion.Sen2Launcher_v1_2_to_v1_3_1:
+				case SenVersion.Sen2Launcher_v1_4_to_v1_4_2:
+					MessageBox.Show("Please select ed8_2_PC_US.exe or ed8_2_PC_JP.exe (in the bin/Win32 directory) instead of Sen2Launcher.exe.");
+					break;
+				default:
+					MessageBox.Show("Internal error?");
+					break;
 			}
-
-			if (actualVersion == SenVersion.Sen2_v1_4_1_En || actualVersion == SenVersion.Sen2_v1_4_1_Jp || actualVersion == SenVersion.Sen2_v1_4_2_En || actualVersion == SenVersion.Sen2_v1_4_2_Jp) {
-				new Sen2Form(path, binary, actualVersion.Value).ShowDialog();
-				return;
-			}
-
-			MessageBox.Show("Internal error?");
 		}
 
 		private void buttonCs1SystemDataAuto_Click(object sender, EventArgs e) {
