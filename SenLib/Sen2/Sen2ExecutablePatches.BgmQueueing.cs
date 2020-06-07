@@ -50,7 +50,7 @@ namespace SenLib.Sen2 {
 					_.WriteUInt32(address_of_dirty_flag, le);
 					_.WriteUInt24(0xc60001, be);                   // mov byte ptr[eax],1
 					write_sound_queue_4bytes.WriteJump5Byte(0xe9); // jmp write_sound_queue_4bytes
-					state.RegionD.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.RegionD.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position), "BGM Queueing: Set dirty flag");
 				}
 				{
 					_.Position = (long)mapper.MapRamToRom(address_of_overwritable_write_sound_queue_4bytes_0x5);
@@ -86,7 +86,7 @@ namespace SenLib.Sen2 {
 					unlock_mutex.WriteJump5Byte(0xe8);          // call unlock_mutex
 					_.WriteUInt48(tmp, le);                     // reinsert instruction we overwrote
 					queue_empty_jump_back.WriteJump5Byte(0xe9); // jmp  queue_empty_jump_back
-					state.Region50a.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region50a.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position), "BGM Queueing: Clear dirty flag");
 				}
 
 				// patch the logic for when to skip enqueueing a bgm
@@ -149,7 +149,7 @@ namespace SenLib.Sen2 {
 					_.WriteUInt16(0x8bce, be);                   // mov  ecx,esi               ; restore ecx (probably unnecessary)
 					_.WriteUInt16(0x8b3e, be);                   // mov  edi,dword ptr[esi]    ; restore edi
 					back_to_function.WriteJump5Byte(0xe9);       // jmp  back_to_function
-					state.Region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position), "BGM Queueing: Check if want to enqueue");
 				}
 
 				// some old notes:

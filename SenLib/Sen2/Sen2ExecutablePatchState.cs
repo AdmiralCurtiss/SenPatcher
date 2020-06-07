@@ -97,5 +97,16 @@ namespace SenLib.Sen2 {
 				RegionD = new RegionHelper(c.RegionDAddress, c.RegionDLength, "RegionD");
 			}
 		}
+
+		public void PrintStatistics() {
+			Console.WriteLine();
+			Region50a.PrintStatistics();
+			Region50b.PrintStatistics();
+			Region60.PrintStatistics();
+			Region51.PrintStatistics();
+			Region41.PrintStatistics();
+			Region32.PrintStatistics();
+			RegionD.PrintStatistics();
+		}
 	}
 }

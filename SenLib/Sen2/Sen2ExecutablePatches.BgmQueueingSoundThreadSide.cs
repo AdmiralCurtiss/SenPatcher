@@ -54,7 +54,7 @@ namespace SenLib.Sen2 {
 					_.WriteUInt16(0x8bce, be);                 // mov  ecx,esi
 					_.WriteUInt24(0xff5034, be);               // call dword ptr[eax+34h]
 					back_to_function.WriteJump5Byte(0xe9);     // jmp  back_to_function
-					state.Region50a.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region50a.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position), "BGM Queueing Audio Thread Side: Inject Entry");
 				}
 				{
 					_.Position = (long)mapper.MapRamToRom(state.Region60.Address);
@@ -102,7 +102,7 @@ namespace SenLib.Sen2 {
 					unlock_mutex.WriteJump5Byte(0xe8);      // call unlock_mutex
 					back_to_function.WriteJump5Byte(0xe9);  // jmp  back_to_function
 
-					state.Region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position));
+					state.Region60.TakeToAddress((long)mapper.MapRomToRam((ulong)_.Position), "BGM Queueing Audio Thread Side: Inject Main");
 				}
 			}
 		}

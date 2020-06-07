@@ -16,29 +16,33 @@ namespace SenLib {
 			Identifier = identifier;
 		}
 
-		public void Take(uint bytes) {
+		public void Take(uint bytes, string reason) {
 			if (bytes > Remaining) {
-				throw new Exception(Identifier + ": took more than available");
+				throw new Exception(Identifier + ": took more than available for " + reason);
 			}
 
 			uint naddr = Address + bytes;
 			uint nrem = Remaining - bytes;
 
-			Console.WriteLine("{5}: Took 0x{0:X} to 0x{1:X} (0x{4:X} bytes; 0x{2:X} left before, 0x{3:X} left now)", Address, naddr, Remaining, nrem, bytes, Identifier);
+			Console.WriteLine("{5}: Took 0x{0:X} to 0x{1:X} (0x{4:X} bytes; 0x{2:X} left before, 0x{3:X} left now) [{6}]", Address, naddr, Remaining, nrem, bytes, Identifier, reason);
 
 			Address = naddr;
 			Remaining = nrem;
 		}
 
-		public void TakeToAddress(long address) {
+		public void TakeToAddress(long address, string reason) {
 			if (address < (long)Address) {
-				throw new Exception(Identifier + ": took negative amount?");
+				throw new Exception(Identifier + ": took negative amount for " + reason);
 			}
 			ulong bytes = (ulong)(address - (long)Address);
 			if (bytes > uint.MaxValue) {
-				throw new Exception(Identifier + ": took way too much");
+				throw new Exception(Identifier + ": took way too much for " + reason);
 			}
-			Take((uint)bytes);
+			Take((uint)bytes, reason);
+		}
+
+		public void PrintStatistics() {
+			Console.WriteLine("{0}: Currently at 0x{1:X}, 0x{2:X} bytes free.", Identifier, Address, Remaining);
 		}
 	}
 }
