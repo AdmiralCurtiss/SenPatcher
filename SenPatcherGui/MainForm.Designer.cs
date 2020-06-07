@@ -34,13 +34,15 @@
 			this.buttonCs2GalaxyJp = new System.Windows.Forms.Button();
 			this.buttonCs2GalaxyEn = new System.Windows.Forms.Button();
 			this.labelVersion = new System.Windows.Forms.Label();
+			this.buttonCs1SystemDataAuto = new System.Windows.Forms.Button();
+			this.buttonCs1SystemDataManual = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// buttonManuallySelect
 			// 
-			this.buttonManuallySelect.Location = new System.Drawing.Point(16, 266);
+			this.buttonManuallySelect.Location = new System.Drawing.Point(16, 263);
 			this.buttonManuallySelect.Name = "buttonManuallySelect";
-			this.buttonManuallySelect.Size = new System.Drawing.Size(449, 50);
+			this.buttonManuallySelect.Size = new System.Drawing.Size(449, 21);
 			this.buttonManuallySelect.TabIndex = 0;
 			this.buttonManuallySelect.Text = "Manually select executable instead... (CS1 or CS2, any language)";
 			this.buttonManuallySelect.UseVisualStyleBackColor = true;
@@ -60,7 +62,7 @@
 			// 
 			this.buttonCs1SteamEn.Location = new System.Drawing.Point(16, 106);
 			this.buttonCs1SteamEn.Name = "buttonCs1SteamEn";
-			this.buttonCs1SteamEn.Size = new System.Drawing.Size(213, 34);
+			this.buttonCs1SteamEn.Size = new System.Drawing.Size(213, 21);
 			this.buttonCs1SteamEn.TabIndex = 2;
 			this.buttonCs1SteamEn.Text = "Find Steam version of CS1 (English)";
 			this.buttonCs1SteamEn.UseVisualStyleBackColor = true;
@@ -70,7 +72,7 @@
 			// 
 			this.buttonCs1SteamJp.Location = new System.Drawing.Point(235, 106);
 			this.buttonCs1SteamJp.Name = "buttonCs1SteamJp";
-			this.buttonCs1SteamJp.Size = new System.Drawing.Size(230, 34);
+			this.buttonCs1SteamJp.Size = new System.Drawing.Size(230, 21);
 			this.buttonCs1SteamJp.TabIndex = 3;
 			this.buttonCs1SteamJp.Text = "Find Steam version of CS1 (Japanese)";
 			this.buttonCs1SteamJp.UseVisualStyleBackColor = true;
@@ -78,9 +80,9 @@
 			// 
 			// buttonCs1GalaxyJp
 			// 
-			this.buttonCs1GalaxyJp.Location = new System.Drawing.Point(235, 146);
+			this.buttonCs1GalaxyJp.Location = new System.Drawing.Point(235, 133);
 			this.buttonCs1GalaxyJp.Name = "buttonCs1GalaxyJp";
-			this.buttonCs1GalaxyJp.Size = new System.Drawing.Size(230, 34);
+			this.buttonCs1GalaxyJp.Size = new System.Drawing.Size(230, 21);
 			this.buttonCs1GalaxyJp.TabIndex = 5;
 			this.buttonCs1GalaxyJp.Text = "Find GOG Galaxy version of CS1 (Japanese)";
 			this.buttonCs1GalaxyJp.UseVisualStyleBackColor = true;
@@ -88,9 +90,9 @@
 			// 
 			// buttonCs1GalaxyEn
 			// 
-			this.buttonCs1GalaxyEn.Location = new System.Drawing.Point(16, 146);
+			this.buttonCs1GalaxyEn.Location = new System.Drawing.Point(16, 133);
 			this.buttonCs1GalaxyEn.Name = "buttonCs1GalaxyEn";
-			this.buttonCs1GalaxyEn.Size = new System.Drawing.Size(213, 34);
+			this.buttonCs1GalaxyEn.Size = new System.Drawing.Size(213, 21);
 			this.buttonCs1GalaxyEn.TabIndex = 4;
 			this.buttonCs1GalaxyEn.Text = "Find GOG Galaxy version of CS1 (English)";
 			this.buttonCs1GalaxyEn.UseVisualStyleBackColor = true;
@@ -98,9 +100,9 @@
 			// 
 			// buttonCs2SteamJp
 			// 
-			this.buttonCs2SteamJp.Location = new System.Drawing.Point(235, 186);
+			this.buttonCs2SteamJp.Location = new System.Drawing.Point(235, 197);
 			this.buttonCs2SteamJp.Name = "buttonCs2SteamJp";
-			this.buttonCs2SteamJp.Size = new System.Drawing.Size(230, 34);
+			this.buttonCs2SteamJp.Size = new System.Drawing.Size(230, 21);
 			this.buttonCs2SteamJp.TabIndex = 7;
 			this.buttonCs2SteamJp.Text = "Find Steam version of CS2 (Japanese)";
 			this.buttonCs2SteamJp.UseVisualStyleBackColor = true;
@@ -108,9 +110,9 @@
 			// 
 			// buttonCs2SteamEn
 			// 
-			this.buttonCs2SteamEn.Location = new System.Drawing.Point(16, 186);
+			this.buttonCs2SteamEn.Location = new System.Drawing.Point(16, 197);
 			this.buttonCs2SteamEn.Name = "buttonCs2SteamEn";
-			this.buttonCs2SteamEn.Size = new System.Drawing.Size(213, 34);
+			this.buttonCs2SteamEn.Size = new System.Drawing.Size(213, 21);
 			this.buttonCs2SteamEn.TabIndex = 6;
 			this.buttonCs2SteamEn.Text = "Find Steam version of CS2 (English)";
 			this.buttonCs2SteamEn.UseVisualStyleBackColor = true;
@@ -118,9 +120,9 @@
 			// 
 			// buttonCs2GalaxyJp
 			// 
-			this.buttonCs2GalaxyJp.Location = new System.Drawing.Point(235, 226);
+			this.buttonCs2GalaxyJp.Location = new System.Drawing.Point(235, 224);
 			this.buttonCs2GalaxyJp.Name = "buttonCs2GalaxyJp";
-			this.buttonCs2GalaxyJp.Size = new System.Drawing.Size(230, 34);
+			this.buttonCs2GalaxyJp.Size = new System.Drawing.Size(230, 21);
 			this.buttonCs2GalaxyJp.TabIndex = 9;
 			this.buttonCs2GalaxyJp.Text = "Find GOG Galaxy version of CS2 (Japanese)";
 			this.buttonCs2GalaxyJp.UseVisualStyleBackColor = true;
@@ -128,9 +130,9 @@
 			// 
 			// buttonCs2GalaxyEn
 			// 
-			this.buttonCs2GalaxyEn.Location = new System.Drawing.Point(16, 226);
+			this.buttonCs2GalaxyEn.Location = new System.Drawing.Point(16, 224);
 			this.buttonCs2GalaxyEn.Name = "buttonCs2GalaxyEn";
-			this.buttonCs2GalaxyEn.Size = new System.Drawing.Size(213, 34);
+			this.buttonCs2GalaxyEn.Size = new System.Drawing.Size(213, 21);
 			this.buttonCs2GalaxyEn.TabIndex = 8;
 			this.buttonCs2GalaxyEn.Text = "Find GOG Galaxy version of CS2 (English)";
 			this.buttonCs2GalaxyEn.UseVisualStyleBackColor = true;
@@ -147,11 +149,33 @@
 			this.labelVersion.Text = "v0.0";
 			this.labelVersion.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			// 
+			// buttonCs1SystemDataAuto
+			// 
+			this.buttonCs1SystemDataAuto.Location = new System.Drawing.Point(16, 160);
+			this.buttonCs1SystemDataAuto.Name = "buttonCs1SystemDataAuto";
+			this.buttonCs1SystemDataAuto.Size = new System.Drawing.Size(213, 21);
+			this.buttonCs1SystemDataAuto.TabIndex = 11;
+			this.buttonCs1SystemDataAuto.Text = "Edit CS1 System Data (Autodetect)";
+			this.buttonCs1SystemDataAuto.UseVisualStyleBackColor = true;
+			this.buttonCs1SystemDataAuto.Click += new System.EventHandler(this.buttonCs1SystemDataAuto_Click);
+			// 
+			// buttonCs1SystemDataManual
+			// 
+			this.buttonCs1SystemDataManual.Location = new System.Drawing.Point(235, 160);
+			this.buttonCs1SystemDataManual.Name = "buttonCs1SystemDataManual";
+			this.buttonCs1SystemDataManual.Size = new System.Drawing.Size(230, 21);
+			this.buttonCs1SystemDataManual.TabIndex = 12;
+			this.buttonCs1SystemDataManual.Text = "Edit CS1 System Data (Select Manually)";
+			this.buttonCs1SystemDataManual.UseVisualStyleBackColor = true;
+			this.buttonCs1SystemDataManual.Click += new System.EventHandler(this.buttonCs1SystemDataManual_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(477, 325);
+			this.ClientSize = new System.Drawing.Size(477, 299);
+			this.Controls.Add(this.buttonCs1SystemDataManual);
+			this.Controls.Add(this.buttonCs1SystemDataAuto);
 			this.Controls.Add(this.labelVersion);
 			this.Controls.Add(this.buttonCs2GalaxyJp);
 			this.Controls.Add(this.buttonCs2GalaxyEn);
@@ -183,6 +207,8 @@
 		private System.Windows.Forms.Button buttonCs2GalaxyJp;
 		private System.Windows.Forms.Button buttonCs2GalaxyEn;
 		private System.Windows.Forms.Label labelVersion;
+		private System.Windows.Forms.Button buttonCs1SystemDataAuto;
+		private System.Windows.Forms.Button buttonCs1SystemDataManual;
 	}
 }
 

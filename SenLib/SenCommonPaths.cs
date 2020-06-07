@@ -45,9 +45,11 @@ namespace SenLib {
 			}
 		}
 
+		public static string Sen1SystemDataFilename = "save511.dat";
+
 		public static string Sen1SystemDataFile {
 			get {
-				return Path.Combine(Sen1SaveFolder, "save511.dat");
+				return Path.Combine(Sen1SaveFolder, Sen1SystemDataFilename);
 			}
 		}
 
@@ -57,9 +59,11 @@ namespace SenLib {
 			}
 		}
 
+		public static string Sen2SystemDataFilename = "save255.dat";
+
 		public static string Sen2SystemDataFile {
 			get {
-				return Path.Combine(Sen2SaveFolder, "save255.dat");
+				return Path.Combine(Sen2SaveFolder, Sen2SystemDataFilename);
 			}
 		}
 

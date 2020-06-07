@@ -1,4 +1,6 @@
-﻿using SenLib;
+﻿using HyoutaUtils;
+using SenLib;
+using SenLib.Sen1;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -88,6 +90,37 @@ namespace SenPatcherGui {
 			}
 
 			MessageBox.Show("Internal error?");
+		}
+
+		private void buttonCs1SystemDataAuto_Click(object sender, EventArgs e) {
+			OpenCs1SystemData(SenCommonPaths.Sen1SystemDataFile);
+		}
+
+		private void buttonCs1SystemDataManual_Click(object sender, EventArgs e) {
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.Filter = "CS1 System Data File (" + SenCommonPaths.Sen1SystemDataFilename + ")|" + SenCommonPaths.Sen1SystemDataFilename + "|All files (*.*)|*.*";
+				if (d.ShowDialog() == DialogResult.OK) {
+					OpenCs1SystemData(d.FileName);
+				}
+			}
+		}
+
+		private void OpenCs1SystemData(string path) {
+			if (!File.Exists(path)) {
+				MessageBox.Show("No file found at " + path + ".");
+				return;
+			}
+
+			Sen1SystemData data = null;
+			using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+				if (fs.Length != Sen1SystemData.FileLength) {
+					MessageBox.Show("Incorrect filesize for CS1 system data at " + path + ".");
+					return;
+				}
+				data = new Sen1SystemData(fs.CopyToMemory(), HyoutaUtils.EndianUtils.Endianness.LittleEndian);
+			}
+
+			new Sen1SystemDataForm(data, path, HyoutaUtils.EndianUtils.Endianness.LittleEndian).ShowDialog();
 		}
 	}
 }
