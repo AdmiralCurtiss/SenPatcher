@@ -46,6 +46,7 @@
     <Compile Include="RegionHelper.cs" />
     <Compile Include="FileFix.cs" />
     <Compile Include="FileFixBase.cs" />
+    <Compile Include="Sen1\FileFixes\text_dat_us_t_magic_tbl.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchJapanese.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchEnglish.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatches.cs" />
