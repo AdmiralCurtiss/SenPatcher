@@ -1,0 +1,20 @@
+function at 0x00446240:
+check_button_pressed(int button_id, int trigger, bool fallback_to_left_stick_for_dpad)
+
+where trigger == 0 -> check if button is currently held
+      trigger == 1 -> check if button is newly pressed this frame
+      trigger == 2 -> unclear; seems to be 'trigger every N frames' or similar but the N comes from the this pointer somewhere
+
+
+game scripting stuff:
+function at 0x0064f100 processes the game scripts
+there's (at least) two types of script, UI and scenario
+command IDs are one byte, dispatcher to the functions to handle commands is at 0x0064f270 for scenario scripts (function table is at 0x012eada0) and 0x00692160 for UI scripts (function table is at 0x012eb3c0); note that the tables seem to be generated at runtime so you'll need to attach a debugger to the running game to find the functions
+
+
+
+code stuff:
+function at 0x0056f470 is only called in one spot, from 0x005708be, only if the '-compile' command line flag is passed to the game
+this function is completely useless without the actual tool that it calls, so we can remove it and add our own code there if we need to
+(see also 0x005df38d for the cli parsing, and see also 0x005a8373 where that flag is also used, maybe stuff can be removed here too)
+
