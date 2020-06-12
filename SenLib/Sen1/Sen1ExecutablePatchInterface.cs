@@ -29,5 +29,8 @@ namespace SenLib.Sen1 {
 
 		// address of extra character in the middle of texture ID string of Thor MQ, for the HQ texture pack
 		long GetRomAddressThorMasterQuartzTextureIdTypo();
+
+		// get fixes to be applied to files other than the executable
+		List<FileFix> GetFileFixes();
 	}
 }

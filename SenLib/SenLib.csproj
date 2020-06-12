@@ -44,6 +44,8 @@
     <Compile Include="BranchHelper1Byte.cs" />
     <Compile Include="BranchHelper4Byte.cs" />
     <Compile Include="RegionHelper.cs" />
+    <Compile Include="FileFix.cs" />
+    <Compile Include="FileFixBase.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchJapanese.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchEnglish.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatches.cs" />
@@ -63,6 +65,7 @@
     <Compile Include="Sen2\Sen2Mapper.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="SenCommonPaths.cs" />
+    <Compile Include="SenUtils.cs" />
     <Compile Include="SenVersionIdentifier.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -78,5 +81,6 @@
   <ItemGroup>
     <Compile Include="Sen2\Sen2ExecutablePatches.BgmQueueingSoundThreadSide.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
