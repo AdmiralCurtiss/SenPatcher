@@ -40,6 +40,7 @@ namespace SenLib.Sen1 {
 
 		public List<FileFix> GetFileFixes() {
 			var f = new List<FileFix>();
+			f.Add(new FileFixes.scripts_scena_dat_us_t1000_dat());
 			f.Add(new FileFixes.text_dat_us_t_magic_tbl());
 			return f;
 		}
