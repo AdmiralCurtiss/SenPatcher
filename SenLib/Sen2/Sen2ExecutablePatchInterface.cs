@@ -25,5 +25,8 @@ namespace SenLib.Sen2 {
 
 		// a whole bunch of addresses for the bgm timing patch
 		Sen2ExecutableBgmTimingLocations GetBgmTimingPatchLocations();
+
+		// get fixes to be applied to files other than the executable
+		List<FileFix> GetFileFixes();
 	}
 }
