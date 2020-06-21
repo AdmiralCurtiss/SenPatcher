@@ -1,0 +1,14 @@
+12 files changed:
+ed8.exe
+ed8jp.exe
+data\asset\D3D11\C_NPC312.pkg
+data\asset\D3D11\C_NPC312_C00.pkg
+data\asset\D3D11\C_NPC312_C01.pkg
+data\asset\D3D11\C_NPC312_C02.pkg
+data\asset\D3D11\S_SHADER.pkg
+data\asset\D3D11\S_SHADER_MSAA2.pkg
+data\asset\D3D11\S_SHADER_MSAA4.pkg
+data\asset\D3D11\S_SHADER_MSAA8.pkg
+data\ops\c0800.ops
+data\ops\m1200.ops
+

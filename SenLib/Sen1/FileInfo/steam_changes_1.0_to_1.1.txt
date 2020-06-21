@@ -1,0 +1,13 @@
+8 files changed:
+ed8.exe
+ed8jp.exe
+Sen1Launcher.exe
+data\asset\D3D11\S_SHADER.pkg
+data\scripts\book\dat_us\book02.dat
+LauncherHTML\mkbconfig.html
+LauncherHTML\start.html
+LauncherHTML\turbo.html
+
+1 file added:
+LauncherHTML\skip.html
+

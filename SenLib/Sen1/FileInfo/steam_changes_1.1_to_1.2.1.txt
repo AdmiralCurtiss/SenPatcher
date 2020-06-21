@@ -1,0 +1,24 @@
+16 files changed:
+ed8.exe
+ed8jp.exe
+Sen1Launcher.exe
+data\asset\D3D11\I_BTN0PS.pkg
+data\asset\D3D11\I_TITLEMENU.pkg
+data\asset\D3D11\S_SHADER.pkg
+data\asset\D3D11_us\I_TITLEMENU.pkg
+data\scripts\scena\dat_us\t0050.dat
+data\scripts\ui\dat\title_menu.dat
+data\scripts\ui\dat_us\title_menu.dat
+data\system_us\clearicon.bmp
+data\system_us\saveicon.bmp
+data\US\scena\asm\t0050.tbl
+LauncherHTML\shadow_resolution.html
+LauncherHTML\shadow_resolution.html.anim
+LauncherHTML\turbo.html
+
+4 files added:
+data\asset\D3D11\S_SHADER_MSAA2.pkg
+data\asset\D3D11\S_SHADER_MSAA4.pkg
+data\asset\D3D11\S_SHADER_MSAA8.pkg
+LauncherHTML\autosave.html
+
