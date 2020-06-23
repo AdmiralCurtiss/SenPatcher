@@ -1,0 +1,26 @@
+19 files changed:
+Sen2Launcher.exe
+bin\Win32\ed8_2_PC_JP.exe
+bin\Win32\ed8_2_PC_US.exe
+data\asset\D3D11\I_BATTLE.pkg
+data\asset\D3D11_us\I_3D_OB_COV01.pkg
+data\asset\D3D11_us\I_3D_OB_COV02.pkg
+data\asset\D3D11_us\I_3D_OB_COV06.pkg
+data\asset\D3D11_us\I_3D_OB_COV07.pkg
+data\asset\D3D11_us\I_3D_OB_COV52.pkg
+data\asset\D3D11_us\I_3D_OB_COV72.pkg
+data\asset\D3D11_us\I_3D_OB_COV80.pkg
+data\asset\D3D11_us\I_3D_OB_COV81.pkg
+data\asset\D3D11_us\I_3D_OB_COV83.pkg
+data\asset\D3D11_us\I_BATTLE.pkg
+data\ops\m1200.ops
+data\scripts\ui\dat\battle_menu.dat
+data\scripts\ui\dat_us\battle_menu.dat
+data\scripts\ui\dat_us\title_menu.dat
+LauncherHTML\framerate.html
+
+3 files added:
+data\fonts\font_us_hd.itf
+data\scripts\ui\asm\battle_menu.tbl
+data\US\ui\asm\battle_menu.tbl
+

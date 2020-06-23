@@ -1,0 +1,4 @@
+2 files changed:
+bin\Win32\ed8_2_PC_JP.exe
+bin\Win32\ed8_2_PC_US.exe
+

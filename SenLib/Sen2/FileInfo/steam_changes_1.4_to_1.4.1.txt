@@ -1,0 +1,9 @@
+4 files changed:
+bin\Win32\ed8_2_PC_JP.exe
+bin\Win32\ed8_2_PC_US.exe
+data\scripts\scena\dat\t1001.dat
+data\scripts\scena\dat_us\t1001.dat
+
+1 file added:
+data\scripts\scena\asm\t1001.tbl
+
