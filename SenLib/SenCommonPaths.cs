@@ -12,13 +12,15 @@ namespace SenLib {
 		public static readonly string Sen1GalaxyDir = @"c:\Program Files (x86)\GOG Galaxy\Games\The Legend of Heroes - Trails of Cold Steel\";
 		public static readonly string Sen1EnExePath = "ed8.exe";
 		public static readonly string Sen1JpExePath = "ed8jp.exe";
+		public static readonly string Sen1BaseFromExe = ".";
 
 		public static readonly string Sen2SteamDir = @"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel II\";
 		public static readonly string Sen2GalaxyDir = @"c:\Program Files (x86)\GOG Galaxy\Games\The Legend of Heroes Trails of Cold Steel II\";
 		public static readonly string Sen2EnExePath = @"bin\Win32\ed8_2_PC_US.exe";
 		public static readonly string Sen2JpExePath = @"bin\Win32\ed8_2_PC_JP.exe";
+		public static readonly string Sen2BaseFromExe = @"..\..";
 
-		public static readonly string BackupPostfix = ".senpatcher.bkp";
+		public static readonly string BackupFolder = "senpatcher_bkp";
 
 		private static string _SavedGamesFolder = null;
 		public static string SavedGamesFolder {

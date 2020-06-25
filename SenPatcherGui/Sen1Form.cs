@@ -50,7 +50,7 @@ namespace SenPatcherGui {
 			bool fixTextureIds = checkBoxFixHdTextureId.Checked;
 
 			if (Exec.ApplyPatches(removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds)) {
-				MessageBox.Show("File successfully patched.\n\nA backup has been created at " + (Exec.Path + SenCommonPaths.BackupPostfix) + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
+				MessageBox.Show("Patch successful.\n\nA backup has been created at " + Path.GetFullPath(Exec.BackupFolder) + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
 				Close();
 				return;
 			}

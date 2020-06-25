@@ -62,12 +62,28 @@ namespace SenLib {
 			}
 
 			var try1 = TryIdentify(path);
-
 			if (try1.binary != null && try1.version != null) {
 				return try1;
 			}
 
-			string backuppath = path + SenCommonPaths.BackupPostfix;
+			string sen1bkp = Path.Combine(Path.GetDirectoryName(path), SenCommonPaths.Sen1BaseFromExe, SenCommonPaths.BackupFolder, Path.GetFileName(path) + ".bin");
+			if (File.Exists(sen1bkp)) {
+				var try2 = TryIdentify(sen1bkp);
+				if (try2.binary != null && try2.version != null) {
+					return try2;
+				}
+			}
+
+			string sen2bkp = Path.Combine(Path.GetDirectoryName(path), SenCommonPaths.Sen2BaseFromExe, SenCommonPaths.BackupFolder, Path.GetFileName(path) + ".bin");
+			if (File.Exists(sen2bkp)) {
+				var try2 = TryIdentify(sen2bkp);
+				if (try2.binary != null && try2.version != null) {
+					return try2;
+				}
+			}
+
+			// legacy backup path
+			string backuppath = path + ".senpatcher.bkp";
 			if (File.Exists(backuppath)) {
 				// we have a backup file, try that one
 				return TryIdentify(backuppath);

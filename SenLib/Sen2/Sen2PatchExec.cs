@@ -11,6 +11,8 @@ namespace SenLib.Sen2 {
 		private Stream Binary;
 		private Sen2ExecutablePatchInterface PatchInfo;
 
+		public string BackupFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen2BaseFromExe, SenCommonPaths.BackupFolder);
+
 		public Sen2PatchExec(string path, Stream binary, SenVersion version) {
 			Path = path;
 			Binary = binary;
@@ -39,12 +41,7 @@ namespace SenLib.Sen2 {
 
 		public bool ApplyPatches(bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing) {
 			using (MemoryStream ms = Binary.CopyToMemory()) {
-				// first create a backup
-				string backuppath = Path + SenCommonPaths.BackupPostfix;
-				using (var fs = new FileStream(backuppath, FileMode.Create, FileAccess.Write)) {
-					ms.Position = 0;
-					StreamUtils.CopyStream(ms, fs);
-				}
+				SenUtils.CreateBackupIfRequired(System.IO.Path.Combine(BackupFolder, System.IO.Path.GetFileName(Path) + ".bin"), ms);
 
 				// patch data
 				if (removeTurboSkip) {

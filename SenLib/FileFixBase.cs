@@ -19,10 +19,7 @@ namespace SenLib {
 				ms.Position = 0;
 				if (SenUtils.CalcSha1(ms) == sha1) {
 					// original file is unpatched, copy to backup
-					Directory.CreateDirectory(Path.GetDirectoryName(bkppath));
-					using (var fs = new FileStream(bkppath, FileMode.Create)) {
-						StreamUtils.CopyStream(ms, fs);
-					}
+					SenUtils.CreateBackupIfRequired(bkppath, ms);
 
 					// and apply
 					DoApplyAndWrite(path, ms);
@@ -31,10 +28,12 @@ namespace SenLib {
 			}
 
 			// check if backup path has a clean copy
-			using (var ms = new FileStream(bkppath, FileMode.Open, FileAccess.Read, FileShare.Read).CopyToMemoryAndDispose()) {
-				if (SenUtils.CalcSha1(ms) == sha1) {
-					DoApplyAndWrite(path, ms);
-					return true;
+			if (File.Exists(bkppath)) {
+				using (var ms = new FileStream(bkppath, FileMode.Open, FileAccess.Read, FileShare.Read).CopyToMemoryAndDispose()) {
+					if (SenUtils.CalcSha1(ms) == sha1) {
+						DoApplyAndWrite(path, ms);
+						return true;
+					}
 				}
 			}
 
@@ -45,7 +44,7 @@ namespace SenLib {
 		public abstract string GetSubPath();
 
 		public virtual string GetBackupSubPath() {
-			return Path.Combine("senpatcher_bkp", GetSubPath().Replace('/', '_').Replace('\\', '_'));
+			return Path.Combine(SenCommonPaths.BackupFolder, GetSubPath().Replace('/', '_').Replace('\\', '_'));
 		}
 
 		public abstract string GetSha1();
