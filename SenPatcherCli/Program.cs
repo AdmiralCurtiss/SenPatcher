@@ -1,4 +1,7 @@
 ﻿using HyoutaUtils;
+using SenLib;
+using SenLib.Sen1;
+using SenLib.Sen2;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,44 +11,75 @@ using System.Threading.Tasks;
 
 namespace SenPatcherCli {
 	public class Program {
-		public static void Main(string[] args) {
-			bool sen1 = false;
-			if (sen1) {
-				using (var outstream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel\ed8.exe", FileMode.Create)) {
-					using (var instream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel\ed8.exe.senpatcher.bkp", FileMode.Open, FileAccess.Read)) {
-						StreamUtils.CopyStream(instream, outstream);
-					}
-
-					var info = new SenLib.Sen1.Sen1ExecutablePatchEnglish();
-					SenLib.Sen1.Sen1ExecutablePatches.PatchButtonBattleAnimationAutoSkip(outstream, info, 0xA);
-					SenLib.Sen1.Sen1ExecutablePatches.PatchButtonBattleResultsAutoSkip(outstream, info, 0xA);
-					SenLib.Sen1.Sen1ExecutablePatches.PatchButtonTurboMode(outstream, info, 0xA);
-					SenLib.Sen1.Sen1ExecutablePatches.PatchJumpBattleAnimationAutoSkip(outstream, info, true);
-					SenLib.Sen1.Sen1ExecutablePatches.PatchJumpBattleResultsAutoSkip(outstream, info, true);
-					SenLib.Sen1.Sen1ExecutablePatches.PatchJumpR2NotebookOpen(outstream, info, true);
-					SenLib.Sen1.Sen1ExecutablePatches.PatchJumpR2NotebookSettings(outstream, info, true);
-				}
+		public static int Main(string[] args) {
+			if (args.Length == 0) {
+				Console.WriteLine("No path to executable given.");
+				return -1;
 			}
 
-			bool sen2 = true;
-			if (sen2) {
-				using (var outstream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel II\bin\Win32\ed8_2_PC_US.exe", FileMode.Create)) {
-					using (var instream = new FileStream(@"c:\Program Files (x86)\Steam\steamapps\common\Trails of Cold Steel II\bin\Win32\ed8_2_PC_US.exe.senpatcher.bkp", FileMode.Open, FileAccess.Read)) {
-						StreamUtils.CopyStream(instream, outstream);
-					}
-
-					var info = new SenLib.Sen2.Sen2ExecutablePatchEnglish();
-					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleAnimationAutoSkip(outstream, info, true);
-					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleStartAutoSkip(outstream, info, true);
-					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleSomethingAutoSkip(outstream, info, true);
-					SenLib.Sen2.Sen2ExecutablePatches.PatchJumpBattleResultsAutoSkip(outstream, info, true);
-
-					var state = new SenLib.Sen2.Sen2ExecutablePatchState();
-					SenLib.Sen2.Sen2ExecutablePatches.PatchMusicFadeTiming(outstream, info, state, 1000);
-					SenLib.Sen2.Sen2ExecutablePatches.PatchMusicQueueingOnSoundThreadSide(outstream, info, state);
-					state.PrintStatistics();
-				}
+			string path = args[0];
+			if (!File.Exists(path)) {
+				Console.WriteLine("No file found at " + path + ".");
+				return -1;
 			}
+
+			Stream binary;
+			SenVersion? actualVersion;
+			try {
+				(binary, actualVersion) = SenVersionIdentifier.OpenAndIdentifyGame(path);
+			} catch (Exception ex) {
+				Console.WriteLine("Error while identifying " + path + ": " + ex.ToString());
+				return -1;
+			}
+
+			if (binary == null || actualVersion == null) {
+				Console.WriteLine("Could not identify file at " + path + " as any supported Cold Steel executable.");
+				return -1;
+			}
+
+			switch (actualVersion) {
+				case SenVersion.Sen1_v1_6_Jp:
+				case SenVersion.Sen1_v1_6_En: {
+					bool success = new Sen1PatchExec(path, binary, actualVersion.Value).ApplyPatches(
+						removeTurboSkip: true,
+						allowR2NotebookShortcut: true,
+						turboKey: 0xA,
+						fixTextureIds: true
+					);
+
+					if (success) {
+						Console.WriteLine("Successfully patched CS1 at " + path + ".");
+					} else {
+						Console.WriteLine("Failed to patch CS1 at " + path + ".");
+						return -1;
+					}
+					break;
+				}
+				case SenVersion.Sen2_v1_4_1_Jp:
+				case SenVersion.Sen2_v1_4_1_En:
+				case SenVersion.Sen2_v1_4_2_Jp:
+				case SenVersion.Sen2_v1_4_2_En: {
+					bool success = new Sen2PatchExec(path, binary, actualVersion.Value).ApplyPatches(
+						removeTurboSkip: true,
+						patchAudioThread: true,
+						audioThreadDivisor: 1000,
+						patchBgmQueueing: true
+					);
+
+					if (success) {
+						Console.WriteLine("Successfully patched CS2 at " + path + ".");
+					} else {
+						Console.WriteLine("Failed to patch CS2 at " + path + ".");
+						return -1;
+					}
+					break;
+				}
+				default:
+					Console.WriteLine("File at " + path + " was recognized but is not supported.");
+					return -1;
+			}
+
+			return 0;
 		}
 	}
 }

@@ -14,28 +14,14 @@ using System.Windows.Forms;
 
 namespace SenPatcherGui {
 	public partial class Sen1Form : Form {
-		private string Path;
-		private Stream Binary;
-		private Sen1ExecutablePatchInterface PatchInfo;
+		private Sen1PatchExec Exec;
 
 		public Sen1Form(string path, Stream binary, SenVersion version) {
-			Path = path;
-			Binary = binary;
-
-			switch (version) {
-				case SenVersion.Sen1_v1_6_En:
-					PatchInfo = new Sen1ExecutablePatchEnglish();
-					break;
-				case SenVersion.Sen1_v1_6_Jp:
-					PatchInfo = new Sen1ExecutablePatchJapanese();
-					break;
-				default:
-					throw new Exception("Invalid version for Sen 1 patch form.");
-			}
+			Exec = new Sen1PatchExec(path, binary, version);
 
 			InitializeComponent();
-			labelFile.Text = path;
-			labelVersion.Text = version == SenVersion.Sen1_v1_6_En ? "1.6 (English)" : "1.6 (Japanese)";
+			labelFile.Text = Exec.Path;
+			labelVersion.Text = Exec.HumanReadableVersion;
 
 			comboBoxTurboModeKey.Items.Clear();
 			comboBoxTurboModeKey.Items.Add("Square / X");
@@ -58,55 +44,20 @@ namespace SenPatcherGui {
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
-			using (MemoryStream ms = Binary.CopyToMemory()) {
-				// first create a backup
-				string backuppath = Path + SenCommonPaths.BackupPostfix;
-				using (var fs = new FileStream(backuppath, FileMode.Create, FileAccess.Write)) {
-					ms.Position = 0;
-					StreamUtils.CopyStream(ms, fs);
-				}
+			bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
+			bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
+			int turboKey = comboBoxTurboModeKey.SelectedIndex;
+			bool fixTextureIds = checkBoxFixHdTextureId.Checked;
 
-				// patch data
-				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
-				bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
-				int turboKey = comboBoxTurboModeKey.SelectedIndex;
-				bool fixTextureIds = checkBoxFixHdTextureId.Checked;
-
-				if (removeTurboSkip) {
-					Sen1ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo, true);
-					Sen1ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, PatchInfo, true);
-				}
-				if (allowR2NotebookShortcut) {
-					Sen1ExecutablePatches.PatchJumpR2NotebookOpen(ms, PatchInfo, true);
-					Sen1ExecutablePatches.PatchJumpR2NotebookSettings(ms, PatchInfo, true);
-				}
-				if (turboKey >= 0 && turboKey <= 0xF) {
-					Sen1ExecutablePatches.PatchButtonBattleAnimationAutoSkip(ms, PatchInfo, (byte)turboKey);
-					Sen1ExecutablePatches.PatchButtonBattleResultsAutoSkip(ms, PatchInfo, (byte)turboKey);
-					Sen1ExecutablePatches.PatchButtonTurboMode(ms, PatchInfo, (byte)turboKey);
-				}
-				if (fixTextureIds) {
-					Sen1ExecutablePatches.PatchThorMasterQuartzString(ms, PatchInfo);
-				}
-
-				// write patched file
-				using (var fs = new FileStream(Path, FileMode.Create, FileAccess.Write)) {
-					ms.Position = 0;
-					StreamUtils.CopyStream(ms, fs);
-				}
-
-				MessageBox.Show("File successfully patched.\n\nA backup has been created at " + backuppath + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
+			if (Exec.ApplyPatches(removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds)) {
+				MessageBox.Show("File successfully patched.\n\nA backup has been created at " + (Exec.Path + SenCommonPaths.BackupPostfix) + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
 				Close();
 				return;
 			}
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
-			using (MemoryStream ms = Binary.CopyToMemory()) {
-				using (var fs = new FileStream(Path, FileMode.Create, FileAccess.Write)) {
-					ms.Position = 0;
-					StreamUtils.CopyStream(ms, fs);
-				}
+			if (Exec.RestoreOriginalFiles()) {
 				MessageBox.Show("Original executable has been restored.");
 				return;
 			}

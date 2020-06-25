@@ -53,6 +53,7 @@
     <Compile Include="Sen1\Sen1ExecutablePatches.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchInterface.cs" />
     <Compile Include="Sen1\Sen1Mapper.cs" />
+    <Compile Include="Sen1\Sen1PatchExec.cs" />
     <Compile Include="Sen1\Sen1SystemData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sen2\FileFixes\text_dat_us_t_magic_tbl.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="Sen2\Sen2ExecutablePatches.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatchInterface.cs" />
     <Compile Include="Sen2\Sen2Mapper.cs" />
+    <Compile Include="Sen2\Sen2PatchExec.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="SenCommonPaths.cs" />
     <Compile Include="SenUtils.cs" />
