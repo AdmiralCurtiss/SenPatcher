@@ -38,13 +38,14 @@
 			this.checkBoxBgmEnqueueingLogic = new System.Windows.Forms.CheckBox();
 			this.label6 = new System.Windows.Forms.Label();
 			this.buttonUnpatch = new System.Windows.Forms.Button();
+			this.checkBoxAssetPatches = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownTicksPerSecond)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 214);
+			this.label5.Location = new System.Drawing.Point(94, 237);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(364, 169);
 			this.label5.TabIndex = 21;
@@ -111,7 +112,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 393);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 429);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(458, 41);
 			this.buttonPatch.TabIndex = 22;
@@ -124,7 +125,7 @@
 			this.checkBoxPatchAudioThread.AutoSize = true;
 			this.checkBoxPatchAudioThread.Checked = true;
 			this.checkBoxPatchAudioThread.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 162);
+			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 185);
 			this.checkBoxPatchAudioThread.Name = "checkBoxPatchAudioThread";
 			this.checkBoxPatchAudioThread.Size = new System.Drawing.Size(248, 17);
 			this.checkBoxPatchAudioThread.TabIndex = 17;
@@ -139,7 +140,7 @@
             0,
             0,
             0});
-			this.numericUpDownTicksPerSecond.Location = new System.Drawing.Point(275, 186);
+			this.numericUpDownTicksPerSecond.Location = new System.Drawing.Point(275, 209);
 			this.numericUpDownTicksPerSecond.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -162,7 +163,7 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(114, 188);
+			this.label4.Location = new System.Drawing.Point(114, 211);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(155, 13);
 			this.label4.TabIndex = 24;
@@ -173,7 +174,7 @@
 			this.checkBoxBgmEnqueueingLogic.AutoSize = true;
 			this.checkBoxBgmEnqueueingLogic.Checked = true;
 			this.checkBoxBgmEnqueueingLogic.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 94);
+			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 117);
 			this.checkBoxBgmEnqueueingLogic.Name = "checkBoxBgmEnqueueingLogic";
 			this.checkBoxBgmEnqueueingLogic.Size = new System.Drawing.Size(235, 17);
 			this.checkBoxBgmEnqueueingLogic.TabIndex = 25;
@@ -183,7 +184,7 @@
 			// label6
 			// 
 			this.label6.AutoSize = true;
-			this.label6.Location = new System.Drawing.Point(94, 114);
+			this.label6.Location = new System.Drawing.Point(94, 137);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(338, 39);
 			this.label6.TabIndex = 26;
@@ -202,11 +203,24 @@
 			this.buttonUnpatch.UseVisualStyleBackColor = true;
 			this.buttonUnpatch.Click += new System.EventHandler(this.buttonUnpatch_Click);
 			// 
+			// checkBoxAssetPatches
+			// 
+			this.checkBoxAssetPatches.AutoSize = true;
+			this.checkBoxAssetPatches.Checked = true;
+			this.checkBoxAssetPatches.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxAssetPatches.Location = new System.Drawing.Point(97, 94);
+			this.checkBoxAssetPatches.Name = "checkBoxAssetPatches";
+			this.checkBoxAssetPatches.Size = new System.Drawing.Size(213, 17);
+			this.checkBoxAssetPatches.TabIndex = 28;
+			this.checkBoxAssetPatches.Text = "Apply fixes for known script/asset errors";
+			this.checkBoxAssetPatches.UseVisualStyleBackColor = true;
+			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(483, 446);
+			this.ClientSize = new System.Drawing.Size(483, 482);
+			this.Controls.Add(this.checkBoxAssetPatches);
 			this.Controls.Add(this.buttonUnpatch);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.checkBoxBgmEnqueueingLogic);
@@ -245,5 +259,6 @@
 		private System.Windows.Forms.CheckBox checkBoxBgmEnqueueingLogic;
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Button buttonUnpatch;
+		private System.Windows.Forms.CheckBox checkBoxAssetPatches;
 	}
 }

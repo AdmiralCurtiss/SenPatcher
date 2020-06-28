@@ -11,6 +11,8 @@ namespace SenLib {
 
 		public bool AllSuccessful => TotalFiles == SuccessfulFiles;
 
+		public int FailedFiles => TotalFiles - SuccessfulFiles;
+
 		public PatchResult(int total, int successful) {
 			TotalFiles = total;
 			SuccessfulFiles = successful;

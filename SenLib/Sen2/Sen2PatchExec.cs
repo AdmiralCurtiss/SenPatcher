@@ -2,6 +2,7 @@
 using SenLib;
 using SenLib.Sen2;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SenLib.Sen2 {
@@ -10,6 +11,8 @@ namespace SenLib.Sen2 {
 		public string HumanReadableVersion { get; private set; }
 		private Stream Binary;
 		private Sen2ExecutablePatchInterface PatchInfo;
+		private List<FileFix> AssetPatches;
+		public int AssetPatchCount => AssetPatches.Count;
 
 		public string BaseFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen2BaseFromExe);
 
@@ -39,6 +42,8 @@ namespace SenLib.Sen2 {
 				default:
 					throw new Exception("Invalid version for Sen 2 patch form.");
 			}
+
+			AssetPatches = PatchInfo.GetFileFixes();
 		}
 
 		public PatchResult ApplyPatches(bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing, bool patchAssets) {
@@ -74,7 +79,7 @@ namespace SenLib.Sen2 {
 			}
 
 			if (patchAssets) {
-				foreach (var file in PatchInfo.GetFileFixes()) {
+				foreach (var file in AssetPatches) {
 					++total;
 					if (file.TryApply(BaseFolder, BackupFolder)) {
 						++success;
@@ -96,7 +101,7 @@ namespace SenLib.Sen2 {
 				}
 			}
 
-			foreach (var file in PatchInfo.GetFileFixes()) {
+			foreach (var file in AssetPatches) {
 				++total;
 				if (file.TryRevert(BaseFolder, BackupFolder)) {
 					++success;
