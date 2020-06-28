@@ -45,5 +45,36 @@ namespace SenLib {
 				StreamUtils.CopyStream(stream, fs);
 			}
 		}
+
+		public static bool TryWriteFileIfDifferent(Stream stream, string path) {
+			if (File.Exists(path)) {
+				try {
+					using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+						if (fs.Length == stream.Length) {
+							if (fs.CopyToByteArray().SequenceEqual(stream.CopyToByteArray())) {
+								return true; // file is already the same, don't need to write
+							}
+						}
+					}
+				} catch (Exception) { }
+			}
+
+			return TryWriteFile(stream, path);
+		}
+
+		public static bool TryWriteFile(Stream stream, string path) {
+			long pos = stream.Position;
+			try {
+				using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write)) {
+					stream.Position = 0;
+					StreamUtils.CopyStream(stream, fs);
+				}
+				stream.Position = pos;
+				return true;
+			} catch (Exception) {
+				stream.Position = pos;
+				return false;
+			}
+		}
 	}
 }

@@ -30,7 +30,7 @@ namespace SenPatcherGui {
 			int audioThreadDivisor = patchAudioThread ? (int)numericUpDownTicksPerSecond.Value : 1000;
 			bool patchBgmQueueing = checkBoxBgmEnqueueingLogic.Checked;
 
-			if (Exec.ApplyPatches(removeTurboSkip, patchAudioThread, audioThreadDivisor, patchBgmQueueing)) {
+			if (Exec.ApplyPatches(removeTurboSkip, patchAudioThread, audioThreadDivisor, patchBgmQueueing, false).AllSuccessful) {
 				MessageBox.Show("Patch successful.\n\nA backup has been created at " + Path.GetFullPath(Exec.BackupFolder) + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
 				Close();
 				return;
@@ -42,7 +42,7 @@ namespace SenPatcherGui {
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
-			if (Exec.RestoreOriginalFiles()) {
+			if (Exec.RestoreOriginalFiles().AllSuccessful) {
 				MessageBox.Show("Original executable has been restored.");
 				return;
 			}

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace SenLib {
 	public interface FileFix {
-		bool TryApply(string basepath);
+		bool TryApply(string basepath, string backuppath);
+
+		bool TryRevert(string basepath, string backuppath);
 	}
 }

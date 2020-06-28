@@ -11,11 +11,13 @@ namespace SenLib.Sen1 {
 		private Stream Binary;
 		private Sen1ExecutablePatchInterface PatchInfo;
 
-		public string BackupFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen1BaseFromExe, SenCommonPaths.BackupFolder);
+		public string BaseFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen1BaseFromExe);
+
+		public string BackupFolder => System.IO.Path.Combine(BaseFolder, SenCommonPaths.BackupFolder);
 
 		public Sen1PatchExec(string path, Stream binary, SenVersion version) {
 			Path = path;
-			Binary = binary;
+			Binary = binary.CopyToMemory();
 
 			switch (version) {
 				case SenVersion.Sen1_v1_6_En:
@@ -31,8 +33,12 @@ namespace SenLib.Sen1 {
 			}
 		}
 
-		public bool ApplyPatches(bool removeTurboSkip, bool allowR2NotebookShortcut, int turboKey, bool fixTextureIds) {
+		public PatchResult ApplyPatches(bool removeTurboSkip, bool allowR2NotebookShortcut, int turboKey, bool fixTextureIds, bool patchAssets) {
+			int total = 0;
+			int success = 0;
+
 			using (MemoryStream ms = Binary.CopyToMemory()) {
+				++total;
 				SenUtils.CreateBackupIfRequired(System.IO.Path.Combine(BackupFolder, System.IO.Path.GetFileName(Path) + ".bin"), ms);
 
 				// patch data
@@ -54,24 +60,42 @@ namespace SenLib.Sen1 {
 				}
 
 				// write patched file
-				using (var fs = new FileStream(Path, FileMode.Create, FileAccess.Write)) {
-					ms.Position = 0;
-					StreamUtils.CopyStream(ms, fs);
+				if (SenUtils.TryWriteFile(ms, Path)) {
+					++success;
 				}
-
-				return true;
 			}
+
+			if (patchAssets) {
+				foreach (var file in PatchInfo.GetFileFixes()) {
+					++total;
+					if (file.TryApply(BaseFolder, BackupFolder)) {
+						++success;
+					}
+				}
+			}
+
+			return new PatchResult(total, success);
 		}
 
-		public bool RestoreOriginalFiles() {
-			using (MemoryStream ms = Binary.CopyToMemory()) {
-				using (var fs = new FileStream(Path, FileMode.Create, FileAccess.Write)) {
-					ms.Position = 0;
-					StreamUtils.CopyStream(ms, fs);
-				}
+		public PatchResult RestoreOriginalFiles() {
+			int total = 0;
+			int success = 0;
 
-				return true;
+			using (MemoryStream ms = Binary.CopyToMemory()) {
+				++total;
+				if (SenUtils.TryWriteFileIfDifferent(ms, Path)) {
+					++success;
+				}
 			}
+
+			foreach (var file in PatchInfo.GetFileFixes()) {
+				++total;
+				if (file.TryRevert(BaseFolder, BackupFolder)) {
+					++success;
+				}
+			}
+
+			return new PatchResult(total, success);
 		}
 	}
 }

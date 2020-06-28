@@ -49,7 +49,7 @@ namespace SenPatcherGui {
 			int turboKey = comboBoxTurboModeKey.SelectedIndex;
 			bool fixTextureIds = checkBoxFixHdTextureId.Checked;
 
-			if (Exec.ApplyPatches(removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds)) {
+			if (Exec.ApplyPatches(removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds, false).AllSuccessful) {
 				MessageBox.Show("Patch successful.\n\nA backup has been created at " + Path.GetFullPath(Exec.BackupFolder) + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
 				Close();
 				return;
@@ -57,7 +57,7 @@ namespace SenPatcherGui {
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
-			if (Exec.RestoreOriginalFiles()) {
+			if (Exec.RestoreOriginalFiles().AllSuccessful) {
 				MessageBox.Show("Original executable has been restored.");
 				return;
 			}

@@ -44,8 +44,9 @@ namespace SenPatcherCli {
 						removeTurboSkip: true,
 						allowR2NotebookShortcut: true,
 						turboKey: 0xA,
-						fixTextureIds: true
-					);
+						fixTextureIds: true,
+						patchAssets: true
+					).AllSuccessful;
 
 					if (success) {
 						Console.WriteLine("Successfully patched CS1 at " + path + ".");
@@ -63,8 +64,9 @@ namespace SenPatcherCli {
 						removeTurboSkip: true,
 						patchAudioThread: true,
 						audioThreadDivisor: 1000,
-						patchBgmQueueing: true
-					);
+						patchBgmQueueing: true,
+						patchAssets: true
+					).AllSuccessful;
 
 					if (success) {
 						Console.WriteLine("Successfully patched CS2 at " + path + ".");

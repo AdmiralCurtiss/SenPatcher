@@ -11,11 +11,13 @@ namespace SenLib.Sen2 {
 		private Stream Binary;
 		private Sen2ExecutablePatchInterface PatchInfo;
 
-		public string BackupFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen2BaseFromExe, SenCommonPaths.BackupFolder);
+		public string BaseFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen2BaseFromExe);
+
+		public string BackupFolder => System.IO.Path.Combine(BaseFolder, SenCommonPaths.BackupFolder);
 
 		public Sen2PatchExec(string path, Stream binary, SenVersion version) {
 			Path = path;
-			Binary = binary;
+			Binary = binary.CopyToMemory();
 
 			switch (version) {
 				case SenVersion.Sen2_v1_4_1_En:
@@ -39,8 +41,12 @@ namespace SenLib.Sen2 {
 			}
 		}
 
-		public bool ApplyPatches(bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing) {
+		public PatchResult ApplyPatches(bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing, bool patchAssets) {
+			int total = 0;
+			int success = 0;
+
 			using (MemoryStream ms = Binary.CopyToMemory()) {
+				++total;
 				SenUtils.CreateBackupIfRequired(System.IO.Path.Combine(BackupFolder, System.IO.Path.GetFileName(Path) + ".bin"), ms);
 
 				// patch data
@@ -62,23 +68,42 @@ namespace SenLib.Sen2 {
 				}
 
 				// write patched file
-				using (var fs = new FileStream(Path, FileMode.Create, FileAccess.Write)) {
-					ms.Position = 0;
-					StreamUtils.CopyStream(ms, fs);
+				if (SenUtils.TryWriteFile(ms, Path)) {
+					++success;
 				}
-
-				return true;
 			}
+
+			if (patchAssets) {
+				foreach (var file in PatchInfo.GetFileFixes()) {
+					++total;
+					if (file.TryApply(BaseFolder, BackupFolder)) {
+						++success;
+					}
+				}
+			}
+
+			return new PatchResult(total, success);
 		}
 
-		public bool RestoreOriginalFiles() {
+		public PatchResult RestoreOriginalFiles() {
+			int total = 0;
+			int success = 0;
+
 			using (MemoryStream ms = Binary.CopyToMemory()) {
-				using (var fs = new FileStream(Path, FileMode.Create, FileAccess.Write)) {
-					ms.Position = 0;
-					StreamUtils.CopyStream(ms, fs);
+				++total;
+				if (SenUtils.TryWriteFileIfDifferent(ms, Path)) {
+					++success;
 				}
-				return true;
 			}
+
+			foreach (var file in PatchInfo.GetFileFixes()) {
+				++total;
+				if (file.TryRevert(BaseFolder, BackupFolder)) {
+					++success;
+				}
+			}
+
+			return new PatchResult(total, success);
 		}
 	}
 }

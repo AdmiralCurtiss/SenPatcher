@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="BranchHelper1Byte.cs" />
     <Compile Include="BranchHelper4Byte.cs" />
+    <Compile Include="PatchResult.cs" />
     <Compile Include="RegionHelper.cs" />
     <Compile Include="FileFix.cs" />
     <Compile Include="FileFixBase.cs" />
