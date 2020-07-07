@@ -84,7 +84,7 @@ namespace SenLib {
 
 		private bool DoApplyAndWrite(string path, Stream bin) {
 			DoApply(bin);
-			return SenUtils.TryWriteFile(bin, path);
+			return SenUtils.TryWriteFileIfDifferent(bin, path);
 		}
 
 		protected abstract void DoApply(Stream bin);

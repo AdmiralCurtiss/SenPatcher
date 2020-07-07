@@ -65,7 +65,7 @@ namespace SenLib.Sen1 {
 				}
 
 				// write patched file
-				if (SenUtils.TryWriteFile(ms, Path)) {
+				if (SenUtils.TryWriteFileIfDifferent(ms, Path)) {
 					++success;
 				}
 			}
