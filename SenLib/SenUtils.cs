@@ -76,5 +76,18 @@ namespace SenLib {
 				return false;
 			}
 		}
+
+		public static bool TryDeleteFile(string path) {
+			if (!File.Exists(path)) {
+				return true;
+			}
+
+			try {
+				File.Delete(path);
+				return true;
+			} catch (Exception) {
+				return false;
+			}
+		}
 	}
 }

@@ -10,10 +10,16 @@ namespace SenLib {
 	public abstract class FileFixBase : FileFix {
 		public bool TryApply(string basepath, string backuppath) {
 			string subpath = GetSubPath();
+			string subtargetpath = GetSubTargetPath();
 			string bkpsubpath = GetBackupSubPath();
 			string sha1 = GetSha1();
 			string path = Path.Combine(basepath, subpath);
+			string targetpath = Path.Combine(basepath, subtargetpath);
 			string bkppath = Path.Combine(backuppath, bkpsubpath);
+
+			if (TargetFileExists() && subpath != subtargetpath) {
+				throw new Exception("Revert not implemented when source != target.");
+			}
 
 			if (File.Exists(path)) {
 				using (var ms = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read).CopyToMemoryAndDispose()) {
@@ -23,7 +29,7 @@ namespace SenLib {
 						SenUtils.CreateBackupIfRequired(bkppath, ms);
 
 						// and apply
-						return DoApplyAndWrite(path, ms);
+						return DoApplyAndWrite(targetpath, ms);
 					}
 				}
 			}
@@ -32,7 +38,7 @@ namespace SenLib {
 			if (File.Exists(bkppath)) {
 				using (var ms = new FileStream(bkppath, FileMode.Open, FileAccess.Read, FileShare.Read).CopyToMemoryAndDispose()) {
 					if (SenUtils.CalcSha1(ms) == sha1) {
-						return DoApplyAndWrite(path, ms);
+						return DoApplyAndWrite(targetpath, ms);
 					}
 				}
 			}
@@ -43,10 +49,21 @@ namespace SenLib {
 
 		public bool TryRevert(string basepath, string backuppath) {
 			string subpath = GetSubPath();
+			string subtargetpath = GetSubTargetPath();
 			string bkpsubpath = GetBackupSubPath();
 			string sha1 = GetSha1();
 			string path = Path.Combine(basepath, subpath);
+			string targetpath = Path.Combine(basepath, subtargetpath);
 			string bkppath = Path.Combine(backuppath, bkpsubpath);
+
+			if (!TargetFileExists()) {
+				// target file was newly created, just delete on revert
+				return SenUtils.TryDeleteFile(targetpath);
+			}
+
+			if (subpath != subtargetpath) {
+				throw new Exception("Revert not implemented when source != target.");
+			}
 
 			// check if file needs to be reverted in the first place
 			if (File.Exists(path)) {
@@ -75,6 +92,14 @@ namespace SenLib {
 		}
 
 		public abstract string GetSubPath();
+
+		public virtual string GetSubTargetPath() {
+			return GetSubPath();
+		}
+
+		public virtual bool TargetFileExists() {
+			return true;
+		}
 
 		public virtual string GetBackupSubPath() {
 			return GetSubPath().Replace('/', '_').Replace('\\', '_');

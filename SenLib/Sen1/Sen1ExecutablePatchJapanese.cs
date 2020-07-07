@@ -39,7 +39,9 @@ namespace SenLib.Sen1 {
 		}
 
 		public List<FileFix> GetFileFixes() {
-			return new List<FileFix>();
+			var f = new List<FileFix>();
+			f.Add(new FileFixes.se_wav_ed8m2123_wav());
+			return f;
 		}
 	}
 }
