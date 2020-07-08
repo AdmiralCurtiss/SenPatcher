@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenPatcherCli", "SenPatcher
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenPatcherGui", "SenPatcherGui\SenPatcherGui.csproj", "{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileCompressor", "FileCompressor\FileCompressor.csproj", "{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
