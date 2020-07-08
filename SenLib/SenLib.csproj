@@ -41,8 +41,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="7zip\Common\CRC.cs" />
+    <Compile Include="7zip\Compress\LZMA\LzmaBase.cs" />
+    <Compile Include="7zip\Compress\LZMA\LzmaDecoder.cs" />
+    <Compile Include="7zip\Compress\LZ\LzOutWindow.cs" />
+    <Compile Include="7zip\Compress\RangeCoder\RangeCoder.cs" />
+    <Compile Include="7zip\Compress\RangeCoder\RangeCoderBit.cs" />
+    <Compile Include="7zip\Compress\RangeCoder\RangeCoderBitTree.cs" />
+    <Compile Include="7zip\ICoder.cs" />
     <Compile Include="BranchHelper1Byte.cs" />
     <Compile Include="BranchHelper4Byte.cs" />
+    <Compile Include="DecompressHelper.cs" />
+    <Compile Include="FileFromScratchBase.cs" />
     <Compile Include="PatchResult.cs" />
     <Compile Include="RegionHelper.cs" />
     <Compile Include="FileFix.cs" />
