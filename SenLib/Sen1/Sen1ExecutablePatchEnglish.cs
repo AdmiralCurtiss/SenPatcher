@@ -43,6 +43,9 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_scena_dat_us_t1000_dat());
 			f.Add(new FileFixes.text_dat_us_t_magic_tbl());
 			f.Add(new FileFixes.se_wav_ed8m2123_wav());
+			f.Add(new FileFixes.se_wav_ed8m2150_wav());
+			f.Add(new FileFixes.se_wav_ed8m4097_wav());
+			f.Add(new FileFixes.se_wav_ed8m4217_wav());
 			return f;
 		}
 	}
