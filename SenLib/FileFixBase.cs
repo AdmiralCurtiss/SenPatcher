@@ -113,5 +113,7 @@ namespace SenLib {
 		}
 
 		protected abstract void DoApply(Stream bin);
+
+		public abstract string GetDescription();
 	}
 }

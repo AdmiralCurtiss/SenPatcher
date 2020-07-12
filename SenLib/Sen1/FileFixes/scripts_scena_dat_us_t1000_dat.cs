@@ -52,5 +52,9 @@ namespace SenLib.Sen1.FileFixes {
 				}
 			}
 		}
+
+		public override string GetDescription() {
+			return "Fix continuity error in chapter 3. (text only; this was officially fixed on PS4, but not on PC)";
+		}
 	}
 }

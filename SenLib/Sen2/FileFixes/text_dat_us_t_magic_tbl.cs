@@ -29,5 +29,9 @@ namespace SenLib.Sen2.FileFixes {
 				bin.WriteUInt8(b0);
 			}
 		}
+
+		public override string GetDescription() {
+			return "Fix typo in Emma's S-Craft.";
+		}
 	}
 }

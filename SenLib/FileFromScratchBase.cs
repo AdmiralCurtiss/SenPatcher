@@ -60,5 +60,7 @@ namespace SenLib {
 		public abstract string GetTargetSha1();
 
 		protected abstract Stream DoCreate();
+
+		public abstract string GetDescription();
 	}
 }

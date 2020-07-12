@@ -9,5 +9,7 @@ namespace SenLib {
 		bool TryApply(string basepath, string backuppath);
 
 		bool TryRevert(string basepath, string backuppath);
+
+		string GetDescription();
 	}
 }

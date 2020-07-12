@@ -33,5 +33,9 @@ namespace SenLib.Sen1.FileFixes {
 			// we do this because the existing file in the game assets uses a fullwidth lowercase 'm' but the se table asks for a regular ASCII 'm'
 			// note that I'm unsure if this is actually required, as I couldn't locate the usage of this sound effect, but might as well...
 		}
+
+		public override string GetDescription() {
+			return "Fix incorrect filename of ed8m2123.wav -- unknown if this actually affects anything though.";
+		}
 	}
 }
