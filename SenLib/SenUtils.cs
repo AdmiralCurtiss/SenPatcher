@@ -89,5 +89,13 @@ namespace SenLib {
 				return false;
 			}
 		}
+
+		public static string ExtractUserFriendlyStringFromAssetFixDescriptions(List<FileFix> fixes) {
+			StringBuilder sb = new StringBuilder();
+			foreach (FileFix f in fixes) {
+				sb.AppendLine(f.GetDescription());
+			}
+			return sb.ToString();
+		}
 	}
 }

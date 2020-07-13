@@ -13,6 +13,7 @@ namespace SenLib.Sen2 {
 		private Sen2ExecutablePatchInterface PatchInfo;
 		private List<FileFix> AssetPatches;
 		public int AssetPatchCount => AssetPatches.Count;
+		public string AssetPatchDescriptions => SenUtils.ExtractUserFriendlyStringFromAssetFixDescriptions(AssetPatches);
 
 		public string BaseFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen2BaseFromExe);
 

@@ -118,9 +118,9 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="label5.Text" xml:space="preserve">
-    <value>Note: All original functionality of the selected button will still trigger
-when pressing that button. L3/LS is unused in CS1, so you can map
-it there and then remap it to a more convenient button using eg. Steam's
-button remapping feature.</value>
+    <value>Note: All original functionality of the selected button will still trigger when pressing that
+button. L3/LS is unused in CS1, so you can map it there and then remap it to a more
+convenient button using eg. Steam's button remapping feature. Some buttons may be
+inaccessible when using Mouse/Keyboard controls.</value>
   </data>
 </root>

@@ -23,7 +23,6 @@
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Sen2Form));
 			this.label5 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
 			this.checkBoxBattleAutoSkip = new System.Windows.Forms.CheckBox();
@@ -33,28 +32,27 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.buttonPatch = new System.Windows.Forms.Button();
 			this.checkBoxPatchAudioThread = new System.Windows.Forms.CheckBox();
-			this.numericUpDownTicksPerSecond = new System.Windows.Forms.NumericUpDown();
-			this.label4 = new System.Windows.Forms.Label();
 			this.checkBoxBgmEnqueueingLogic = new System.Windows.Forms.CheckBox();
 			this.label6 = new System.Windows.Forms.Label();
 			this.buttonUnpatch = new System.Windows.Forms.Button();
 			this.checkBoxAssetPatches = new System.Windows.Forms.CheckBox();
-			((System.ComponentModel.ISupportInitialize)(this.numericUpDownTicksPerSecond)).BeginInit();
+			this.buttonAssetFixDetails = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 237);
+			this.label5.Location = new System.Drawing.Point(94, 233);
 			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(364, 169);
+			this.label5.Size = new System.Drawing.Size(401, 26);
 			this.label5.TabIndex = 21;
-			this.label5.Text = resources.GetString("label5.Text");
+			this.label5.Text = "Makes the audio thread\'s timing more consistent, which fixes overly long BGM fade" +
+    "s\r\nand some missing sound effects such as Fie\'s Sweep Craft.\r\n";
 			// 
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(12, 71);
+			this.label2.Location = new System.Drawing.Point(12, 111);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(79, 13);
 			this.label2.TabIndex = 16;
@@ -65,7 +63,7 @@
 			this.checkBoxBattleAutoSkip.AutoSize = true;
 			this.checkBoxBattleAutoSkip.Checked = true;
 			this.checkBoxBattleAutoSkip.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxBattleAutoSkip.Location = new System.Drawing.Point(97, 71);
+			this.checkBoxBattleAutoSkip.Location = new System.Drawing.Point(97, 134);
 			this.checkBoxBattleAutoSkip.Name = "checkBoxBattleAutoSkip";
 			this.checkBoxBattleAutoSkip.Size = new System.Drawing.Size(207, 17);
 			this.checkBoxBattleAutoSkip.TabIndex = 15;
@@ -112,9 +110,9 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 429);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 274);
 			this.buttonPatch.Name = "buttonPatch";
-			this.buttonPatch.Size = new System.Drawing.Size(458, 41);
+			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 22;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
@@ -125,56 +123,19 @@
 			this.checkBoxPatchAudioThread.AutoSize = true;
 			this.checkBoxPatchAudioThread.Checked = true;
 			this.checkBoxPatchAudioThread.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 185);
+			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 213);
 			this.checkBoxPatchAudioThread.Name = "checkBoxPatchAudioThread";
 			this.checkBoxPatchAudioThread.Size = new System.Drawing.Size(248, 17);
 			this.checkBoxPatchAudioThread.TabIndex = 17;
 			this.checkBoxPatchAudioThread.Text = "Replace Audio Timing Thread (Recommended)";
 			this.checkBoxPatchAudioThread.UseVisualStyleBackColor = true;
-			this.checkBoxPatchAudioThread.CheckedChanged += new System.EventHandler(this.checkBoxPatchAudioThread_CheckedChanged);
-			// 
-			// numericUpDownTicksPerSecond
-			// 
-			this.numericUpDownTicksPerSecond.Increment = new decimal(new int[] {
-            50,
-            0,
-            0,
-            0});
-			this.numericUpDownTicksPerSecond.Location = new System.Drawing.Point(275, 209);
-			this.numericUpDownTicksPerSecond.Maximum = new decimal(new int[] {
-            1000000,
-            0,
-            0,
-            0});
-			this.numericUpDownTicksPerSecond.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-			this.numericUpDownTicksPerSecond.Name = "numericUpDownTicksPerSecond";
-			this.numericUpDownTicksPerSecond.Size = new System.Drawing.Size(68, 20);
-			this.numericUpDownTicksPerSecond.TabIndex = 23;
-			this.numericUpDownTicksPerSecond.Value = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
-			// 
-			// label4
-			// 
-			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(114, 211);
-			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(155, 13);
-			this.label4.TabIndex = 24;
-			this.label4.Text = "Audio Timing Ticks per Second";
 			// 
 			// checkBoxBgmEnqueueingLogic
 			// 
 			this.checkBoxBgmEnqueueingLogic.AutoSize = true;
 			this.checkBoxBgmEnqueueingLogic.Checked = true;
 			this.checkBoxBgmEnqueueingLogic.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 117);
+			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 157);
 			this.checkBoxBgmEnqueueingLogic.Name = "checkBoxBgmEnqueueingLogic";
 			this.checkBoxBgmEnqueueingLogic.Size = new System.Drawing.Size(235, 17);
 			this.checkBoxBgmEnqueueingLogic.TabIndex = 25;
@@ -184,20 +145,20 @@
 			// label6
 			// 
 			this.label6.AutoSize = true;
-			this.label6.Location = new System.Drawing.Point(94, 137);
+			this.label6.Location = new System.Drawing.Point(94, 177);
 			this.label6.Name = "label6";
-			this.label6.Size = new System.Drawing.Size(338, 39);
+			this.label6.Size = new System.Drawing.Size(421, 26);
 			this.label6.TabIndex = 26;
-			this.label6.Text = "Patches a few BGM related pieces of code to fix things like the wrong\r\nBGM playin" +
-    "g when repeatedly transitioning between two areas, as well\r\nas the missing cutsc" +
-    "ene BGM bug in the Intermission.";
+			this.label6.Text = "Fixes the missing BGM bug in the intermission as well as the incorrect BGM being " +
+    "played\r\nwhen quickly and repeatedly moving between areas with different music.";
 			// 
 			// buttonUnpatch
 			// 
-			this.buttonUnpatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonUnpatch.Location = new System.Drawing.Point(282, 30);
+			this.buttonUnpatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonUnpatch.Location = new System.Drawing.Point(12, 48);
 			this.buttonUnpatch.Name = "buttonUnpatch";
-			this.buttonUnpatch.Size = new System.Drawing.Size(188, 23);
+			this.buttonUnpatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonUnpatch.TabIndex = 27;
 			this.buttonUnpatch.Text = "Remove Patches / Restore Original";
 			this.buttonUnpatch.UseVisualStyleBackColor = true;
@@ -208,24 +169,34 @@
 			this.checkBoxAssetPatches.AutoSize = true;
 			this.checkBoxAssetPatches.Checked = true;
 			this.checkBoxAssetPatches.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxAssetPatches.Location = new System.Drawing.Point(97, 94);
+			this.checkBoxAssetPatches.Location = new System.Drawing.Point(97, 111);
 			this.checkBoxAssetPatches.Name = "checkBoxAssetPatches";
 			this.checkBoxAssetPatches.Size = new System.Drawing.Size(213, 17);
 			this.checkBoxAssetPatches.TabIndex = 28;
 			this.checkBoxAssetPatches.Text = "Apply fixes for known script/asset errors";
 			this.checkBoxAssetPatches.UseVisualStyleBackColor = true;
 			// 
+			// buttonAssetFixDetails
+			// 
+			this.buttonAssetFixDetails.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonAssetFixDetails.Location = new System.Drawing.Point(385, 95);
+			this.buttonAssetFixDetails.Name = "buttonAssetFixDetails";
+			this.buttonAssetFixDetails.Size = new System.Drawing.Size(137, 44);
+			this.buttonAssetFixDetails.TabIndex = 29;
+			this.buttonAssetFixDetails.Text = "Show asset fix details... (may contain spoilers)";
+			this.buttonAssetFixDetails.UseVisualStyleBackColor = true;
+			this.buttonAssetFixDetails.Click += new System.EventHandler(this.buttonAssetFixDetails_Click);
+			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(483, 482);
+			this.ClientSize = new System.Drawing.Size(534, 327);
+			this.Controls.Add(this.buttonAssetFixDetails);
 			this.Controls.Add(this.checkBoxAssetPatches);
 			this.Controls.Add(this.buttonUnpatch);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.checkBoxBgmEnqueueingLogic);
-			this.Controls.Add(this.label4);
-			this.Controls.Add(this.numericUpDownTicksPerSecond);
 			this.Controls.Add(this.buttonPatch);
 			this.Controls.Add(this.label5);
 			this.Controls.Add(this.checkBoxPatchAudioThread);
@@ -237,7 +208,6 @@
 			this.Controls.Add(this.label1);
 			this.Name = "Sen2Form";
 			this.Text = "Patch Cold Steel 2";
-			((System.ComponentModel.ISupportInitialize)(this.numericUpDownTicksPerSecond)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -254,11 +224,10 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Button buttonPatch;
 		private System.Windows.Forms.CheckBox checkBoxPatchAudioThread;
-		private System.Windows.Forms.NumericUpDown numericUpDownTicksPerSecond;
-		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.CheckBox checkBoxBgmEnqueueingLogic;
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Button buttonUnpatch;
 		private System.Windows.Forms.CheckBox checkBoxAssetPatches;
+		private System.Windows.Forms.Button buttonAssetFixDetails;
 	}
 }

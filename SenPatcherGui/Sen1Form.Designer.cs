@@ -38,6 +38,7 @@
 			this.checkBoxFixHdTextureId = new System.Windows.Forms.CheckBox();
 			this.buttonUnpatch = new System.Windows.Forms.Button();
 			this.checkBoxAssetPatches = new System.Windows.Forms.CheckBox();
+			this.buttonAssetFixDetails = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -81,7 +82,7 @@
 			this.checkBoxBattleAutoSkip.AutoSize = true;
 			this.checkBoxBattleAutoSkip.Checked = true;
 			this.checkBoxBattleAutoSkip.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxBattleAutoSkip.Location = new System.Drawing.Point(97, 71);
+			this.checkBoxBattleAutoSkip.Location = new System.Drawing.Point(97, 134);
 			this.checkBoxBattleAutoSkip.Name = "checkBoxBattleAutoSkip";
 			this.checkBoxBattleAutoSkip.Size = new System.Drawing.Size(207, 17);
 			this.checkBoxBattleAutoSkip.TabIndex = 4;
@@ -91,7 +92,7 @@
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(12, 71);
+			this.label2.Location = new System.Drawing.Point(12, 111);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(79, 13);
 			this.label2.TabIndex = 5;
@@ -100,7 +101,7 @@
 			// checkBoxAllowR2InTurboMode
 			// 
 			this.checkBoxAllowR2InTurboMode.AutoSize = true;
-			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(97, 140);
+			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(97, 180);
 			this.checkBoxAllowR2InTurboMode.Name = "checkBoxAllowR2InTurboMode";
 			this.checkBoxAllowR2InTurboMode.Size = new System.Drawing.Size(280, 17);
 			this.checkBoxAllowR2InTurboMode.TabIndex = 6;
@@ -110,7 +111,7 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(94, 166);
+			this.label4.Location = new System.Drawing.Point(94, 206);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(87, 13);
 			this.label4.TabIndex = 7;
@@ -120,7 +121,7 @@
 			// 
 			this.comboBoxTurboModeKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboBoxTurboModeKey.FormattingEnabled = true;
-			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 163);
+			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 203);
 			this.comboBoxTurboModeKey.Name = "comboBoxTurboModeKey";
 			this.comboBoxTurboModeKey.Size = new System.Drawing.Size(126, 21);
 			this.comboBoxTurboModeKey.TabIndex = 8;
@@ -129,9 +130,9 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 259);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 293);
 			this.buttonPatch.Name = "buttonPatch";
-			this.buttonPatch.Size = new System.Drawing.Size(440, 41);
+			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 9;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
@@ -140,9 +141,9 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 193);
+			this.label5.Location = new System.Drawing.Point(94, 233);
 			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(346, 52);
+			this.label5.Size = new System.Drawing.Size(408, 52);
 			this.label5.TabIndex = 10;
 			this.label5.Text = resources.GetString("label5.Text");
 			// 
@@ -151,7 +152,7 @@
 			this.checkBoxFixHdTextureId.AutoSize = true;
 			this.checkBoxFixHdTextureId.Checked = true;
 			this.checkBoxFixHdTextureId.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxFixHdTextureId.Location = new System.Drawing.Point(97, 94);
+			this.checkBoxFixHdTextureId.Location = new System.Drawing.Point(97, 157);
 			this.checkBoxFixHdTextureId.Name = "checkBoxFixHdTextureId";
 			this.checkBoxFixHdTextureId.Size = new System.Drawing.Size(198, 17);
 			this.checkBoxFixHdTextureId.TabIndex = 11;
@@ -160,10 +161,11 @@
 			// 
 			// buttonUnpatch
 			// 
-			this.buttonUnpatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonUnpatch.Location = new System.Drawing.Point(265, 30);
+			this.buttonUnpatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonUnpatch.Location = new System.Drawing.Point(12, 48);
 			this.buttonUnpatch.Name = "buttonUnpatch";
-			this.buttonUnpatch.Size = new System.Drawing.Size(188, 23);
+			this.buttonUnpatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonUnpatch.TabIndex = 12;
 			this.buttonUnpatch.Text = "Remove Patches / Restore Original";
 			this.buttonUnpatch.UseVisualStyleBackColor = true;
@@ -174,18 +176,30 @@
 			this.checkBoxAssetPatches.AutoSize = true;
 			this.checkBoxAssetPatches.Checked = true;
 			this.checkBoxAssetPatches.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxAssetPatches.Location = new System.Drawing.Point(97, 117);
+			this.checkBoxAssetPatches.Location = new System.Drawing.Point(97, 111);
 			this.checkBoxAssetPatches.Name = "checkBoxAssetPatches";
 			this.checkBoxAssetPatches.Size = new System.Drawing.Size(213, 17);
 			this.checkBoxAssetPatches.TabIndex = 13;
 			this.checkBoxAssetPatches.Text = "Apply fixes for known script/asset errors";
 			this.checkBoxAssetPatches.UseVisualStyleBackColor = true;
 			// 
+			// buttonAssetFixDetails
+			// 
+			this.buttonAssetFixDetails.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonAssetFixDetails.Location = new System.Drawing.Point(385, 95);
+			this.buttonAssetFixDetails.Name = "buttonAssetFixDetails";
+			this.buttonAssetFixDetails.Size = new System.Drawing.Size(137, 44);
+			this.buttonAssetFixDetails.TabIndex = 14;
+			this.buttonAssetFixDetails.Text = "Show asset fix details... (may contain spoilers)";
+			this.buttonAssetFixDetails.UseVisualStyleBackColor = true;
+			this.buttonAssetFixDetails.Click += new System.EventHandler(this.buttonAssetFixDetails_Click);
+			// 
 			// Sen1Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(465, 312);
+			this.ClientSize = new System.Drawing.Size(534, 346);
+			this.Controls.Add(this.buttonAssetFixDetails);
 			this.Controls.Add(this.checkBoxAssetPatches);
 			this.Controls.Add(this.buttonUnpatch);
 			this.Controls.Add(this.checkBoxFixHdTextureId);
@@ -223,5 +237,6 @@
 		private System.Windows.Forms.CheckBox checkBoxFixHdTextureId;
 		private System.Windows.Forms.Button buttonUnpatch;
 		private System.Windows.Forms.CheckBox checkBoxAssetPatches;
+		private System.Windows.Forms.Button buttonAssetFixDetails;
 	}
 }

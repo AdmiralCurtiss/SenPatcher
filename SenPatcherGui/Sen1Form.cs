@@ -98,5 +98,9 @@ namespace SenPatcherGui {
 				);
 			}
 		}
+
+		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
+			new TextDisplayForm("Asset fix details for Cold Steel 1", Exec.AssetPatchDescriptions).ShowDialog();
+		}
 	}
 }
