@@ -18,16 +18,7 @@ namespace SenLib.Sen1.FileFixes {
 
 		protected override void DoApply(Stream bin) {
 			// fix typo in Emma's S-Craft
-			{
-				bin.Position = 0x3c3a;
-				byte b0 = bin.ReadUInt8();
-				byte b1 = bin.ReadUInt8();
-				byte b2 = bin.ReadUInt8();
-				bin.Position = 0x3c3a;
-				bin.WriteUInt8(b2);
-				bin.WriteUInt8(b1);
-				bin.WriteUInt8(b0);
-			}
+			bin.SwapBytes(0x3c3a, 0x3c3c);
 		}
 
 		public override string GetDescription() {

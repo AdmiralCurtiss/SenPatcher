@@ -90,6 +90,7 @@
     <Compile Include="Sen2\Sen2PatchExec.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="SenCommonPaths.cs" />
+    <Compile Include="SenScriptPatcher.cs" />
     <Compile Include="SenUtils.cs" />
     <Compile Include="SenVersionIdentifier.cs" />
   </ItemGroup>
