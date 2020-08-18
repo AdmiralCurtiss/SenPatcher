@@ -62,10 +62,14 @@
     <Compile Include="RegionHelper.cs" />
     <Compile Include="FileFix.cs" />
     <Compile Include="FileFixBase.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0110_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0600_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0000_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0032_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1000_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1500_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t3500_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_beryl_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_heinrich_dat.cs" />
     <Compile Include="Sen1\FileFixes\se_wav_ed8m2123_wav.cs" />
     <Compile Include="Sen1\FileFixes\se_wav_ed8m4217_wav.cs" />
