@@ -58,5 +58,31 @@ namespace SenLib {
 				Bin.WriteUInt8(NopCommand);
 			}
 		}
+
+		public void ReplacePartialCommand(long commandLocation, long commandLength, long replacementLocation, long replacementLength, byte[] replacementData) {
+			long keepByteCountStart = replacementLocation - commandLocation;
+			long keepByteCountEnd = (commandLocation + commandLength) - (replacementLocation + replacementLength);
+
+			MemoryStream newCommand = new MemoryStream();
+			if (keepByteCountStart > 0) {
+				newCommand.Write(Bin.ReadBytesFromLocationAndReset(commandLocation, keepByteCountStart));
+			}
+			if (replacementData != null && replacementData.LongLength > 0) {
+				newCommand.Write(replacementData);
+			}
+			if (keepByteCountEnd > 0) {
+				newCommand.Write(Bin.ReadBytesFromLocationAndReset((commandLocation + commandLength) - keepByteCountEnd, keepByteCountEnd));
+			}
+
+			ReplaceCommand(commandLocation, commandLength, newCommand.CopyToByteArrayAndDispose());
+		}
+
+		public void RemovePartialCommand(long commandLocation, long commandLength, long removeLocation, long removeLength) {
+			ReplacePartialCommand(commandLocation, commandLength, removeLocation, removeLength, null);
+		}
+
+		public void ExtendPartialCommand(long commandLocation, long commandLength, long extendLocation, byte[] extendData) {
+			ReplacePartialCommand(commandLocation, commandLength, extendLocation, 0, extendData);
+		}
 	}
 }
