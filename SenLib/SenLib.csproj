@@ -62,6 +62,7 @@
     <Compile Include="RegionHelper.cs" />
     <Compile Include="FileFix.cs" />
     <Compile Include="FileFixBase.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0100_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0110_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0600_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0000_dat.cs" />
