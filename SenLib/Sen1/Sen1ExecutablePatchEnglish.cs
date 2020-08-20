@@ -55,6 +55,16 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_scena_dat_us_t1500_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_beryl_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_c0100_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_a0006_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_r0800_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t0010_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t0031_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t0050_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t0080_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t1010_dat());
+			f.Add(new FileFixes.scripts_talk_dat_us_tk_edel_dat());
+			f.Add(new FileFixes.scripts_talk_dat_us_tk_laura_dat());
+			f.Add(new FileFixes.scripts_talk_dat_us_tk_vandyck_dat());
 			return f;
 		}
 	}
