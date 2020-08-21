@@ -12,6 +12,30 @@ using System.Threading.Tasks;
 namespace SenPatcherCli {
 	public class Program {
 		public static int Main(string[] args) {
+			if (args.Length == 1 && args[0] == "__gen_voice_checks") {
+				t_voice_tbl.CheckVoiceTable(
+					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/text/dat_us/t_voice.tbl"),
+					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/voice/wav"),
+					Path.Combine(SenCommonPaths.Sen1SteamDir, "voice_check_english.txt")
+				);
+				t_voice_tbl.CheckVoiceTable(
+					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/text/dat/t_voice.tbl"),
+					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/voice/wav_jp"),
+					Path.Combine(SenCommonPaths.Sen1SteamDir, "voice_check_japanese.txt")
+				);
+				t_voice_tbl.CheckVoiceTable(
+					Path.Combine(SenCommonPaths.Sen2SteamDir, "data/text/dat_us/t_voice.tbl"),
+					Path.Combine(SenCommonPaths.Sen2SteamDir, "data/voice/wav"),
+					Path.Combine(SenCommonPaths.Sen2SteamDir, "voice_check_english.txt")
+				);
+				t_voice_tbl.CheckVoiceTable(
+					Path.Combine(SenCommonPaths.Sen2SteamDir, "data/text/dat/t_voice.tbl"),
+					Path.Combine(SenCommonPaths.Sen2SteamDir, "data/voice_jp/wav"),
+					Path.Combine(SenCommonPaths.Sen2SteamDir, "voice_check_japanese.txt")
+				);
+				return 0;
+			}
+
 			if (args.Length == 0) {
 				Console.WriteLine("No path to executable given.");
 				return -1;
