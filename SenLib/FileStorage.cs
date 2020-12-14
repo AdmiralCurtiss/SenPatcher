@@ -44,6 +44,10 @@ namespace SenLib {
 			return null;
 		}
 
+		public bool Contains(SHA1 hash) {
+			return Map.ContainsKey(hash);
+		}
+
 		public void WriteToHyoutaArchive(System.IO.Stream target) {
 			List<HyoutaUtils.HyoutaArchive.HyoutaArchiveFileInfo> files = new List<HyoutaUtils.HyoutaArchive.HyoutaArchiveFileInfo>();
 			foreach (var kvp in Map) {
@@ -65,29 +69,19 @@ namespace SenLib {
 			FileStorage storage = new FileStorage();
 			List<(KnownFile file, List<string> errors)> errors = new List<(KnownFile file, List<string> errors)>();
 
-			HashSet<SHA1> expectedHashes = new HashSet<SHA1>();
-			foreach (KnownFile knownFile in knownFiles) {
-				expectedHashes.Add(knownFile.Hash);
-			}
-
-			Dictionary<SHA1, DuplicatableStream> existingBackupArchiveFiles = new Dictionary<SHA1, DuplicatableStream>();
 			if (existingBackupArchive != null) {
 				for (long i = 0; i < existingBackupArchive.Filecount; ++i) {
 					using (var file = existingBackupArchive.GetChildByIndex(i).AsFile)
 					using (var filestream = file.DataStream.Duplicate()) {
 						var hash = ChecksumUtils.CalculateSHA1ForEntireStream(filestream);
-						if (expectedHashes.Contains(hash)) {
-							existingBackupArchiveFiles.Add(hash, filestream.CopyToByteArrayStreamAndDispose());
-						}
+						storage.Add(hash, filestream.CopyToByteArrayStreamAndDispose());
 					}
 				}
 			}
 
 			bool newFileFound = false;
 			foreach (KnownFile knownFile in knownFiles) {
-				DuplicatableStream existingStream;
-				if (existingBackupArchiveFiles.TryGetValue(knownFile.Hash, out existingStream)) {
-					storage.Add(knownFile.Hash, existingStream);
+				if (storage.Contains(knownFile.Hash)) {
 					continue;
 				}
 
