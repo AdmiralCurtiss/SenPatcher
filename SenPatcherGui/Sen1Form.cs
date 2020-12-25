@@ -17,6 +17,7 @@ namespace SenPatcherGui {
 		private Sen1PatchExec Exec;
 
 		public Sen1Form(string path, Stream binary, SenVersion version) {
+			/*
 			Exec = new Sen1PatchExec(path, binary, version);
 
 			InitializeComponent();
@@ -50,9 +51,11 @@ namespace SenPatcherGui {
 			comboBoxTurboModeKey.Items.Add("D-Pad Down");
 			comboBoxTurboModeKey.Items.Add("D-Pad Left");
 			comboBoxTurboModeKey.SelectedIndex = 7;
+			*/
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
+			/*
 			bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 			bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
 			int turboKey = comboBoxTurboModeKey.SelectedIndex;
@@ -77,9 +80,11 @@ namespace SenPatcherGui {
 					+ "Verify that the game files are writable and not corrupted."
 				);
 			}
+			*/
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
+			/*
 			PatchResult result;
 			try {
 				result = Exec.RestoreOriginalFiles();
@@ -97,10 +102,13 @@ namespace SenPatcherGui {
 					+ "Verify that the game files are writable and not corrupted."
 				);
 			}
+			*/
 		}
 
 		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
+			/*
 			new TextDisplayForm("Asset fix details for Cold Steel 1", Exec.AssetPatchDescriptions).ShowDialog();
+			*/
 		}
 	}
 }

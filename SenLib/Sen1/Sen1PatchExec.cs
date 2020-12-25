@@ -7,101 +7,55 @@ using System.IO;
 
 namespace SenLib.Sen1 {
 	public class Sen1PatchExec {
-		public string Path { get; private set; }
-		public string HumanReadableVersion { get; private set; }
-		private Stream Binary;
-		private Sen1ExecutablePatchInterface PatchInfo;
-		private List<FileFix> AssetPatches;
-		public int AssetPatchCount => AssetPatches.Count;
-		public string AssetPatchDescriptions => SenUtils.ExtractUserFriendlyStringFromAssetFixDescriptions(AssetPatches);
+		public string BaseFolder { get; private set; }
+		private FileStorage Storage;
 
-		public string BaseFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen1BaseFromExe);
-
-		public string BackupFolder => System.IO.Path.Combine(BaseFolder, SenCommonPaths.BackupFolder);
-
-		public Sen1PatchExec(string path, Stream binary, SenVersion version) {
-			Path = path;
-			Binary = binary.CopyToMemory();
-
-			switch (version) {
-				case SenVersion.Sen1_v1_6_En:
-					PatchInfo = new Sen1ExecutablePatchEnglish();
-					HumanReadableVersion = "1.6 (English)";
-					break;
-				case SenVersion.Sen1_v1_6_Jp:
-					PatchInfo = new Sen1ExecutablePatchJapanese();
-					HumanReadableVersion = "1.6 (Japanese)";
-					break;
-				default:
-					throw new Exception("Invalid version for Sen 1 patch form.");
-			}
-
-			AssetPatches = PatchInfo.GetFileFixes();
+		public Sen1PatchExec(string baseFolder, FileStorage storage) {
+			BaseFolder = baseFolder;
+			Storage = storage;
 		}
 
-		public PatchResult ApplyPatches(bool removeTurboSkip, bool allowR2NotebookShortcut, int turboKey, bool fixTextureIds, bool patchAssets) {
-			int total = 0;
-			int success = 0;
-
-			using (MemoryStream ms = Binary.CopyToMemory()) {
-				++total;
-				SenUtils.CreateBackupIfRequired(System.IO.Path.Combine(BackupFolder, System.IO.Path.GetFileName(Path) + ".bin"), ms);
-
-				// patch data
-				if (removeTurboSkip) {
-					Sen1ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo, true);
-					Sen1ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, PatchInfo, true);
-				}
-				if (allowR2NotebookShortcut) {
-					Sen1ExecutablePatches.PatchJumpR2NotebookOpen(ms, PatchInfo, true);
-					Sen1ExecutablePatches.PatchJumpR2NotebookSettings(ms, PatchInfo, true);
-				}
-				if (turboKey >= 0 && turboKey <= 0xF) {
-					Sen1ExecutablePatches.PatchButtonBattleAnimationAutoSkip(ms, PatchInfo, (byte)turboKey);
-					Sen1ExecutablePatches.PatchButtonBattleResultsAutoSkip(ms, PatchInfo, (byte)turboKey);
-					Sen1ExecutablePatches.PatchButtonTurboMode(ms, PatchInfo, (byte)turboKey);
-				}
-				if (fixTextureIds) {
-					Sen1ExecutablePatches.PatchThorMasterQuartzString(ms, PatchInfo);
-				}
-
-				// write patched file
-				if (SenUtils.TryWriteFileIfDifferent(ms, Path)) {
-					++success;
-				}
+		public static List<FileMod> GetMods(bool removeTurboSkip, bool allowR2NotebookShortcut, int turboKey, bool fixTextureIds, bool patchAssets) {
+			var f = new List<FileMod>();
+			for (int i = 0; i < 2; ++i) {
+				f.Add(new FileFixes.ed8_exe(i == 0, removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds));
 			}
-
 			if (patchAssets) {
-				foreach (var file in AssetPatches) {
-					++total;
-					if (file.TryApply(BaseFolder, BackupFolder)) {
-						++success;
-					}
-				}
+				f.Add(new FileFixes.scripts_scena_dat_us_t1000_dat());
+				f.Add(new FileFixes.text_dat_us_t_magic_tbl());
+				f.Add(new FileFixes.se_wav_ed8m2123_wav());
+				f.Add(new FileFixes.se_wav_ed8m2150_wav());
+				f.Add(new FileFixes.se_wav_ed8m4097_wav());
+				f.Add(new FileFixes.se_wav_ed8m4217_wav());
+				f.Add(new FileFixes.scripts_scena_dat_us_r0600_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t0032_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t3500_dat());
+				f.Add(new FileFixes.scripts_talk_dat_us_tk_heinrich_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_c0110_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t0000_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t1500_dat());
+				f.Add(new FileFixes.scripts_talk_dat_us_tk_beryl_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_c0100_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_a0006_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_r0800_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t0010_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t0031_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t0050_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t0080_dat());
+				f.Add(new FileFixes.scripts_scena_dat_us_t1010_dat());
+				f.Add(new FileFixes.scripts_talk_dat_us_tk_edel_dat());
+				f.Add(new FileFixes.scripts_talk_dat_us_tk_laura_dat());
+				f.Add(new FileFixes.scripts_talk_dat_us_tk_vandyck_dat());
 			}
-
-			return new PatchResult(total, success);
+			return f;
 		}
 
-		public PatchResult RestoreOriginalFiles() {
-			int total = 0;
-			int success = 0;
+		public PatchResult ApplyPatches(List<FileMod> mods) {
+			return FileModExec.ExecuteMods(BaseFolder, Storage, mods);
+		}
 
-			using (MemoryStream ms = Binary.CopyToMemory()) {
-				++total;
-				if (SenUtils.TryWriteFileIfDifferent(ms, Path)) {
-					++success;
-				}
-			}
-
-			foreach (var file in AssetPatches) {
-				++total;
-				if (file.TryRevert(BaseFolder, BackupFolder)) {
-					++success;
-				}
-			}
-
-			return new PatchResult(total, success);
+		public PatchResult RevertPatches(List<FileMod> mods) {
+			return FileModExec.RevertMods(BaseFolder, Storage, mods);
 		}
 	}
 }

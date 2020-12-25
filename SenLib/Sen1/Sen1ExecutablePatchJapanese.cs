@@ -37,14 +37,5 @@ namespace SenLib.Sen1 {
 		public long GetRomAddressThorMasterQuartzTextureIdTypo() {
 			return 0x738f6a;
 		}
-
-		public List<FileFix> GetFileFixes() {
-			var f = new List<FileFix>();
-			f.Add(new FileFixes.se_wav_ed8m2123_wav());
-			f.Add(new FileFixes.se_wav_ed8m2150_wav());
-			f.Add(new FileFixes.se_wav_ed8m4097_wav());
-			f.Add(new FileFixes.se_wav_ed8m4217_wav());
-			return f;
-		}
 	}
 }

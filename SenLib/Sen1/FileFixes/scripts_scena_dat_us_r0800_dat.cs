@@ -1,27 +1,32 @@
-﻿using System;
+﻿using HyoutaUtils;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenLib.Sen1.FileFixes {
-	public class scripts_scena_dat_us_r0800_dat : FileFixBase {
-		public override string GetDescription() {
+	public class scripts_scena_dat_us_r0800_dat : FileMod {
+		public string GetDescription() {
 			return "Fix double space in southern Nord plains.";
 		}
 
-		public override string GetSha1() {
-			return "48d8e5ebfacb29fed7c5c4e75c84e108277cb5fe";
-		}
+		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x48d8e5ebfacb29feul, 0xd7c5c4e75c84e108ul, 0x277cb5feu));
+			if (s == null) {
+				return null;
+			}
+			MemoryStream bin = s.CopyToMemoryAndDispose();
 
-		public override string GetSubPath() {
-			return "data/scripts/scena/dat_us/r0800.dat";
-		}
-
-		protected override void DoApply(Stream bin) {
 			var patcher = new SenScriptPatcher(bin);
 			patcher.RemovePartialCommand(0xf877, 0x46, 0xf89c, 1);
+
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/r0800.dat", bin) };
+		}
+
+		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x48d8e5ebfacb29feul, 0xd7c5c4e75c84e108ul, 0x277cb5feu));
+			if (s == null) {
+				return null;
+			}
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/r0800.dat", s) };
 		}
 	}
 }

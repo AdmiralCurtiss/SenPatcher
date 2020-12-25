@@ -1,28 +1,32 @@
 ﻿using HyoutaUtils;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenLib.Sen1.FileFixes {
-	public class scripts_scena_dat_us_r0600_dat : FileFixBase {
-		public override string GetDescription() {
+	public class scripts_scena_dat_us_r0600_dat : FileMod {
+		public string GetDescription() {
 			return "Fix wrong elipsis in Chapter 6 Jusis bonding event.";
 		}
 
-		public override string GetSha1() {
-			return "65044a35a4c042fabc4a5a66fd23b0cd8163dfdb";
-		}
+		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x65044a35a4c042faul, 0xbc4a5a66fd23b0cdul, 0x8163dfdbu));
+			if (s == null) {
+				return null;
+			}
+			MemoryStream bin = s.CopyToMemoryAndDispose();
 
-		public override string GetSubPath() {
-			return "data/scripts/scena/dat_us/r0600.dat";
-		}
-
-		protected override void DoApply(Stream bin) {
 			bin.Position = 0xc171;
 			bin.WriteUInt24(0x2e2e2e);
+
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/r0600.dat", bin) };
+		}
+
+		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x65044a35a4c042faul, 0xbc4a5a66fd23b0cdul, 0x8163dfdbu));
+			if (s == null) {
+				return null;
+			}
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/r0600.dat", s) };
 		}
 	}
 }

@@ -1,26 +1,20 @@
 ﻿using HyoutaUtils;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenLib.Sen1.FileFixes {
-	public class scripts_scena_dat_us_t0031_dat : FileFixBase {
-		public override string GetDescription() {
+	public class scripts_scena_dat_us_t0031_dat : FileMod {
+		public string GetDescription() {
 			return "Fix typos in Stella Garden.";
 		}
 
-		public override string GetSha1() {
-			return "66a22b79517c7214b00b2a7a4ac898bc5f231fd8";
-		}
+		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x66a22b79517c7214ul, 0xb00b2a7a4ac898bcul, 0x5f231fd8u));
+			if (s == null) {
+				return null;
+			}
+			MemoryStream bin = s.CopyToMemoryAndDispose();
 
-		public override string GetSubPath() {
-			return "data/scripts/scena/dat_us/t0031.dat";
-		}
-
-		protected override void DoApply(Stream bin) {
 			var patcher = new SenScriptPatcher(bin);
 
 			// double spaces in various lines
@@ -32,6 +26,16 @@ namespace SenLib.Sen1.FileFixes {
 			bin.Position = 0x1f7a;
 			bin.WriteUInt8(0x01);
 			patcher.ExtendPartialCommand(0x1f5c, 0x3c, 0x1f83, new byte[] { 0x20 });
+
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0031.dat", bin) };
+		}
+
+		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x66a22b79517c7214ul, 0xb00b2a7a4ac898bcul, 0x5f231fd8u));
+			if (s == null) {
+				return null;
+			}
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0031.dat", s) };
 		}
 	}
 }

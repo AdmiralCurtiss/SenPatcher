@@ -1,27 +1,32 @@
-﻿using System;
+﻿using HyoutaUtils;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenLib.Sen1.FileFixes {
-	public class scripts_talk_dat_us_tk_laura_dat : FileFixBase {
-		public override string GetDescription() {
+	public class scripts_talk_dat_us_tk_laura_dat : FileMod {
+		public string GetDescription() {
 			return "Fix double space in conversation with Laura.";
 		}
 
-		public override string GetSha1() {
-			return "f423fb1dfddde29d3e26a40ceed87982b899cdca";
-		}
+		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xf423fb1dfddde29dul, 0x3e26a40ceed87982ul, 0xb899cdcau));
+			if (s == null) {
+				return null;
+			}
+			MemoryStream bin = s.CopyToMemoryAndDispose();
 
-		public override string GetSubPath() {
-			return "data/scripts/talk/dat_us/tk_laura.dat";
-		}
-
-		protected override void DoApply(Stream bin) {
 			var patcher = new SenScriptPatcher(bin);
 			patcher.RemovePartialCommand(0x1881, 0x73, 0x18a7, 1);
+
+			return new FileModResult[] { new FileModResult("data/scripts/talk/dat_us/tk_laura.dat", bin) };
+		}
+
+		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xf423fb1dfddde29dul, 0x3e26a40ceed87982ul, 0xb899cdcau));
+			if (s == null) {
+				return null;
+			}
+			return new FileModResult[] { new FileModResult("data/scripts/talk/dat_us/tk_laura.dat", s) };
 		}
 	}
 }

@@ -37,11 +37,42 @@ namespace SenPatcherCli {
 			}
 
 			if (args.Length == 0) {
-				Console.WriteLine("No path to executable given.");
+				Console.WriteLine("No path to directory given.");
 				return -1;
 			}
 
 			string path = args[0];
+			if (!Directory.Exists(path)) {
+				Console.WriteLine("No directory found at " + path + ".");
+				return -1;
+			}
+
+
+			// TODO: detect whether we're Sen1 or 2
+
+			FileStorage storage = FileModExec.InitializeAndPersistFileStorage(path, Sen1KnownFiles.Files);
+			if (storage == null) {
+				Console.WriteLine("Failed to initialize file storage from " + path + ".");
+				return -1;
+			}
+
+			var result = new Sen1PatchExec(path, storage).ApplyPatches(Sen1PatchExec.GetMods(
+				removeTurboSkip: true,
+				allowR2NotebookShortcut: true,
+				turboKey: 0xA,
+				fixTextureIds: true,
+				patchAssets: true
+			));
+
+			if (!result.AllSuccessful) {
+				Console.WriteLine("Failed to patch CS1 at " + path + ".");
+				return -1;
+			}
+
+			Console.WriteLine("Successfully patched CS1 at " + path + ".");
+			return 0;
+
+			/*
 			if (!File.Exists(path)) {
 				Console.WriteLine("No file found at " + path + ".");
 				return -1;
@@ -106,6 +137,7 @@ namespace SenPatcherCli {
 			}
 
 			return 0;
+			*/
 		}
 	}
 }

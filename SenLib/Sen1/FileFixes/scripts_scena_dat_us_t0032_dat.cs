@@ -1,26 +1,20 @@
 ﻿using HyoutaUtils;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenLib.Sen1.FileFixes {
-	public class scripts_scena_dat_us_t0032_dat : FileFixBase {
-		public override string GetDescription() {
+	public class scripts_scena_dat_us_t0032_dat : FileMod {
+		public string GetDescription() {
 			return "Fix wrong elipsis in teahouse festival events.";
 		}
 
-		public override string GetSha1() {
-			return "e7854ac057166d50d94c340ec39403d26173ff9f";
-		}
+		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xe7854ac057166d50ul, 0xd94c340ec39403d2ul, 0x6173ff9fu));
+			if (s == null) {
+				return null;
+			}
+			MemoryStream bin = s.CopyToMemoryAndDispose();
 
-		public override string GetSubPath() {
-			return "data/scripts/scena/dat_us/t0032.dat";
-		}
-
-		protected override void DoApply(Stream bin) {
 			bin.Position = 0x2360;
 			bin.WriteUInt24(0x2e2e2e);
 			bin.Position = 0xe22a;
@@ -29,6 +23,16 @@ namespace SenLib.Sen1.FileFixes {
 			bin.WriteUInt24(0x2e2e2e);
 			bin.Position = 0x137db;
 			bin.WriteUInt24(0x2e2e2e);
+
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0032.dat", bin) };
+		}
+
+		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xe7854ac057166d50ul, 0xd94c340ec39403d2ul, 0x6173ff9fu));
+			if (s == null) {
+				return null;
+			}
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0032.dat", s) };
 		}
 	}
 }
