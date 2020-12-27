@@ -94,6 +94,7 @@
     <Compile Include="Sen1\FileFixes\se_wav_ed8m4097_wav.cs" />
     <Compile Include="Sen1\FileFixes\se_wav_ed8m2150_wav.cs" />
     <Compile Include="Sen1\FileFixes\text_dat_us_t_magic_tbl.cs" />
+    <Compile Include="Sen1\FileFixes\text_dat_us_t_voice_tbl.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchJapanese.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatchEnglish.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatches.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="SenScriptPatcher.cs" />
     <Compile Include="SenUtils.cs" />
     <Compile Include="SenVersionIdentifier.cs" />
+    <Compile Include="VoiceTable.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HyoutaUtils\HyoutaPluginBase\HyoutaPluginBase.csproj">
@@ -144,6 +146,7 @@
     <None Include="Sen1\FileFixes\ed8m2150.bin" />
     <None Include="Sen1\FileFixes\ed8m4097.bin" />
     <None Include="Sen1\FileFixes\ed8m4217.bin" />
+    <None Include="Sen1\FileFixes\pc8v10286_15.bin" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

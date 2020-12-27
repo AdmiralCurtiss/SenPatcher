@@ -89,5 +89,15 @@ namespace SenLib.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] pc8v10286_15 {
+            get {
+                object obj = ResourceManager.GetObject("pc8v10286_15", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
