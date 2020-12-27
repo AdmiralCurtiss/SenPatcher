@@ -58,7 +58,7 @@ namespace SenLib.Sen1.FileFixes {
 			}
 
 			ms.Position = 0;
-			return new FileModResult[] { new FileModResult(IsJp ? "ed8.exe" : "ed8jp.exe", ms) };
+			return new FileModResult[] { new FileModResult(IsJp ? "ed8jp.exe" : "ed8.exe", ms) };
 		}
 
 		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
@@ -66,7 +66,7 @@ namespace SenLib.Sen1.FileFixes {
 			if (s == null) {
 				return null;
 			}
-			return new FileModResult[] { new FileModResult(IsJp ? "ed8.exe" : "ed8jp.exe", s) };
+			return new FileModResult[] { new FileModResult(IsJp ? "ed8jp.exe" : "ed8.exe", s) };
 		}
 	}
 }
