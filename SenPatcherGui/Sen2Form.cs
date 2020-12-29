@@ -17,6 +17,7 @@ namespace SenPatcherGui {
 		private Sen2PatchExec Exec;
 
 		public Sen2Form(string path, Stream binary, SenVersion version) {
+			/*
 			Exec = new Sen2PatchExec(path, binary, version);
 
 			InitializeComponent();
@@ -32,9 +33,11 @@ namespace SenPatcherGui {
 			} else {
 				checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
 			}
+			*/
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
+			/*
 			bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 			bool patchAudioThread = checkBoxPatchAudioThread.Checked;
 			int audioThreadDivisor = 1000;
@@ -59,9 +62,11 @@ namespace SenPatcherGui {
 					+ "Verify that the game files are writable and not corrupted."
 				);
 			}
+			*/
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
+			/*
 			PatchResult result;
 			try {
 				result = Exec.RestoreOriginalFiles();
@@ -79,10 +84,13 @@ namespace SenPatcherGui {
 					+ "Verify that the game files are writable and not corrupted."
 				);
 			}
+			*/
 		}
 
 		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
+			/*
 			new TextDisplayForm("Asset fix details for Cold Steel 2", Exec.AssetPatchDescriptions).ShowDialog();
+			*/
 		}
 	}
 }

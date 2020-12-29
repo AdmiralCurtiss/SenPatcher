@@ -49,27 +49,40 @@ namespace SenPatcherCli {
 
 
 			// TODO: detect whether we're Sen1 or 2
+			int sengame = 2;
 
-			FileStorage storage = FileModExec.InitializeAndPersistFileStorage(path, Sen1KnownFiles.Files);
+			FileStorage storage = FileModExec.InitializeAndPersistFileStorage(path, sengame == 1 ? Sen1KnownFiles.Files : Sen2KnownFiles.Files);
 			if (storage == null) {
 				Console.WriteLine("Failed to initialize file storage from " + path + ".");
 				return -1;
 			}
 
-			var result = new Sen1PatchExec(path, storage).ApplyPatches(Sen1PatchExec.GetMods(
-				removeTurboSkip: true,
-				allowR2NotebookShortcut: true,
-				turboKey: 0xA,
-				fixTextureIds: true,
-				patchAssets: true
-			));
+			PatchResult result;
+
+			if (sengame == 1) {
+				result = new Sen1PatchExec(path, storage).ApplyPatches(Sen1PatchExec.GetMods(
+					removeTurboSkip: true,
+					allowR2NotebookShortcut: true,
+					turboKey: 0xA,
+					fixTextureIds: true,
+					patchAssets: true
+				));
+			} else {
+				result = new Sen2PatchExec(path, storage).ApplyPatches(Sen2PatchExec.GetMods(
+					removeTurboSkip: true,
+					patchAudioThread: true,
+					audioThreadDivisor: 1000,
+					patchBgmQueueing: true,
+					patchAssets: true
+				));
+			}
 
 			if (!result.AllSuccessful) {
-				Console.WriteLine("Failed to patch CS1 at " + path + ".");
+				Console.WriteLine($"Failed to patch CS${sengame} at ${path}.");
 				return -1;
 			}
 
-			Console.WriteLine("Successfully patched CS1 at " + path + ".");
+			Console.WriteLine($"Successfully patched CS${sengame} at ${path}.");
 			return 0;
 
 			/*

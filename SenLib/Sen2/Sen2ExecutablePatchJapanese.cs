@@ -80,9 +80,5 @@ namespace SenLib.Sen2 {
 			a.AddressOfSkipEnqueueOnSoundThreadSideInjection = 0x41ef17;
 			return a;
 		}
-
-		public List<FileFix> GetFileFixes() {
-			return new List<FileFix>();
-		}
 	}
 }

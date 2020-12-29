@@ -118,6 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="ed82j142" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82j142.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82u142j" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82u142j.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="ed8m2150" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\ed8m2150.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>

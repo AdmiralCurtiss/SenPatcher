@@ -7,109 +7,31 @@ using System.IO;
 
 namespace SenLib.Sen2 {
 	public class Sen2PatchExec {
-		public string Path { get; private set; }
-		public string HumanReadableVersion { get; private set; }
-		private Stream Binary;
-		private Sen2ExecutablePatchInterface PatchInfo;
-		private List<FileFix> AssetPatches;
-		public int AssetPatchCount => AssetPatches.Count;
-		public string AssetPatchDescriptions => SenUtils.ExtractUserFriendlyStringFromAssetFixDescriptions(AssetPatches);
+		public string BaseFolder { get; private set; }
+		private FileStorage Storage;
 
-		public string BaseFolder => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), SenCommonPaths.Sen2BaseFromExe);
-
-		public string BackupFolder => System.IO.Path.Combine(BaseFolder, SenCommonPaths.BackupFolder);
-
-		public Sen2PatchExec(string path, Stream binary, SenVersion version) {
-			Path = path;
-			Binary = binary.CopyToMemory();
-
-			switch (version) {
-				case SenVersion.Sen2_v1_4_1_En:
-					PatchInfo = new Sen2ExecutablePatchEnglish();
-					HumanReadableVersion = "1.4.1 (English)";
-					break;
-				case SenVersion.Sen2_v1_4_2_En:
-					PatchInfo = new Sen2ExecutablePatchEnglish();
-					HumanReadableVersion = "1.4.2 (English)";
-					break;
-				case SenVersion.Sen2_v1_4_1_Jp:
-					PatchInfo = new Sen2ExecutablePatchJapanese();
-					HumanReadableVersion = "1.4.1 (Japanese)";
-					break;
-				case SenVersion.Sen2_v1_4_2_Jp:
-					PatchInfo = new Sen2ExecutablePatchJapanese();
-					HumanReadableVersion = "1.4.2 (Japanese)";
-					break;
-				default:
-					throw new Exception("Invalid version for Sen 2 patch form.");
-			}
-
-			AssetPatches = PatchInfo.GetFileFixes();
+		public Sen2PatchExec(string baseFolder, FileStorage storage) {
+			BaseFolder = baseFolder;
+			Storage = storage;
 		}
 
-		public PatchResult ApplyPatches(bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing, bool patchAssets) {
-			int total = 0;
-			int success = 0;
-
-			using (MemoryStream ms = Binary.CopyToMemory()) {
-				++total;
-				SenUtils.CreateBackupIfRequired(System.IO.Path.Combine(BackupFolder, System.IO.Path.GetFileName(Path) + ".bin"), ms);
-
-				// patch data
-				if (removeTurboSkip) {
-					Sen2ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo, true);
-					Sen2ExecutablePatches.PatchJumpBattleStartAutoSkip(ms, PatchInfo, true);
-					Sen2ExecutablePatches.PatchJumpBattleSomethingAutoSkip(ms, PatchInfo, true);
-					Sen2ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, PatchInfo, true);
-				}
-
-				if (patchAudioThread || patchBgmQueueing) {
-					var state = new Sen2ExecutablePatchState();
-					if (patchAudioThread) {
-						Sen2ExecutablePatches.PatchMusicFadeTiming(ms, PatchInfo, state, audioThreadDivisor <= 0 ? 1000 : (uint)audioThreadDivisor);
-					}
-					if (patchBgmQueueing) {
-						Sen2ExecutablePatches.PatchMusicQueueingOnSoundThreadSide(ms, PatchInfo, state);
-					}
-				}
-
-				// write patched file
-				if (SenUtils.TryWriteFileIfDifferent(ms, Path)) {
-					++success;
-				}
+		public static List<FileMod> GetMods(bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing, bool patchAssets) {
+			var f = new List<FileMod>();
+			for (int i = 0; i < 2; ++i) {
+				f.Add(new FileFixes.ed8_2_exe(i == 0, removeTurboSkip, patchAudioThread, audioThreadDivisor, patchBgmQueueing));
 			}
-
 			if (patchAssets) {
-				foreach (var file in AssetPatches) {
-					++total;
-					if (file.TryApply(BaseFolder, BackupFolder)) {
-						++success;
-					}
-				}
+				f.Add(new FileFixes.text_dat_us_t_magic_tbl());
 			}
-
-			return new PatchResult(total, success);
+			return f;
 		}
 
-		public PatchResult RestoreOriginalFiles() {
-			int total = 0;
-			int success = 0;
+		public PatchResult ApplyPatches(List<FileMod> mods) {
+			return FileModExec.ExecuteMods(BaseFolder, Storage, mods);
+		}
 
-			using (MemoryStream ms = Binary.CopyToMemory()) {
-				++total;
-				if (SenUtils.TryWriteFileIfDifferent(ms, Path)) {
-					++success;
-				}
-			}
-
-			foreach (var file in AssetPatches) {
-				++total;
-				if (file.TryRevert(BaseFolder, BackupFolder)) {
-					++success;
-				}
-			}
-
-			return new PatchResult(total, success);
+		public PatchResult RevertPatches(List<FileMod> mods) {
+			return FileModExec.RevertMods(BaseFolder, Storage, mods);
 		}
 	}
 }
