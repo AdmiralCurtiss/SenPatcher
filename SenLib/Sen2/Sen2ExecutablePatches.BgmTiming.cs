@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen2 {
 	public static partial class Sen2ExecutablePatches {
-		public static void PatchMusicFadeTiming(Stream binary, Sen2ExecutablePatchInterface patchInfo, Sen2ExecutablePatchState state, uint divisor) {
+		public static void PatchMusicFadeTiming(Stream binary, Sen2ExecutablePatchState state, uint divisor) {
 			var mapper = new Sen2Mapper();
-			var a = patchInfo.GetBgmTimingPatchLocations();
+			var a = state.BgmTimingPatchLocations;
 
 			// divisor of 1000 seems to be console-accurate, but making fades a little faster actually feels nicer with the fast PC loading times
 
-			state.InitCodeSpaceIfNeeded(binary, patchInfo);
+			state.InitCodeSpaceIfNeeded(binary);
 			RegionHelper region50b = state.Region50b;
 			RegionHelper region51 = state.Region51;
 			RegionHelper regionEntryPoint = null;

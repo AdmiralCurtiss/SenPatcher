@@ -106,11 +106,8 @@
     <Compile Include="Sen2\Sen2ExecutableCodeSpaceLocations.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.BgmQueueing.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatchState.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatchEnglish.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.BgmTiming.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatchJapanese.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatchInterface.cs" />
     <Compile Include="Sen2\Sen2KnownFiles.cs" />
     <Compile Include="Sen2\Sen2Mapper.cs" />
     <Compile Include="Sen2\Sen2Mods.cs" />

@@ -34,22 +34,21 @@ namespace SenLib.Sen2.FileFixes {
 
 			MemoryStream ms = s.CopyToMemoryAndDispose();
 
-			Sen2ExecutablePatchInterface PatchInfo = IsJp ? new Sen2ExecutablePatchJapanese() : (Sen2ExecutablePatchInterface)new Sen2ExecutablePatchEnglish();
+			Sen2ExecutablePatchState state = new Sen2ExecutablePatchState(IsJp);
 
 			if (RemoveTurboSkip) {
-				Sen2ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo, true);
-				Sen2ExecutablePatches.PatchJumpBattleStartAutoSkip(ms, PatchInfo, true);
-				Sen2ExecutablePatches.PatchJumpBattleSomethingAutoSkip(ms, PatchInfo, true);
-				Sen2ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, PatchInfo, true);
+				Sen2ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, state);
+				Sen2ExecutablePatches.PatchJumpBattleStartAutoSkip(ms, state);
+				Sen2ExecutablePatches.PatchJumpBattleSomethingAutoSkip(ms, state);
+				Sen2ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, state);
 			}
 
 			if (PatchAudioThread || PatchBgmQueueing) {
-				var state = new Sen2ExecutablePatchState();
 				if (PatchAudioThread) {
-					Sen2ExecutablePatches.PatchMusicFadeTiming(ms, PatchInfo, state, AudioThreadDivisor <= 0 ? 1000 : (uint)AudioThreadDivisor);
+					Sen2ExecutablePatches.PatchMusicFadeTiming(ms, state, AudioThreadDivisor <= 0 ? 1000 : (uint)AudioThreadDivisor);
 				}
 				if (PatchBgmQueueing) {
-					Sen2ExecutablePatches.PatchMusicQueueingOnSoundThreadSide(ms, PatchInfo, state);
+					Sen2ExecutablePatches.PatchMusicQueueingOnSoundThreadSide(ms, state);
 				}
 			}
 

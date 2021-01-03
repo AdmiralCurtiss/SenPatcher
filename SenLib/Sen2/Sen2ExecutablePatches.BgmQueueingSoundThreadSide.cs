@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen2 {
 	public static partial class Sen2ExecutablePatches {
-		public static void PatchMusicQueueingOnSoundThreadSide(Stream binary, Sen2ExecutablePatchInterface patchInfo, Sen2ExecutablePatchState state) {
+		public static void PatchMusicQueueingOnSoundThreadSide(Stream binary, Sen2ExecutablePatchState state) {
 			var mapper = new Sen2Mapper();
-			var a = patchInfo.GetBgmTimingPatchLocations();
+			var a = state.BgmTimingPatchLocations;
 
-			state.InitCodeSpaceIfNeeded(binary, patchInfo);
+			state.InitCodeSpaceIfNeeded(binary);
 
 			using (BranchHelper4Byte lock_mutex = new BranchHelper4Byte(binary, mapper))
 			using (BranchHelper4Byte unlock_mutex = new BranchHelper4Byte(binary, mapper))
