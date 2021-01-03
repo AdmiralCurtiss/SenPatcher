@@ -22,6 +22,7 @@ namespace SenLib.Sen2 {
 			}
 			if (patchAssets) {
 				f.Add(new FileFixes.text_dat_us_t_magic_tbl());
+				f.Add(new FileFixes.scripts_book_dat_us_book04_dat());
 			}
 			return f;
 		}
