@@ -92,10 +92,8 @@
     <Compile Include="Sen1\FileFixes\se_wav_ed8m2150_wav.cs" />
     <Compile Include="Sen1\FileFixes\text_dat_us_t_magic_tbl.cs" />
     <Compile Include="Sen1\FileFixes\text_dat_us_t_voice_tbl.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatchJapanese.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatchEnglish.cs" />
+    <Compile Include="Sen1\Sen1ExecutablePatchState.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatches.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatchInterface.cs" />
     <Compile Include="Sen1\Sen1KnownFiles.cs" />
     <Compile Include="Sen1\Sen1Mapper.cs" />
     <Compile Include="Sen1\Sen1Mods.cs" />

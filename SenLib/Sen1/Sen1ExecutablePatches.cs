@@ -26,66 +26,50 @@ namespace SenLib.Sen1 {
 		// 0xE = D-Pad Down
 		// 0xF = D-Pad Left
 
-		public static void PatchButtonTurboMode(Stream binary, Sen1ExecutablePatchInterface patchInfo, byte button) {
-			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.GetAddressButtonTurboMode());
+		public static void PatchButtonTurboMode(Stream binary, Sen1ExecutablePatchState patchInfo, byte button) {
+			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.AddressButtonTurboMode);
 			binary.WriteUInt8(button);
 		}
 
-		public static void PatchButtonBattleAnimationAutoSkip(Stream binary, Sen1ExecutablePatchInterface patchInfo, byte button) {
-			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.GetAddressButtonBattleAnimationAutoSkip());
+		public static void PatchButtonBattleAnimationAutoSkip(Stream binary, Sen1ExecutablePatchState patchInfo, byte button) {
+			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.AddressButtonBattleAnimationAutoSkip);
 			binary.WriteUInt8(button);
 		}
 
-		public static void PatchButtonBattleResultsAutoSkip(Stream binary, Sen1ExecutablePatchInterface patchInfo, byte button) {
-			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.GetAddressButtonBattleResultsAutoSkip());
+		public static void PatchButtonBattleResultsAutoSkip(Stream binary, Sen1ExecutablePatchState patchInfo, byte button) {
+			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.AddressButtonBattleResultsAutoSkip);
 			binary.WriteUInt8(button);
 		}
 
-		public static void PatchJumpBattleAnimationAutoSkip(Stream binary, Sen1ExecutablePatchInterface patchInfo, bool enable) {
-			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.GetAddressJumpBattleAnimationAutoSkip());
-			if (enable) {
-				binary.WriteUInt16(0xeb07, EndianUtils.Endianness.BigEndian); // jmp
-			} else {
-				binary.WriteUInt16(0x7407, EndianUtils.Endianness.BigEndian); // jz
-			}
+		public static void PatchJumpBattleAnimationAutoSkip(Stream binary, Sen1ExecutablePatchState patchInfo) {
+			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.AddressJumpBattleAnimationAutoSkip);
+			binary.WriteUInt16(0xeb07, EndianUtils.Endianness.BigEndian); // jmp
 		}
 
-		public static void PatchJumpBattleResultsAutoSkip(Stream binary, Sen1ExecutablePatchInterface patchInfo, bool enable) {
-			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.GetAddressJumpBattleResultsAutoSkip());
-			if (enable) {
-				binary.WriteUInt40(0xe981010000, EndianUtils.Endianness.BigEndian); // jmp
-				binary.WriteUInt8(0x90); // nop
-			} else {
-				binary.WriteUInt48(0x0f8480010000, EndianUtils.Endianness.BigEndian); // jz
-			}
+		public static void PatchJumpBattleResultsAutoSkip(Stream binary, Sen1ExecutablePatchState patchInfo) {
+			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.AddressJumpBattleResultsAutoSkip);
+			binary.WriteUInt40(0xe981010000, EndianUtils.Endianness.BigEndian); // jmp
+			binary.WriteUInt8(0x90); // nop
 		}
 
-		public static void PatchJumpR2NotebookOpen(Stream binary, Sen1ExecutablePatchInterface patchInfo, bool enable) {
-			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.GetAddressJumpR2NotebookOpen());
-			if (enable) {
-				binary.WriteUInt8(0x90); // nop
-				binary.WriteUInt8(0x90); // nop
-			} else {
-				binary.WriteUInt16(0x7528, EndianUtils.Endianness.BigEndian); // jnz
-			}
+		public static void PatchJumpR2NotebookOpen(Stream binary, Sen1ExecutablePatchState patchInfo) {
+			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.AddressJumpR2NotebookOpen);
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
 		}
 
-		public static void PatchJumpR2NotebookSettings(Stream binary, Sen1ExecutablePatchInterface patchInfo, bool enable) {
-			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.GetAddressJumpR2NotebookSettings());
-			if (enable) {
-				binary.WriteUInt8(0x90); // nop
-				binary.WriteUInt8(0x90); // nop
-				binary.WriteUInt8(0x90); // nop
-				binary.WriteUInt8(0x90); // nop
-				binary.WriteUInt8(0x90); // nop
-				binary.WriteUInt8(0x90); // nop
-			} else {
-				binary.WriteUInt48(0x0f85d9000000, EndianUtils.Endianness.BigEndian); // jnz
-			}
+		public static void PatchJumpR2NotebookSettings(Stream binary, Sen1ExecutablePatchState patchInfo) {
+			binary.Position = (long)new Sen1Mapper().MapRamToRom((ulong)patchInfo.AddressJumpR2NotebookSettings);
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
 		}
 
-		public static void PatchThorMasterQuartzString(Stream binary, Sen1ExecutablePatchInterface patchInfo) {
-			binary.Position = patchInfo.GetRomAddressThorMasterQuartzTextureIdTypo();
+		public static void PatchThorMasterQuartzString(Stream binary, Sen1ExecutablePatchState patchInfo) {
+			binary.Position = patchInfo.RomAddressThorMasterQuartzTextureIdTypo;
 			long p = binary.Position;
 			byte[] tmp = binary.ReadUInt8Array(4);
 			binary.Position = p;

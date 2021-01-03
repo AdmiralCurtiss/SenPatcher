@@ -38,15 +38,15 @@ namespace SenLib.Sen1.FileFixes {
 
 			MemoryStream ms = s.CopyToMemoryAndDispose();
 
-			Sen1ExecutablePatchInterface PatchInfo = IsJp ? new Sen1ExecutablePatchJapanese() : (Sen1ExecutablePatchInterface)new Sen1ExecutablePatchEnglish();
+			Sen1ExecutablePatchState PatchInfo = new Sen1ExecutablePatchState(IsJp);
 
 			if (RemoveTurboSkip) {
-				Sen1ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo, true);
-				Sen1ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, PatchInfo, true);
+				Sen1ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo);
+				Sen1ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, PatchInfo);
 			}
 			if (AllowR2NotebookShortcut) {
-				Sen1ExecutablePatches.PatchJumpR2NotebookOpen(ms, PatchInfo, true);
-				Sen1ExecutablePatches.PatchJumpR2NotebookSettings(ms, PatchInfo, true);
+				Sen1ExecutablePatches.PatchJumpR2NotebookOpen(ms, PatchInfo);
+				Sen1ExecutablePatches.PatchJumpR2NotebookSettings(ms, PatchInfo);
 			}
 			if (TurboKey >= 0 && TurboKey <= 0xF) {
 				Sen1ExecutablePatches.PatchButtonBattleAnimationAutoSkip(ms, PatchInfo, (byte)TurboKey);
