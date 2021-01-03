@@ -19,134 +19,59 @@ namespace SenPatcherGui {
 			InitializeComponent();
 		}
 
-		private void buttonCs1SteamEn_Click(object sender, EventArgs e) {
-			OpenFileGui(Path.Combine(SenCommonPaths.Sen1SteamDir, SenCommonPaths.Sen1EnExePath), new List<SenVersion>() { SenVersion.Sen1_v1_6_En });
+		private static string GetDefaultPathCS1() {
+			if (Directory.Exists(SenCommonPaths.Sen1SteamDir)) {
+				return SenCommonPaths.Sen1SteamDir;
+			}
+			if (Directory.Exists(SenCommonPaths.Sen1GalaxyDir)) {
+				return SenCommonPaths.Sen1GalaxyDir;
+			}
+			return @"c:\";
 		}
 
-		private void buttonCs1SteamJp_Click(object sender, EventArgs e) {
-			OpenFileGui(Path.Combine(SenCommonPaths.Sen1SteamDir, SenCommonPaths.Sen1JpExePath), new List<SenVersion>() { SenVersion.Sen1_v1_6_Jp });
+		private static string GetDefaultPathCS2() {
+			if (Directory.Exists(SenCommonPaths.Sen2SteamDir)) {
+				return SenCommonPaths.Sen2SteamDir;
+			}
+			if (Directory.Exists(SenCommonPaths.Sen2GalaxyDir)) {
+				return SenCommonPaths.Sen2GalaxyDir;
+			}
+			return @"c:\";
 		}
 
-		private void buttonCs1GalaxyEn_Click(object sender, EventArgs e) {
-			OpenFileGui(Path.Combine(SenCommonPaths.Sen1GalaxyDir, SenCommonPaths.Sen1EnExePath), new List<SenVersion>() { SenVersion.Sen1_v1_6_En });
-		}
-
-		private void buttonCs1GalaxyJp_Click(object sender, EventArgs e) {
-			OpenFileGui(Path.Combine(SenCommonPaths.Sen1GalaxyDir, SenCommonPaths.Sen1JpExePath), new List<SenVersion>() { SenVersion.Sen1_v1_6_Jp });
-		}
-
-		private void buttonCs2SteamEn_Click(object sender, EventArgs e) {
-			OpenFileGui(Path.Combine(SenCommonPaths.Sen2SteamDir, SenCommonPaths.Sen2EnExePath), new List<SenVersion>() { SenVersion.Sen2_v1_4_1_En, SenVersion.Sen2_v1_4_2_En });
-		}
-
-		private void buttonCs2SteamJp_Click(object sender, EventArgs e) {
-			OpenFileGui(Path.Combine(SenCommonPaths.Sen2SteamDir, SenCommonPaths.Sen2JpExePath), new List<SenVersion>() { SenVersion.Sen2_v1_4_1_Jp, SenVersion.Sen2_v1_4_2_Jp });
-		}
-
-		private void buttonCs2GalaxyEn_Click(object sender, EventArgs e) {
-			OpenFileGui(Path.Combine(SenCommonPaths.Sen2GalaxyDir, SenCommonPaths.Sen2EnExePath), new List<SenVersion>() { SenVersion.Sen2_v1_4_1_En, SenVersion.Sen2_v1_4_2_En });
-		}
-
-		private void buttonCs2GalaxyJp_Click(object sender, EventArgs e) {
-			OpenFileGui(Path.Combine(SenCommonPaths.Sen2GalaxyDir, SenCommonPaths.Sen2JpExePath), new List<SenVersion>() { SenVersion.Sen2_v1_4_1_Jp, SenVersion.Sen2_v1_4_2_Jp });
-		}
-
-		private void buttonManuallySelect_Click(object sender, EventArgs e) {
+		private void buttonCS1Patch_Click(object sender, EventArgs e) {
+			// this is not great UX wise, can we do better?
 			using (OpenFileDialog d = new OpenFileDialog()) {
-				d.Filter = "Cold Steel executables (ed8*.exe)|ed8*.exe|All files (*.*)|*.*";
+				d.CheckFileExists = false;
+				d.ValidateNames = false;
+				d.InitialDirectory = GetDefaultPathCS1();
+				d.FileName = "Sen1Launcher.exe";
+				d.Filter = "CS1 root game directory (Sen1Launcher.exe)|Sen1Launcher.exe|All files (*.*)|*.*";
 				if (d.ShowDialog() == DialogResult.OK) {
-					OpenFileGui(d.FileName, null);
+					new Sen1Form(Path.GetDirectoryName(d.FileName)).ShowDialog();
 				}
 			}
 		}
 
-		private void OpenFileGui(string path, List<SenVersion> expectedVersions) {
-			if (!File.Exists(path)) {
-				MessageBox.Show("No file found at " + path + ".");
-				return;
-			}
-
-			Stream binary = null;
-			SenVersion? actualVersion = null;
-			try {
-				(binary, actualVersion) = SenVersionIdentifier.OpenAndIdentifyGame(path);
-			} catch (Exception ex) {
-				MessageBox.Show("Error while identifying " + path + ": " + ex.ToString());
-				return;
-			}
-
-			if (binary == null || actualVersion == null) {
-				MessageBox.Show("Could not identify file at " + path + " as any supported Cold Steel executable.");
-				return;
-			}
-
-			switch (actualVersion) {
-				case SenVersion.Sen1_v1_0_En:
-				case SenVersion.Sen1_v1_0_Jp:
-				case SenVersion.Sen1_v1_1_En:
-				case SenVersion.Sen1_v1_1_Jp:
-				case SenVersion.Sen1_v1_2_1_En:
-				case SenVersion.Sen1_v1_2_1_Jp:
-				case SenVersion.Sen1_v1_3_En:
-				case SenVersion.Sen1_v1_3_Jp:
-				case SenVersion.Sen1_v1_3_5_En:
-				case SenVersion.Sen1_v1_3_5_Jp:
-				case SenVersion.Sen1_v1_4_En:
-				case SenVersion.Sen1_v1_4_Jp:
-				case SenVersion.Sen1_v1_5_En:
-				case SenVersion.Sen1_v1_5_Jp:
-					MessageBox.Show("Your Cold Steel game is an older version than the ones supported by this patcher. Please update to version 1.6.");
-					break;
-				case SenVersion.Sen1_v1_6_En:
-				case SenVersion.Sen1_v1_6_Jp:
-					new Sen1Form(path, binary, actualVersion.Value).ShowDialog();
-					break;
-				case SenVersion.Sen1Launcher_v1_0:
-				case SenVersion.Sen1Launcher_v1_1:
-				case SenVersion.Sen1Launcher_v1_2_1:
-				case SenVersion.Sen1Launcher_v1_3_to_v1_5:
-				case SenVersion.Sen1Launcher_v1_6:
-					MessageBox.Show("Please select ed8.exe or ed8jp.exe instead of Sen1Launcher.exe.");
-					break;
-				case SenVersion.Sen2_v1_0_En:
-				case SenVersion.Sen2_v1_0_Jp:
-				case SenVersion.Sen2_v1_1_En:
-				case SenVersion.Sen2_v1_1_Jp:
-				case SenVersion.Sen2_v1_2_En:
-				case SenVersion.Sen2_v1_2_Jp:
-				case SenVersion.Sen2_v1_3_En:
-				case SenVersion.Sen2_v1_3_Jp:
-				case SenVersion.Sen2_v1_3_1_En:
-				case SenVersion.Sen2_v1_3_1_Jp:
-				case SenVersion.Sen2_v1_4_En:
-				case SenVersion.Sen2_v1_4_Jp:
-					MessageBox.Show("Your Cold Steel II game is an older version than the ones supported by this patcher. Please update to at least version 1.4.1.");
-					break;
-				case SenVersion.Sen2_v1_4_1_En:
-				case SenVersion.Sen2_v1_4_1_Jp:
-				case SenVersion.Sen2_v1_4_2_En:
-				case SenVersion.Sen2_v1_4_2_Jp:
-					new Sen2Form(path, binary, actualVersion.Value).ShowDialog();
-					break;
-				case SenVersion.Sen2Launcher_v1_0:
-				case SenVersion.Sen2Launcher_v1_1:
-				case SenVersion.Sen2Launcher_v1_2_to_v1_3_1:
-				case SenVersion.Sen2Launcher_v1_4_to_v1_4_2:
-					MessageBox.Show("Please select ed8_2_PC_US.exe or ed8_2_PC_JP.exe (in the bin/Win32 directory) instead of Sen2Launcher.exe.");
-					break;
-				default:
-					MessageBox.Show("Internal error?");
-					break;
+		private void buttonCS2Patch_Click(object sender, EventArgs e) {
+			// same UX problem as buttonCS1Patch_Click
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.CheckFileExists = false;
+				d.ValidateNames = false;
+				d.InitialDirectory = GetDefaultPathCS2();
+				d.FileName = "Sen2Launcher.exe";
+				d.Filter = "CS2 root game directory (Sen2Launcher.exe)|Sen2Launcher.exe|All files (*.*)|*.*";
+				if (d.ShowDialog() == DialogResult.OK) {
+					new Sen2Form(Path.GetDirectoryName(d.FileName)).ShowDialog();
+				}
 			}
 		}
 
-		private void buttonCs1SystemDataAuto_Click(object sender, EventArgs e) {
-			OpenCs1SystemData(SenCommonPaths.Sen1SystemDataFile);
-		}
-
-		private void buttonCs1SystemDataManual_Click(object sender, EventArgs e) {
+		private void buttonCS1Sysdata_Click(object sender, EventArgs e) {
 			using (OpenFileDialog d = new OpenFileDialog()) {
 				d.Filter = "CS1 System Data File (" + SenCommonPaths.Sen1SystemDataFilename + ")|" + SenCommonPaths.Sen1SystemDataFilename + "|All files (*.*)|*.*";
+				d.InitialDirectory = SenCommonPaths.Sen1SaveFolder;
+				d.FileName = SenCommonPaths.Sen1SystemDataFilename;
 				if (d.ShowDialog() == DialogResult.OK) {
 					OpenCs1SystemData(d.FileName);
 				}
@@ -171,13 +96,11 @@ namespace SenPatcherGui {
 			new Sen1SystemDataForm(data, path, HyoutaUtils.EndianUtils.Endianness.LittleEndian).ShowDialog();
 		}
 
-		private void buttonCs2SystemDataAuto_Click(object sender, EventArgs e) {
-			OpenCs2SystemData(SenCommonPaths.Sen2SystemDataFile);
-		}
-
-		private void buttonCs2SystemDataManual_Click(object sender, EventArgs e) {
+		private void buttonCS2Sysdata_Click(object sender, EventArgs e) {
 			using (OpenFileDialog d = new OpenFileDialog()) {
 				d.Filter = "CS2 System Data File (" + SenCommonPaths.Sen2SystemDataFilename + ")|" + SenCommonPaths.Sen2SystemDataFilename + "|All files (*.*)|*.*";
+				d.InitialDirectory = SenCommonPaths.Sen2SaveFolder;
+				d.FileName = SenCommonPaths.Sen2SystemDataFilename;
 				if (d.ShowDialog() == DialogResult.OK) {
 					OpenCs2SystemData(d.FileName);
 				}

@@ -60,21 +60,25 @@ namespace SenPatcherCli {
 			PatchResult result;
 
 			if (sengame == 1) {
-				result = new Sen1PatchExec(path, storage).ApplyPatches(Sen1PatchExec.GetMods(
+				var mods = new List<FileMod>();
+				mods.AddRange(Sen1Mods.GetExecutableMods(
 					removeTurboSkip: true,
 					allowR2NotebookShortcut: true,
 					turboKey: 0xA,
-					fixTextureIds: true,
-					patchAssets: true
+					fixTextureIds: true
 				));
+				mods.AddRange(Sen1Mods.GetAssetMods());
+				result = FileModExec.ExecuteMods(path, storage, mods);
 			} else {
-				result = new Sen2PatchExec(path, storage).ApplyPatches(Sen2PatchExec.GetMods(
+				var mods = new List<FileMod>();
+				mods.AddRange(Sen2Mods.GetExecutableMods(
 					removeTurboSkip: true,
 					patchAudioThread: true,
 					audioThreadDivisor: 1000,
-					patchBgmQueueing: true,
-					patchAssets: true
+					patchBgmQueueing: true
 				));
+				mods.AddRange(Sen2Mods.GetAssetMods());
+				result = FileModExec.ExecuteMods(path, storage, mods);
 			}
 
 			if (!result.AllSuccessful) {

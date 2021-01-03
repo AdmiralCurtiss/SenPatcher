@@ -14,30 +14,21 @@ using System.Windows.Forms;
 
 namespace SenPatcherGui {
 	public partial class Sen2Form : Form {
-		private Sen2PatchExec Exec;
+		private string Path;
+		private FileStorage Storage;
 
-		public Sen2Form(string path, Stream binary, SenVersion version) {
-			/*
-			Exec = new Sen2PatchExec(path, binary, version);
+		public Sen2Form(string path) {
+			Path = path;
+			Storage = FileModExec.InitializeAndPersistFileStorage(path, Sen2KnownFiles.Files);
 
 			InitializeComponent();
 			labelFile.Text = path;
-			labelVersion.Text = Exec.HumanReadableVersion;
 
-			int assetPatchCount = Exec.AssetPatchCount;
-			if (assetPatchCount == 0) {
-				checkBoxAssetPatches.Text = "No known script/asset fixes for this language";
-				checkBoxAssetPatches.Checked = false;
-				checkBoxAssetPatches.Enabled = false;
-				buttonAssetFixDetails.Enabled = false;
-			} else {
-				checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
-			}
-			*/
+			int assetPatchCount = Sen2Mods.GetAssetMods().Count;
+			checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
-			/*
 			bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 			bool patchAudioThread = checkBoxPatchAudioThread.Checked;
 			int audioThreadDivisor = 1000;
@@ -46,15 +37,24 @@ namespace SenPatcherGui {
 
 			PatchResult result;
 			try {
-				result = Exec.ApplyPatches(removeTurboSkip, patchAudioThread, audioThreadDivisor, patchBgmQueueing, patchAssets);
+				var mods = new List<FileMod>();
+				mods.AddRange(Sen2Mods.GetExecutableMods(
+					removeTurboSkip: removeTurboSkip,
+					patchAudioThread: patchAudioThread,
+					audioThreadDivisor: audioThreadDivisor,
+					patchBgmQueueing: patchBgmQueueing
+				));
+				if (patchAssets) {
+					mods.AddRange(Sen2Mods.GetAssetMods());
+				}
+				result = FileModExec.ExecuteMods(Path, Storage, mods);
 			} catch (Exception ex) {
 				MessageBox.Show("Exception occurred: " + ex.ToString());
 				return;
 			}
 
 			if (result.AllSuccessful) {
-				MessageBox.Show("Patch successful.\n\nA backup has been created at " + Path.GetFullPath(Exec.BackupFolder) + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
-				Close();
+				MessageBox.Show("Patch successful.\n\nA backup has been created at " + System.IO.Path.Combine(Path, "senpatcher_rerun_revert_data.bin") + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
 				return;
 			} else {
 				MessageBox.Show(
@@ -62,14 +62,15 @@ namespace SenPatcherGui {
 					+ "Verify that the game files are writable and not corrupted."
 				);
 			}
-			*/
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
-			/*
 			PatchResult result;
 			try {
-				result = Exec.RestoreOriginalFiles();
+				var mods = new List<FileMod>();
+				mods.AddRange(Sen2Mods.GetExecutableMods());
+				mods.AddRange(Sen2Mods.GetAssetMods());
+				result = FileModExec.RevertMods(Path, Storage, mods);
 			} catch (Exception ex) {
 				MessageBox.Show("Exception occurred: " + ex.ToString());
 				return;
@@ -84,13 +85,10 @@ namespace SenPatcherGui {
 					+ "Verify that the game files are writable and not corrupted."
 				);
 			}
-			*/
 		}
 
 		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
-			/*
-			new TextDisplayForm("Asset fix details for Cold Steel 2", Exec.AssetPatchDescriptions).ShowDialog();
-			*/
+			new TextDisplayForm("Asset fix details for Cold Steel 2", SenUtils.ExtractUserFriendlyStringFromModDescriptions(Sen2Mods.GetAssetMods())).ShowDialog();
 		}
 	}
 }

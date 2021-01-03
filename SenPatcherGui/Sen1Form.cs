@@ -14,24 +14,18 @@ using System.Windows.Forms;
 
 namespace SenPatcherGui {
 	public partial class Sen1Form : Form {
-		private Sen1PatchExec Exec;
+		private string Path;
+		private FileStorage Storage;
 
-		public Sen1Form(string path, Stream binary, SenVersion version) {
-			/*
-			Exec = new Sen1PatchExec(path, binary, version);
+		public Sen1Form(string path) {
+			Path = path;
+			Storage = FileModExec.InitializeAndPersistFileStorage(path, Sen1KnownFiles.Files);
 
 			InitializeComponent();
-			labelFile.Text = Exec.Path;
-			labelVersion.Text = Exec.HumanReadableVersion;
+			labelFile.Text = path;
 
-			int assetPatchCount = Exec.AssetPatchCount;
-			if (assetPatchCount == 0) {
-				checkBoxAssetPatches.Text = "No known script/asset fixes for this language";
-				checkBoxAssetPatches.Checked = false;
-				checkBoxAssetPatches.Enabled = false;
-			} else {
-				checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
-			}
+			int assetPatchCount = Sen1Mods.GetAssetMods().Count;
+			checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
 
 			comboBoxTurboModeKey.Items.Clear();
 			comboBoxTurboModeKey.Items.Add("Square / X");
@@ -51,11 +45,9 @@ namespace SenPatcherGui {
 			comboBoxTurboModeKey.Items.Add("D-Pad Down");
 			comboBoxTurboModeKey.Items.Add("D-Pad Left");
 			comboBoxTurboModeKey.SelectedIndex = 7;
-			*/
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
-			/*
 			bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 			bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
 			int turboKey = comboBoxTurboModeKey.SelectedIndex;
@@ -64,15 +56,24 @@ namespace SenPatcherGui {
 
 			PatchResult result;
 			try {
-				result = Exec.ApplyPatches(removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds, patchAssets);
+				var mods = new List<FileMod>();
+				mods.AddRange(Sen1Mods.GetExecutableMods(
+					removeTurboSkip: removeTurboSkip,
+					allowR2NotebookShortcut: allowR2NotebookShortcut,
+					turboKey: turboKey,
+					fixTextureIds: fixTextureIds
+				));
+				if (patchAssets) {
+					mods.AddRange(Sen1Mods.GetAssetMods());
+				}
+				result = FileModExec.ExecuteMods(Path, Storage, mods);
 			} catch (Exception ex) {
 				MessageBox.Show("Exception occurred: " + ex.ToString());
 				return;
 			}
 
 			if (result.AllSuccessful) {
-				MessageBox.Show("Patch successful.\n\nA backup has been created at " + Path.GetFullPath(Exec.BackupFolder) + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
-				Close();
+				MessageBox.Show("Patch successful.\n\nA backup has been created at " + System.IO.Path.Combine(Path, "senpatcher_rerun_revert_data.bin") + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
 				return;
 			} else {
 				MessageBox.Show(
@@ -80,14 +81,15 @@ namespace SenPatcherGui {
 					+ "Verify that the game files are writable and not corrupted."
 				);
 			}
-			*/
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
-			/*
 			PatchResult result;
 			try {
-				result = Exec.RestoreOriginalFiles();
+				var mods = new List<FileMod>();
+				mods.AddRange(Sen1Mods.GetExecutableMods());
+				mods.AddRange(Sen1Mods.GetAssetMods());
+				result = FileModExec.RevertMods(Path, Storage, mods);
 			} catch (Exception ex) {
 				MessageBox.Show("Exception occurred: " + ex.ToString());
 				return;
@@ -102,13 +104,10 @@ namespace SenPatcherGui {
 					+ "Verify that the game files are writable and not corrupted."
 				);
 			}
-			*/
 		}
 
 		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
-			/*
-			new TextDisplayForm("Asset fix details for Cold Steel 1", Exec.AssetPatchDescriptions).ShowDialog();
-			*/
+			new TextDisplayForm("Asset fix details for Cold Steel 1", SenUtils.ExtractUserFriendlyStringFromModDescriptions(Sen1Mods.GetAssetMods())).ShowDialog();
 		}
 	}
 }

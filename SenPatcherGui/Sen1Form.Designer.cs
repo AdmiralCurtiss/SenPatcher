@@ -26,8 +26,6 @@
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Sen1Form));
 			this.label1 = new System.Windows.Forms.Label();
 			this.labelFile = new System.Windows.Forms.Label();
-			this.label3 = new System.Windows.Forms.Label();
-			this.labelVersion = new System.Windows.Forms.Label();
 			this.checkBoxBattleAutoSkip = new System.Windows.Forms.CheckBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.checkBoxAllowR2InTurboMode = new System.Windows.Forms.CheckBox();
@@ -39,6 +37,8 @@
 			this.buttonUnpatch = new System.Windows.Forms.Button();
 			this.checkBoxAssetPatches = new System.Windows.Forms.CheckBox();
 			this.buttonAssetFixDetails = new System.Windows.Forms.Button();
+			this.labelVersion = new System.Windows.Forms.Label();
+			this.label3 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -58,24 +58,6 @@
 			this.labelFile.Size = new System.Drawing.Size(16, 13);
 			this.labelFile.TabIndex = 1;
 			this.labelFile.Text = "---";
-			// 
-			// label3
-			// 
-			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(12, 30);
-			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(45, 13);
-			this.label3.TabIndex = 2;
-			this.label3.Text = "Version:";
-			// 
-			// labelVersion
-			// 
-			this.labelVersion.AutoSize = true;
-			this.labelVersion.Location = new System.Drawing.Point(57, 30);
-			this.labelVersion.Name = "labelVersion";
-			this.labelVersion.Size = new System.Drawing.Size(16, 13);
-			this.labelVersion.TabIndex = 3;
-			this.labelVersion.Text = "---";
 			// 
 			// checkBoxBattleAutoSkip
 			// 
@@ -194,6 +176,24 @@
 			this.buttonAssetFixDetails.UseVisualStyleBackColor = true;
 			this.buttonAssetFixDetails.Click += new System.EventHandler(this.buttonAssetFixDetails_Click);
 			// 
+			// labelVersion
+			// 
+			this.labelVersion.AutoSize = true;
+			this.labelVersion.Location = new System.Drawing.Point(57, 30);
+			this.labelVersion.Name = "labelVersion";
+			this.labelVersion.Size = new System.Drawing.Size(16, 13);
+			this.labelVersion.TabIndex = 3;
+			this.labelVersion.Text = "---";
+			// 
+			// label3
+			// 
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(12, 30);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(45, 13);
+			this.label3.TabIndex = 2;
+			this.label3.Text = "Version:";
+			// 
 			// Sen1Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -225,8 +225,6 @@
 
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label labelFile;
-		private System.Windows.Forms.Label label3;
-		private System.Windows.Forms.Label labelVersion;
 		private System.Windows.Forms.CheckBox checkBoxBattleAutoSkip;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.CheckBox checkBoxAllowR2InTurboMode;
@@ -238,5 +236,7 @@
 		private System.Windows.Forms.Button buttonUnpatch;
 		private System.Windows.Forms.CheckBox checkBoxAssetPatches;
 		private System.Windows.Forms.Button buttonAssetFixDetails;
+		private System.Windows.Forms.Label labelVersion;
+		private System.Windows.Forms.Label label3;
 	}
 }
