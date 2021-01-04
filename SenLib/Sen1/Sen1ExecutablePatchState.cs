@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SenLib.Sen1 {
-	public class Sen1ExecutablePatchState {
+	public partial class Sen1ExecutablePatchState {
+		public HyoutaPluginBase.IRomMapper Mapper { get; private set; }
+
 		// address of button ID held to auto-skip animation in battle (usually the same as turbo mode)
 		public long AddressButtonBattleAnimationAutoSkip { get; private set; }
 
@@ -31,6 +33,8 @@ namespace SenLib.Sen1 {
 		public long RomAddressThorMasterQuartzTextureIdTypo { get; private set; }
 
 		public Sen1ExecutablePatchState(bool jp) {
+			Mapper = new Sen1Mapper(jp);
+
 			if (jp) {
 				AddressButtonBattleAnimationAutoSkip = 0x4d6409;
 				AddressButtonBattleResultsAutoSkip = 0x4f0a27;
@@ -50,6 +54,12 @@ namespace SenLib.Sen1 {
 				AddressJumpR2NotebookSettings = 0x6dfaf0;
 				RomAddressThorMasterQuartzTextureIdTypo = 0x73adba;
 			}
+
+			CtorCodeSpaceScriptCompilerDummy(jp);
+		}
+
+		public void InitCodeSpaceIfNeeded(System.IO.Stream binary) {
+			InitCodeSpaceScriptCompilerDummyIfNeeded(binary);
 		}
 	}
 }
