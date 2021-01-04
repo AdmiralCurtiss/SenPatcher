@@ -7,10 +7,16 @@ using System.IO;
 
 namespace SenLib.Sen1 {
 	public class Sen1Mods {
-		public static List<FileMod> GetExecutableMods(bool removeTurboSkip = false, bool allowR2NotebookShortcut = false, int turboKey = 0x7, bool fixTextureIds = false) {
+		public static List<FileMod> GetExecutableMods(
+			bool removeTurboSkip = false,
+			bool allowR2NotebookShortcut = false,
+			int turboKey = 0x7,
+			bool fixTextureIds = false,
+			bool correctLanguageVoiceTables = false
+		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
-				f.Add(new FileFixes.ed8_exe(i == 0, removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds));
+				f.Add(new FileFixes.ed8_exe(i == 0, removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds, correctLanguageVoiceTables));
 			}
 			return f;
 		}

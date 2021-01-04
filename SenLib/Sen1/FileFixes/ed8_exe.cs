@@ -13,13 +13,15 @@ namespace SenLib.Sen1.FileFixes {
 		bool AllowR2NotebookShortcut;
 		int TurboKey;
 		bool FixTextureIds;
+		bool CorrectLanguageVoiceTables;
 
-		public ed8_exe(bool jp, bool removeTurboSkip, bool allowR2NotebookShortcut, int turboKey, bool fixTextureIds) {
+		public ed8_exe(bool jp, bool removeTurboSkip, bool allowR2NotebookShortcut, int turboKey, bool fixTextureIds, bool correctLanguageVoiceTables) {
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
 			AllowR2NotebookShortcut = allowR2NotebookShortcut;
 			TurboKey = turboKey;
 			FixTextureIds = fixTextureIds;
+			CorrectLanguageVoiceTables = correctLanguageVoiceTables;
 		}
 
 		public string GetDescription() {
@@ -55,6 +57,9 @@ namespace SenLib.Sen1.FileFixes {
 			}
 			if (FixTextureIds) {
 				Sen1ExecutablePatches.PatchThorMasterQuartzString(ms, PatchInfo);
+			}
+			if (CorrectLanguageVoiceTables) {
+				Sen1ExecutablePatches.PatchLanguageAppropriateVoiceTables(ms, PatchInfo);
 			}
 
 			ms.Position = 0;

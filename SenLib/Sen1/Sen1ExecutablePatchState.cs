@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen1 {
 	public partial class Sen1ExecutablePatchState {
+		public bool IsJp { get; private set; }
+
 		public HyoutaPluginBase.IRomMapper Mapper { get; private set; }
 
 		// address of button ID held to auto-skip animation in battle (usually the same as turbo mode)
@@ -33,6 +35,7 @@ namespace SenLib.Sen1 {
 		public long RomAddressThorMasterQuartzTextureIdTypo { get; private set; }
 
 		public Sen1ExecutablePatchState(bool jp) {
+			IsJp = jp;
 			Mapper = new Sen1Mapper(jp);
 
 			if (jp) {

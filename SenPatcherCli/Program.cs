@@ -71,7 +71,8 @@ namespace SenPatcherCli {
 					removeTurboSkip: true,
 					allowR2NotebookShortcut: true,
 					turboKey: 0xA,
-					fixTextureIds: true
+					fixTextureIds: true,
+					correctLanguageVoiceTables: true
 				));
 				mods.AddRange(Sen1Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods);

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SenLib.Sen1 {
-	public static class Sen1ExecutablePatches {
+	public static partial class Sen1ExecutablePatches {
 		// button IDs:
 		// 0x0 = Square
 		// 0x1 = Cross
