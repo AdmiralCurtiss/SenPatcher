@@ -61,39 +61,20 @@ namespace SenLib.Sen1 {
 		public RegionHelper RegionScriptCompilerFunction = null;
 		public RegionHelper RegionScriptCompilerFunctionStrings = null;
 
-		private static RegionHelper InitRegion(string id, long ramstart, long ramend, HyoutaPluginBase.IRomMapper mapper, Stream bin, byte b) {
-			long romstart = mapper.MapRamToRom(ramstart);
-			long romend = mapper.MapRamToRom(ramend);
-			bin.Position = romstart;
-			for (long i = romstart; i < romend; ++i) {
-				bin.WriteUInt8(b);
-			}
-			return new RegionHelper((uint)ramstart, (uint)(ramend - ramstart), id);
-		}
-
-		private static void JumpOverCode(RegionHelper region, HyoutaPluginBase.IRomMapper mapper, Stream bin) {
-			using (BranchHelper1Byte helper = new BranchHelper1Byte(bin, mapper)) {
-				bin.Position = mapper.MapRamToRom(region.Address);
-				helper.WriteJump(0xeb);
-				region.TakeToAddress(mapper.MapRomToRam(bin.Position), "jump over");
-				helper.SetTarget(region.Address + region.Remaining);
-			}
-		}
-
 		private void InitCodeSpaceScriptCompilerDummyIfNeeded(Stream bin) {
 			if (RegionScriptCompilerCommandLineString != null) {
 				return;
 			}
 
-			RegionScriptCompilerCommandLineString = InitRegion("ScriptCompilerCommandLineString", AddressStartScriptCompilerCommandLineString, AddressEndScriptCompilerCommandLineString, Mapper, bin, 0);
-			RegionScriptCompilerCliParsingCode = InitRegion("ScriptCompilerCliParsingCode", AddressStartOfScriptCompilerCliParsingCode, AddressEndOfScriptCompilerCliParsingCode, Mapper, bin, 0xcc);
-			RegionScriptCompilerFlagUsage1 = InitRegion("ScriptCompilerFlagUsage1", AddressStartOfScriptCompilerFlagUsage1, AddressEndOfScriptCompilerFlagUsage1, Mapper, bin, 0xcc);
-			RegionScriptCompilerFlagUsage2 = InitRegion("ScriptCompilerFlagUsage2", AddressStartOfScriptCompilerFlagUsage2, AddressEndOfScriptCompilerFlagUsage2, Mapper, bin, 0xcc);
-			RegionScriptCompilerFunction = InitRegion("ScriptCompilerFunction", AddressStartScriptCompilerFunction, AddressEndScriptCompilerFunction, Mapper, bin, 0xcc);
-			RegionScriptCompilerFunctionStrings = InitRegion("ScriptCompilerFunctionStrings", AddressStartOfScriptCompilerFunctionStrings, AddressEndOfScriptCompilerFunctionStrings, Mapper, bin, 0);
-			JumpOverCode(RegionScriptCompilerCliParsingCode, Mapper, bin);
-			JumpOverCode(RegionScriptCompilerFlagUsage1, Mapper, bin);
-			JumpOverCode(RegionScriptCompilerFlagUsage2, Mapper, bin);
+			RegionScriptCompilerCommandLineString = SenUtils.InitRegion("ScriptCompilerCommandLineString", AddressStartScriptCompilerCommandLineString, AddressEndScriptCompilerCommandLineString, Mapper, bin, 0);
+			RegionScriptCompilerCliParsingCode = SenUtils.InitRegion("ScriptCompilerCliParsingCode", AddressStartOfScriptCompilerCliParsingCode, AddressEndOfScriptCompilerCliParsingCode, Mapper, bin, 0xcc);
+			RegionScriptCompilerFlagUsage1 = SenUtils.InitRegion("ScriptCompilerFlagUsage1", AddressStartOfScriptCompilerFlagUsage1, AddressEndOfScriptCompilerFlagUsage1, Mapper, bin, 0xcc);
+			RegionScriptCompilerFlagUsage2 = SenUtils.InitRegion("ScriptCompilerFlagUsage2", AddressStartOfScriptCompilerFlagUsage2, AddressEndOfScriptCompilerFlagUsage2, Mapper, bin, 0xcc);
+			RegionScriptCompilerFunction = SenUtils.InitRegion("ScriptCompilerFunction", AddressStartScriptCompilerFunction, AddressEndScriptCompilerFunction, Mapper, bin, 0xcc);
+			RegionScriptCompilerFunctionStrings = SenUtils.InitRegion("ScriptCompilerFunctionStrings", AddressStartOfScriptCompilerFunctionStrings, AddressEndOfScriptCompilerFunctionStrings, Mapper, bin, 0);
+			SenUtils.JumpOverCode(RegionScriptCompilerCliParsingCode, Mapper, bin);
+			SenUtils.JumpOverCode(RegionScriptCompilerFlagUsage1, Mapper, bin);
+			SenUtils.JumpOverCode(RegionScriptCompilerFlagUsage2, Mapper, bin);
 		}
 	}
 }

@@ -60,5 +60,24 @@ namespace SenLib {
 			}
 			return sb.ToString();
 		}
+
+		public static RegionHelper InitRegion(string id, long ramstart, long ramend, HyoutaPluginBase.IRomMapper mapper, Stream bin, byte b) {
+			long romstart = mapper.MapRamToRom(ramstart);
+			long romend = mapper.MapRamToRom(ramend);
+			bin.Position = romstart;
+			for (long i = romstart; i < romend; ++i) {
+				bin.WriteUInt8(b);
+			}
+			return new RegionHelper((uint)ramstart, (uint)(ramend - ramstart), id);
+		}
+
+		public static void JumpOverCode(RegionHelper region, HyoutaPluginBase.IRomMapper mapper, Stream bin) {
+			using (BranchHelper1Byte helper = new BranchHelper1Byte(bin, mapper)) {
+				bin.Position = mapper.MapRamToRom(region.Address);
+				helper.WriteJump(0xeb);
+				region.TakeToAddress(mapper.MapRomToRam(bin.Position), "jump over");
+				helper.SetTarget(region.Address + region.Remaining);
+			}
+		}
 	}
 }
