@@ -82,7 +82,8 @@ namespace SenPatcherCli {
 					removeTurboSkip: true,
 					patchAudioThread: true,
 					audioThreadDivisor: 1000,
-					patchBgmQueueing: true
+					patchBgmQueueing: true,
+					correctLanguageVoiceTables: true
 				));
 				mods.AddRange(Sen2Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods);

@@ -107,6 +107,7 @@
     <Compile Include="Sen2\Sen2ExecutableBgmTimingLocations.cs" />
     <Compile Include="Sen2\Sen2ExecutableCodeSpaceLocations.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.BgmQueueing.cs" />
+    <Compile Include="Sen2\Sen2ExecutablePatches.VoiceTables.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatchState.ScriptCompilerDummy.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatchState.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.BgmTiming.cs" />

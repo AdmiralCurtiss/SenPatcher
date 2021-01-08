@@ -9,13 +9,15 @@ namespace SenLib.Sen2.FileFixes {
 		bool PatchAudioThread;
 		int AudioThreadDivisor;
 		bool PatchBgmQueueing;
+		bool CorrectLanguageVoiceTables;
 
-		public ed8_2_exe(bool jp, bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing) {
+		public ed8_2_exe(bool jp, bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing, bool correctLanguageVoiceTables) {
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
 			PatchAudioThread = patchAudioThread;
 			AudioThreadDivisor = audioThreadDivisor;
 			PatchBgmQueueing = patchBgmQueueing;
+			CorrectLanguageVoiceTables = correctLanguageVoiceTables;
 		}
 
 		public string GetDescription() {
@@ -42,14 +44,14 @@ namespace SenLib.Sen2.FileFixes {
 				Sen2ExecutablePatches.PatchJumpBattleSomethingAutoSkip(ms, state);
 				Sen2ExecutablePatches.PatchJumpBattleResultsAutoSkip(ms, state);
 			}
-
-			if (PatchAudioThread || PatchBgmQueueing) {
-				if (PatchAudioThread) {
-					Sen2ExecutablePatches.PatchMusicFadeTiming(ms, state, AudioThreadDivisor <= 0 ? 1000 : (uint)AudioThreadDivisor);
-				}
-				if (PatchBgmQueueing) {
-					Sen2ExecutablePatches.PatchMusicQueueingOnSoundThreadSide(ms, state);
-				}
+			if (PatchAudioThread) {
+				Sen2ExecutablePatches.PatchMusicFadeTiming(ms, state, AudioThreadDivisor <= 0 ? 1000 : (uint)AudioThreadDivisor);
+			}
+			if (PatchBgmQueueing) {
+				Sen2ExecutablePatches.PatchMusicQueueingOnSoundThreadSide(ms, state);
+			}
+			if (CorrectLanguageVoiceTables) {
+				Sen2ExecutablePatches.PatchLanguageAppropriateVoiceTables(ms, state);
 			}
 
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/Win32/ed8_2_PC_JP.exe" : "bin/Win32/ed8_2_PC_US.exe", ms) };

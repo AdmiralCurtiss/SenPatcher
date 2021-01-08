@@ -7,10 +7,10 @@ using System.IO;
 
 namespace SenLib.Sen2 {
 	public class Sen2Mods {
-		public static List<FileMod> GetExecutableMods(bool removeTurboSkip = false, bool patchAudioThread = false, int audioThreadDivisor = 1000, bool patchBgmQueueing = false) {
+		public static List<FileMod> GetExecutableMods(bool removeTurboSkip = false, bool patchAudioThread = false, int audioThreadDivisor = 1000, bool patchBgmQueueing = false, bool correctLanguageVoiceTables = false) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
-				f.Add(new FileFixes.ed8_2_exe(i == 0, removeTurboSkip, patchAudioThread, audioThreadDivisor, patchBgmQueueing));
+				f.Add(new FileFixes.ed8_2_exe(i == 0, removeTurboSkip, patchAudioThread, audioThreadDivisor, patchBgmQueueing, correctLanguageVoiceTables));
 			}
 			return f;
 		}
