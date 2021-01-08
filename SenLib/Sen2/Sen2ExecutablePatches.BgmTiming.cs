@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SenLib.Sen2 {
 	public static partial class Sen2ExecutablePatches {
 		public static void PatchMusicFadeTiming(Stream binary, Sen2ExecutablePatchState state, uint divisor) {
-			var mapper = new Sen2Mapper();
+			var mapper = state.Mapper;
 			var a = state.BgmTimingPatchLocations;
 
 			// divisor of 1000 seems to be console-accurate, but making fades a little faster actually feels nicer with the fast PC loading times

@@ -7,7 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SenLib.Sen2 {
-	public class Sen2ExecutablePatchState {
+	public partial class Sen2ExecutablePatchState {
+		public bool IsJp { get; private set; }
+
+		public HyoutaPluginBase.IRomMapper Mapper { get; private set; }
+
 		// address of conditional jump statement for auto-skipping animations when turbo button is held
 		public long AddressJumpBattleAnimationAutoSkip { get; private set; }
 
@@ -38,6 +42,8 @@ namespace SenLib.Sen2 {
 		public RegionHelper RegionD = null;
 
 		public Sen2ExecutablePatchState(bool jp) {
+			IsJp = jp;
+			Mapper = new Sen2Mapper(jp);
 			if (jp) {
 				AddressJumpBattleAnimationAutoSkip = 0x479b1b;
 				AddressJumpBattleResultsAutoSkip = 0x4929ba;
@@ -54,12 +60,14 @@ namespace SenLib.Sen2 {
 		}
 
 		public void InitCodeSpaceIfNeeded(Stream binary) {
+			InitCodeSpaceScriptCompilerDummyIfNeeded(binary);
+
 			if (Region50a != null) {
 				// already initialized
 				return;
 			}
 
-			var mapper = new Sen2Mapper();
+			var mapper = Mapper;
 			var c = CodeSpaceLocations;
 
 			// make some free space to actually put our expanded code in

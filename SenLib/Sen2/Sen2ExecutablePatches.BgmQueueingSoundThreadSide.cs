@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SenLib.Sen2 {
 	public static partial class Sen2ExecutablePatches {
 		public static void PatchMusicQueueingOnSoundThreadSide(Stream binary, Sen2ExecutablePatchState state) {
-			var mapper = new Sen2Mapper();
+			var mapper = state.Mapper;
 			var a = state.BgmTimingPatchLocations;
 
 			state.InitCodeSpaceIfNeeded(binary);

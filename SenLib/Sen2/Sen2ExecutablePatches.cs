@@ -14,22 +14,22 @@ namespace SenLib.Sen2 {
 		// this probably has side-effects if we just always jump but investigate this further...
 
 		public static void PatchJumpBattleAnimationAutoSkip(Stream binary, Sen2ExecutablePatchState patchInfo) {
-			binary.Position = (long)new Sen2Mapper().MapRamToRom((ulong)patchInfo.AddressJumpBattleAnimationAutoSkip);
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom((ulong)patchInfo.AddressJumpBattleAnimationAutoSkip);
 			binary.WriteUInt16(0xeb07, EndianUtils.Endianness.BigEndian); // jmp
 		}
 
 		public static void PatchJumpBattleStartAutoSkip(Stream binary, Sen2ExecutablePatchState patchInfo) {
-			binary.Position = (long)new Sen2Mapper().MapRamToRom((ulong)patchInfo.AddressJumpBattleStartAutoSkip);
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom((ulong)patchInfo.AddressJumpBattleStartAutoSkip);
 			binary.WriteUInt16(0xeb24, EndianUtils.Endianness.BigEndian); // jmp
 		}
 
 		public static void PatchJumpBattleSomethingAutoSkip(Stream binary, Sen2ExecutablePatchState patchInfo) {
-			binary.Position = (long)new Sen2Mapper().MapRamToRom((ulong)patchInfo.AddressJumpBattleSomethingAutoSkip);
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom((ulong)patchInfo.AddressJumpBattleSomethingAutoSkip);
 			binary.WriteUInt16(0xeb0d, EndianUtils.Endianness.BigEndian); // jmp
 		}
 
 		public static void PatchJumpBattleResultsAutoSkip(Stream binary, Sen2ExecutablePatchState patchInfo) {
-			binary.Position = (long)new Sen2Mapper().MapRamToRom((ulong)patchInfo.AddressJumpBattleResultsAutoSkip);
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom((ulong)patchInfo.AddressJumpBattleResultsAutoSkip);
 			binary.WriteUInt40(0xe96b010000, EndianUtils.Endianness.BigEndian); // jmp
 			binary.WriteUInt8(0x90); // nop
 		}
