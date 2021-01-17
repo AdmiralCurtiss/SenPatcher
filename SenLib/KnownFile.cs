@@ -12,34 +12,34 @@ namespace SenLib {
 		public List<KnownFileAcquisitionMethod> AcquisitionMethods { get; private set; }
 		public bool Important { get; private set; }
 
-		public KnownFile(SHA1 hash, string path, bool important = true) {
+		public KnownFile(SHA1 hash, string path, bool important = true, bool writeToBackup = true) {
 			Hash = hash;
 			AcquisitionMethods = new List<KnownFileAcquisitionMethod>() {
-				new KnownFileAcquisitionFromGamefile(path)
+				new KnownFileAcquisitionFromGamefile(path, writeToBackup)
 			};
 			Important = important;
 		}
-		public KnownFile(SHA1 hash, string path1, string path2, bool important = true) {
+		public KnownFile(SHA1 hash, string path1, string path2, bool important = true, bool writeToBackup = true) {
 			Hash = hash;
 			AcquisitionMethods = new List<KnownFileAcquisitionMethod>() {
-				new KnownFileAcquisitionFromGamefile(path1),
-				new KnownFileAcquisitionFromGamefile(path2)
+				new KnownFileAcquisitionFromGamefile(path1, writeToBackup),
+				new KnownFileAcquisitionFromGamefile(path2, writeToBackup)
 			};
 			Important = important;
 		}
-		public KnownFile(SHA1 hash, string path1, string path2, string path3, bool important = true) {
+		public KnownFile(SHA1 hash, string path1, string path2, string path3, bool important = true, bool writeToBackup = true) {
 			Hash = hash;
 			AcquisitionMethods = new List<KnownFileAcquisitionMethod>() {
-				new KnownFileAcquisitionFromGamefile(path1),
-				new KnownFileAcquisitionFromGamefile(path2),
-				new KnownFileAcquisitionFromGamefile(path3)
+				new KnownFileAcquisitionFromGamefile(path1, writeToBackup),
+				new KnownFileAcquisitionFromGamefile(path2, writeToBackup),
+				new KnownFileAcquisitionFromGamefile(path3, writeToBackup)
 			};
 			Important = important;
 		}
-		public KnownFile(SHA1 hash, DuplicatableStream data, bool important = true) {
+		public KnownFile(SHA1 hash, DuplicatableStream data, bool important = true, bool writeToBackup = true) {
 			Hash = hash;
 			AcquisitionMethods = new List<KnownFileAcquisitionMethod>() {
-				new KnownFileAcquisitionFromStream(data)
+				new KnownFileAcquisitionFromStream(data, writeToBackup)
 			};
 			Important = important;
 		}
@@ -59,24 +59,30 @@ namespace SenLib {
 
 	public class KnownFileAcquisitionFromStream : KnownFileAcquisitionMethod {
 		public DuplicatableStream Data { get; private set; }
-		public KnownFileAcquisitionFromStream(DuplicatableStream data) {
+		public bool WriteToBackup { get; private set; }
+		public KnownFileAcquisitionFromStream(DuplicatableStream data, bool writeToBackup = true) {
 			Data = data.Duplicate();
+			WriteToBackup = writeToBackup;
 		}
 	}
 
 	public class KnownFileAcquisitionFromGamefile : KnownFileAcquisitionMethod {
 		public string Path { get; private set; }
-		public KnownFileAcquisitionFromGamefile(string path) {
+		public bool WriteToBackup { get; private set; }
+		public KnownFileAcquisitionFromGamefile(string path, bool writeToBackup = true) {
 			Path = path;
+			WriteToBackup = writeToBackup;
 		}
 	}
 
 	public class KnownFileAcquisitionFromBpsPatch : KnownFileAcquisitionMethod {
 		public SHA1 BasefileHash { get; private set; }
 		public DuplicatableStream BpsData { get; private set; }
-		public KnownFileAcquisitionFromBpsPatch(SHA1 basefileHash, DuplicatableStream data) {
+		public bool WriteToBackup { get; private set; }
+		public KnownFileAcquisitionFromBpsPatch(SHA1 basefileHash, DuplicatableStream data, bool writeToBackup = true) {
 			BasefileHash = basefileHash;
 			BpsData = data.Duplicate();
+			WriteToBackup = writeToBackup;
 		}
 	}
 }

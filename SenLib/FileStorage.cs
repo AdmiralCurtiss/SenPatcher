@@ -10,29 +10,39 @@ using System.Threading.Tasks;
 namespace SenLib {
 	public class FileStorage {
 		private struct FileData {
-			public DuplicatableStream Data;
+			public DuplicatableStream Data { get; private set; }
+			public bool WriteToBackup;
+
+			public FileData(DuplicatableStream data, bool writeToBackup) {
+				this.Data = data;
+				this.WriteToBackup = writeToBackup;
+			}
 		}
 
 		private Dictionary<SHA1, FileData> Map = new Dictionary<SHA1, FileData>();
 
-		public void Add(DuplicatableStream stream) {
+		public void Add(DuplicatableStream stream, bool writeToBackup) {
 			using (var s = stream.Duplicate()) {
-				Add(HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(s), s);
+				Add(HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(s), s, writeToBackup);
 			}
 		}
 
-		public void Add(SHA1 hash, DuplicatableStream stream) {
-			if (Map.ContainsKey(hash)) {
+		public void Add(SHA1 hash, DuplicatableStream stream, bool writeToBackup) {
+			FileData ofd;
+			if (Map.TryGetValue(hash, out ofd)) {
 				using (var newdata = stream.Duplicate())
-				using (var olddata = Map[hash].Data.Duplicate()) {
+				using (var olddata = ofd.Data.Duplicate()) {
 					if (!StreamUtils.IsIdentical(newdata, olddata)) {
 						throw new Exception("Storage already contains a different file for the given hash.");
 					}
 				}
+				if (writeToBackup) {
+					ofd.WriteToBackup = true;
+				}
 				return;
 			}
 
-			FileData fd = new FileData() { Data = stream.Duplicate() };
+			FileData fd = new FileData(stream.Duplicate(), writeToBackup);
 			Map.Add(hash, fd);
 		}
 
@@ -51,6 +61,10 @@ namespace SenLib {
 		public void WriteToHyoutaArchive(System.IO.Stream target) {
 			List<HyoutaUtils.HyoutaArchive.HyoutaArchiveFileInfo> files = new List<HyoutaUtils.HyoutaArchive.HyoutaArchiveFileInfo>();
 			foreach (var kvp in Map) {
+				if (!kvp.Value.WriteToBackup) {
+					continue;
+				}
+
 				HyoutaUtils.HyoutaArchive.HyoutaArchiveFileInfo file = new HyoutaUtils.HyoutaArchive.HyoutaArchiveFileInfo();
 				file.Data = kvp.Value.Data.Duplicate();
 				file.sha1 = kvp.Key;
@@ -74,7 +88,7 @@ namespace SenLib {
 					using (var file = existingBackupArchive.GetChildByIndex(i).AsFile)
 					using (var filestream = file.DataStream.Duplicate()) {
 						var hash = ChecksumUtils.CalculateSHA1ForEntireStream(filestream);
-						storage.Add(hash, filestream.CopyToByteArrayStreamAndDispose());
+						storage.Add(hash, filestream.CopyToByteArrayStreamAndDispose(), true);
 					}
 				}
 			}
@@ -90,9 +104,10 @@ namespace SenLib {
 				foreach (KnownFileAcquisitionMethod acquisitionMethod in knownFile.AcquisitionMethods) {
 					try {
 						if (acquisitionMethod is KnownFileAcquisitionFromStream) {
-							using (var stream = (acquisitionMethod as KnownFileAcquisitionFromStream).Data.Duplicate()) {
+							var method = acquisitionMethod as KnownFileAcquisitionFromStream;
+							using (var stream = method.Data.Duplicate()) {
 								if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
-									storage.Add(knownFile.Hash, stream);
+									storage.Add(knownFile.Hash, stream, method.WriteToBackup);
 									success = true;
 									newFileFound = true;
 									break;
@@ -103,10 +118,11 @@ namespace SenLib {
 								}
 							}
 						} else if (acquisitionMethod is KnownFileAcquisitionFromGamefile) {
-							string filename = (acquisitionMethod as KnownFileAcquisitionFromGamefile).Path;
+							var method = acquisitionMethod as KnownFileAcquisitionFromGamefile;
+							string filename = method.Path;
 							using (var stream = new HyoutaUtils.Streams.DuplicatableFileStream(System.IO.Path.Combine(basePath, filename))) {
 								if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
-									storage.Add(knownFile.Hash, stream.CopyToByteArrayStreamAndDispose());
+									storage.Add(knownFile.Hash, stream.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
 									success = true;
 									newFileFound = true;
 									break;
@@ -123,7 +139,7 @@ namespace SenLib {
 									using (var target = new System.IO.MemoryStream()) {
 										HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(basestream, bps, target);
 										if (ChecksumUtils.CalculateSHA1ForEntireStream(target) == knownFile.Hash) {
-											storage.Add(knownFile.Hash, target.CopyToByteArrayStreamAndDispose());
+											storage.Add(knownFile.Hash, target.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
 											success = true;
 											newFileFound = true;
 											break;
