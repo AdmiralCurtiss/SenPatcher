@@ -57,6 +57,7 @@ namespace SenPatcherCli {
 				return -1;
 			}
 
+			FilenameFix.FixupIncorrectEncodingInFilenames(path, sengame);
 			FileStorage storage = FileModExec.InitializeAndPersistFileStorage(path, sengame == 1 ? Sen1KnownFiles.Files : Sen2KnownFiles.Files);
 			if (storage == null) {
 				Console.WriteLine($"Failed to initialize file storage from {path}.");
