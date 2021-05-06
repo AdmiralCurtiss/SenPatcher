@@ -14,6 +14,7 @@ namespace SenLib.Sen1 {
 			new KnownFile(new SHA1(0xe336f59af7a03b6eul, 0xf6ec2d9938371885ul, 0x7b26ecf3u), DecompressHelper.DecompressFromBuffer(Properties.Resources.ed8m4097).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
 			new KnownFile(new SHA1(0x0056ff921028d42ful, 0x226e25555dd48336ul, 0x19a8cbc8u), DecompressHelper.DecompressFromBuffer(Properties.Resources.ed8m4217).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
 			new KnownFile(new SHA1(0x0037f27d49910859ul, 0x38a613aae6000493ul, 0x68768874u), DecompressHelper.DecompressFromBuffer(Properties.Resources.pc8v10286_15).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
+			new KnownFile(new SHA1(0xe9bd9a1d50cf6170ul, 0x728942e9fead6f2bul, 0xa635fcc6u), DecompressHelper.DecompressFromBuffer(Properties.Resources.pc8v02551_4).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
 			new KnownFile(new SHA1(0x73fd289006017eabul, 0x8816636d998d21aaul, 0x8fb38d68u), "data/scripts/scena/dat_us/a0006.dat", "senpatcher_bkp/data_scripts_scena_dat_us_a0006.dat"),
 			new KnownFile(new SHA1(0x9a75c8439ca12500ul, 0x437af585d0ae9474ul, 0x4b620dfdu), "data/scripts/scena/dat_us/c0100.dat", "senpatcher_bkp/data_scripts_scena_dat_us_c0100.dat"),
 			new KnownFile(new SHA1(0xa740904f6ad37411ul, 0x825565981daa5f59ul, 0x15b55b69u), "data/scripts/scena/dat_us/c0110.dat", "senpatcher_bkp/data_scripts_scena_dat_us_c0110.dat"),
@@ -38,6 +39,7 @@ namespace SenLib.Sen1 {
 			new KnownFile(new SHA1(0xd5f7bf4c4c575efdul, 0x5699e8bbd4040b81ul, 0x276a7284u), "data/text/dat_us/t_magic.tbl", "senpatcher_bkp/data_text_dat_us_t_magic.tbl"),
 			new KnownFile(new SHA1(0xf4b9ff78474452aaul, 0xc44f4b0c07c5a3ccul, 0x1ce27359u), "data/text/dat_us/t_vctiming.tbl"),
 			new KnownFile(new SHA1(0xdc8fa92820abc1b4ul, 0x6a646b4d75ba5d23ul, 0x9bd22ee9u), "data/text/dat_us/t_voice.tbl"),
+			new KnownFile(new SHA1(0x6d43ad75d01d9acdul, 0x887826db59961c3eul, 0x925ccc02u), "data/voice/wav/pc8v02551.wav"),
 			new KnownFile(new SHA1(0x591122d8707ebee4ul, 0xf3afa135c32c2113ul, 0x1e1a7bafu), "ed8.exe", important: false, writeToBackup: false), // old xdelta patch for battle skip removal
 			new KnownFile(new SHA1(0x46feedf2f507e1dcul, 0x467c8ba002b0394bul, 0xb8fd464eu), "ed8jp.exe", important: false, writeToBackup: false), // old xdelta patch for battle skip removal
 			new KnownFile(new SHA1(0x373c1d1b30001af3ul, 0x60042365ed257e07ul, 0x0bf40accu), new List<KnownFileAcquisitionMethod>() {

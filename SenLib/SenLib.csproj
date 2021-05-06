@@ -145,6 +145,7 @@
     <None Include="Sen1\FileFixes\ed8m2150.bin" />
     <None Include="Sen1\FileFixes\ed8m4097.bin" />
     <None Include="Sen1\FileFixes\ed8m4217.bin" />
+    <None Include="Sen1\FileFixes\pc8v02551_4.bin" />
     <None Include="Sen1\FileFixes\pc8v10286_15.bin" />
     <None Include="Sen2\FileFixes\ed82j142.bin" />
     <None Include="Sen2\FileFixes\ed82u142j.bin" />
