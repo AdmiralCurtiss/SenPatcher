@@ -30,15 +30,13 @@ namespace SenLib {
 				fileStoreReturnValue = FileStorage.InitializeFromKnownFiles(baseDir, knownFiles, backupArchive);
 			}
 
-			if (fileStoreReturnValue.Errors.Count == 0) {
-				if (fileStoreReturnValue.NewFileFound) {
-					Console.WriteLine("New file(s) found, writing new backup archive to {0}...", backupArchivePath);
-					Stream ms = new MemoryStream();
-					fileStoreReturnValue.Storage.WriteToHyoutaArchive(ms);
-					using (var fs = new FileStream(backupArchivePath, FileMode.Create)) {
-						ms.Position = 0;
-						HyoutaUtils.StreamUtils.CopyStream(ms, fs);
-					}
+			if (fileStoreReturnValue.ShouldWriteBackupArchive) {
+				Console.WriteLine("New file(s) found, writing new backup archive to {0}...", backupArchivePath);
+				Stream ms = new MemoryStream();
+				fileStoreReturnValue.Storage.WriteToHyoutaArchive(ms);
+				using (var fs = new FileStream(backupArchivePath, FileMode.Create)) {
+					ms.Position = 0;
+					HyoutaUtils.StreamUtils.CopyStream(ms, fs);
 				}
 			}
 

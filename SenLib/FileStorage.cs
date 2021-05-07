@@ -76,7 +76,7 @@ namespace SenLib {
 		public class InitReturnValue {
 			public FileStorage Storage;
 			public List<(KnownFile file, List<string> errors)> Errors;
-			public bool NewFileFound;
+			public bool ShouldWriteBackupArchive;
 		}
 
 		public static InitReturnValue InitializeFromKnownFiles(string basePath, KnownFile[] knownFiles, HyoutaUtils.HyoutaArchive.HyoutaArchiveContainer existingBackupArchive) {
@@ -93,7 +93,7 @@ namespace SenLib {
 				}
 			}
 
-			bool newFileFound = false;
+			bool shouldWriteBackupArchive = false;
 			foreach (KnownFile knownFile in knownFiles) {
 				if (storage.Contains(knownFile.Hash)) {
 					continue;
@@ -109,7 +109,9 @@ namespace SenLib {
 								if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
 									storage.Add(knownFile.Hash, stream, method.WriteToBackup);
 									success = true;
-									newFileFound = true;
+									if (method.WriteToBackup) {
+										shouldWriteBackupArchive = true;
+									}
 									break;
 								} else {
 									// this should never happen...
@@ -124,7 +126,9 @@ namespace SenLib {
 								if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
 									storage.Add(knownFile.Hash, stream.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
 									success = true;
-									newFileFound = true;
+									if (method.WriteToBackup) {
+										shouldWriteBackupArchive = true;
+									}
 									break;
 								} else {
 									localErrors.Add(string.Format("File {0} does not match expected hash.", filename));
@@ -141,7 +145,9 @@ namespace SenLib {
 										if (ChecksumUtils.CalculateSHA1ForEntireStream(target) == knownFile.Hash) {
 											storage.Add(knownFile.Hash, target.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
 											success = true;
-											newFileFound = true;
+											if (method.WriteToBackup) {
+												shouldWriteBackupArchive = true;
+											}
 											break;
 										} else {
 											// this is very unlikely, this means the basefile hase a matching hash but is not the expected file
@@ -173,7 +179,7 @@ namespace SenLib {
 				}
 			}
 
-			return new InitReturnValue() { Storage = storage, Errors = errors, NewFileFound = newFileFound };
+			return new InitReturnValue() { Storage = storage, Errors = errors, ShouldWriteBackupArchive = shouldWriteBackupArchive };
 		}
 	}
 }
