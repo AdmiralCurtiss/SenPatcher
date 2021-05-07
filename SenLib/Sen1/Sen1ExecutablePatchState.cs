@@ -34,6 +34,9 @@ namespace SenLib.Sen1 {
 		// address of extra character in the middle of texture ID string of Thor MQ, for the HQ texture pack
 		public long RomAddressThorMasterQuartzTextureIdTypo { get; private set; }
 
+		// push address of version string displayed on the title screen
+		public long PushAddressVersionString { get; private set; }
+
 		public Sen1ExecutablePatchState(bool jp) {
 			IsJp = jp;
 			Mapper = new Sen1Mapper(jp);
@@ -47,6 +50,7 @@ namespace SenLib.Sen1 {
 				AddressJumpR2NotebookOpen = 0x5b6fbf;
 				AddressJumpR2NotebookSettings = 0x6de1a0;
 				RomAddressThorMasterQuartzTextureIdTypo = 0x738f6a;
+				PushAddressVersionString = 0x68e93d;
 			} else {
 				AddressButtonBattleAnimationAutoSkip = 0x4d7c59;
 				AddressButtonBattleResultsAutoSkip = 0x4f2247;
@@ -56,6 +60,7 @@ namespace SenLib.Sen1 {
 				AddressJumpR2NotebookOpen = 0x5b812f;
 				AddressJumpR2NotebookSettings = 0x6dfaf0;
 				RomAddressThorMasterQuartzTextureIdTypo = 0x73adba;
+				PushAddressVersionString = 0x69042d;
 			}
 
 			CtorCodeSpaceScriptCompilerDummy(jp);

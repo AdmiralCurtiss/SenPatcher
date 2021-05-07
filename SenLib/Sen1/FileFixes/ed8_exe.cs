@@ -62,6 +62,23 @@ namespace SenLib.Sen1.FileFixes {
 				Sen1ExecutablePatches.PatchLanguageAppropriateVoiceTables(ms, PatchInfo);
 			}
 
+			// add indicator to the title screen that we're running a modified executable
+			ms.Position = PatchInfo.Mapper.MapRamToRom(PatchInfo.PushAddressVersionString);
+			uint addressVersionString = ms.ReadUInt32(EndianUtils.Endianness.LittleEndian);
+			ms.Position = PatchInfo.Mapper.MapRamToRom(addressVersionString);
+			string versionString = ms.ReadAsciiNullterm();
+			string newVersionString = versionString + "  SenPatcher " + Version.SenPatcherVersion;
+			MemoryStream newVersionStringStream = new MemoryStream();
+			newVersionStringStream.WriteAsciiNullterm(newVersionString);
+			byte[] newVersionStringBytes = newVersionStringStream.CopyToByteArrayAndDispose();
+			var regionStrings = PatchInfo.RegionScriptCompilerFunctionStrings;
+			uint addressNewVersionString = regionStrings.Address;
+			ms.Position = PatchInfo.Mapper.MapRamToRom(regionStrings.Address);
+			ms.Write(newVersionStringBytes);
+			regionStrings.TakeToAddress(PatchInfo.Mapper.MapRomToRam(ms.Position), "SenPatcher version string");
+			ms.Position = PatchInfo.Mapper.MapRamToRom(PatchInfo.PushAddressVersionString);
+			ms.WriteUInt32(addressNewVersionString, EndianUtils.Endianness.LittleEndian);
+
 			ms.Position = 0;
 			return new FileModResult[] { new FileModResult(IsJp ? "ed8jp.exe" : "ed8.exe", ms) };
 		}
