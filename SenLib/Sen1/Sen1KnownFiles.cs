@@ -9,7 +9,20 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen1 {
 	public static class Sen1KnownFiles {
-		public static KnownFile[] Files = {
+		public static KnownFile[] Files { get { return GetFiles(); } }
+
+		private static object Mutex = new object();
+		private static KnownFile[] Files_ = null;
+		private static KnownFile[] GetFiles() {
+			lock (Mutex) {
+				if (Files_ == null) {
+					Files_ = InitKnownFiles();
+				}
+				return Files_;
+			}
+		}
+		private static KnownFile[] InitKnownFiles() {
+			return new KnownFile[] {
 			new KnownFile(new SHA1(0x1d7d909f29ac458eul, 0xf6ffc94cbd0a0a72ul, 0x49c25fdeu), DecompressHelper.DecompressFromBuffer(Properties.Resources.ed8m2150).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
 			new KnownFile(new SHA1(0xe336f59af7a03b6eul, 0xf6ec2d9938371885ul, 0x7b26ecf3u), DecompressHelper.DecompressFromBuffer(Properties.Resources.ed8m4097).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
 			new KnownFile(new SHA1(0x0056ff921028d42ful, 0x226e25555dd48336ul, 0x19a8cbc8u), DecompressHelper.DecompressFromBuffer(Properties.Resources.ed8m4217).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
@@ -66,6 +79,7 @@ namespace SenLib.Sen1 {
 				new KnownFileAcquisitionFromBpsPatch(new SHA1(0x46feedf2f507e1dcul, 0x467c8ba002b0394bul, 0xb8fd464eu), new HyoutaUtils.Streams.DuplicatableByteArrayStream(new byte[] { 0x42, 0x50, 0x53, 0x31, 0x00, 0x1f, 0x1d, 0x83, 0x00, 0x1f, 0x1d, 0x83, 0x80, 0x40, 0x3f, 0x54, 0x80, 0x81, 0x74, 0x70, 0x2f, 0x99, 0x95, 0x0f, 0x84, 0x80, 0x01, 0x00, 0x00, 0x28, 0x0d, 0x08, 0x8e, 0x64, 0x17, 0x54, 0x13, 0x23, 0xe2, 0xa3, 0x29, 0x10, 0x42, 0x77, 0x67 }))
 			}),
 			new KnownFile(new SHA1(0x8dde2b39f128179aul, 0x0beb3301cfd56a98ul, 0xc0f98a55u), "Sen1Launcher.exe"),
-		};
+			};
+		}
 	}
 }

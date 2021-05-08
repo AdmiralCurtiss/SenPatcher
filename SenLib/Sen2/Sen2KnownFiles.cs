@@ -9,7 +9,20 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen2 {
 	public static class Sen2KnownFiles {
-		public static KnownFile[] Files = {
+		public static KnownFile[] Files { get { return GetFiles(); } }
+
+		private static object Mutex = new object();
+		private static KnownFile[] Files_ = null;
+		private static KnownFile[] GetFiles() {
+			lock (Mutex) {
+				if (Files_ == null) {
+					Files_ = InitKnownFiles();
+				}
+				return Files_;
+			}
+		}
+		private static KnownFile[] InitKnownFiles() {
+		return new KnownFile[] {
 			new KnownFile(new SHA1(0x92de0d29c0ad4a9eul, 0xa935870674976924ul, 0xd5df756du), "data/text/dat_us/t_magic.tbl", "senpatcher_bkp/data_text_dat_us_t_magic.tbl"),
 			new KnownFile(new SHA1(0x5b2fee612159bcb9ul, 0x3b2c6831f94f7b1ful, 0x4dd6231cu), "data/scripts/book/dat_us/book04.dat"),
 
@@ -48,6 +61,7 @@ namespace SenLib.Sen2 {
 			}),
 
 			new KnownFile(new SHA1(0x81024410cc1fd1b4ul, 0x62c600e0378714bdul, 0x7704b202u), "Sen2Launcher.exe"),
-		};
+			};
+		}
 	}
 }
