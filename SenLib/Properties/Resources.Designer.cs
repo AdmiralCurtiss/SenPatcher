@@ -129,5 +129,45 @@ namespace SenLib.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] vctiming_jp_3 {
+            get {
+                object obj = ResourceManager.GetObject("vctiming_jp_3", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] vctiming_jp_4 {
+            get {
+                object obj = ResourceManager.GetObject("vctiming_jp_4", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] vctiming_us_3 {
+            get {
+                object obj = ResourceManager.GetObject("vctiming_us_3", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] vctiming_us_4 {
+            get {
+                object obj = ResourceManager.GetObject("vctiming_us_4", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

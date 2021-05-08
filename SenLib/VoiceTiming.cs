@@ -48,6 +48,13 @@ namespace SenLib {
 			TimingData = s.ReadUInt64(EndianUtils.Endianness.LittleEndian);
 		}
 
+		public VoiceTimingEntry(VoiceTimingEntry other) {
+			Key = other.Key;
+			Unknown1 = other.Unknown1;
+			Index = other.Index;
+			TimingData = other.TimingData;
+		}
+
 		public void WriteToStream(Stream s, EndianUtils.Endianness e) {
 			s.WriteAsciiNullterm(Key);
 			s.WriteUInt16(Unknown1, e);

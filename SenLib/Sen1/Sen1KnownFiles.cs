@@ -41,6 +41,16 @@ namespace SenLib.Sen1 {
 			new KnownFile(new SHA1(0xf4b9ff78474452aaul, 0xc44f4b0c07c5a3ccul, 0x1ce27359u), "data/text/dat_us/t_vctiming.tbl", "data/text/dat/t_vctiming.tbl"),
 			new KnownFile(new SHA1(0xdc8fa92820abc1b4ul, 0x6a646b4d75ba5d23ul, 0x9bd22ee9u), "data/text/dat_us/t_voice.tbl"),
 			new KnownFile(new SHA1(0x6d43ad75d01d9acdul, 0x887826db59961c3eul, 0x925ccc02u), "data/voice/wav/pc8v02551.wav"),
+			new KnownFile(new SHA1(0xf94e4188145f004cul, 0x86ae6fa0b6ff8a1bul, 0x818b4562u), DecompressHelper.DecompressFromBuffer(Properties.Resources.vctiming_jp_4).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
+			new KnownFile(new SHA1(0x60e82f9eb05d4b5dul, 0x15fbff5e3b341b0cul, 0xabfcae9du), new List<KnownFileAcquisitionMethod>() {
+				new KnownFileAcquisitionFromBpsPatch(new SHA1(0xf94e4188145f004cul, 0x86ae6fa0b6ff8a1bul, 0x818b4562u), DecompressHelper.DecompressFromBuffer(Properties.Resources.vctiming_jp_3).CopyToByteArrayStreamAndDispose(), writeToBackup: false)
+			}),
+			new KnownFile(new SHA1(0x4530f8f99feffdd6ul, 0xbdb3b6e43ab769d0ul, 0xa0e9d5d8u), new List<KnownFileAcquisitionMethod>() {
+				new KnownFileAcquisitionFromBpsPatch(new SHA1(0xf4b9ff78474452aaul, 0xc44f4b0c07c5a3ccul, 0x1ce27359u), DecompressHelper.DecompressFromBuffer(Properties.Resources.vctiming_us_3).CopyToByteArrayStreamAndDispose(), writeToBackup: false)
+			}),
+			new KnownFile(new SHA1(0x47b8e01924115c99ul, 0x14f4a5fa65873309ul, 0xc5825a41u), new List<KnownFileAcquisitionMethod>() {
+				new KnownFileAcquisitionFromBpsPatch(new SHA1(0x4530f8f99feffdd6ul, 0xbdb3b6e43ab769d0ul, 0xa0e9d5d8u), new HyoutaUtils.Streams.DuplicatableByteArrayStream(Properties.Resources.vctiming_us_4), writeToBackup: false)
+			}),
 			new KnownFile(new SHA1(0x591122d8707ebee4ul, 0xf3afa135c32c2113ul, 0x1e1a7bafu), "ed8.exe", important: false, writeToBackup: false), // old xdelta patch for battle skip removal
 			new KnownFile(new SHA1(0x46feedf2f507e1dcul, 0x467c8ba002b0394bul, 0xb8fd464eu), "ed8jp.exe", important: false, writeToBackup: false), // old xdelta patch for battle skip removal
 			new KnownFile(new SHA1(0x373c1d1b30001af3ul, 0x60042365ed257e07ul, 0x0bf40accu), new List<KnownFileAcquisitionMethod>() {
