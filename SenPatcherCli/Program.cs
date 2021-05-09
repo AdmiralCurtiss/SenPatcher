@@ -12,6 +12,27 @@ using System.Threading.Tasks;
 namespace SenPatcherCli {
 	public class Program {
 		public static int Main(string[] args) {
+			if (args.Length >= 2 && args[0] == "--parse-script") {
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1])) {
+					var funcs = ScriptParser.Parse(fs.CopyToByteArrayStreamAndDispose());
+
+					using (var outfs = new FileStream(args.Length > 2 ? args[2] : args[1] + ".txt", FileMode.Create)) {
+						foreach (var func in funcs) {
+							outfs.WriteUTF8(func.Name);
+							outfs.WriteUTF8("\n");
+							outfs.WriteUTF8("\n");
+							foreach (var op in func.Ops) {
+								outfs.WriteUTF8(op);
+								outfs.WriteUTF8("\n");
+							}
+							outfs.WriteUTF8("\n");
+							outfs.WriteUTF8("\n");
+						}
+					}
+				}
+				return 0;
+			}
+
 			if (args.Length == 1 && args[0] == "__gen_voice_checks") {
 				t_voice_tbl.CheckVoiceTable(
 					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/text/dat_us/t_voice.tbl"),
