@@ -37,6 +37,7 @@ namespace SenLib.Sen2.FileFixes {
 			MemoryStream ms = s.CopyToMemoryAndDispose();
 
 			Sen2ExecutablePatchState state = new Sen2ExecutablePatchState(IsJp);
+			state.InitCodeSpaceIfNeeded(ms);
 
 			if (RemoveTurboSkip) {
 				Sen2ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, state);
@@ -53,6 +54,27 @@ namespace SenLib.Sen2.FileFixes {
 			if (CorrectLanguageVoiceTables) {
 				Sen2ExecutablePatches.PatchLanguageAppropriateVoiceTables(ms, state);
 			}
+
+			// add indicator to the title screen that we're running a modified executable
+			ms.Position = state.Mapper.MapRamToRom(state.PushAddressVersionString);
+			uint addressVersionString = ms.ReadUInt32(EndianUtils.Endianness.LittleEndian);
+			ms.Position = state.Mapper.MapRamToRom(addressVersionString);
+			string versionString = ms.ReadAsciiNullterm();
+			string newVersionString = versionString + "  SenPatcher " + Version.SenPatcherVersion;
+			MemoryStream newVersionStringStream = new MemoryStream();
+			newVersionStringStream.WriteAsciiNullterm(newVersionString);
+			byte[] newVersionStringBytes = newVersionStringStream.CopyToByteArrayAndDispose();
+			var regionStrings = state.RegionScriptCompilerFunctionStrings;
+			uint addressNewVersionString = regionStrings.Address;
+			ms.Position = state.Mapper.MapRamToRom(regionStrings.Address);
+			ms.Write(newVersionStringBytes);
+			regionStrings.TakeToAddress(state.Mapper.MapRomToRam(ms.Position), "SenPatcher version string");
+			ms.Position = state.Mapper.MapRamToRom(state.PushAddressVersionString);
+			ms.WriteUInt32(addressNewVersionString, EndianUtils.Endianness.LittleEndian);
+			ms.Position = state.Mapper.MapRamToRom(state.PushAddressVersionStringTTY);
+			ms.WriteUInt32(addressNewVersionString, EndianUtils.Endianness.LittleEndian);
+			ms.Position = state.Mapper.MapRamToRom(state.PushAddressVersionCrashRpt);
+			ms.WriteUInt32(addressNewVersionString + (uint)(versionString.Length - 5), EndianUtils.Endianness.LittleEndian);
 
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/Win32/ed8_2_PC_JP.exe" : "bin/Win32/ed8_2_PC_US.exe", ms) };
 		}

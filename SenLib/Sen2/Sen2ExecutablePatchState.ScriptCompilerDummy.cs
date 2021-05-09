@@ -42,6 +42,15 @@ namespace SenLib.Sen2 {
 		public long AddressStartOfScriptCompilerFunctionStrings { get { return IsJp ? 0x8fb51c : 0x8ff0a4; } }
 		public long AddressEndOfScriptCompilerFunctionStrings { get { return IsJp ? 0x8fb5a8 : 0x8ff130; } }
 
+		// push address of version string displayed on the title screen
+		public long PushAddressVersionString { get { return IsJp ? 0x62a74c : 0x62a2dc; } }
+
+		// push address of version string displayed written to TTY on game boot
+		public long PushAddressVersionStringTTY { get { return IsJp ? 0x578911 : 0x578c81; } }
+
+		// push address of version string passed to the crash reporter
+		public long PushAddressVersionCrashRpt { get { return IsJp ? 0x425e88 : 0x426098; } }
+
 		public RegionHelper RegionScriptCompilerCommandLineString = null;
 		public RegionHelper RegionScriptCompilerCliParsingCode = null;
 		public RegionHelper RegionScriptCompilerFlagUsageCode = null;
