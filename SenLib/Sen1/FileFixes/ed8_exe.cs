@@ -41,6 +41,7 @@ namespace SenLib.Sen1.FileFixes {
 			MemoryStream ms = s.CopyToMemoryAndDispose();
 
 			Sen1ExecutablePatchState PatchInfo = new Sen1ExecutablePatchState(IsJp);
+			PatchInfo.InitCodeSpaceIfNeeded(ms);
 
 			if (RemoveTurboSkip) {
 				Sen1ExecutablePatches.PatchJumpBattleAnimationAutoSkip(ms, PatchInfo);
