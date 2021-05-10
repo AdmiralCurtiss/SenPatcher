@@ -46,11 +46,11 @@
 			// 
 			// labelVersion
 			// 
-			this.labelVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.labelVersion.AutoSize = true;
-			this.labelVersion.Location = new System.Drawing.Point(242, 9);
+			this.labelVersion.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.labelVersion.Location = new System.Drawing.Point(12, 9);
 			this.labelVersion.Name = "labelVersion";
-			this.labelVersion.Size = new System.Drawing.Size(87, 13);
+			this.labelVersion.Size = new System.Drawing.Size(317, 13);
 			this.labelVersion.TabIndex = 10;
 			this.labelVersion.Text = "SenPatcher v0.0";
 			this.labelVersion.TextAlign = System.Drawing.ContentAlignment.TopRight;

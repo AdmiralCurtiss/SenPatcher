@@ -18,6 +18,7 @@ namespace SenPatcherGui {
 	public partial class MainForm : Form {
 		public MainForm() {
 			InitializeComponent();
+			labelVersion.Text = "Version " + SenLib.Version.SenPatcherVersion;
 		}
 
 		private static string GetDefaultPathCS1() {
