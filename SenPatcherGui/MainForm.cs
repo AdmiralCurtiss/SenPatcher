@@ -1,4 +1,5 @@
 ﻿using HyoutaUtils;
+using HyoutaUtils.Checksum;
 using SenLib;
 using SenLib.Sen1;
 using SenLib.Sen2;
@@ -48,9 +49,34 @@ namespace SenPatcherGui {
 				d.FileName = "Sen1Launcher.exe";
 				d.Filter = "CS1 root game directory (Sen1Launcher.exe)|Sen1Launcher.exe|All files (*.*)|*.*";
 				if (d.ShowDialog() == DialogResult.OK) {
-					new Sen1Form(Path.GetDirectoryName(d.FileName)).ShowDialog();
+					OpenCs1GameDir(d.FileName);
 				}
 			}
+		}
+
+		private void OpenCs1GameDir(string sen1patcherpath) {
+			// prevent people from being dumb and selecting the wrong game dir
+			try {
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(sen1patcherpath)) {
+					SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					if (hash != new SHA1(0x8dde2b39f128179aul, 0x0beb3301cfd56a98ul, 0xc0f98a55u)) {
+						MessageBox.Show("Selected file does not appear to be Sen1Launcher.exe of version 1.6.");
+						return;
+					}
+				}
+			} catch (Exception ex) {
+				MessageBox.Show("Error while validating Sen1Launcher.exe: " + ex.Message);
+				return;
+			}
+
+			ProgressReporter progress = new DummyProgressReporter();
+			string path = Path.GetDirectoryName(sen1patcherpath);
+			if (FilenameFix.FixupIncorrectEncodingInFilenames(path, 1, false, progress)) {
+				FilenameFix.FixupIncorrectEncodingInFilenames(path, 1, true, progress);
+			}
+			var storage = FileModExec.InitializeAndPersistFileStorage(path, Sen1KnownFiles.Files);
+
+			new Sen1Form(path, storage).ShowDialog();
 		}
 
 		private void buttonCS2Patch_Click(object sender, EventArgs e) {
@@ -62,9 +88,34 @@ namespace SenPatcherGui {
 				d.FileName = "Sen2Launcher.exe";
 				d.Filter = "CS2 root game directory (Sen2Launcher.exe)|Sen2Launcher.exe|All files (*.*)|*.*";
 				if (d.ShowDialog() == DialogResult.OK) {
-					new Sen2Form(Path.GetDirectoryName(d.FileName)).ShowDialog();
+					OpenCs2GameDir(d.FileName);
 				}
 			}
+		}
+
+		private void OpenCs2GameDir(string sen2patcherpath) {
+			// prevent people from being dumb and selecting the wrong game dir
+			try {
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(sen2patcherpath)) {
+					SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					if (hash != new SHA1(0x81024410cc1fd1b4ul, 0x62c600e0378714bdul, 0x7704b202u)) {
+						MessageBox.Show("Selected file does not appear to be Sen2Launcher.exe of version 1.4, 1.4.1, or 1.4.2.");
+						return;
+					}
+				}
+			} catch (Exception ex) {
+				MessageBox.Show("Error while validating Sen2Launcher.exe: " + ex.Message);
+				return;
+			}
+
+			ProgressReporter progress = new DummyProgressReporter();
+			string path = Path.GetDirectoryName(sen2patcherpath);
+			if (FilenameFix.FixupIncorrectEncodingInFilenames(path, 2, false, progress)) {
+				FilenameFix.FixupIncorrectEncodingInFilenames(path, 2, true, progress);
+			}
+			var storage = FileModExec.InitializeAndPersistFileStorage(path, Sen2KnownFiles.Files);
+
+			new Sen2Form(path, storage).ShowDialog();
 		}
 
 		private void buttonCS1Sysdata_Click(object sender, EventArgs e) {
