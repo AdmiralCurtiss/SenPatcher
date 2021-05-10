@@ -19,7 +19,9 @@ namespace SenPatcherGui {
 
 		public Sen2Form(string path) {
 			Path = path;
-			FilenameFix.FixupIncorrectEncodingInFilenames(path, 2);
+			if (FilenameFix.FixupIncorrectEncodingInFilenames(path, 2, false, new DummyProgressReporter())) {
+				FilenameFix.FixupIncorrectEncodingInFilenames(path, 2, true, new DummyProgressReporter());
+			}
 			Storage = FileModExec.InitializeAndPersistFileStorage(path, Sen2KnownFiles.Files);
 
 			InitializeComponent();

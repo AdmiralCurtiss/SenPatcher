@@ -17,24 +17,44 @@ namespace SenLib {
 
 		// CS1 on GoG, CS1 on Humble and CS2 on Humble ship with filenames in the wrong encoding
 		// I suspect all of the affected files are actually unused, but might as well fix them up just in case...
-		public static bool FixupIncorrectEncodingInFilenames(string gamepath, int sengame) {
+		// If 'fix' is true we try to fix it if we determine that it's wrong, otherwise we just determine whether it's wrong or not.
+		// return value should be interpreted as:
+		// - if 'fix' is false -> whether there is anything that needs fixing (should call again with fix == true)
+		// - if 'fix' is true  -> the correctness state of the files after this call; so if true we either found no issues or we fixed them all
+		public static bool FixupIncorrectEncodingInFilenames(string gamepath, int sengame, bool fix, ProgressReporter progress) {
 			try {
 				if (sengame == 1) {
-					bool s1 = FixEffectsSamples(gamepath, cs1: true);
-					bool s2 = FixSoundEffectsCS1(gamepath);
-					return s1 && s2;
+					bool s1 = FixEffectsSamples(gamepath, cs1: true, fix: fix, progress: progress);
+					bool s2 = FixSoundEffectsCS1(gamepath, fix: fix, progress: progress);
+					if (fix) {
+						// report if everything worked
+						return s1 && s2;
+					} else {
+						// report if at least one thing is in need of fixing
+						return s1 || s2;
+					}
 				} else if (sengame == 2) {
-					bool s1 = FixEffectsSamples(gamepath, cs1: false);
-					bool s2 = FixNpc049CS2(gamepath);
-					bool s3 = FixNpc610615CS2(gamepath, "data/chr/npc/npc610/BK");
-					bool s4 = FixNpc610615CS2(gamepath, "data/chr/npc/npc615/BK");
-					return s1 && s2 && s3 && s4;
+					bool s1 = FixEffectsSamples(gamepath, cs1: false, fix: fix, progress: progress);
+					bool s2 = FixNpc049CS2(gamepath, fix: fix, progress: progress);
+					bool s3 = FixNpc610615CS2(gamepath, "data/chr/npc/npc610/BK", fix: fix, progress: progress);
+					bool s4 = FixNpc610615CS2(gamepath, "data/chr/npc/npc615/BK", fix: fix, progress: progress);
+					if (fix) {
+						// report if everything worked
+						return s1 && s2 && s3 && s4;
+					} else {
+						// report if at least one thing is in need of fixing
+						return s1 || s2 || s3 || s4;
+					}
 				}
-			} catch (Exception) { }
-			return false;
+				// sengame is something unexpected
+				return false;
+			} catch (Exception) {
+				// something broke; report that we can't fix this or that the fix didn't work
+				return false;
+			}
 		}
 
-		private static bool FixEffectsSamples(string gamepath, bool cs1) {
+		private static bool FixEffectsSamples(string gamepath, bool cs1, bool fix, ProgressReporter progress) {
 			string subdir = "data/effects/samples";
 			List<HashWithName> files = new List<HashWithName>();
 			files.Add(new HashWithName(new SHA1(0x04225404e9334b1eul, 0x12d03a71841f5d16ul, 0x89ad10dbu), "\u7403(\u4e0a\u4e0b\u6d88\u3048).eff"));
@@ -64,6 +84,7 @@ namespace SenLib {
 
 			string sampledir = Path.Combine(gamepath, subdir);
 			if (!Directory.Exists(sampledir)) {
+				// something is busted but it's not the filenames, we can't do anything about this
 				return false;
 			}
 
@@ -94,41 +115,92 @@ namespace SenLib {
 					target = files.FirstOrDefault(x => x.Hash == hash);
 				}
 				if (target != null && name != target.Name) {
-					File.Move(path, Path.Combine(sampledir, target.Name));
-					if (deleteDir) {
-						f.Delete();
+					if (fix) {
+						// this file should be elsewhere, try to fix this
+						progress.Message(string.Format("Renaming {0} to {1}", path, target.Name));
+						File.Move(path, Path.Combine(sampledir, target.Name));
+						if (deleteDir) {
+							progress.Message(string.Format("Deleting leftover folder at {0}", f.FullName));
+							f.Delete();
+						}
+					} else {
+						// this file should be elsewhere, report that we're in need of fixing
+						progress.Message(string.Format("Found incorrect filename {0}, should be {1}", name, target.Name));
+						return true;
 					}
 				}
 			}
 
-			return true;
+			if (fix) {
+				// either we didn't encounter any issues or we fixed them
+				return true;
+			} else {
+				// we didn't encounter any issues, so report that this folder does not need fixing
+				return false;
+			}
 		}
 
-		private static bool FixSoundEffectsCS1(string gamepath) {
+		private static bool FixSoundEffectsCS1(string gamepath, bool fix, ProgressReporter progress) {
 			string subdir = "data/se/wav";
 			SHA1 targethash = new SHA1(0x684cc74b0837ff14ul, 0x08124f8b8a05cfd9ul, 0xc9a09195u);
-			string targetname = "ed8\uff4d2123.wav";
+			string targetName = "ed8\uff4d2123.wav";
+			string asciiName = "ed8m2123.wav";
 			string targetdir = Path.Combine(gamepath, subdir);
 			if (!Directory.Exists(targetdir)) {
+				// can't do anything here
 				return false;
 			}
 
+			FileInfo asciiFileInfo = null;
+			FileInfo otherFileInfo = null;
 			foreach (FileInfo f in new DirectoryInfo(targetdir).GetFiles("ed8*2123.wav")) {
-				if (f.Name != targetname) {
-					SHA1? hash;
-					using (DuplicatableFileStream fs = new DuplicatableFileStream(f.FullName)) {
-						hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
-					}
-					if (hash != null && hash.Value == targethash) {
-						File.Move(f.FullName, Path.Combine(targetdir, targetname));
+				SHA1? hash;
+				using (DuplicatableFileStream fs = new DuplicatableFileStream(f.FullName)) {
+					hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+				}
+				if (hash != null && hash.Value == targethash) {
+					if (f.Name == targetName) {
+						if (fix) {
+							return true; // this is already fixed
+						} else {
+							return false; // does not need fixing
+						}
+					} else if (f.Name == asciiName) {
+						asciiFileInfo = f;
+					} else {
+						otherFileInfo = f;
 					}
 				}
 			}
 
-			return true;
+			// if we reach here we know that the target file does not exist
+			if (asciiFileInfo != null || otherFileInfo != null) {
+				if (fix) {
+					if (otherFileInfo != null) {
+						// we have a broken encoding file, move it
+						progress.Message(string.Format("Renaming {0} to {1}", otherFileInfo.FullName, targetName));
+						File.Move(otherFileInfo.FullName, Path.Combine(targetdir, targetName));
+					} else {
+						// we have the ascii m file, this might be from a previous patch run, so just copy it
+						progress.Message(string.Format("Copying {0} to {1}", asciiFileInfo.FullName, targetName));
+						File.Copy(asciiFileInfo.FullName, Path.Combine(targetdir, targetName));
+					}
+				} else {
+					// this is in need of fixing and we can fix it
+					if (otherFileInfo != null) {
+						progress.Message(string.Format("Found incorrect filename {0}, should be {1}", otherFileInfo.Name, targetName));
+					} else {
+						progress.Message(string.Format("Missing file {0}, but can be copied from {1}", targetName, asciiFileInfo.Name));
+					}
+					return true;
+				}
+			}
+
+			// we can't fix this
+			return false;
 		}
 
-		private static bool FixNpc049CS2(string gamepath) {
+		private static bool FixNpc049CS2(string gamepath, bool fix, ProgressReporter progress) {
 			string subdir = "data/chr/npc";
 			string targetdir = Path.Combine(gamepath, subdir);
 			if (!Directory.Exists(targetdir)) {
@@ -154,43 +226,91 @@ namespace SenLib {
 			// check if we have the right dir
 			string targetname = "\u51fa\u756a\u7121\u3057";
 			if (targetname == notnpc.Name) {
-				return true;
+				// this folder already has the correct name, nothing do to here
+				if (fix) {
+					return true;
+				} else {
+					// we didn't encounter any issues, so report that this folder does not need fixing
+					return false;
+				}
+			} else {
+				SHA1? hash;
+				string infpath = Path.Combine(notnpc.FullName, "npc049/npc049.inf");
+				if (File.Exists(infpath)) {
+					using (DuplicatableFileStream fs = new DuplicatableFileStream(infpath)) {
+						hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					}
+					if (hash == new SHA1(0x6a2a9964df308b23ul, 0x307e436580efd036ul, 0x67c0ac08u)) {
+						if (fix) {
+							progress.Message(string.Format("Renaming {0} to {1}", notnpc.FullName, targetname));
+							Directory.Move(notnpc.FullName, Path.Combine(gamepath, subdir, targetname));
+							// we fixed it
+							return true;
+						} else {
+							// this is in need of fixing
+							progress.Message(string.Format("Found incorrect folder {0}, should be {1}", notnpc.FullName, targetname));
+							return true;
+						}
+					} else {
+						// not the right file, can't fix anything here
+						return false;
+					}
+				} else {
+					// not the right directory, we can't fix anything here
+					return false;
+				}
 			}
-			SHA1? hash;
-			using (DuplicatableFileStream fs = new DuplicatableFileStream(Path.Combine(notnpc.FullName, "npc049/npc049.inf"))) {
-				hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
-			}
-			if (hash == new SHA1(0x6a2a9964df308b23ul, 0x307e436580efd036ul, 0x67c0ac08u)) {
-				Directory.Move(notnpc.FullName, Path.Combine(gamepath, subdir, targetname));
-				return true;
-			}
-			return false;
 		}
 
-		private static bool FixNpc610615CS2(string gamepath, string subdir) {
+		private static bool FixNpc610615CS2(string gamepath, string subdir, bool fix, ProgressReporter progress) {
 			string targetdir = Path.Combine(gamepath, subdir);
 			if (!Directory.Exists(targetdir)) {
+				// can't do anything here
 				return false;
 			}
 
 			var dirinfos = new DirectoryInfo(targetdir).GetDirectories();
 			if (dirinfos.Length != 1) {
+				// there should only be one subdirectory here, something is weird
 				return false;
 			}
 			var dirinfo = dirinfos[0];
 			string targetname = "\u6ca1_\u30ac\u30c8\u30ea\u30f3\u30b0\u30ac\u30f3";
 			if (targetname == dirinfo.Name) {
-				return true;
+				// we're good
+				if (fix) {
+					return true;
+				} else {
+					// nothing to fix
+					return false;
+				}
 			}
-			SHA1? hash;
-			using (DuplicatableFileStream fs = new DuplicatableFileStream(Path.Combine(dirinfo.FullName, "equ610.inf"))) {
-				hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+
+			string infpath = Path.Combine(dirinfo.FullName, "equ610.inf");
+			if (File.Exists(infpath)) {
+				SHA1? hash;
+				using (DuplicatableFileStream fs = new DuplicatableFileStream(infpath)) {
+					hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+				}
+				if (hash == new SHA1(0xe773a19f67feba62ul, 0xbb16ef2112eab24dul, 0xc3b7bd83u)) {
+					if (fix) {
+						progress.Message(string.Format("Renaming {0} to {1}", dirinfo.FullName, targetname));
+						Directory.Move(dirinfo.FullName, Path.Combine(gamepath, subdir, targetname));
+						// fixed it
+						return true;
+					} else {
+						// in need of fixing
+						progress.Message(string.Format("Found incorrect folder {0}, should be {1}", dirinfo.FullName, targetname));
+						return true;
+					}
+				} else {
+					// file is not what we expected, can't fix this
+					return false;
+				}
+			} else {
+				// file doesn't exist, clearly we have the wrong folder, can't do anything
+				return false;
 			}
-			if (hash == new SHA1(0xe773a19f67feba62ul, 0xbb16ef2112eab24dul, 0xc3b7bd83u)) {
-				Directory.Move(dirinfo.FullName, Path.Combine(gamepath, subdir, targetname));
-				return true;
-			}
-			return false;
 		}
 	}
 }

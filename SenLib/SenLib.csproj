@@ -60,6 +60,7 @@
     <Compile Include="FileStorage.cs" />
     <Compile Include="KnownFile.cs" />
     <Compile Include="PatchResult.cs" />
+    <Compile Include="ProgressReporter.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
