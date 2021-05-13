@@ -35,6 +35,7 @@ namespace SenLib {
 			foreach (var perFileErrors in fileStoreReturnValue.Errors) {
 				foreach (var errorMessage in perFileErrors.errors) {
 					progress.Error(errorMessage);
+					break; // only show first error to the user, this is really confusing otherwise
 				}
 			}
 
