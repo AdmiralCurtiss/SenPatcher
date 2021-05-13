@@ -97,7 +97,7 @@ namespace SenPatcherCli {
 					correctLanguageVoiceTables: true
 				));
 				mods.AddRange(Sen1Mods.GetAssetMods());
-				result = FileModExec.ExecuteMods(path, storage, mods);
+				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
 			} else {
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen2Mods.GetExecutableMods(
@@ -108,7 +108,7 @@ namespace SenPatcherCli {
 					correctLanguageVoiceTables: true
 				));
 				mods.AddRange(Sen2Mods.GetAssetMods());
-				result = FileModExec.ExecuteMods(path, storage, mods);
+				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
 			}
 
 			if (!result.AllSuccessful) {

@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GamePatchGuiLogic.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

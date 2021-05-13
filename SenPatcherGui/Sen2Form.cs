@@ -29,15 +29,14 @@ namespace SenPatcherGui {
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
-			bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
-			bool patchAudioThread = checkBoxPatchAudioThread.Checked;
-			int audioThreadDivisor = 1000;
-			bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
-			bool patchBgmQueueing = checkBoxBgmEnqueueingLogic.Checked;
-			bool patchAssets = checkBoxAssetPatches.Checked;
-
-			PatchResult result;
 			try {
+				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
+				bool patchAudioThread = checkBoxPatchAudioThread.Checked;
+				int audioThreadDivisor = 1000;
+				bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
+				bool patchBgmQueueing = checkBoxBgmEnqueueingLogic.Checked;
+				bool patchAssets = checkBoxAssetPatches.Checked;
+
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen2Mods.GetExecutableMods(
 					removeTurboSkip: removeTurboSkip,
@@ -49,43 +48,21 @@ namespace SenPatcherGui {
 				if (patchAssets) {
 					mods.AddRange(Sen2Mods.GetAssetMods());
 				}
-				result = FileModExec.ExecuteMods(Path, Storage, mods);
-			} catch (Exception ex) {
-				MessageBox.Show("Exception occurred: " + ex.ToString());
-				return;
-			}
 
-			if (result.AllSuccessful) {
-				MessageBox.Show("Patch successful.\n\nA backup has been created at " + System.IO.Path.Combine(Path, "senpatcher_rerun_revert_data.bin") + ". Please do not delete this backup, as it can be used to revert the changes and/or re-run this patcher or a future version of the patcher.");
-				return;
-			} else {
-				MessageBox.Show(
-					  "Patching failed for " + result.FailedFiles + " file" + (result.FailedFiles == 1 ? "" : "s") + ".\n"
-					+ "Verify that the game files are writable and not corrupted."
-				);
+				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
+			} catch (Exception ex) {
+				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
-			PatchResult result;
 			try {
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen2Mods.GetExecutableMods());
 				mods.AddRange(Sen2Mods.GetAssetMods());
-				result = FileModExec.RevertMods(Path, Storage, mods);
+				GameUnpatchClass.RunUnpatch(new GameUnpatchClass(Path, Storage, mods));
 			} catch (Exception ex) {
-				MessageBox.Show("Exception occurred: " + ex.ToString());
-				return;
-			}
-
-			if (result.AllSuccessful) {
-				MessageBox.Show("Original " + (result.SuccessfulFiles == 1 ? "file has" : "files have") + " been restored.");
-				return;
-			} else {
-				MessageBox.Show(
-					  "Restoration failed for " + result.FailedFiles + " file" + (result.FailedFiles == 1 ? "" : "s") + ".\n"
-					+ "Verify that the game files are writable and not corrupted."
-				);
+				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
 		}
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace SenLib {
 	public class FileModExec {
@@ -43,18 +44,21 @@ namespace SenLib {
 			return fileStoreReturnValue.Storage;
 		}
 
-		public static PatchResult ExecuteMods(string gamedir, FileStorage storage, IEnumerable<FileMod> mods) {
-			int total = 0;
+		public static PatchResult ExecuteMods(string gamedir, FileStorage storage, List<FileMod> mods, ProgressReporter progress) {
+			return ExecuteModsInternal(gamedir, storage, mods, progress, false);
+		}
+
+		private static PatchResult ExecuteModsInternal(string gamedir, FileStorage storage, List<FileMod> mods, ProgressReporter progress, bool revert) {
+			int total = mods.Count;
 			int success = 0;
 
-			foreach (FileMod mod in mods) {
-				Console.WriteLine("Executing mod: {0}", mod.GetDescription());
-
-				++total;
+			for (int i = 0; i < mods.Count; i++) {
+				FileMod mod = mods[i];
+				progress.Message(string.Format("{0}: {1}...", revert ? "Restoring" : "Patching", mod.GetDescription()), i, total);
 
 				var results = mod.TryApply(storage);
 				if (results == null) {
-					Console.WriteLine("Failed to apply: {0}", mod.GetDescription());
+					progress.Error(string.Format("Failed to generate data: {0}", mod.GetDescription()));
 					continue;
 				}
 
@@ -63,12 +67,12 @@ namespace SenLib {
 					string path = Path.Combine(gamedir, result.TargetPath);
 					if (result.ResultData != null) {
 						if (!SenUtils.TryWriteFileIfDifferent(result.ResultData, path)) {
-							Console.WriteLine("Failed to write to disk: {0}", path);
+							progress.Error(string.Format("Failed to write to disk: {0}", path));
 							diskWriteSuccess = false;
 						}
 					} else {
 						if (!SenUtils.TryDeleteFile(path)) {
-							Console.WriteLine("Failed to write delete from disk: {0}", path);
+							progress.Error(string.Format("Failed to delete from disk: {0}", path));
 							diskWriteSuccess = false;
 						}
 					}
@@ -79,11 +83,12 @@ namespace SenLib {
 				}
 			}
 
+			progress.Message(string.Format("Finished {0}.", revert ? "restoring files" : "applying patches"), total, total);
 			return new PatchResult(total, success);
 		}
 
-		public static PatchResult RevertMods(string gamedir, FileStorage storage, IEnumerable<FileMod> mods) {
-			return ExecuteMods(gamedir, storage, InvertMods(mods));
+		public static PatchResult RevertMods(string gamedir, FileStorage storage, IEnumerable<FileMod> mods, ProgressReporter progress) {
+			return ExecuteModsInternal(gamedir, storage, InvertMods(mods).ToList(), progress, true);
 		}
 
 		public static IEnumerable<FileMod> InvertMods(IEnumerable<FileMod> mods) {
