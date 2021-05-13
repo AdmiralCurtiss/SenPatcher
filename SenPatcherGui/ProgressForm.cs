@@ -49,7 +49,6 @@ namespace SenPatcherGui {
 		private int TotalProgress = 0;
 		private object ThreadSyncLock = new object();
 		private object GuiUpdateThreadLock = new object();
-		private bool ThreadStarted = false;
 		private bool ShouldTerminate = false;
 		private bool IsAlreadyClosed = false;
 
@@ -62,7 +61,6 @@ namespace SenPatcherGui {
 		private void ProgressForm_Shown(object sender, EventArgs e) {
 			lock (ThreadSyncLock) {
 				PopulationThread.Start();
-				ThreadStarted = true;
 			}
 		}
 
@@ -118,7 +116,7 @@ namespace SenPatcherGui {
 					try {
 						Invoke(new Action(() => {
 							if (msg != null) {
-								textBox.Text += string.Format("{0}{1}", msg, Environment.NewLine);
+								textBox.AppendText(string.Format("{0}{1}", msg, Environment.NewLine));
 							}
 							if (progressTotal > 0) {
 								lastProgressCurrent = progressCurrent;
@@ -163,14 +161,5 @@ namespace SenPatcherGui {
 			}
 			ResetEvent.Set();
 		}
-
-		//public void JoinThread() {
-		//	lock (ThreadSyncLock) {
-		//		if (ThreadStarted) {
-		//			PopulationThread.Join();
-		//			ThreadStarted = false;
-		//		}
-		//	}
-		//}
 	}
 }
