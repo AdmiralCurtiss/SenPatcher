@@ -102,16 +102,37 @@ namespace SenPatcherGui {
 					}
 					Progress.Message("Initializing patch data...", CurrentProgress++, TotalProgress);
 					var files = Sen1KnownFiles.Files;
-					Progress.Message("Reading game files that patches exist for...", CurrentProgress++, TotalProgress);
-					Storage = FileModExec.InitializeAndPersistFileStorage(Path, files);
+					Progress.Message("Initializing game data...", CurrentProgress++, TotalProgress);
+					var storageInit = FileModExec.InitializeAndPersistFileStorage(Path, files, Progress);
+					Storage = storageInit?.Storage;
+					if (storageInit == null || storageInit.Errors.Count != 0) {
+						shouldAutoCloseWindow = false;
+					}
 				} catch (Exception ex) {
-					Progress.Error("Error while initializing CS1 patch data: " + ex.Message);
+					Progress.Error("Error while initializing CS1 patch/game data: " + ex.Message);
 					Progress.Finish(false);
 					return;
 				}
 
 				ShouldProceedToPatchOptionWindow = Path != null && Storage != null;
-				Progress.Message("Initialized CS1 patch data.", CurrentProgress, TotalProgress);
+				if (shouldAutoCloseWindow) {
+					Progress.Message("Initialized CS1 data, proceeding to patch options...", CurrentProgress, TotalProgress);
+				} else {
+					Progress.Message("", CurrentProgress, TotalProgress);
+					if (ShouldProceedToPatchOptionWindow) {
+						Progress.Error(
+							  "Encountered problems while initializing CS1 data. "
+							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
+							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
+							+ "Please also ensure you're trying to patch a compatible version of the game. (XSEED release version 1.6; other game versions are not compatible)"
+						);
+					} else {
+						Progress.Error(
+							  "Unrecoverable issues while initializing CS1 data. "
+							+ "Please ensure SenPatcher has read and write access to the selected game directory, then try again."
+						);
+					}
+				}
 				Progress.Finish(shouldAutoCloseWindow);
 			}
 		}
@@ -191,16 +212,37 @@ namespace SenPatcherGui {
 					}
 					Progress.Message("Initializing patch data...", CurrentProgress++, TotalProgress);
 					var files = Sen2KnownFiles.Files;
-					Progress.Message("Reading game files that patches exist for...", CurrentProgress++, TotalProgress);
-					Storage = FileModExec.InitializeAndPersistFileStorage(Path, files);
+					Progress.Message("Initializing game data...", CurrentProgress++, TotalProgress);
+					var storageInit = FileModExec.InitializeAndPersistFileStorage(Path, files, Progress);
+					Storage = storageInit?.Storage;
+					if (storageInit == null || storageInit.Errors.Count != 0) {
+						shouldAutoCloseWindow = false;
+					}
 				} catch (Exception ex) {
-					Progress.Error("Error while initializing CS2 patch data: " + ex.Message);
+					Progress.Error("Error while initializing CS2 patch/game data: " + ex.Message);
 					Progress.Finish(false);
 					return;
 				}
 
 				ShouldProceedToPatchOptionWindow = Path != null && Storage != null;
-				Progress.Message("Initialized CS2 patch data.", CurrentProgress, TotalProgress);
+				if (shouldAutoCloseWindow) {
+					Progress.Message("Initialized CS2 data, proceeding to patch options...", CurrentProgress, TotalProgress);
+				} else {
+					Progress.Message("", CurrentProgress, TotalProgress);
+					if (ShouldProceedToPatchOptionWindow) {
+						Progress.Error(
+							  "Encountered problems while initializing CS2 data. "
+							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
+							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
+							+ "Please also ensure you're trying to patch a compatible version of the game. (XSEED release version 1.4.1 or version 1.4.2; other game versions are not compatible)"
+						);
+					} else {
+						Progress.Error(
+							  "Unrecoverable issues while initializing CS2 data. "
+							+ "Please ensure SenPatcher has read and write access to the selected game directory, then try again."
+						);
+					}
+				}
 				Progress.Finish(shouldAutoCloseWindow);
 			}
 		}

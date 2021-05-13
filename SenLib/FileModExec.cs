@@ -5,34 +5,41 @@ using System.Linq;
 
 namespace SenLib {
 	public class FileModExec {
-		private static HyoutaUtils.HyoutaArchive.HyoutaArchiveContainer TryLoadBackupArchive(string backupArchivePath) {
+		private static HyoutaUtils.HyoutaArchive.HyoutaArchiveContainer TryLoadBackupArchive(string backupArchivePath, ProgressReporter progress) {
 			try {
 				if (File.Exists(backupArchivePath)) {
-					Console.WriteLine("Loading backup archive at {0}...", backupArchivePath);
+					progress.Message(string.Format("Loading backup archive at {0}...", backupArchivePath));
 					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(backupArchivePath)) {
 						return new HyoutaUtils.HyoutaArchive.HyoutaArchiveContainer(fs);
 					}
 				}
 			} catch (Exception ex) {
-				Console.WriteLine("Failed to load backup file archive: {0}", ex.Message);
+				progress.Error(string.Format("Failed to load backup file archive: {0}", ex.Message));
 			}
 			return null;
 		}
 
-		public static FileStorage InitializeAndPersistFileStorage(string baseDir, KnownFile[] knownFiles) {
+		public static FileStorage.InitReturnValue InitializeAndPersistFileStorage(string baseDir, KnownFile[] knownFiles, ProgressReporter progress) {
 			if (!Directory.Exists(baseDir)) {
-				Console.WriteLine("No directory found at {0}.", baseDir);
+				progress.Error(string.Format("No directory found at {0}.", baseDir));
 				return null;
 			}
 
 			string backupArchivePath = Path.Combine(baseDir, "senpatcher_rerun_revert_data.bin");
 			FileStorage.InitReturnValue fileStoreReturnValue = null;
-			using (HyoutaUtils.HyoutaArchive.HyoutaArchiveContainer backupArchive = TryLoadBackupArchive(backupArchivePath)) {
+			using (HyoutaUtils.HyoutaArchive.HyoutaArchiveContainer backupArchive = TryLoadBackupArchive(backupArchivePath, progress)) {
+				progress.Message("Reading and identifying game files...");
 				fileStoreReturnValue = FileStorage.InitializeFromKnownFiles(baseDir, knownFiles, backupArchive);
 			}
 
+			foreach (var perFileErrors in fileStoreReturnValue.Errors) {
+				foreach (var errorMessage in perFileErrors.errors) {
+					progress.Error(errorMessage);
+				}
+			}
+
 			if (fileStoreReturnValue.ShouldWriteBackupArchive) {
-				Console.WriteLine("New file(s) found, writing new backup archive to {0}...", backupArchivePath);
+				progress.Message(string.Format("Writing backup archive to {0}...", backupArchivePath));
 				Stream ms = new MemoryStream();
 				fileStoreReturnValue.Storage.WriteToHyoutaArchive(ms);
 				using (var fs = new FileStream(backupArchivePath, FileMode.Create)) {
@@ -41,7 +48,7 @@ namespace SenLib {
 				}
 			}
 
-			return fileStoreReturnValue.Storage;
+			return fileStoreReturnValue;
 		}
 
 		public static PatchResult ExecuteMods(string gamedir, FileStorage storage, List<FileMod> mods, ProgressReporter progress) {
