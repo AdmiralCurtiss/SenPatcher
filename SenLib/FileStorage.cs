@@ -122,18 +122,24 @@ namespace SenLib {
 						} else if (acquisitionMethod is KnownFileAcquisitionFromGamefile) {
 							var method = acquisitionMethod as KnownFileAcquisitionFromGamefile;
 							string filename = method.Path;
-							using (var stream = new HyoutaUtils.Streams.DuplicatableFileStream(System.IO.Path.Combine(basePath, filename))) {
-								if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
-									storage.Add(knownFile.Hash, stream.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
-									success = true;
-									if (method.WriteToBackup) {
-										shouldWriteBackupArchive = true;
+							string path = System.IO.Path.Combine(basePath, filename);
+							if (System.IO.File.Exists(path)) {
+								using (var stream = new HyoutaUtils.Streams.DuplicatableFileStream(path)) {
+									if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
+										storage.Add(knownFile.Hash, stream.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
+										success = true;
+										if (method.WriteToBackup) {
+											shouldWriteBackupArchive = true;
+										}
+										break;
+									} else {
+										localErrors.Add(string.Format("File {0} does not match expected hash.", filename));
+										continue;
 									}
-									break;
-								} else {
-									localErrors.Add(string.Format("File {0} does not match expected hash.", filename));
-									continue;
 								}
+							} else {
+								localErrors.Add(string.Format("File {0} does not exist.", filename));
+								continue;
 							}
 						} else if (acquisitionMethod is KnownFileAcquisitionFromBpsPatch) {
 							var method = acquisitionMethod as KnownFileAcquisitionFromBpsPatch;
