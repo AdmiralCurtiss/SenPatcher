@@ -32,6 +32,7 @@ namespace SenPatcherGui {
 			bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 			bool patchAudioThread = checkBoxPatchAudioThread.Checked;
 			int audioThreadDivisor = 1000;
+			bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
 			bool patchBgmQueueing = checkBoxBgmEnqueueingLogic.Checked;
 			bool patchAssets = checkBoxAssetPatches.Checked;
 
@@ -42,7 +43,8 @@ namespace SenPatcherGui {
 					removeTurboSkip: removeTurboSkip,
 					patchAudioThread: patchAudioThread,
 					audioThreadDivisor: audioThreadDivisor,
-					patchBgmQueueing: patchBgmQueueing
+					patchBgmQueueing: patchBgmQueueing,
+					correctLanguageVoiceTables: fixVoiceTables
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen2Mods.GetAssetMods());

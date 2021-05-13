@@ -52,6 +52,7 @@ namespace SenPatcherGui {
 			bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
 			int turboKey = comboBoxTurboModeKey.SelectedIndex;
 			bool fixTextureIds = checkBoxFixHdTextureId.Checked;
+			bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
 			bool patchAssets = checkBoxAssetPatches.Checked;
 
 			PatchResult result;
@@ -61,7 +62,8 @@ namespace SenPatcherGui {
 					removeTurboSkip: removeTurboSkip,
 					allowR2NotebookShortcut: allowR2NotebookShortcut,
 					turboKey: turboKey,
-					fixTextureIds: fixTextureIds
+					fixTextureIds: fixTextureIds,
+					correctLanguageVoiceTables: fixVoiceTables
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen1Mods.GetAssetMods());

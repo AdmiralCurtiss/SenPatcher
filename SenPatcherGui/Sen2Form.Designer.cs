@@ -37,12 +37,13 @@
 			this.buttonUnpatch = new System.Windows.Forms.Button();
 			this.checkBoxAssetPatches = new System.Windows.Forms.CheckBox();
 			this.buttonAssetFixDetails = new System.Windows.Forms.Button();
+			this.checkBoxFixVoiceFileLang = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 233);
+			this.label5.Location = new System.Drawing.Point(94, 256);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(401, 26);
 			this.label5.TabIndex = 21;
@@ -110,7 +111,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 274);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 297);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 22;
@@ -123,7 +124,7 @@
 			this.checkBoxPatchAudioThread.AutoSize = true;
 			this.checkBoxPatchAudioThread.Checked = true;
 			this.checkBoxPatchAudioThread.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 213);
+			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 236);
 			this.checkBoxPatchAudioThread.Name = "checkBoxPatchAudioThread";
 			this.checkBoxPatchAudioThread.Size = new System.Drawing.Size(248, 17);
 			this.checkBoxPatchAudioThread.TabIndex = 17;
@@ -135,7 +136,7 @@
 			this.checkBoxBgmEnqueueingLogic.AutoSize = true;
 			this.checkBoxBgmEnqueueingLogic.Checked = true;
 			this.checkBoxBgmEnqueueingLogic.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 157);
+			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 180);
 			this.checkBoxBgmEnqueueingLogic.Name = "checkBoxBgmEnqueueingLogic";
 			this.checkBoxBgmEnqueueingLogic.Size = new System.Drawing.Size(235, 17);
 			this.checkBoxBgmEnqueueingLogic.TabIndex = 25;
@@ -145,7 +146,7 @@
 			// label6
 			// 
 			this.label6.AutoSize = true;
-			this.label6.Location = new System.Drawing.Point(94, 177);
+			this.label6.Location = new System.Drawing.Point(94, 200);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(421, 26);
 			this.label6.TabIndex = 26;
@@ -187,11 +188,24 @@
 			this.buttonAssetFixDetails.UseVisualStyleBackColor = true;
 			this.buttonAssetFixDetails.Click += new System.EventHandler(this.buttonAssetFixDetails_Click);
 			// 
+			// checkBoxFixVoiceFileLang
+			// 
+			this.checkBoxFixVoiceFileLang.AutoSize = true;
+			this.checkBoxFixVoiceFileLang.Checked = true;
+			this.checkBoxFixVoiceFileLang.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxFixVoiceFileLang.Location = new System.Drawing.Point(97, 157);
+			this.checkBoxFixVoiceFileLang.Name = "checkBoxFixVoiceFileLang";
+			this.checkBoxFixVoiceFileLang.Size = new System.Drawing.Size(369, 17);
+			this.checkBoxFixVoiceFileLang.TabIndex = 30;
+			this.checkBoxFixVoiceFileLang.Text = "Load voice metadata matching voice language rather than text language";
+			this.checkBoxFixVoiceFileLang.UseVisualStyleBackColor = true;
+			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 327);
+			this.ClientSize = new System.Drawing.Size(534, 350);
+			this.Controls.Add(this.checkBoxFixVoiceFileLang);
 			this.Controls.Add(this.buttonAssetFixDetails);
 			this.Controls.Add(this.checkBoxAssetPatches);
 			this.Controls.Add(this.buttonUnpatch);
@@ -229,5 +243,6 @@
 		private System.Windows.Forms.Button buttonUnpatch;
 		private System.Windows.Forms.CheckBox checkBoxAssetPatches;
 		private System.Windows.Forms.Button buttonAssetFixDetails;
+		private System.Windows.Forms.CheckBox checkBoxFixVoiceFileLang;
 	}
 }
