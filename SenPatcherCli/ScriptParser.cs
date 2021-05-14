@@ -13,7 +13,7 @@ namespace SenPatcherCli {
 	}
 
 	public static class ScriptParser {
-		public static List<ScriptFunction> Parse(Stream s, EndianUtils.Endianness? endian = null) {
+		public static List<ScriptFunction> Parse(Stream s, bool isBook, EndianUtils.Endianness? endian = null) {
 			EndianUtils.Endianness e = endian.HasValue ? endian.Value : (s.PeekUInt32(EndianUtils.Endianness.LittleEndian) == 0x20 ? EndianUtils.Endianness.LittleEndian : EndianUtils.Endianness.BigEndian);
 			uint headerLength = s.ReadUInt32(e);
 			if (headerLength != 0x20) {
@@ -48,15 +48,53 @@ namespace SenPatcherCli {
 				functionNames[i] = s.ReadAsciiNullterm();
 			}
 
-
 			List<ScriptFunction> funcs = new List<ScriptFunction>();
-			for (long i = 0; i < functionCount; ++i) {
-				s.Position = functionPositions[i];
-				var ops = ParseFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1]);
-				funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
+			if (isBook) {
+				for (long i = 0; i < functionCount; ++i) {
+					bool is99 = functionNames[i].EndsWith("_99");
+					if (is99) {
+						s.Position = functionPositions[i];
+						var r = ParseBookFunction99(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e);
+						List<string> ops = new List<string>();
+						ops.Add(r.a.ToString());
+						ops.Add(r.b.ToString());
+						funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
+					} else {
+						s.Position = functionPositions[i];
+						var ops = ParseBookFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e);
+						funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
+					}
+				}
+			} else {
+				for (long i = 0; i < functionCount; ++i) {
+					s.Position = functionPositions[i];
+					var ops = ParseFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1]);
+					funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
+				}
 			}
 
 			return funcs;
+		}
+
+		private static List<string> ParseBookFunction(Stream s, long end, EndianUtils.Endianness e) {
+			List<string> text = new List<string>();
+			short dataCounter = s.ReadInt16(e);
+			for (int i = 0; i < dataCounter; ++i) {
+				s.DiscardBytes(0x26);
+			}
+			List<byte> sb = new List<byte>();
+			List<byte> contentbytes = new List<byte>();
+			ReadString(s, sb, contentbytes);
+			string str = Encoding.UTF8.GetString(sb.ToArray());
+			text.AddRange(str.Split(new string[] { "\\n" }, StringSplitOptions.None));
+			return text;
+		}
+
+		private static (ushort a, ushort b) ParseBookFunction99(Stream s, long end, EndianUtils.Endianness e) {
+			// two u16s of unknown usage... perhaps page count?
+			ushort a = s.ReadUInt16(e);
+			ushort b = s.ReadUInt16(e);
+			return (a, b);
 		}
 
 		private static List<string> ParseFunction(Stream s, long end) {
@@ -71,39 +109,7 @@ namespace SenPatcherCli {
 						ushort speaker = s.ReadUInt16();
 						List<byte> sb = new List<byte>();
 						List<byte> contentbytes = new List<byte>();
-						while (true) {
-							byte next = s.ReadUInt8();
-							if (next < 0x20) {
-								if (next == 0) {
-									break;
-								} else if (next == 0x01) {
-									sb.Add((byte)'{');
-									sb.Add((byte)'n');
-									sb.Add((byte)'}');
-								} else if (next == 0x02) {
-									sb.Add((byte)'{');
-									sb.Add((byte)'f');
-									sb.Add((byte)'}');
-								} else if (next == 0x10) {
-									s.ReadUInt16();
-								} else if (next == 0x11 || next == 0x12) {
-									s.ReadUInt32();
-								}
-							} else {
-								//if (next == 0x23) {
-								//	for (int i = 0; i < 2; ++i) {
-								//		next = s.ReadUInt8();
-								//		if (next == 0) {
-								//			break;
-								//		}
-								//		// there's also some special case with 0x4b here, let's see if we can ignore this...
-								//	}
-								//} else {
-								sb.Add(next);
-								contentbytes.Add(next);
-								//}
-							}
-						}
+						ReadString(s, sb, contentbytes);
 						if (LooksLikeValidString(contentbytes)) {
 							string str = Encoding.UTF8.GetString(sb.ToArray());
 							text.Add(str);
@@ -119,6 +125,42 @@ namespace SenPatcherCli {
 
 		private static bool LooksLikeValidString(List<byte> contentbytes) {
 			return contentbytes.Count >= 3;
+		}
+
+		private static void ReadString(Stream s, List<byte> sb, List<byte> contentbytes) {
+			while (true) {
+				byte next = s.ReadUInt8();
+				if (next < 0x20) {
+					if (next == 0) {
+						break;
+					} else if (next == 0x01) {
+						sb.Add((byte)'{');
+						sb.Add((byte)'n');
+						sb.Add((byte)'}');
+					} else if (next == 0x02) {
+						sb.Add((byte)'{');
+						sb.Add((byte)'f');
+						sb.Add((byte)'}');
+					} else if (next == 0x10) {
+						s.ReadUInt16();
+					} else if (next == 0x11 || next == 0x12) {
+						s.ReadUInt32();
+					}
+				} else {
+					//if (next == 0x23) {
+					//	for (int i = 0; i < 2; ++i) {
+					//		next = s.ReadUInt8();
+					//		if (next == 0) {
+					//			break;
+					//		}
+					//		// there's also some special case with 0x4b here, let's see if we can ignore this...
+					//	}
+					//} else {
+					sb.Add(next);
+					contentbytes.Add(next);
+					//}
+				}
+			}
 		}
 
 		/*

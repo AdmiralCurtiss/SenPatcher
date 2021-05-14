@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 namespace SenPatcherCli {
 	public class Program {
 		public static int Main(string[] args) {
-			if (args.Length >= 2 && args[0] == "--parse-script") {
+			if (args.Length >= 2 && (args[0] == "--parse-script" || args[0] == "--parse-book")) {
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1])) {
-					var funcs = ScriptParser.Parse(fs.CopyToByteArrayStreamAndDispose());
+					var funcs = ScriptParser.Parse(fs.CopyToByteArrayStreamAndDispose(), args[0] == "--parse-book");
 
 					using (var outfs = new FileStream(args.Length > 2 ? args[2] : args[1] + ".txt", FileMode.Create)) {
 						foreach (var func in funcs) {
