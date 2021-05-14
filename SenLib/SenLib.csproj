@@ -72,6 +72,7 @@
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0100_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0110_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0600_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0601_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0800_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_m0040_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0000_dat.cs" />

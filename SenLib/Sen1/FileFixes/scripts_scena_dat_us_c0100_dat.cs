@@ -25,6 +25,10 @@ namespace SenLib.Sen1.FileFixes {
 			bin.Position = 0x10253;
 			bin.WriteUInt16(63278, EndianUtils.Endianness.LittleEndian);
 
+			// fix voice/text mismatches in Millium's bike scene
+			patcher.ExtendPartialCommand(0x155cd, 0x4e, 0x15618, new byte[] { 0x20, 0x65, 0x69, 0x74, 0x68, 0x65, 0x72 });
+			patcher.ReplacePartialCommand(0x168a9, 0x2f, 0x168b1, 0x24, new byte[] { 0x57, 0x6f, 0x6f, 0x20, 0x68, 0x6f, 0x6f });
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/c0100.dat", bin) };
 		}
 

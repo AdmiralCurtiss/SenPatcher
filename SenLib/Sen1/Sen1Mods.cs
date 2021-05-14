@@ -52,6 +52,7 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_vandyck_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_m0040_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t0000c_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_r0601_dat());
 			return f;
 		}
 	}
