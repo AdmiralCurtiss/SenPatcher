@@ -27,6 +27,9 @@ namespace SenLib.Sen1.FileFixes {
 			bin.WriteUInt8(0x01);
 			patcher.ExtendPartialCommand(0x1f5c, 0x3c, 0x1f83, new byte[] { 0x20 });
 
+			// missing word
+			patcher.ExtendPartialCommand(0x1c93, 0x93, 0x1cac, new byte[] { 0x69, 0x73, 0x20 });
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0031.dat", bin) };
 		}
 
