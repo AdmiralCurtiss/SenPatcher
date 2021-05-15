@@ -17,7 +17,7 @@ namespace SenLib.Sen1.FileFixes {
 
 			var patcher = new SenScriptPatcher(bin);
 			patcher.ReplacePartialCommand(0x1c6e0, 0x8b, 0x1c71f, 3, new byte[] { 0x27 });
-			patcher.ReplacePartialCommand(0x1c6e0, 0x89, 0x1c751, 3, new byte[] { 0x27 });
+			patcher.ReplacePartialCommand(0x1c6e0, 0x89, 0x1c74f, 3, new byte[] { 0x27 });
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0000.dat", bin) };
 		}
