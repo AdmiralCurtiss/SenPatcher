@@ -17,8 +17,18 @@ namespace SenLib.Sen1.FileFixes {
 
 			var patcher = new SenScriptPatcher(bin);
 
+			// both double space and missing dot in this one...
+			{
+				bin.Position = 0xb5be;
+				byte[] b = bin.ReadBytes(0x3f);
+				for (int i = 0x23; i >= 0x11; --i) {
+					b[i] = b[i - 1];
+				}
+				bin.Position = 0xb5be;
+				bin.Write(b);
+			}
+
 			// double spaces in various lines
-			patcher.RemovePartialCommand(0xb5be, 0x3f, 0xb5e2, 1);
 			patcher.RemovePartialCommand(0xeb28, 0x49, 0xeb39, 1);
 			patcher.RemovePartialCommand(0xeef6, 0xc0, 0xef20, 1);
 
