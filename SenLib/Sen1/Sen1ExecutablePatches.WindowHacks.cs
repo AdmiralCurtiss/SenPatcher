@@ -32,14 +32,13 @@ namespace SenLib.Sen1 {
 				bin.WriteUInt8(0x90); // nop
 			}
 
-			// seems not necessary with the changes above...
 			// skip mouse movement processing function or something like that?
-			//ms.Position = PatchInfo.Mapper.MapRamToRom(0x446f8a);
-			//ms.WriteUInt8(0x90); // nop
-			//ms.WriteUInt8(0x90); // nop
-			//ms.WriteUInt8(0x90); // nop
-			//ms.WriteUInt8(0x90); // nop
-			//ms.WriteUInt8(0x90); // nop
+			bin.Position = state.Mapper.MapRamToRom(jp ? 0x446e3a : 0x446f8a);
+			bin.WriteUInt8(0x90); // nop
+			bin.WriteUInt8(0x90); // nop
+			bin.WriteUInt8(0x90); // nop
+			bin.WriteUInt8(0x90); // nop
+			bin.WriteUInt8(0x90); // nop
 		}
 
 		public static void PatchDisablePauseOnFocusLoss(Stream bin, Sen1ExecutablePatchState state) {
