@@ -59,6 +59,7 @@ namespace SenLib.Sen1 {
 		}
 
 		public static void PatchJumpR2NotebookSettings(Stream binary, Sen1ExecutablePatchState patchInfo) {
+			// note: 0x6de04c might be where the game swaps the two L2/R2 options if they match after setting
 			binary.Position = (long)patchInfo.Mapper.MapRamToRom((ulong)patchInfo.AddressJumpR2NotebookSettings);
 			binary.WriteUInt8(0x90); // nop
 			binary.WriteUInt8(0x90); // nop

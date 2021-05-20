@@ -14,14 +14,27 @@ namespace SenLib.Sen1.FileFixes {
 		int TurboKey;
 		bool FixTextureIds;
 		bool CorrectLanguageVoiceTables;
+		bool DisableMouseCapture;
+		bool DisablePauseOnFocusLoss;
 
-		public ed8_exe(bool jp, bool removeTurboSkip, bool allowR2NotebookShortcut, int turboKey, bool fixTextureIds, bool correctLanguageVoiceTables) {
+		public ed8_exe(
+			bool jp,
+			bool removeTurboSkip,
+			bool allowR2NotebookShortcut,
+			int turboKey,
+			bool fixTextureIds,
+			bool correctLanguageVoiceTables,
+			bool disableMouseCapture,
+			bool disablePauseOnFocusLoss
+		) {
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
 			AllowR2NotebookShortcut = allowR2NotebookShortcut;
 			TurboKey = turboKey;
 			FixTextureIds = fixTextureIds;
 			CorrectLanguageVoiceTables = correctLanguageVoiceTables;
+			DisableMouseCapture = disableMouseCapture;
+			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 		}
 
 		public string GetDescription() {
@@ -61,6 +74,12 @@ namespace SenLib.Sen1.FileFixes {
 			}
 			if (CorrectLanguageVoiceTables) {
 				Sen1ExecutablePatches.PatchLanguageAppropriateVoiceTables(ms, PatchInfo);
+			}
+			if (DisableMouseCapture) {
+				Sen1ExecutablePatches.PatchDisableMouseCapture(ms, PatchInfo);
+			}
+			if (DisablePauseOnFocusLoss) {
+				Sen1ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);
 			}
 
 			// add indicator to the title screen that we're running a modified executable

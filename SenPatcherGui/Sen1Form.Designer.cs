@@ -40,6 +40,7 @@
 			this.labelVersion = new System.Windows.Forms.Label();
 			this.label3 = new System.Windows.Forms.Label();
 			this.checkBoxFixVoiceFileLang = new System.Windows.Forms.CheckBox();
+			this.checkBoxDisableMouseCam = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -84,7 +85,7 @@
 			// checkBoxAllowR2InTurboMode
 			// 
 			this.checkBoxAllowR2InTurboMode.AutoSize = true;
-			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(97, 203);
+			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(97, 226);
 			this.checkBoxAllowR2InTurboMode.Name = "checkBoxAllowR2InTurboMode";
 			this.checkBoxAllowR2InTurboMode.Size = new System.Drawing.Size(280, 17);
 			this.checkBoxAllowR2InTurboMode.TabIndex = 6;
@@ -94,7 +95,7 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(94, 229);
+			this.label4.Location = new System.Drawing.Point(94, 252);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(87, 13);
 			this.label4.TabIndex = 7;
@@ -104,7 +105,7 @@
 			// 
 			this.comboBoxTurboModeKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboBoxTurboModeKey.FormattingEnabled = true;
-			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 226);
+			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 249);
 			this.comboBoxTurboModeKey.Name = "comboBoxTurboModeKey";
 			this.comboBoxTurboModeKey.Size = new System.Drawing.Size(126, 21);
 			this.comboBoxTurboModeKey.TabIndex = 8;
@@ -113,7 +114,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 319);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 337);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 9;
@@ -124,7 +125,7 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 256);
+			this.label5.Location = new System.Drawing.Point(94, 279);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(408, 52);
 			this.label5.TabIndex = 10;
@@ -207,11 +208,22 @@
 			this.checkBoxFixVoiceFileLang.Text = "Load voice metadata matching voice language rather than text language";
 			this.checkBoxFixVoiceFileLang.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxDisableMouseCam
+			// 
+			this.checkBoxDisableMouseCam.AutoSize = true;
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 203);
+			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
+			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
+			this.checkBoxDisableMouseCam.TabIndex = 16;
+			this.checkBoxDisableMouseCam.Text = "Disable Mouse Capture and Mouse Camera";
+			this.checkBoxDisableMouseCam.UseVisualStyleBackColor = true;
+			// 
 			// Sen1Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 372);
+			this.ClientSize = new System.Drawing.Size(534, 390);
+			this.Controls.Add(this.checkBoxDisableMouseCam);
 			this.Controls.Add(this.checkBoxFixVoiceFileLang);
 			this.Controls.Add(this.buttonAssetFixDetails);
 			this.Controls.Add(this.checkBoxAssetPatches);
@@ -253,5 +265,6 @@
 		private System.Windows.Forms.Label labelVersion;
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.CheckBox checkBoxFixVoiceFileLang;
+		private System.Windows.Forms.CheckBox checkBoxDisableMouseCam;
 	}
 }

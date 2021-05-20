@@ -55,6 +55,8 @@ namespace SenPatcherGui {
 				bool fixTextureIds = checkBoxFixHdTextureId.Checked;
 				bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
+				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
+				bool disablePauseOnFocusLoss = false;
 
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen1Mods.GetExecutableMods(
@@ -62,7 +64,9 @@ namespace SenPatcherGui {
 					allowR2NotebookShortcut: allowR2NotebookShortcut,
 					turboKey: turboKey,
 					fixTextureIds: fixTextureIds,
-					correctLanguageVoiceTables: fixVoiceTables
+					correctLanguageVoiceTables: fixVoiceTables,
+					disableMouseCapture: disableMouseCapture,
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen1Mods.GetAssetMods());

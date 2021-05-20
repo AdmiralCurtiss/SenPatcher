@@ -94,7 +94,9 @@ namespace SenPatcherCli {
 					allowR2NotebookShortcut: true,
 					turboKey: 0xA,
 					fixTextureIds: true,
-					correctLanguageVoiceTables: true
+					correctLanguageVoiceTables: true,
+					disableMouseCapture: true,
+					disablePauseOnFocusLoss: true
 				));
 				mods.AddRange(Sen1Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());

@@ -12,11 +12,22 @@ namespace SenLib.Sen1 {
 			bool allowR2NotebookShortcut = false,
 			int turboKey = 0x7,
 			bool fixTextureIds = false,
-			bool correctLanguageVoiceTables = false
+			bool correctLanguageVoiceTables = false,
+			bool disableMouseCapture = false,
+			bool disablePauseOnFocusLoss = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
-				f.Add(new FileFixes.ed8_exe(i == 0, removeTurboSkip, allowR2NotebookShortcut, turboKey, fixTextureIds, correctLanguageVoiceTables));
+				f.Add(new FileFixes.ed8_exe(
+					jp: i == 0,
+					removeTurboSkip: removeTurboSkip,
+					allowR2NotebookShortcut: allowR2NotebookShortcut,
+					turboKey: turboKey,
+					fixTextureIds: fixTextureIds,
+					correctLanguageVoiceTables: correctLanguageVoiceTables,
+					disableMouseCapture: disableMouseCapture,
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+				));
 			}
 			return f;
 		}
