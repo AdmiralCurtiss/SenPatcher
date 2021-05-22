@@ -56,7 +56,9 @@ namespace SenPatcherGui {
 					  "Successfully applied all selected patches.\n\n"
 					+ "To remove the patches or a apply a different set of them, just run SenPatcher again.\n"
 					+ "Note that 'senpatcher_rerun_revert_data.bin' in the game folder is required for this, so avoid deleting it.\n"
-					+ "You can close SenPatcher now and just run the game as you normally would."
+					+ "You can close SenPatcher now and just run the game as you normally would.",
+					"Patching Success",
+					MessageBoxButtons.OK
 				);
 				return;
 			} else {
@@ -65,7 +67,10 @@ namespace SenPatcherGui {
 					+ "Please ensure SenPatcher is allowed to write to the game directory, then try again.\n"
 					+ "It's also possible that the game data is corrupted or has been modified by other mods. "
 					+ "If so, try verifying game files on Steam or GoG, or reinstall the game. "
-					+ "Be sure to close and reopen SenPatcher before trying again in this case."
+					+ "Be sure to close and reopen SenPatcher before trying again in this case.",
+					"Patching Error",
+					MessageBoxButtons.OK,
+					MessageBoxIcon.Error
 				);
 			}
 		}
@@ -120,7 +125,9 @@ namespace SenPatcherGui {
 			if (result.AllSuccessful) {
 				MessageBox.Show(
 					  "Successfully removed all patches.\n\n"
-					+ "You can close SenPatcher now and just run the game as you normally would."
+					+ "You can close SenPatcher now and just run the game as you normally would.",
+					"Patching Success",
+					MessageBoxButtons.OK
 				);
 				return;
 			} else {
@@ -129,7 +136,10 @@ namespace SenPatcherGui {
 					+ "Please ensure SenPatcher is allowed to write to the game directory, then try again.\n"
 					+ "It's also possible that the game data is corrupted or has been modified by other mods. "
 					+ "If so, try verifying game files on Steam or GoG, or reinstall the game. "
-					+ "Be sure to close and reopen SenPatcher before trying again in this case."
+					+ "Be sure to close and reopen SenPatcher before trying again in this case.",
+					"Patching Error",
+					MessageBoxButtons.OK,
+					MessageBoxIcon.Error
 				);
 			}
 		}
