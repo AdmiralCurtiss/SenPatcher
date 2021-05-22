@@ -36,6 +36,8 @@ namespace SenPatcherGui {
 				bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
 				bool patchBgmQueueing = checkBoxBgmEnqueueingLogic.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
+				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
+				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
 
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen2Mods.GetExecutableMods(
@@ -43,7 +45,9 @@ namespace SenPatcherGui {
 					patchAudioThread: patchAudioThread,
 					audioThreadDivisor: audioThreadDivisor,
 					patchBgmQueueing: patchBgmQueueing,
-					correctLanguageVoiceTables: fixVoiceTables
+					correctLanguageVoiceTables: fixVoiceTables,
+					disableMouseCapture: disableMouseCapture,
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen2Mods.GetAssetMods());
