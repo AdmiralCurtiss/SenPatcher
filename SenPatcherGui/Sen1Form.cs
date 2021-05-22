@@ -56,7 +56,7 @@ namespace SenPatcherGui {
 				bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
 				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
-				bool disablePauseOnFocusLoss = false;
+				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
 
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen1Mods.GetExecutableMods(
