@@ -107,7 +107,9 @@ namespace SenPatcherCli {
 					patchAudioThread: true,
 					audioThreadDivisor: 1000,
 					patchBgmQueueing: true,
-					correctLanguageVoiceTables: true
+					correctLanguageVoiceTables: true,
+					disableMouseCapture: true,
+					disablePauseOnFocusLoss: true
 				));
 				mods.AddRange(Sen2Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());

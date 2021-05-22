@@ -10,14 +10,27 @@ namespace SenLib.Sen2.FileFixes {
 		int AudioThreadDivisor;
 		bool PatchBgmQueueing;
 		bool CorrectLanguageVoiceTables;
+		bool DisableMouseCapture;
+		bool DisablePauseOnFocusLoss;
 
-		public ed8_2_exe(bool jp, bool removeTurboSkip, bool patchAudioThread, int audioThreadDivisor, bool patchBgmQueueing, bool correctLanguageVoiceTables) {
+		public ed8_2_exe(
+			bool jp,
+			bool removeTurboSkip,
+			bool patchAudioThread,
+			int audioThreadDivisor,
+			bool patchBgmQueueing,
+			bool correctLanguageVoiceTables,
+			bool disableMouseCapture,
+			bool disablePauseOnFocusLoss
+		) {
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
 			PatchAudioThread = patchAudioThread;
 			AudioThreadDivisor = audioThreadDivisor;
 			PatchBgmQueueing = patchBgmQueueing;
 			CorrectLanguageVoiceTables = correctLanguageVoiceTables;
+			DisableMouseCapture = disableMouseCapture;
+			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 		}
 
 		public string GetDescription() {
@@ -53,6 +66,12 @@ namespace SenLib.Sen2.FileFixes {
 			}
 			if (CorrectLanguageVoiceTables) {
 				Sen2ExecutablePatches.PatchLanguageAppropriateVoiceTables(ms, state);
+			}
+			if (DisableMouseCapture) {
+				Sen2ExecutablePatches.PatchDisableMouseCapture(ms, state);
+			}
+			if (DisablePauseOnFocusLoss) {
+				Sen2ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, state);
 			}
 
 			// add indicator to the title screen that we're running a modified executable
