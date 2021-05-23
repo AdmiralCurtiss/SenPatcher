@@ -41,9 +41,9 @@ namespace SenLib.Sen2 {
 		public RegionHelper Region32 = null;
 		public RegionHelper RegionD = null;
 
-		public Sen2ExecutablePatchState(bool jp) {
+		public Sen2ExecutablePatchState(bool jp, HyoutaPluginBase.IRomMapper mapper) {
 			IsJp = jp;
-			Mapper = new Sen2Mapper(jp);
+			Mapper = mapper;
 			if (jp) {
 				AddressJumpBattleAnimationAutoSkip = 0x479b1b;
 				AddressJumpBattleResultsAutoSkip = 0x4929ba;

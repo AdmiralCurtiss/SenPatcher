@@ -60,6 +60,7 @@
     <Compile Include="FileStorage.cs" />
     <Compile Include="KnownFile.cs" />
     <Compile Include="PatchResult.cs" />
+    <Compile Include="PeExe.cs" />
     <Compile Include="ProgressReporter.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -104,7 +105,6 @@
     <Compile Include="Sen1\Sen1ExecutablePatchState.cs" />
     <Compile Include="Sen1\Sen1ExecutablePatches.cs" />
     <Compile Include="Sen1\Sen1KnownFiles.cs" />
-    <Compile Include="Sen1\Sen1Mapper.cs" />
     <Compile Include="Sen1\Sen1Mods.cs" />
     <Compile Include="Sen1\Sen1SystemData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -121,7 +121,6 @@
     <Compile Include="Sen2\Sen2ExecutablePatches.BgmTiming.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.cs" />
     <Compile Include="Sen2\Sen2KnownFiles.cs" />
-    <Compile Include="Sen2\Sen2Mapper.cs" />
     <Compile Include="Sen2\Sen2Mods.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="SenCommonPaths.cs" />

@@ -37,9 +37,9 @@ namespace SenLib.Sen1 {
 		// push address of version string displayed on the title screen
 		public long PushAddressVersionString { get; private set; }
 
-		public Sen1ExecutablePatchState(bool jp) {
+		public Sen1ExecutablePatchState(bool jp, HyoutaPluginBase.IRomMapper mapper) {
 			IsJp = jp;
-			Mapper = new Sen1Mapper(jp);
+			Mapper = mapper;
 
 			if (jp) {
 				AddressButtonBattleAnimationAutoSkip = 0x4d6409;

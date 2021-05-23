@@ -51,9 +51,10 @@ namespace SenLib.Sen1.FileFixes {
 				return null;
 			}
 
+			var mapper = new PeExe(s, EndianUtils.Endianness.LittleEndian).CreateRomMapper();
 			MemoryStream ms = s.CopyToMemoryAndDispose();
 
-			Sen1ExecutablePatchState PatchInfo = new Sen1ExecutablePatchState(IsJp);
+			Sen1ExecutablePatchState PatchInfo = new Sen1ExecutablePatchState(IsJp, mapper);
 			PatchInfo.InitCodeSpaceIfNeeded(ms);
 
 			if (RemoveTurboSkip) {
