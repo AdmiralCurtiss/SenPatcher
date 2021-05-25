@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 namespace SenLib {
 	public class PeExe {
+		private DuplicatableStream Stream;
+		private EndianUtils.Endianness Endian;
 		private Coff Coff;
 		private OptionalHeader OptionalHeader;
 		private SectionHeader[] SectionHeaders;
@@ -30,6 +32,9 @@ namespace SenLib {
 				sectionHeaders[i] = new SectionHeader(s, e);
 			}
 
+			s.End();
+			this.Stream = s;
+			this.Endian = e;
 			this.Coff = coff;
 			this.OptionalHeader = optionalHeader;
 			this.SectionHeaders = sectionHeaders;
@@ -49,6 +54,90 @@ namespace SenLib {
 			}
 
 			return new GenericRomMapper(parsedRegions);
+		}
+
+		public List<ImportTable> GenerateDllImportList() {
+			if (OptionalHeader.ImageDataDirectoryIndexImportTable >= OptionalHeader.DataDirectories.Length) {
+				return null;
+			}
+			var importDataDir = OptionalHeader.DataDirectories[OptionalHeader.ImageDataDirectoryIndexImportTable];
+			if (importDataDir.Size == 0) {
+				return null;
+			}
+
+			var mapper = CreateRomMapper();
+			ulong romAddress = mapper.MapRamToRom(OptionalHeader.ImageBase + importDataDir.VirtualAddress);
+			var e = Endian;
+			List<ImportDirectoryEntry> importDirectoryEntries = new List<ImportDirectoryEntry>();
+			using (DuplicatableStream s = Stream.Duplicate()) {
+				s.Position = (long)romAddress;
+				while (true) {
+					uint importLookupTableRVA = s.ReadUInt32(e);
+					uint timeDateStamp = s.ReadUInt32(e);
+					uint forwarderChain = s.ReadUInt32(e);
+					uint nameRVA = s.ReadUInt32(e);
+					uint importAddressTableRVA = s.ReadUInt32(e);
+					bool isValid = importLookupTableRVA != 0 || timeDateStamp != 0 || forwarderChain != 0 || nameRVA != 0 || importAddressTableRVA != 0;
+					if (isValid) {
+						importDirectoryEntries.Add(new ImportDirectoryEntry() {
+							ImportLookupTableRVA = importLookupTableRVA,
+							TimeDateStamp = timeDateStamp,
+							ForwarderChain = forwarderChain,
+							NameRVA = nameRVA,
+							ImportAddressTableRVA = importAddressTableRVA
+						});
+					} else {
+						break;
+					}
+				}
+
+				List<ImportTable> importTables = new List<ImportTable>();
+				foreach (ImportDirectoryEntry entry in importDirectoryEntries) {
+					string dllName = s.ReadAsciiNulltermFromLocationAndReset((long)mapper.MapRamToRom(OptionalHeader.ImageBase + entry.NameRVA));
+					s.Position = (long)mapper.MapRamToRom(OptionalHeader.ImageBase + entry.ImportLookupTableRVA);
+					long lookupTableStart = s.Position;
+
+					List<(ushort ordinalOrHint, string name)> imports = new List<(ushort ordinalOrHint, string name)>();
+					while (true) {
+						const ulong ordinalMask = 0xffff;
+						const ulong hintNameTableMask = 0x7fffffff;
+						ulong flagMask = OptionalHeader.IsPE32Plus() ? 0x8000000000000000ul : 0x80000000ul;
+						ulong raw = OptionalHeader.IsPE32Plus() ? s.ReadUInt64(e) : s.ReadUInt32(e);
+						if (raw == 0) {
+							break;
+						}
+						if ((raw & flagMask) != 0) {
+							ushort ordinal = (ushort)(raw & ordinalMask);
+							imports.Add((ordinal, null));
+						} else {
+							uint rva = (uint)(raw & hintNameTableMask);
+							long p = s.Position;
+							s.Position = (long)mapper.MapRamToRom(OptionalHeader.ImageBase + rva);
+							ushort hint = s.ReadUInt16(e);
+							string name = s.ReadAsciiNullterm();
+							s.Position = p;
+							imports.Add((hint, name));
+						}
+					}
+
+					long lookupTableEnd = s.Position;
+					long lookupTableLength = lookupTableEnd - lookupTableStart;
+
+					// verify lookup table == address table
+					s.Position = (long)mapper.MapRamToRom(OptionalHeader.ImageBase + entry.ImportLookupTableRVA);
+					byte[] lookup = s.ReadBytes(lookupTableLength);
+					s.Position = (long)mapper.MapRamToRom(OptionalHeader.ImageBase + entry.ImportAddressTableRVA);
+					byte[] address = s.ReadBytes(lookupTableLength);
+
+					if (!ArrayUtils.IsByteArrayPartEqual(lookup, 0, address, 0, lookup.Length)) {
+						throw new Exception("lookup/address table mismatch");
+					}
+
+					importTables.Add(new ImportTable() { DllName = dllName, ImportedObjects = imports });
+				}
+
+				return importTables;
+			}
 		}
 	}
 
@@ -175,6 +264,10 @@ namespace SenLib {
 				DataDirectories[i] = new ImageDataDirectory(s, e);
 			}
 		}
+
+		public bool IsPE32Plus() {
+			return Magic == PE32PLUS_MAGIC;
+		}
 	}
 
 	public class SectionHeader {
@@ -213,5 +306,18 @@ namespace SenLib {
 			NumberOfLinenumbers = s.ReadUInt16(e);
 			Characteristics = s.ReadUInt32(e);
 		}
+	}
+
+	public class ImportDirectoryEntry {
+		public uint ImportLookupTableRVA;
+		public uint TimeDateStamp;
+		public uint ForwarderChain;
+		public uint NameRVA;
+		public uint ImportAddressTableRVA;
+	}
+
+	public class ImportTable {
+		public string DllName;
+		public List<(ushort ordinalOrHint, string name)> ImportedObjects;
 	}
 }
