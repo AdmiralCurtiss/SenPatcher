@@ -49,6 +49,7 @@
     <Compile Include="7zip\Compress\RangeCoder\RangeCoderBit.cs" />
     <Compile Include="7zip\Compress\RangeCoder\RangeCoderBitTree.cs" />
     <Compile Include="7zip\ICoder.cs" />
+    <Compile Include="BookTable.cs" />
     <Compile Include="BranchHelper1Byte.cs" />
     <Compile Include="BranchHelper4Byte.cs" />
     <Compile Include="DecompressHelper.cs" />
