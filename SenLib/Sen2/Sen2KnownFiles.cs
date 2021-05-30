@@ -24,7 +24,12 @@ namespace SenLib.Sen2 {
 		private static KnownFile[] InitKnownFiles() {
 		return new KnownFile[] {
 			new KnownFile(new SHA1(0x92de0d29c0ad4a9eul, 0xa935870674976924ul, 0xd5df756du), "data/text/dat_us/t_magic.tbl", "senpatcher_bkp/data_text_dat_us_t_magic.tbl"),
+			new KnownFile(new SHA1(0x7a68747acbd132c5ul, 0x215ea9c7543c37f1ul, 0x46b39d63u), "data/scripts/book/dat_us/book00.dat"),
+			new KnownFile(new SHA1(0x033e04f8a870f076ul, 0x4460bf5e91560499ul, 0x3c035bf5u), "data/scripts/book/dat_us/book01.dat"),
+			new KnownFile(new SHA1(0x4152ba749355789cul, 0xf55a3311cd1c5527ul, 0xc1bc8de1u), "data/scripts/book/dat_us/book02.dat"),
+			new KnownFile(new SHA1(0xda6f79f56616cb07ul, 0x3cc7205f895b1c0dul, 0x389c0e2du), "data/scripts/book/dat_us/book03.dat"),
 			new KnownFile(new SHA1(0x5b2fee612159bcb9ul, 0x3b2c6831f94f7b1ful, 0x4dd6231cu), "data/scripts/book/dat_us/book04.dat"),
+			new KnownFile(new SHA1(0xdcd1d5c83e8201c4ul, 0x2492abbe664f61eeul, 0x3a2187ffu), "data/scripts/book/dat_us/book05.dat"),
 
 			// v1.4.1
 			new KnownFile(new SHA1(0xfb45b576c39bcd2eul, 0x2806c2344c4f131eul, 0xc9611a1cu), "bin/Win32/ed8_2_PC_US.exe", important: false, writeToBackup: false), // old xdelta patch for battle skip removal

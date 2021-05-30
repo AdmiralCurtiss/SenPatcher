@@ -64,6 +64,10 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_scena_dat_us_m0040_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t0000c_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_r0601_dat());
+			f.Add(new FileFixes.scripts_book_dat_us_book00_dat());
+			f.Add(new FileFixes.scripts_book_dat_us_book01_dat());
+			f.Add(new FileFixes.scripts_book_dat_us_book02_dat());
+			f.Add(new FileFixes.scripts_book_dat_us_book03_dat());
 			return f;
 		}
 	}
