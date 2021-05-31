@@ -36,8 +36,8 @@ namespace SenLib.Sen2 {
 			var f = new List<FileMod>();
 			f.Add(new FileFixes.text_dat_us_t_magic_tbl());
 			f.Add(new FileFixes.scripts_book_dat_us_book00_dat());
-			f.Add(new FileFixes.scripts_book_dat_us_book01_dat());
-			f.Add(new FileFixes.scripts_book_dat_us_book02_dat());
+			//f.Add(new FileFixes.scripts_book_dat_us_book01_dat());
+			//f.Add(new FileFixes.scripts_book_dat_us_book02_dat());
 			f.Add(new FileFixes.scripts_book_dat_us_book03_dat());
 			f.Add(new FileFixes.scripts_book_dat_us_book04_dat());
 			f.Add(new FileFixes.scripts_book_dat_us_book05_dat());

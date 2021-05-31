@@ -28,6 +28,12 @@ namespace SenLib.Sen1.FileFixes {
 			book.Entries[34].Text = book.Entries[34].Text.Substring(0, 496);
 			book.Entries[35].Text = book.Entries[35].Text.ReplaceSubstring(51, 1, "\\n", 0, 2);
 
+			// double space
+			book.Entries[14].Text = book.Entries[14].Text.Remove(288, 1);
+
+			// capitalization consistency with main game script
+			book.Entries[2].Text = book.Entries[2].Text.ReplaceSubstring(41, 1, "p", 0, 1);
+
 			var bin = book.WriteToStream(EndianUtils.Endianness.LittleEndian);
 			return new FileModResult[] { new FileModResult("data/scripts/book/dat_us/book03.dat", bin) };
 		}
