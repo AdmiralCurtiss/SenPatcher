@@ -1,1 +1,37 @@
-SenPatcher==========Fixes and customizations for the Trails of Cold Steel games on Windows.https://github.com/AdmiralCurtiss/SenPatcherFeature Set for Trails of Cold Steel====================================* Remove the forced animation skip in Turbo mode.* Fix some missing sound effects.* Fix some small text errors in the English script.* Fix Thor master quartz HD texture ID to allow usage of the HD texture pack for it.* Remap button used for triggering Turbo mode, and re-enable the 2nd Notebook shortcut even when Turbo is on.Note: Compatible with version 1.6 of the game only.Feature Set for Trails of Cold Steel II=======================================* Remove the forced animation skip in Turbo mode.* Fix some small text errors in the English script.* Fixes for various audio issues, including the intermission BGM bug.Note: Compatible with versions 1.4.1 and 1.4.2 of the game only. (1.4.2 is available in the Steam beta tab, and only changes the game's program icon.)
+SenPatcher
+==========
+
+Fixes and customizations for:
+- The XSEED PC release of The Legend of Heroes: Trails of Cold Steel
+- The XSEED PC release of The Legend of Heroes: Trails of Cold Steel II
+
+https://github.com/AdmiralCurtiss/SenPatcher
+
+
+Feature Set for Trails of Cold Steel
+====================================
+
+* Option to remove the forced animation skip in Turbo mode.
+* Option to fix the internal Thor master quartz HD texture ID to allow usage of the HD texture pack for it.
+* Option to fix various minor script and asset file errors, such as missing sound effects, incorrect voice clips, text typos, etc.
+* Option to remap the button used for triggering Turbo mode and to re-enable the 2nd Notebook shortcut even when Turbo is on.
+* Option to disable the mouse being captured by the game and its movement being used for the game camera.
+* Option to keep the game running while in background.
+* Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
+* Option to edit the vestigal System Data button mapping.
+
+Note: Compatible with version 1.6 of the game only.
+
+
+Feature Set for Trails of Cold Steel II
+=======================================
+
+* Option to remove the forced animation skip in Turbo mode.
+* Option to fix two audio-related bugs, which cause missing or incorrect BGM/SFX and overlong track transitions.
+* Option to fix a few minor script errors.
+* Option to disable the mouse being captured by the game and its movement being used for the game camera.
+* Option to keep the game running while in background.
+* Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
+* Option to edit the vestigal System Data button mapping.
+
+Note: Compatible with versions 1.4.1 and 1.4.2 of the game only.
