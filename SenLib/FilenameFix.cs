@@ -210,57 +210,64 @@ namespace SenLib {
 			}
 
 			// there should be exactly one directory not starting with 'npc' in here, find it
-			DirectoryInfo notnpc = null;
+			string targetname = "\u51fa\u756a\u7121\u3057";
+			DirectoryInfo wrongdir = null;
+			DirectoryInfo rightdir = null;
 			foreach (DirectoryInfo d in new DirectoryInfo(targetdir).EnumerateDirectories()) {
 				if (!d.Name.StartsWith("npc", StringComparison.InvariantCultureIgnoreCase)) {
-					if (notnpc != null) {
-						// this is the second dir, we have a problem
-						return false;
+					if (d.Name == targetname) {
+						if (rightdir != null) {
+							// this should not be possible, bail
+							return false;
+						}
+						rightdir = d;
+					} else {
+						if (wrongdir != null) {
+							// this is the second unknown dir, we have a problem
+							return false;
+						}
+						wrongdir = d;
 					}
-					notnpc = d;
 				}
 			}
-			if (notnpc == null) {
+			if (rightdir == null && wrongdir == null) {
 				// couldn't find any dir, give up
 				return false;
 			}
-
-			// check if we have the right dir
-			string targetname = "\u51fa\u756a\u7121\u3057";
-			if (targetname == notnpc.Name) {
-				// this folder already has the correct name, nothing do to here
+			if (rightdir != null && wrongdir == null) {
+				// this folder already has the correct name and there is no wrong one, nothing do to here
 				if (fix) {
 					return true;
 				} else {
 					// we didn't encounter any issues, so report that this folder does not need fixing
 					return false;
 				}
-			} else {
-				SHA1? hash;
-				string infpath = Path.Combine(notnpc.FullName, "npc049/npc049.inf");
-				if (File.Exists(infpath)) {
-					using (DuplicatableFileStream fs = new DuplicatableFileStream(infpath)) {
-						hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
-					}
-					if (hash == new SHA1(0x6a2a9964df308b23ul, 0x307e436580efd036ul, 0x67c0ac08u)) {
-						if (fix) {
-							progress.Message(string.Format("Renaming {0} to {1}", notnpc.FullName, targetname));
-							Directory.Move(notnpc.FullName, Path.Combine(gamepath, subdir, targetname));
-							// we fixed it
-							return true;
-						} else {
-							// this is in need of fixing
-							progress.Message(string.Format("Found incorrect folder {0}, should be {1}", notnpc.FullName, targetname));
-							return true;
-						}
+			}
+
+			SHA1? hash;
+			string infpath = Path.Combine(wrongdir.FullName, "npc049/npc049.inf");
+			if (File.Exists(infpath)) {
+				using (DuplicatableFileStream fs = new DuplicatableFileStream(infpath)) {
+					hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+				}
+				if (hash == new SHA1(0x6a2a9964df308b23ul, 0x307e436580efd036ul, 0x67c0ac08u)) {
+					if (fix) {
+						progress.Message(string.Format("Renaming {0} to {1}", wrongdir.FullName, targetname));
+						DirectoryMoveOrRemoveSource(wrongdir.FullName, Path.Combine(gamepath, subdir, targetname));
+						// we fixed it
+						return true;
 					} else {
-						// not the right file, can't fix anything here
-						return false;
+						// this is in need of fixing
+						progress.Message(string.Format("Found incorrect folder {0}, should be {1}", wrongdir.FullName, targetname));
+						return true;
 					}
 				} else {
-					// not the right directory, we can't fix anything here
+					// not the right file, can't fix anything here
 					return false;
 				}
+			} else {
+				// not the right directory, we can't fix anything here
+				return false;
 			}
 		}
 
@@ -272,12 +279,28 @@ namespace SenLib {
 			}
 
 			var dirinfos = new DirectoryInfo(targetdir).GetDirectories();
-			if (dirinfos.Length != 1) {
-				// there should only be one subdirectory here, something is weird
+			if (!(dirinfos.Length == 1 || dirinfos.Length == 2)) {
+				// there should only be one subdirectory here, but we allow 2 in case we have the real one + a wrong one from a file restore
 				return false;
 			}
-			var dirinfo = dirinfos[0];
 			string targetname = "\u6ca1_\u30ac\u30c8\u30ea\u30f3\u30b0\u30ac\u30f3";
+			DirectoryInfo dirinfo;
+			if (dirinfos.Length == 2) {
+				bool dir0isreal = dirinfos[0].Name == targetname;
+				bool dir1isreal = dirinfos[1].Name == targetname;
+				if (dir0isreal && dir1isreal) {
+					// both are right, this should never happen but pretend we fixed I guess???
+					return true;
+				}
+				if (!dir0isreal && !dir1isreal) {
+					// both are wrong, dunno what to do here
+					return false;
+				}
+				dirinfo = dir0isreal ? dirinfos[1] : dirinfos[0];
+			} else {
+				dirinfo = dirinfos[0];
+			}
+
 			if (targetname == dirinfo.Name) {
 				// we're good
 				if (fix) {
@@ -297,7 +320,7 @@ namespace SenLib {
 				if (hash == new SHA1(0xe773a19f67feba62ul, 0xbb16ef2112eab24dul, 0xc3b7bd83u)) {
 					if (fix) {
 						progress.Message(string.Format("Renaming {0} to {1}", dirinfo.FullName, targetname));
-						Directory.Move(dirinfo.FullName, Path.Combine(gamepath, subdir, targetname));
+						DirectoryMoveOrRemoveSource(dirinfo.FullName, Path.Combine(gamepath, subdir, targetname));
 						// fixed it
 						return true;
 					} else {
@@ -337,6 +360,50 @@ namespace SenLib {
 				}
 			} else {
 				File.Copy(source, target);
+			}
+		}
+
+		private static void DirectoryMoveOrRemoveSource(string source, string target) {
+			if (Directory.Exists(target)) {
+				ThrowIfNotDirectoriesHaveIdenticalContent(source, target);
+				Directory.Delete(source, true);
+			} else {
+				Directory.Move(source, target);
+			}
+		}
+
+		private static void ThrowIfNotDirectoriesHaveIdenticalContent(string a, string b) {
+			var dirs_a = new DirectoryInfo(a).GetDirectories();
+			var dirs_b = new DirectoryInfo(b).GetDirectories().ToDictionary(x => x.Name);
+			if (dirs_a.Length != dirs_b.Count) {
+				throw new Exception(string.Format("Subdir count mismatch between {0} and {1}.", a, b));
+			}
+			foreach (var da in dirs_a) {
+				DirectoryInfo db;
+				if (dirs_b.TryGetValue(da.Name, out db)) {
+					ThrowIfNotDirectoriesHaveIdenticalContent(da.FullName, db.FullName);
+				} else {
+					throw new Exception(string.Format("Directory {0} has no equivalent in {1}.", da.FullName, b));
+				}
+			}
+
+			var files_a = new DirectoryInfo(a).GetFiles();
+			var files_b = new DirectoryInfo(b).GetFiles().ToDictionary(x => x.Name);
+			if (files_a.Length != files_b.Count) {
+				throw new Exception(string.Format("File count mismatch between {0} and {1}.", a, b));
+			}
+			foreach (var fa in files_a) {
+				FileInfo fb;
+				if (files_b.TryGetValue(fa.Name, out fb)) {
+					using (DuplicatableFileStream fsa = new DuplicatableFileStream(fa.FullName))
+					using (DuplicatableFileStream fsb = new DuplicatableFileStream(fb.FullName)) {
+						if (HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fsa) != HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fsb)) {
+							throw new Exception(string.Format("Files {0} and {1} mismatch.", fa.FullName, fb.FullName));
+						}
+					}
+				} else {
+					throw new Exception(string.Format("File {0} has no equivalent in {1}.", fa.FullName, b));
+				}
 			}
 		}
 	}
