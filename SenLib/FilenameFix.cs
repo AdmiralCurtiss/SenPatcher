@@ -118,7 +118,7 @@ namespace SenLib {
 					if (fix) {
 						// this file should be elsewhere, try to fix this
 						progress.Message(string.Format("Renaming {0} to {1}", path, target.Name));
-						File.Move(path, Path.Combine(sampledir, target.Name));
+						FileMoveOrRemoveSource(path, Path.Combine(sampledir, target.Name), target.Hash);
 						if (deleteDir) {
 							progress.Message(string.Format("Deleting leftover folder at {0}", f.FullName));
 							f.Delete();
@@ -179,11 +179,13 @@ namespace SenLib {
 					if (otherFileInfo != null) {
 						// we have a broken encoding file, move it
 						progress.Message(string.Format("Renaming {0} to {1}", otherFileInfo.FullName, targetName));
-						File.Move(otherFileInfo.FullName, Path.Combine(targetdir, targetName));
+						FileMoveOrRemoveSource(otherFileInfo.FullName, Path.Combine(targetdir, targetName), targethash);
+						return true;
 					} else {
 						// we have the ascii m file, this might be from a previous patch run, so just copy it
 						progress.Message(string.Format("Copying {0} to {1}", asciiFileInfo.FullName, targetName));
-						File.Copy(asciiFileInfo.FullName, Path.Combine(targetdir, targetName));
+						FileCopyIfTargetNotExists(asciiFileInfo.FullName, Path.Combine(targetdir, targetName), targethash);
+						return true;
 					}
 				} else {
 					// this is in need of fixing and we can fix it
@@ -310,6 +312,31 @@ namespace SenLib {
 			} else {
 				// file doesn't exist, clearly we have the wrong folder, can't do anything
 				return false;
+			}
+		}
+
+		private static void FileMoveOrRemoveSource(string source, string target, SHA1 hash) {
+			if (File.Exists(target)) {
+				using (DuplicatableFileStream fs = new DuplicatableFileStream(target)) {
+					if (hash != HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs)) {
+						throw new Exception(string.Format("File {0} mismatches expected SHA1 of {1}.", target, hash.ToString()));
+					}
+				}
+				File.Delete(source);
+			} else {
+				File.Move(source, target);
+			}
+		}
+
+		private static void FileCopyIfTargetNotExists(string source, string target, SHA1 hash) {
+			if (File.Exists(target)) {
+				using (DuplicatableFileStream fs = new DuplicatableFileStream(target)) {
+					if (hash != HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs)) {
+						throw new Exception(string.Format("File {0} mismatches expected SHA1 of {1}.", target, hash.ToString()));
+					}
+				}
+			} else {
+				File.Copy(source, target);
 			}
 		}
 	}
