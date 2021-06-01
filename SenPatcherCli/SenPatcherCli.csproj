@@ -55,14 +55,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HyoutaUtils\HyoutaPluginBase\HyoutaPluginBase.csproj">
-      <Project>{6e153ce7-05b9-4eba-8de8-ad842214f60b}</Project>
-      <Name>HyoutaPluginBase</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HyoutaUtils\HyoutaUtils\HyoutaUtils.csproj">
-      <Project>{771553c8-0c50-411f-ab7f-e47553c81587}</Project>
-      <Name>HyoutaUtils</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SenLib\SenLib.csproj">
       <Project>{2ecd67b8-06f0-4d87-9e53-b4fd334cc541}</Project>
       <Name>SenLib</Name>

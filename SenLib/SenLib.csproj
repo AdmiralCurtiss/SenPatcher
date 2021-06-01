@@ -41,6 +41,129 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\DuplicatableStream.cs">
+      <Link>HyoutaPluginBase\DuplicatableStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\FileContainer\IContainer.cs">
+      <Link>HyoutaPluginBase\IContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\FileContainer\IFile.cs">
+      <Link>HyoutaPluginBase\IFile.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\FileContainer\INode.cs">
+      <Link>HyoutaPluginBase\INode.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\IDecompressor.cs">
+      <Link>HyoutaPluginBase\IDecompressor.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\IProgram.cs">
+      <Link>HyoutaPluginBase\IProgram.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\IRomMapper.cs">
+      <Link>HyoutaPluginBase\IRomMapper.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\ArrayUtils.cs">
+      <Link>HyoutaUtils\ArrayUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\BitUtils.cs">
+      <Link>HyoutaUtils\BitUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Bps\BpsPatcher.cs">
+      <Link>HyoutaUtils\BpsPatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Bps\BpsUtils.cs">
+      <Link>HyoutaUtils\BpsUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\ChecksumUtils.cs">
+      <Link>HyoutaUtils\ChecksumUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\CRC32.cs">
+      <Link>HyoutaUtils\CRC32.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\CRC32Algorithm.cs">
+      <Link>HyoutaUtils\CRC32Algorithm.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\MD5.cs">
+      <Link>HyoutaUtils\MD5.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\SHA1.cs">
+      <Link>HyoutaUtils\SHA1.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\EndianUtils.cs">
+      <Link>HyoutaUtils\EndianUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\ExternalProgramExecution.cs">
+      <Link>HyoutaUtils\ExternalProgramExecution.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\GenericRomMapper.cs">
+      <Link>HyoutaUtils\GenericRomMapper.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HexUtils.cs">
+      <Link>HyoutaUtils\HexUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\Compression\DeflateSharpCompressionInfo.cs">
+      <Link>HyoutaUtils\DeflateSharpCompressionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\Compression\IHyoutaArchiveCompressionInfo.cs">
+      <Link>HyoutaUtils\IHyoutaArchiveCompressionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveBps.cs">
+      <Link>HyoutaUtils\HyoutaArchiveBps.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveBpsPatchInfo.cs">
+      <Link>HyoutaUtils\HyoutaArchiveBpsPatchInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveChunk.cs">
+      <Link>HyoutaUtils\HyoutaArchiveChunk.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveChunkInfo.cs">
+      <Link>HyoutaUtils\HyoutaArchiveChunkInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveCompression.cs">
+      <Link>HyoutaUtils\HyoutaArchiveCompression.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveContainer.cs">
+      <Link>HyoutaUtils\HyoutaArchiveContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveFileInfo.cs">
+      <Link>HyoutaUtils\HyoutaArchiveFileInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\NumberUtils.cs">
+      <Link>HyoutaUtils\NumberUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\RomMapperUtils.cs">
+      <Link>HyoutaUtils\RomMapperUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\ConcatenatedStream.cs">
+      <Link>HyoutaUtils\ConcatenatedStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\ConstantStream.cs">
+      <Link>HyoutaUtils\ConstantStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\DuplicatableByteArrayStream.cs">
+      <Link>HyoutaUtils\DuplicatableByteArrayStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\DuplicatableFileStream.cs">
+      <Link>HyoutaUtils\DuplicatableFileStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\EmptyStream.cs">
+      <Link>HyoutaUtils\EmptyStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\MemoryStream64.cs">
+      <Link>HyoutaUtils\MemoryStream64.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\PartialStream.cs">
+      <Link>HyoutaUtils\PartialStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\StreamUtils.cs">
+      <Link>HyoutaUtils\StreamUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\TextUtils.cs">
+      <Link>HyoutaUtils\TextUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\TimeUtils.cs">
+      <Link>HyoutaUtils\TimeUtils.cs</Link>
+    </Compile>
     <Compile Include="7zip\Common\CRC.cs" />
     <Compile Include="7zip\Compress\LZMA\LzmaBase.cs" />
     <Compile Include="7zip\Compress\LZMA\LzmaDecoder.cs" />
@@ -139,16 +262,6 @@
     <Compile Include="Version.cs" />
     <Compile Include="VoiceTiming.cs" />
     <Compile Include="VoiceTable.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HyoutaUtils\HyoutaPluginBase\HyoutaPluginBase.csproj">
-      <Project>{6e153ce7-05b9-4eba-8de8-ad842214f60b}</Project>
-      <Name>HyoutaPluginBase</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HyoutaUtils\HyoutaUtils\HyoutaUtils.csproj">
-      <Project>{771553c8-0c50-411f-ab7f-e47553c81587}</Project>
-      <Name>HyoutaUtils</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Sen2\Sen2ExecutablePatches.BgmQueueingSoundThreadSide.cs" />
