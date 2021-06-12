@@ -10,13 +10,10 @@ namespace SenLib.Sen3 {
 	public static partial class Sen3ExecutablePatches {
 		public static void FixInGameButtonMappingValidity(Stream bin, Sen3ExecutablePatchState state) {
 			bool jp = state.IsJp;
-			if (jp) {
-				return; // needs address
-			}
 			EndianUtils.Endianness be = EndianUtils.Endianness.BigEndian;
 			EndianUtils.Endianness le = EndianUtils.Endianness.LittleEndian;
 
-			var region = new RegionHelper64(jp ? 0 : 0x140452f97, 0x44, "In-game Button Mapping Validity");
+			var region = new RegionHelper64(jp ? 0x140447157 : 0x140452f97, 0x44, "In-game Button Mapping Validity");
 			bin.Position = state.Mapper.MapRamToRom(region.Address);
 			for (uint i = 0; i < region.Remaining; ++i) {
 				bin.WriteUInt8(0xcc); // int 3
@@ -59,6 +56,8 @@ namespace SenLib.Sen3 {
 				bin.WriteUInt16(0x0c00, le); // bitmask for disallowed options for D-Pad Select
 				bin.WriteUInt16(0x03ff, le); // bitmask for disallowed options for D-Pad Select (Battle)
 				bin.WriteUInt16(0x03ff, le); // bitmask for disallowed options for D-Pad Start (Battle)
+
+				region.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Button Mapping fix");
 
 				bin.Position = lookup_table_inject_address - 4;
 				bin.WriteUInt32((uint)(lookup_table_address - lookup_table_inject_address), le);
