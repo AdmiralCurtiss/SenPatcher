@@ -24,6 +24,8 @@ namespace SenLib.Sen3 {
 
 		public static List<FileMod> GetAssetMods() {
 			var f = new List<FileMod>();
+			f.Add(new FileFixes.voice_opus_v00e0441());
+			f.Add(new FileFixes.voice_opus_v00s2728());
 			return f;
 		}
 	}

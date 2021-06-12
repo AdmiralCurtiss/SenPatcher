@@ -139,6 +139,15 @@
   <data name="pc8v10286_15" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\pc8v10286_15.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="v00_e0441" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v00_e0441.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v00_s0027" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v00_s0027.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v00_s0028" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v00_s0028.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="vctiming_jp_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\vctiming_jp_3.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>

@@ -258,6 +258,8 @@
     <Compile Include="Sen2\Sen2Mods.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="Sen3\FileFixes\ed8_3_exe.cs" />
+    <Compile Include="Sen3\FileFixes\voice_opus_v00s2728.cs" />
+    <Compile Include="Sen3\FileFixes\voice_opus_v00e0441.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatches.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatchState.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatches.InGameButtonMapping.cs" />
@@ -291,6 +293,9 @@
     <None Include="Sen1\FileFixes\vctiming_us_4.bin" />
     <None Include="Sen2\FileFixes\ed82j142.bin" />
     <None Include="Sen2\FileFixes\ed82u142j.bin" />
+    <None Include="Sen3\FileFixes\v00_e0441.bin" />
+    <None Include="Sen3\FileFixes\v00_s0027.bin" />
+    <None Include="Sen3\FileFixes\v00_s0028.bin" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
