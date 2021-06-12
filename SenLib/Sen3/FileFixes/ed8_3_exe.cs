@@ -6,13 +6,16 @@ namespace SenLib.Sen3.FileFixes {
 	public class ed8_3_exe : FileMod {
 		bool IsJp;
 		bool FixInGameButtonMappingValidity;
+		bool AllowSwitchToNightmare;
 
 		public ed8_3_exe(
 			bool jp,
-			bool fixInGameButtonMappingValidity
+			bool fixInGameButtonMappingValidity,
+			bool allowSwitchToNightmare
 		) {
 			IsJp = jp;
 			FixInGameButtonMappingValidity = fixInGameButtonMappingValidity;
+			AllowSwitchToNightmare = allowSwitchToNightmare;
 		}
 
 		public string GetDescription() {
@@ -36,6 +39,9 @@ namespace SenLib.Sen3.FileFixes {
 
 			if (FixInGameButtonMappingValidity) {
 				Sen3ExecutablePatches.FixInGameButtonMappingValidity(ms, PatchInfo);
+			}
+			if (AllowSwitchToNightmare) {
+				Sen3ExecutablePatches.AllowSwitchToNightmare(ms, PatchInfo);
 			}
 
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/x64/ed8_3_PC_JP.exe" : "bin/x64/ed8_3_PC.exe", ms) };

@@ -8,13 +8,15 @@ using System.IO;
 namespace SenLib.Sen3 {
 	public class Sen3Mods {
 		public static List<FileMod> GetExecutableMods(
-			bool fixInGameButtonMappingValidity = false
+			bool fixInGameButtonMappingValidity = false,
+			bool allowSwitchToNightmare = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
 				f.Add(new FileFixes.ed8_3_exe(
 					jp: i == 0,
-					fixInGameButtonMappingValidity: fixInGameButtonMappingValidity
+					fixInGameButtonMappingValidity: fixInGameButtonMappingValidity,
+					allowSwitchToNightmare: allowSwitchToNightmare
 				));
 			}
 			return f;

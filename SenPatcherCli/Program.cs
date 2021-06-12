@@ -175,7 +175,8 @@ namespace SenPatcherCli {
 			} else if (sengame == 3) {
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen3Mods.GetExecutableMods(
-					fixInGameButtonMappingValidity: true
+					fixInGameButtonMappingValidity: true,
+					allowSwitchToNightmare: true
 				));
 				mods.AddRange(Sen3Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
