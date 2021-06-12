@@ -52,7 +52,7 @@ namespace SenLib.Sen3 {
 				bin.WriteUInt16(0x0c00, le); // bitmask for disallowed options for D-Pad L1
 				bin.WriteUInt16(0x0c00, le); // bitmask for disallowed options for D-Pad R1
 				bin.WriteUInt16(0x0c00, le); // bitmask for disallowed options for D-Pad R3
-				bin.WriteUInt16(0x0c02, le); // bitmask for disallowed options for D-Pad Circle
+				bin.WriteUInt16(0x0c42, le); // bitmask for disallowed options for D-Pad Circle
 				bin.WriteUInt16(0x0c00, le); // bitmask for disallowed options for D-Pad Select
 				bin.WriteUInt16(0x03ff, le); // bitmask for disallowed options for D-Pad Select (Battle)
 				bin.WriteUInt16(0x03ff, le); // bitmask for disallowed options for D-Pad Start (Battle)
