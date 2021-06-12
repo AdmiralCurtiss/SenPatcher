@@ -191,6 +191,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="RegionHelper64.cs" />
     <Compile Include="RegionHelper.cs" />
     <Compile Include="Sen1\FileFixes\ed8_exe.cs" />
     <Compile Include="Sen1\FileFixes\scripts_book_dat_us_book00_dat.cs" />
@@ -256,6 +257,11 @@
     <Compile Include="Sen2\Sen2KnownFiles.cs" />
     <Compile Include="Sen2\Sen2Mods.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
+    <Compile Include="Sen3\FileFixes\ed8_3_exe.cs" />
+    <Compile Include="Sen3\Sen3ExecutablePatchState.cs" />
+    <Compile Include="Sen3\Sen3ExecutablePatches.InGameButtonMapping.cs" />
+    <Compile Include="Sen3\Sen3KnownFiles.cs" />
+    <Compile Include="Sen3\Sen3Mods.cs" />
     <Compile Include="SenCommonPaths.cs" />
     <Compile Include="SenScriptPatcher.cs" />
     <Compile Include="SenUtils.cs" />

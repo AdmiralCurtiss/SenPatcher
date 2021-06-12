@@ -2,6 +2,7 @@
 using SenLib;
 using SenLib.Sen1;
 using SenLib.Sen2;
+using SenLib.Sen3;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -122,13 +123,22 @@ namespace SenPatcherCli {
 				sengame = 1;
 			} else if (File.Exists(System.IO.Path.Combine(path, "Sen2Launcher.exe"))) {
 				sengame = 2;
+			} else if (File.Exists(System.IO.Path.Combine(path, "Sen3Launcher.exe"))) {
+				sengame = 3;
 			} else {
-				Console.WriteLine($"Failed to detect whether {path} is CS1 or 2.");
+				Console.WriteLine($"Failed to detect what game {path} is.");
 				return -1;
 			}
 
 			FilenameFix.FixupIncorrectEncodingInFilenames(path, sengame, true, new CliProgressReporter());
-			FileStorage storage = FileModExec.InitializeAndPersistFileStorage(path, sengame == 1 ? Sen1KnownFiles.Files : Sen2KnownFiles.Files, new CliProgressReporter())?.Storage;
+			KnownFile[] knownFiles;
+			switch (sengame) {
+				case 1: knownFiles = Sen1KnownFiles.Files; break;
+				case 2: knownFiles = Sen2KnownFiles.Files; break;
+				case 3: knownFiles = Sen3KnownFiles.Files; break;
+				default: return -1; // shouldn't get here
+			}
+			FileStorage storage = FileModExec.InitializeAndPersistFileStorage(path, knownFiles, new CliProgressReporter())?.Storage;
 			if (storage == null) {
 				Console.WriteLine($"Failed to initialize file storage from {path}.");
 				return -1;
@@ -149,7 +159,7 @@ namespace SenPatcherCli {
 				));
 				mods.AddRange(Sen1Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
-			} else {
+			} else if (sengame == 2) {
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen2Mods.GetExecutableMods(
 					removeTurboSkip: true,
@@ -162,6 +172,15 @@ namespace SenPatcherCli {
 				));
 				mods.AddRange(Sen2Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
+			} else if (sengame == 3) {
+				var mods = new List<FileMod>();
+				mods.AddRange(Sen3Mods.GetExecutableMods(
+					fixInGameButtonMappingValidity: true
+				));
+				mods.AddRange(Sen3Mods.GetAssetMods());
+				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
+			} else {
+				return -1; // shouldn't get here
 			}
 
 			if (!result.AllSuccessful) {
