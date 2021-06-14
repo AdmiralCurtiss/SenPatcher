@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenPatcherGui", "SenPatcher
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileCompressor", "FileCompressor\FileCompressor.csproj", "{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lz4-sharp", "lz4-sharp\lz4-sharp\lz4-sharp.csproj", "{C70B4F5B-3B12-42AA-A32F-8DD952091F44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C70B4F5B-3B12-42AA-A32F-8DD952091F44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C70B4F5B-3B12-42AA-A32F-8DD952091F44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C70B4F5B-3B12-42AA-A32F-8DD952091F44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C70B4F5B-3B12-42AA-A32F-8DD952091F44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

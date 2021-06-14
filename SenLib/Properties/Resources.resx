@@ -118,6 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="cvis0061" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\cvis0061.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cvis1008" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\cvis1008.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="ed82j142" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen2\FileFixes\ed82j142.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -132,6 +138,9 @@
   </data>
   <data name="ed8m4217" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\ed8m4217.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="jump009" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\jump009.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="pc8v02551_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\pc8v02551_4.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

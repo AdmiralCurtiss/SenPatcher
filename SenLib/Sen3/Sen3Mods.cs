@@ -26,6 +26,9 @@ namespace SenLib.Sen3 {
 			var f = new List<FileMod>();
 			f.Add(new FileFixes.voice_opus_v00e0441());
 			f.Add(new FileFixes.voice_opus_v00s2728());
+			f.Add(new FileFixes.I_CVIS0061_pkg());
+			f.Add(new FileFixes.I_CVIS1008_pkg());
+			f.Add(new FileFixes.I_JMP009_pkg());
 			return f;
 		}
 	}
