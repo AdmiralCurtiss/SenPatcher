@@ -1,3 +1,6 @@
 [submodule "HyoutaUtils"]
 	path = HyoutaUtils
 	url = https://github.com/AdmiralCurtiss/HyoutaUtils.git
+[submodule "lz4-sharp"]
+	path = lz4-sharp
+	url = https://github.com/AdmiralCurtiss/lz4-sharp.git
