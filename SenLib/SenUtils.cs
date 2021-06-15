@@ -79,5 +79,10 @@ namespace SenLib {
 				helper.SetTarget(region.Address + region.Remaining);
 			}
 		}
+
+		public static void WriteRelativeAddress32(long absoluteTarget, HyoutaPluginBase.IRomMapper mapper, Stream bin) {
+			long absoluteHere = mapper.MapRomToRam(bin.Position + 4);
+			bin.WriteUInt32((uint)(int)(absoluteTarget - absoluteHere), EndianUtils.Endianness.LittleEndian);
+		}
 	}
 }

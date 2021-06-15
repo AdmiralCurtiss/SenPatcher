@@ -7,15 +7,21 @@ namespace SenLib.Sen3.FileFixes {
 		bool IsJp;
 		bool FixInGameButtonMappingValidity;
 		bool AllowSwitchToNightmare;
+		bool DisableMouseCapture;
+		bool DisablePauseOnFocusLoss;
 
 		public ed8_3_exe(
 			bool jp,
 			bool fixInGameButtonMappingValidity,
-			bool allowSwitchToNightmare
+			bool allowSwitchToNightmare,
+			bool disableMouseCapture,
+			bool disablePauseOnFocusLoss
 		) {
 			IsJp = jp;
 			FixInGameButtonMappingValidity = fixInGameButtonMappingValidity;
 			AllowSwitchToNightmare = allowSwitchToNightmare;
+			DisableMouseCapture = disableMouseCapture;
+			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 		}
 
 		public string GetDescription() {
@@ -42,6 +48,12 @@ namespace SenLib.Sen3.FileFixes {
 			}
 			if (AllowSwitchToNightmare) {
 				Sen3ExecutablePatches.AllowSwitchToNightmare(ms, PatchInfo);
+			}
+			if (DisableMouseCapture) {
+				Sen3ExecutablePatches.PatchDisableMouseCapture(ms, PatchInfo);
+			}
+			if (DisablePauseOnFocusLoss) {
+				Sen3ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);
 			}
 
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/x64/ed8_3_PC_JP.exe" : "bin/x64/ed8_3_PC.exe", ms) };

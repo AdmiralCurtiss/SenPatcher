@@ -176,7 +176,9 @@ namespace SenPatcherCli {
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen3Mods.GetExecutableMods(
 					fixInGameButtonMappingValidity: true,
-					allowSwitchToNightmare: true
+					allowSwitchToNightmare: true,
+					disableMouseCapture: true,
+					disablePauseOnFocusLoss: true
 				));
 				mods.AddRange(Sen3Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());

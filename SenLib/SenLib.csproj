@@ -271,6 +271,7 @@
     <Compile Include="Sen3\FileFixes\voice_opus_v00s2728.cs" />
     <Compile Include="Sen3\FileFixes\voice_opus_v00e0441.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatches.cs" />
+    <Compile Include="Sen3\Sen3ExecutablePatches.WindowHacks.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatchState.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatches.InGameButtonMapping.cs" />
     <Compile Include="Sen3\Sen3KnownFiles.cs" />
