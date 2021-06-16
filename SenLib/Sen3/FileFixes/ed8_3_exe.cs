@@ -7,6 +7,7 @@ namespace SenLib.Sen3.FileFixes {
 		bool IsJp;
 		bool FixInGameButtonMappingValidity;
 		bool AllowSwitchToNightmare;
+		bool SwapBrokenMasterQuartzValuesForDisplay;
 		bool DisableMouseCapture;
 		bool DisablePauseOnFocusLoss;
 
@@ -14,12 +15,14 @@ namespace SenLib.Sen3.FileFixes {
 			bool jp,
 			bool fixInGameButtonMappingValidity,
 			bool allowSwitchToNightmare,
+			bool swapBrokenMasterQuartzValuesForDisplay,
 			bool disableMouseCapture,
 			bool disablePauseOnFocusLoss
 		) {
 			IsJp = jp;
 			FixInGameButtonMappingValidity = fixInGameButtonMappingValidity;
 			AllowSwitchToNightmare = allowSwitchToNightmare;
+			SwapBrokenMasterQuartzValuesForDisplay = swapBrokenMasterQuartzValuesForDisplay;
 			DisableMouseCapture = disableMouseCapture;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 		}
@@ -41,13 +44,16 @@ namespace SenLib.Sen3.FileFixes {
 			var mapper = new PeExe(s, EndianUtils.Endianness.LittleEndian).CreateRomMapper();
 			MemoryStream ms = s.CopyToMemoryAndDispose();
 
-			Sen3ExecutablePatchState PatchInfo = new Sen3ExecutablePatchState(IsJp, mapper);
+			Sen3ExecutablePatchState PatchInfo = new Sen3ExecutablePatchState(IsJp, mapper, ms);
 
 			if (FixInGameButtonMappingValidity) {
 				Sen3ExecutablePatches.FixInGameButtonMappingValidity(ms, PatchInfo);
 			}
 			if (AllowSwitchToNightmare) {
 				Sen3ExecutablePatches.AllowSwitchToNightmare(ms, PatchInfo);
+			}
+			if (!IsJp && SwapBrokenMasterQuartzValuesForDisplay) { // JP doesn't have this bug, so nothing to fix
+				Sen3ExecutablePatches.SwapBrokenMasterQuartzValuesForDisplay(ms, PatchInfo);
 			}
 			if (DisableMouseCapture) {
 				Sen3ExecutablePatches.PatchDisableMouseCapture(ms, PatchInfo);

@@ -265,11 +265,13 @@
     <Compile Include="Sen2\Sen2Mods.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="Sen3\FileFixes\ed8_3_exe.cs" />
+    <Compile Include="Sen3\FileFixes\t_mstqrt.cs" />
     <Compile Include="Sen3\FileFixes\I_JMP009_pkg.cs" />
     <Compile Include="Sen3\FileFixes\I_CVIS1008_pkg.cs" />
     <Compile Include="Sen3\FileFixes\I_CVIS0061_pkg.cs" />
     <Compile Include="Sen3\FileFixes\voice_opus_v00s2728.cs" />
     <Compile Include="Sen3\FileFixes\voice_opus_v00e0441.cs" />
+    <Compile Include="Sen3\Sen3ExecutablePatchState.ScriptCompilerDummy.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatches.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatches.WindowHacks.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatchState.cs" />
@@ -279,6 +281,7 @@
     <Compile Include="SenCommonPaths.cs" />
     <Compile Include="SenScriptPatcher.cs" />
     <Compile Include="SenUtils.cs" />
+    <Compile Include="Tbl.cs" />
     <Compile Include="Version.cs" />
     <Compile Include="VoiceTiming.cs" />
     <Compile Include="VoiceTable.cs" />

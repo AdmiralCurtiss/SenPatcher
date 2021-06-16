@@ -12,9 +12,11 @@ namespace SenLib.Sen3 {
 
 		public HyoutaPluginBase.IRomMapper Mapper { get; private set; }
 
-		public Sen3ExecutablePatchState(bool jp, HyoutaPluginBase.IRomMapper mapper) {
+		public Sen3ExecutablePatchState(bool jp, HyoutaPluginBase.IRomMapper mapper, Stream bin) {
 			IsJp = jp;
 			Mapper = mapper;
+
+			CtorCodeSpaceScriptCompilerDummy(jp, mapper, bin);
 		}
 	}
 }

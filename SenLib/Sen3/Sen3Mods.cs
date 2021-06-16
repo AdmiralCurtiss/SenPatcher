@@ -10,6 +10,7 @@ namespace SenLib.Sen3 {
 		public static List<FileMod> GetExecutableMods(
 			bool fixInGameButtonMappingValidity = false,
 			bool allowSwitchToNightmare = false,
+			bool swapBrokenMasterQuartzValuesForDisplay = false,
 			bool disableMouseCapture = false,
 			bool disablePauseOnFocusLoss = false
 		) {
@@ -19,6 +20,7 @@ namespace SenLib.Sen3 {
 					jp: i == 0,
 					fixInGameButtonMappingValidity: fixInGameButtonMappingValidity,
 					allowSwitchToNightmare: allowSwitchToNightmare,
+					swapBrokenMasterQuartzValuesForDisplay: swapBrokenMasterQuartzValuesForDisplay,
 					disableMouseCapture: disableMouseCapture,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss
 				));
@@ -33,6 +35,7 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.I_CVIS0061_pkg());
 			f.Add(new FileFixes.I_CVIS1008_pkg());
 			f.Add(new FileFixes.I_JMP009_pkg());
+			f.Add(new FileFixes.t_mstqrt());
 			return f;
 		}
 	}

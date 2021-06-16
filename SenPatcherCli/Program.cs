@@ -177,6 +177,7 @@ namespace SenPatcherCli {
 				mods.AddRange(Sen3Mods.GetExecutableMods(
 					fixInGameButtonMappingValidity: true,
 					allowSwitchToNightmare: true,
+					swapBrokenMasterQuartzValuesForDisplay: true,
 					disableMouseCapture: true,
 					disablePauseOnFocusLoss: true
 				));
