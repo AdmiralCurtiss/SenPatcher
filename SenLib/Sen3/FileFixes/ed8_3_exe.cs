@@ -63,10 +63,10 @@ namespace SenLib.Sen3.FileFixes {
 			}
 
 			// add indicator to the title screen that we're running a modified executable
-			if (!IsJp) {
+			{
 				var state = PatchInfo;
-				long loadAddrTitleScreenVersionString = 0x14042cff9 + 3;
-				long loadAddrCrashRptVersionString = 0x14012f769 + 3;
+				long loadAddrTitleScreenVersionString = (IsJp ? 0x1404219f6 : 0x14042cff9) + 3;
+				long loadAddrCrashRptVersionString = (IsJp ? 0x14012c3a9 : 0x14012f769) + 3;
 
 				long loadAddrTitleScreenVersionStringOffset = loadAddrTitleScreenVersionString + 4;
 				long loadAddrCrashRptVersionStringOffset = loadAddrCrashRptVersionString + 4;
@@ -79,7 +79,7 @@ namespace SenLib.Sen3.FileFixes {
 				MemoryStream newVersionStringStream = new MemoryStream();
 				newVersionStringStream.WriteAsciiNullterm(newVersionString);
 				byte[] newVersionStringBytes = newVersionStringStream.CopyToByteArrayAndDispose();
-				var regionStrings = state.RegionScriptCompilerFunctionStrings2;
+				var regionStrings = IsJp ? state.RegionScriptCompilerFunctionStrings1 : state.RegionScriptCompilerFunctionStrings2;
 				long addressNewVersionString = regionStrings.Address;
 				ms.Position = state.Mapper.MapRamToRom(regionStrings.Address);
 				ms.Write(newVersionStringBytes);
