@@ -8,6 +8,27 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SenLib.Sen3.FileFixes {
+	class MasterQuartzMemo {
+		public ushort mqidx;
+		public ushort stridx;
+		public string str;
+
+		internal MasterQuartzMemo(byte[] data) {
+			var stream = new DuplicatableByteArrayStream(data);
+			mqidx = stream.ReadUInt16();
+			stridx = stream.ReadUInt16();
+			str = stream.ReadUTF8Nullterm();
+		}
+
+		internal byte[] ToBinary() {
+			MemoryStream ms = new MemoryStream();
+			ms.WriteUInt16(mqidx);
+			ms.WriteUInt16(stridx);
+			ms.WriteUTF8Nullterm(str);
+			return ms.CopyToByteArrayAndDispose();
+		}
+	}
+
 	class t_mstqrt : FileMod {
 		public string GetDescription() {
 			return "Fix a handful of Master Quartzes having broken effects when playing in English or French.";
@@ -47,6 +68,20 @@ namespace SenLib.Sen3.FileFixes {
 
 			// also while we're here fix this missing newline in the FR file...
 			tbl_fr.Entries[66].Data[tbl_fr.Entries[66].Data.Length - 2] = 0x0a;
+
+			// Virgo lists EP healing instead of HP
+			{
+				var m = new MasterQuartzMemo(tbl_en.Entries[263].Data);
+				m.str = m.str.Replace("EP", "HP");
+				tbl_en.Entries[263].Data = m.ToBinary();
+			}
+
+			// For clarity mention that Breaking is okay too for the 2x drop
+			{
+				var m = new MasterQuartzMemo(tbl_en.Entries[393].Data);
+				m.str = m.str.InsertSubstring(54, "breaks or ", 0, 10);
+				tbl_en.Entries[393].Data = m.ToBinary();
+			}
 
 			Stream result_en = new MemoryStream();
 			tbl_en.WriteToStream(result_en, EndianUtils.Endianness.LittleEndian);
