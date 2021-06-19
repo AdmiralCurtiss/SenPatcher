@@ -4,6 +4,7 @@ SenPatcher
 Fixes and customizations for:
 - The XSEED PC release of The Legend of Heroes: Trails of Cold Steel
 - The XSEED PC release of The Legend of Heroes: Trails of Cold Steel II
+- The NISA PC release of The Legend of Heroes: Trails of Cold Steel III
 
 https://github.com/AdmiralCurtiss/SenPatcher
 
@@ -35,3 +36,15 @@ Feature Set for Trails of Cold Steel II
 * Option to edit the vestigal System Data button mapping.
 
 Note: Compatible with versions 1.4.1 and 1.4.2 of the game only.
+
+
+Feature Set for Trails of Cold Steel III
+========================================
+
+* Option to fix various minor script and asset file errors, such as incorrect textures, incorrect voice clips, item description errors, broken Master Quartz effects, etc.
+* Option to fix the in-game button remapping options being incorrectly enabled/disabled, disallowing various sensible mappings.
+* Option to allow changing difficulty to Nightmare mid-playthrough.
+* Option to disable the mouse being captured by the game and its movement being used for the game camera.
+* Option to keep the game running while in background.
+
+Note: Compatible with version 1.05 of the game only.
