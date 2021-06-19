@@ -265,6 +265,9 @@
     <Compile Include="Sen2\Sen2Mods.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="Sen3\FileFixes\ed8_3_exe.cs" />
+    <Compile Include="Sen3\FileFixes\t_notecook.cs" />
+    <Compile Include="Sen3\FileFixes\t_magic.cs" />
+    <Compile Include="Sen3\FileFixes\t_item.cs" />
     <Compile Include="Sen3\FileFixes\t_mstqrt.cs" />
     <Compile Include="Sen3\FileFixes\I_JMP009_pkg.cs" />
     <Compile Include="Sen3\FileFixes\I_CVIS1008_pkg.cs" />

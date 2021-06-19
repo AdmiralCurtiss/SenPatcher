@@ -45,8 +45,7 @@
   <ItemGroup>
     <Compile Include="cs1_vctiming_generator.cs" />
     <Compile Include="FuzzyTextParse.cs" />
-    <Compile Include="MasterQuartzParser.cs" />
-    <Compile Include="MstqrtTbl.cs" />
+    <Compile Include="TblDumper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptParser.cs" />
