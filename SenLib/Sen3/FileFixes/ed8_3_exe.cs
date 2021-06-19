@@ -62,6 +62,34 @@ namespace SenLib.Sen3.FileFixes {
 				Sen3ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);
 			}
 
+			// add indicator to the title screen that we're running a modified executable
+			if (!IsJp) {
+				var state = PatchInfo;
+				long loadAddrTitleScreenVersionString = 0x14042cff9 + 3;
+				long loadAddrCrashRptVersionString = 0x14012f769 + 3;
+
+				long loadAddrTitleScreenVersionStringOffset = loadAddrTitleScreenVersionString + 4;
+				long loadAddrCrashRptVersionStringOffset = loadAddrCrashRptVersionString + 4;
+				ms.Position = state.Mapper.MapRamToRom(loadAddrTitleScreenVersionString);
+				long relativeAddressVersionString = ms.ReadUInt32(EndianUtils.Endianness.LittleEndian);
+				long addressVersionString = loadAddrTitleScreenVersionStringOffset + relativeAddressVersionString;
+				ms.Position = state.Mapper.MapRamToRom(addressVersionString);
+				string versionString = ms.ReadAsciiNullterm();
+				string newVersionString = versionString + "  SenPatcher " + Version.SenPatcherVersion;
+				MemoryStream newVersionStringStream = new MemoryStream();
+				newVersionStringStream.WriteAsciiNullterm(newVersionString);
+				byte[] newVersionStringBytes = newVersionStringStream.CopyToByteArrayAndDispose();
+				var regionStrings = state.RegionScriptCompilerFunctionStrings2;
+				long addressNewVersionString = regionStrings.Address;
+				ms.Position = state.Mapper.MapRamToRom(regionStrings.Address);
+				ms.Write(newVersionStringBytes);
+				regionStrings.TakeToAddress(state.Mapper.MapRomToRam(ms.Position), "SenPatcher version string");
+				ms.Position = state.Mapper.MapRamToRom(loadAddrTitleScreenVersionString);
+				ms.WriteUInt32((uint)(addressNewVersionString - loadAddrTitleScreenVersionStringOffset), EndianUtils.Endianness.LittleEndian);
+				ms.Position = state.Mapper.MapRamToRom(loadAddrCrashRptVersionString);
+				ms.WriteUInt32((uint)(addressNewVersionString - loadAddrCrashRptVersionStringOffset) + (uint)(versionString.Length - 4), EndianUtils.Endianness.LittleEndian);
+			}
+
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/x64/ed8_3_PC_JP.exe" : "bin/x64/ed8_3_PC.exe", ms) };
 		}
 
