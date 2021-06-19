@@ -3,6 +3,7 @@ using HyoutaUtils.Checksum;
 using SenLib;
 using SenLib.Sen1;
 using SenLib.Sen2;
+using SenLib.Sen3;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -37,6 +38,13 @@ namespace SenPatcherGui {
 			}
 			if (Directory.Exists(SenCommonPaths.Sen2GalaxyDir)) {
 				return SenCommonPaths.Sen2GalaxyDir;
+			}
+			return @"c:\";
+		}
+
+		private static string GetDefaultPathCS3() {
+			if (Directory.Exists(SenCommonPaths.Sen3SteamDir)) {
+				return SenCommonPaths.Sen3SteamDir;
 			}
 			return @"c:\";
 		}
@@ -317,6 +325,108 @@ namespace SenPatcherGui {
 			}
 
 			new Sen2SystemDataForm(data, path, HyoutaUtils.EndianUtils.Endianness.LittleEndian).ShowDialog();
+		}
+
+		private void buttonCS3Patch_Click(object sender, EventArgs e) {
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.CheckFileExists = false;
+				d.ValidateNames = false;
+				d.InitialDirectory = GetDefaultPathCS3();
+				d.FileName = "Sen3Launcher.exe";
+				d.Filter = "CS3 root game directory (Sen3Launcher.exe)|Sen3Launcher.exe|All files (*.*)|*.*";
+				if (d.ShowDialog() == DialogResult.OK) {
+					OpenCs3GameDir(d.FileName);
+				}
+			}
+		}
+
+		private class Cs3GameInitClass {
+			// input
+			public string Sen3LauncherPath;
+			public ProgressReporter Progress;
+
+			// output
+			public string Path;
+			public FileStorage Storage;
+
+			public bool ShouldProceedToPatchOptionWindow;
+
+			public Cs3GameInitClass(string launcherPath, ProgressReporter progress) {
+				Sen3LauncherPath = launcherPath;
+				Progress = progress;
+			}
+
+			public void Cs3GameInit() {
+				int CurrentProgress = 0;
+				int TotalProgress = 3;
+				bool shouldAutoCloseWindow = true;
+				try {
+					Progress.Message("Checking Sen3Launcher.exe...", CurrentProgress++, TotalProgress);
+					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(Sen3LauncherPath)) {
+						SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+						if (hash != new SHA1(0x21de3b088a5ddad7ul, 0xed1fdb8e40061497ul, 0xc248ca65u)) {
+							Progress.Error("Selected file does not appear to be Sen3Launcher.exe of version 1.05.");
+							Progress.Finish(false);
+							return;
+						}
+					}
+				} catch (Exception ex) {
+					Progress.Error("Error while validating Sen3Launcher.exe: " + ex.Message);
+					Progress.Finish(false);
+					return;
+				}
+
+				try {
+					Path = System.IO.Path.GetDirectoryName(Sen3LauncherPath);
+					Progress.Message("Initializing patch data...", CurrentProgress++, TotalProgress);
+					var files = Sen3KnownFiles.Files;
+					Progress.Message("Initializing game data...", CurrentProgress++, TotalProgress);
+					var storageInit = FileModExec.InitializeAndPersistFileStorage(Path, files, Progress);
+					Storage = storageInit?.Storage;
+					if (storageInit == null || storageInit.Errors.Count != 0) {
+						shouldAutoCloseWindow = false;
+					}
+				} catch (Exception ex) {
+					Progress.Error("Error while initializing CS3 patch/game data: " + ex.Message);
+					Progress.Finish(false);
+					return;
+				}
+
+				ShouldProceedToPatchOptionWindow = Path != null && Storage != null;
+				if (shouldAutoCloseWindow) {
+					Progress.Message("Initialized CS3 data, proceeding to patch options...", CurrentProgress, TotalProgress);
+				} else {
+					Progress.Message("", CurrentProgress, TotalProgress);
+					if (ShouldProceedToPatchOptionWindow) {
+						Progress.Error(
+							  "Encountered problems while initializing CS3 data. "
+							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
+							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
+							+ "Please also ensure you're trying to patch a compatible version of the game. (NISA release version 1.05; other game versions are not compatible, though if you own the EGS version I'd appreciate a report about file differences, if any!)"
+						);
+					} else {
+						Progress.Error(
+							  "Unrecoverable issues while initializing CS3 data. "
+							+ "Please ensure SenPatcher has read and write access to the selected game directory, then try again."
+						);
+					}
+				}
+				Progress.Finish(shouldAutoCloseWindow);
+			}
+		}
+
+		private void OpenCs3GameDir(string launcherPath) {
+			var progressForm = new ProgressForm();
+			var progress = progressForm.GetProgressReporter();
+			var init = new Cs3GameInitClass(launcherPath, progress);
+			var thread = new System.Threading.Thread(init.Cs3GameInit);
+			thread.Start();
+			progressForm.ShowDialog();
+
+			thread.Join();
+			if (init.ShouldProceedToPatchOptionWindow) {
+				new Sen3Form(init.Path, init.Storage).ShowDialog();
+			}
 		}
 	}
 }

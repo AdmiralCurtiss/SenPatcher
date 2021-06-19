@@ -30,6 +30,8 @@
 			this.buttonCS1Sysdata = new System.Windows.Forms.Button();
 			this.buttonCS2Sysdata = new System.Windows.Forms.Button();
 			this.buttonCS2Patch = new System.Windows.Forms.Button();
+			this.buttonCS3Patch = new System.Windows.Forms.Button();
+			this.label1 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// buttonCS1Patch
@@ -51,7 +53,7 @@
 			this.labelVersion.Location = new System.Drawing.Point(12, 9);
 			this.labelVersion.Name = "labelVersion";
 			this.labelVersion.Size = new System.Drawing.Size(317, 13);
-			this.labelVersion.TabIndex = 10;
+			this.labelVersion.TabIndex = 0;
 			this.labelVersion.Text = "SenPatcher v0.0";
 			this.labelVersion.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			// 
@@ -61,7 +63,7 @@
 			this.label2.Location = new System.Drawing.Point(12, 31);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(258, 13);
-			this.label2.TabIndex = 15;
+			this.label2.TabIndex = 1;
 			this.label2.Text = "Trails of Cold Steel I: (XSEED PC release version 1.6)";
 			// 
 			// label3
@@ -70,7 +72,7 @@
 			this.label3.Location = new System.Drawing.Point(9, 111);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(309, 13);
-			this.label3.TabIndex = 16;
+			this.label3.TabIndex = 4;
 			this.label3.Text = "Trails of Cold Steel II: (XSEED PC release version 1.4.1 or 1.4.2)";
 			// 
 			// buttonCS1Sysdata
@@ -80,7 +82,7 @@
 			this.buttonCS1Sysdata.Location = new System.Drawing.Point(12, 74);
 			this.buttonCS1Sysdata.Name = "buttonCS1Sysdata";
 			this.buttonCS1Sysdata.Size = new System.Drawing.Size(317, 21);
-			this.buttonCS1Sysdata.TabIndex = 17;
+			this.buttonCS1Sysdata.TabIndex = 3;
 			this.buttonCS1Sysdata.Text = "Edit System Save Data";
 			this.buttonCS1Sysdata.UseVisualStyleBackColor = true;
 			this.buttonCS1Sysdata.Click += new System.EventHandler(this.buttonCS1Sysdata_Click);
@@ -92,7 +94,7 @@
 			this.buttonCS2Sysdata.Location = new System.Drawing.Point(12, 154);
 			this.buttonCS2Sysdata.Name = "buttonCS2Sysdata";
 			this.buttonCS2Sysdata.Size = new System.Drawing.Size(317, 21);
-			this.buttonCS2Sysdata.TabIndex = 19;
+			this.buttonCS2Sysdata.TabIndex = 6;
 			this.buttonCS2Sysdata.Text = "Edit System Save Data";
 			this.buttonCS2Sysdata.UseVisualStyleBackColor = true;
 			this.buttonCS2Sysdata.Click += new System.EventHandler(this.buttonCS2Sysdata_Click);
@@ -104,16 +106,39 @@
 			this.buttonCS2Patch.Location = new System.Drawing.Point(12, 127);
 			this.buttonCS2Patch.Name = "buttonCS2Patch";
 			this.buttonCS2Patch.Size = new System.Drawing.Size(317, 21);
-			this.buttonCS2Patch.TabIndex = 18;
+			this.buttonCS2Patch.TabIndex = 5;
 			this.buttonCS2Patch.Text = "Patch game";
 			this.buttonCS2Patch.UseVisualStyleBackColor = true;
 			this.buttonCS2Patch.Click += new System.EventHandler(this.buttonCS2Patch_Click);
+			// 
+			// buttonCS3Patch
+			// 
+			this.buttonCS3Patch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonCS3Patch.Location = new System.Drawing.Point(12, 207);
+			this.buttonCS3Patch.Name = "buttonCS3Patch";
+			this.buttonCS3Patch.Size = new System.Drawing.Size(317, 21);
+			this.buttonCS3Patch.TabIndex = 8;
+			this.buttonCS3Patch.Text = "Patch game";
+			this.buttonCS3Patch.UseVisualStyleBackColor = true;
+			this.buttonCS3Patch.Click += new System.EventHandler(this.buttonCS3Patch_Click);
+			// 
+			// label1
+			// 
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(9, 191);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(259, 13);
+			this.label1.TabIndex = 7;
+			this.label1.Text = "Trails of Cold Steel III: (NISA PC release version 1.05)";
 			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(341, 184);
+			this.ClientSize = new System.Drawing.Size(341, 242);
+			this.Controls.Add(this.buttonCS3Patch);
+			this.Controls.Add(this.label1);
 			this.Controls.Add(this.buttonCS2Sysdata);
 			this.Controls.Add(this.buttonCS2Patch);
 			this.Controls.Add(this.buttonCS1Sysdata);
@@ -136,6 +161,8 @@
 		private System.Windows.Forms.Button buttonCS1Sysdata;
 		private System.Windows.Forms.Button buttonCS2Sysdata;
 		private System.Windows.Forms.Button buttonCS2Patch;
+		private System.Windows.Forms.Button buttonCS3Patch;
+		private System.Windows.Forms.Label label1;
 	}
 }
 
