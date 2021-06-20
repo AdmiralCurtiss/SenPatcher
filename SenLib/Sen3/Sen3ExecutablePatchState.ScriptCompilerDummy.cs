@@ -22,6 +22,7 @@ namespace SenLib.Sen3 {
 			RegionScriptCompilerFunctionStrings2 = SenUtils.InitRegion64("ScriptCompilerFunctionStrings2", jp ? 0x14080d3d0 : 0x1408213a8, jp ? 0x14080d3e9 : 0x1408213dc, mapper, bin, 0);
 			SenUtils.JumpOverCode(RegionScriptCompilerFunctionCallSite1, Mapper, bin);
 			SenUtils.JumpOverCode(RegionScriptCompilerFunctionCallSite2, Mapper, bin);
+			RegionScriptCompilerFunction.Take(1, "Old function call protection");
 		}
 	}
 }

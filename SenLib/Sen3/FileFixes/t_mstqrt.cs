@@ -55,15 +55,15 @@ namespace SenLib.Sen3.FileFixes {
 			}
 
 			// attach sentinel '$' to the strings where the values need to be swapped
-			AttachSentinel(tbl_fr, 66);
+			AttachSentinel(tbl_fr, 67);
 			foreach (Tbl tbl in new Tbl[] { tbl_en, tbl_fr }) {
-				AttachSentinel(tbl, 122);
-				AttachSentinel(tbl, 136);
-				AttachSentinel(tbl, 192);
-				AttachSentinel(tbl, 220);
-				AttachSentinel(tbl, 290);
-				AttachSentinel(tbl, 346);
-				AttachSentinel(tbl, 390);
+				AttachSentinel(tbl, 123);
+				AttachSentinel(tbl, 137);
+				AttachSentinel(tbl, 193);
+				AttachSentinel(tbl, 221);
+				AttachSentinel(tbl, 291);
+				AttachSentinel(tbl, 347);
+				AttachSentinel(tbl, 391);
 			}
 
 			// also while we're here fix this missing newline in the FR file...

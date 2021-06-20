@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace SenLib {
 	public static class Version {
-		public static string SenPatcherVersion = "0.7";
+		public static string SenPatcherVersion = "0.7.1";
 	}
 }

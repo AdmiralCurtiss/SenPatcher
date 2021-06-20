@@ -103,5 +103,11 @@ namespace SenLib {
 			long absoluteHere = mapper.MapRomToRam(bin.Position + 4);
 			bin.WriteUInt32((uint)(int)(absoluteTarget - absoluteHere), EndianUtils.Endianness.LittleEndian);
 		}
+
+		public static (byte jmpbyte, long address) ReadJump5Byte_x64(Stream bin, HyoutaPluginBase.IRomMapper mapper) {
+			byte jmpbyte = bin.ReadUInt8();
+			long relativeAddress = bin.ReadInt32(EndianUtils.Endianness.LittleEndian);
+			return (jmpbyte, relativeAddress + mapper.MapRomToRam(bin.Position));
+		}
 	}
 }

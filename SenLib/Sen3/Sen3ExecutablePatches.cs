@@ -24,6 +24,7 @@ namespace SenLib.Sen3 {
 
 		public static void SwapBrokenMasterQuartzValuesForDisplay(Stream bin, Sen3ExecutablePatchState state) {
 			if (state.IsJp) return; // JP doesn't have this bug, so nothing to fix
+			var be = EndianUtils.Endianness.BigEndian;
 
 			// on function entry:
 			// r8w -> 0, 1, or 2 depending on which part of the description to print
@@ -39,7 +40,62 @@ namespace SenLib.Sen3 {
 			// before the sprintf call, we check if this sentinel character is there
 			// if yes we swap xmm3 and xmm1, and advance string ptr by 1
 
-			var be = EndianUtils.Endianness.BigEndian;
+			// stack from rsp+31h to rsp+37h looks unused, so stash our sentinel check flag in there... rsp+34h looks good
+
+
+			// first initialize sentinel check flag on stack near start of function
+			using (var jump_to_inject = new BranchHelper4Byte(bin, state.Mapper))
+			using (var return_to_function = new BranchHelper4Byte(bin, state.Mapper))
+			using (var replaced_call = new BranchHelper4Byte(bin, state.Mapper)) {
+				bin.Position = state.Mapper.MapRamToRom(0x14027fce4);
+				var call = SenUtils.ReadJump5Byte_x64(bin, state.Mapper);
+				replaced_call.SetTarget((ulong)call.address);
+				return_to_function.SetTarget((ulong)state.Mapper.MapRomToRam(bin.Position));
+				bin.Position -= 5;
+				jump_to_inject.WriteJump5Byte(0xe9);
+
+				var codespace = state.RegionScriptCompilerFunction;
+				bin.Position = state.Mapper.MapRamToRom(codespace.Address);
+				jump_to_inject.SetTarget((ulong)codespace.Address);
+
+				replaced_call.WriteJump5Byte(call.jmpbyte);
+				bin.WriteUInt40(0xc644243400, be); // mov byte ptr [rsp+34h],0
+				return_to_function.WriteJump5Byte(0xe9);
+
+				codespace.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Master Quartz description: Initialization");
+			}
+
+			// on strncat() call that appends the description string, check for the sentinel; if it's there skip it and set the flag on the stack
+			using (var jump_to_inject = new BranchHelper4Byte(bin, state.Mapper))
+			using (var return_to_function = new BranchHelper4Byte(bin, state.Mapper))
+			using (var return_to_function_short = new BranchHelper1Byte(bin, state.Mapper)) {
+				bin.Position = state.Mapper.MapRamToRom(0x1402800ed);
+				ulong instr1 = bin.ReadUInt48(be);
+				ulong instr2 = bin.ReadUInt40(be);
+				bin.Position -= 6;
+				return_to_function.SetTarget((ulong)state.Mapper.MapRomToRam(bin.Position));
+				bin.WriteUInt48(instr1, be);
+				bin.Position -= 11;
+				jump_to_inject.WriteJump5Byte(0xe9);
+
+				var codespace = state.RegionScriptCompilerFunction;
+				bin.Position = state.Mapper.MapRamToRom(codespace.Address);
+				jump_to_inject.SetTarget((ulong)codespace.Address);
+
+				bin.WriteUInt40(instr2, be);
+				// rdx contains the address of the string, r8d is free to use (will be overwritten after jmp return_to_function)
+				bin.WriteUInt24(0x448a02, be);             // mov r8b,byte ptr[rdx]
+				bin.WriteUInt32(0x4180f824, be);           // cmp r8b,24h
+				return_to_function_short.WriteJump(0x75);  // jne return_to_function_short
+				bin.WriteUInt40(0xc644243401, be);         // mov byte ptr [rsp+34h],1
+				bin.WriteUInt24(0x48ffc2, be);             // inc rdx
+				return_to_function_short.SetTarget((ulong)state.Mapper.MapRomToRam(bin.Position));
+				return_to_function.WriteJump5Byte(0xe9);
+
+				codespace.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Master Quartz description: Check sentinel and set flag on stack");
+			}
+
+			// check sentinel flag and fix up parameters if it's set
 			using (var jump_to_inject = new BranchHelper4Byte(bin, state.Mapper))
 			using (var return_to_function = new BranchHelper4Byte(bin, state.Mapper))
 			using (var exit_without_swap = new BranchHelper1Byte(bin, state.Mapper)) {
@@ -48,15 +104,13 @@ namespace SenLib.Sen3 {
 				jump_to_inject.WriteJump5Byte(0xe9);
 				return_to_function.SetTarget((ulong)state.Mapper.MapRomToRam(bin.Position));
 
-				// check sentinel and fix up parameters if we find it
-				var codespace = state.RegionScriptCompilerFunctionCallSite1;
+				var codespace = state.RegionScriptCompilerFunction;
 				bin.Position = state.Mapper.MapRamToRom(codespace.Address);
 				jump_to_inject.SetTarget((ulong)codespace.Address);
 
-				bin.WriteUInt24(0x458a08, be);      // mov r9b,byte ptr[r8]
-				bin.WriteUInt32(0x4180f924, be);    // cmp r9b,24h
-				exit_without_swap.WriteJump(0x75);  // jne exit_without_swap
-				bin.WriteUInt24(0x49ffc0, be);      // inc r8
+				bin.WriteUInt40(0x448a4c2434, be);  // mov r9b,byte ptr[rsp+34h]
+				bin.WriteUInt24(0x4584c9, be);      // test r9b,r9b
+				exit_without_swap.WriteJump(0x74);  // jz exit_without_swap
 				bin.WriteUInt32(0xf30f7ed3, be);    // movq xmm2,xmm3
 				bin.WriteUInt32(0xf30f7ed9, be);    // movq xmm3,xmm1
 				bin.WriteUInt32(0xf30f7eca, be);    // movq xmm1,xmm2
@@ -64,7 +118,7 @@ namespace SenLib.Sen3 {
 				bin.WriteUInt40(overwrittenInstruction, be);
 				return_to_function.WriteJump5Byte(0xe9);
 
-				codespace.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Master Quartz description: Swap params on sentinel");
+				codespace.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Master Quartz description: Swap params on sentinel flag");
 			}
 		}
 	}
