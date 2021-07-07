@@ -11,6 +11,7 @@ using System.Windows.Forms;
 namespace SenPatcherGui {
 	public partial class TextDisplayForm : Form {
 		public TextDisplayForm(string name, string text) {
+			SenLib.Logging.Log("Initializing text display window.");
 			InitializeComponent();
 			this.Text = name;
 			this.textBox1.Text = text;

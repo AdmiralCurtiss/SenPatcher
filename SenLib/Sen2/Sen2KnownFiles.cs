@@ -22,6 +22,7 @@ namespace SenLib.Sen2 {
 			}
 		}
 		private static KnownFile[] InitKnownFiles() {
+			Logging.Log("Initializing CS2 file data.");
 		return new KnownFile[] {
 			new KnownFile(new SHA1(0x92de0d29c0ad4a9eul, 0xa935870674976924ul, 0xd5df756du), "data/text/dat_us/t_magic.tbl", "senpatcher_bkp/data_text_dat_us_t_magic.tbl"),
 			new KnownFile(new SHA1(0x7a68747acbd132c5ul, 0x215ea9c7543c37f1ul, 0x46b39d63u), "data/scripts/book/dat_us/book00.dat"),

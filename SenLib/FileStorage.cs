@@ -84,37 +84,46 @@ namespace SenLib {
 			List<(KnownFile file, List<string> errors)> errors = new List<(KnownFile file, List<string> errors)>();
 
 			if (existingBackupArchive != null) {
+				SenLib.Logging.Log(string.Format("Existing backup archive found, contains {0} files.", existingBackupArchive.Filecount));
 				for (long i = 0; i < existingBackupArchive.Filecount; ++i) {
 					using (var file = existingBackupArchive.GetChildByIndex(i).AsFile)
 					using (var filestream = file.DataStream.Duplicate()) {
 						var hash = ChecksumUtils.CalculateSHA1ForEntireStream(filestream);
+						SenLib.Logging.Log(string.Format("Already contains file: {0}", hash.ToString()));
 						storage.Add(hash, filestream.CopyToByteArrayStreamAndDispose(), true);
 					}
 				}
 			}
 
+			SenLib.Logging.Log("Looking for known files...");
 			bool shouldWriteBackupArchive = false;
 			foreach (KnownFile knownFile in knownFiles) {
 				if (storage.Contains(knownFile.Hash)) {
+					SenLib.Logging.Log(string.Format("File {0} already in archive, no need to search.", knownFile.Hash.ToString()));
 					continue;
 				}
 
+				SenLib.Logging.Log(string.Format("File {0} not in archive...", knownFile.Hash.ToString()));
 				List<string> localErrors = new List<string>();
 				bool success = false;
 				foreach (KnownFileAcquisitionMethod acquisitionMethod in knownFile.AcquisitionMethods) {
 					try {
 						if (acquisitionMethod is KnownFileAcquisitionFromStream) {
+							SenLib.Logging.Log("Trying acquisition from stream...");
 							var method = acquisitionMethod as KnownFileAcquisitionFromStream;
 							using (var stream = method.Data.Duplicate()) {
 								if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
+									SenLib.Logging.Log(string.Format("Acquired {0} from stream!", knownFile.Hash.ToString()));
 									storage.Add(knownFile.Hash, stream, method.WriteToBackup);
 									success = true;
 									if (method.WriteToBackup) {
+										SenLib.Logging.Log("Marking file to write to backup.");
 										shouldWriteBackupArchive = true;
 									}
 									break;
 								} else {
 									// this should never happen...
+									SenLib.Logging.Log("Internal stream seems to be corrupted.");
 									localErrors.Add("Internal stream seems to be corrupted.");
 									continue;
 								}
@@ -123,63 +132,80 @@ namespace SenLib {
 							var method = acquisitionMethod as KnownFileAcquisitionFromGamefile;
 							string filename = method.Path;
 							string path = System.IO.Path.Combine(basePath, filename);
+							SenLib.Logging.Log(string.Format("Trying acquisition from file at {0}...", path));
 							if (System.IO.File.Exists(path)) {
 								using (var stream = new HyoutaUtils.Streams.DuplicatableFileStream(path)) {
 									if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
+										SenLib.Logging.Log(string.Format("Acquired {0} from file!", knownFile.Hash.ToString()));
 										storage.Add(knownFile.Hash, stream.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
 										success = true;
 										if (method.WriteToBackup) {
+											SenLib.Logging.Log("Marking file to write to backup.");
 											shouldWriteBackupArchive = true;
 										}
 										break;
 									} else {
-										localErrors.Add(string.Format("File {0} does not match expected hash.", filename));
+										string error = string.Format("File {0} does not match expected hash.", filename);
+										localErrors.Add(error);
+										SenLib.Logging.Log(error);
 										continue;
 									}
 								}
 							} else {
-								localErrors.Add(string.Format("File {0} does not exist.", filename));
+								string error = string.Format("File {0} does not exist.", filename);
+								localErrors.Add(error);
+								SenLib.Logging.Log(error);
 								continue;
 							}
 						} else if (acquisitionMethod is KnownFileAcquisitionFromBpsPatch) {
 							var method = acquisitionMethod as KnownFileAcquisitionFromBpsPatch;
+							SenLib.Logging.Log(string.Format("Trying acquisition via patch from {0}...", method.BasefileHash));
 							using (var basestream = storage.TryGetDuplicate(method.BasefileHash)) {
 								if (basestream != null) {
 									using (var bps = method.BpsData.Duplicate())
 									using (var target = new System.IO.MemoryStream()) {
 										HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(basestream, bps, target);
 										if (ChecksumUtils.CalculateSHA1ForEntireStream(target) == knownFile.Hash) {
+											SenLib.Logging.Log(string.Format("Acquired {0} via patch!", knownFile.Hash.ToString()));
 											storage.Add(knownFile.Hash, target.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
 											success = true;
 											if (method.WriteToBackup) {
+												SenLib.Logging.Log("Marking file to write to backup.");
 												shouldWriteBackupArchive = true;
 											}
 											break;
 										} else {
 											// this is very unlikely, this means the basefile hase a matching hash but is not the expected file
 											localErrors.Add("Patch did not apply correctly.");
+											SenLib.Logging.Log("Patch did not apply correctly.");
 											continue;
 										}
 									}
 								} else {
-									localErrors.Add(string.Format("Couldn't find base file with hash {0}.", method.BasefileHash));
+									string error = string.Format("Couldn't find base file with hash {0}.", method.BasefileHash);
+									localErrors.Add(error);
+									SenLib.Logging.Log(error);
 									continue;
 								}
 							}
 						} else {
 							// shouldn't happen
+							SenLib.Logging.Log("Unknown acquisition type.");
 							localErrors.Add("Internal error.");
 							continue;
 						}
 					} catch (Exception ex) {
 						// something happened, go to the next method and keep the exception message for now
+						SenLib.Logging.Log(ex.ToString());
 						localErrors.Add(ex.Message);
 					}
 				}
 
 				if (!success && knownFile.Important) {
+					string error = string.Format("Failed to find unmodified copy of game file with hash {0}.", knownFile.Hash);
+					SenLib.Logging.Log(error);
 					if (localErrors.Count == 0) {
-						localErrors.Add(string.Format("Failed to find unmodified copy of game file with hash {0}.", knownFile.Hash));
+						localErrors.Add(error);
 					}
 					errors.Add((knownFile, localErrors));
 				}

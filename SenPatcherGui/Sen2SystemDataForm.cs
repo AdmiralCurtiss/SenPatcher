@@ -43,6 +43,7 @@ namespace SenPatcherGui {
 		private EndianUtils.Endianness Endian;
 
 		public Sen2SystemDataForm(Sen2SystemData data, string path, EndianUtils.Endianness endian) {
+			SenLib.Logging.Log("Initializing CS2 System Data edit GUI.");
 			this.SystemData = data;
 			this.SystemDataPath = path;
 			this.Endian = endian;
@@ -111,6 +112,7 @@ namespace SenPatcherGui {
 			WriteBackButtonMapping(comboBoxR1.SelectedItem as ButtonMapping, ref SystemData.R1ButtonMapping);
 			WriteBackButtonMapping(comboBoxCircle.SelectedItem as ButtonMapping, ref SystemData.CircleButtonMapping);
 
+			SenLib.Logging.Log(string.Format("Saving CS2 system data to {0}", SystemDataPath));
 			using (var fs = new FileStream(SystemDataPath, FileMode.Create, FileAccess.Write)) {
 				SystemData.SerializeToStream(fs, Endian);
 			}

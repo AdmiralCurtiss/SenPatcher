@@ -11,6 +11,7 @@ namespace SenPatcherGui {
 		/// </summary>
 		[STAThread]
 		static void Main() {
+			SenLib.Logging.LogToFile = true;
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(new MainForm());

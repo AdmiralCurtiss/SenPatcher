@@ -10,22 +10,29 @@ using System.Threading.Tasks;
 namespace SenLib {
 	public static class SenUtils {
 		public static bool TryWriteFileIfDifferent(Stream stream, string path) {
+			SenLib.Logging.Log(string.Format("Writing file to {0} if different...", path));
+
 			if (File.Exists(path)) {
 				try {
 					using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
 						if (fs.Length == stream.Length) {
 							if (fs.CopyToByteArray().SequenceEqual(stream.CopyToByteArray())) {
+								SenLib.Logging.Log(string.Format("File {0} already identical with intended write.", path));
 								return true; // file is already the same, don't need to write
 							}
 						}
 					}
-				} catch (Exception) { }
+				} catch (Exception ex) {
+					SenLib.Logging.Log(string.Format("Error while checking file {0} for difference: {1}", path, ex.ToString()));
+				}
 			}
 
 			return TryWriteFile(stream, path);
 		}
 
 		public static bool TryWriteFile(Stream stream, string path) {
+			SenLib.Logging.Log(string.Format("Writing file to {0}...", path));
+
 			long pos = stream.Position;
 			try {
 				using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write)) {
@@ -33,22 +40,28 @@ namespace SenLib {
 					StreamUtils.CopyStream(stream, fs);
 				}
 				stream.Position = pos;
+				SenLib.Logging.Log(string.Format("Successfully wrote file {0}", path));
 				return true;
-			} catch (Exception) {
+			} catch (Exception ex) {
 				stream.Position = pos;
+				SenLib.Logging.Log(string.Format("Error while writing file {0}: {1}", path, ex.ToString()));
 				return false;
 			}
 		}
 
 		public static bool TryDeleteFile(string path) {
+			SenLib.Logging.Log(string.Format("Deleting {0} if exists...", path));
 			if (!File.Exists(path)) {
+				SenLib.Logging.Log(string.Format("{0} does not exist.", path));
 				return true;
 			}
 
 			try {
 				File.Delete(path);
+				SenLib.Logging.Log(string.Format("Successfully deleted {0}", path));
 				return true;
-			} catch (Exception) {
+			} catch (Exception ex) {
+				SenLib.Logging.Log(string.Format("Error while deleting file {0}: {1}", path, ex.ToString()));
 				return false;
 			}
 		}

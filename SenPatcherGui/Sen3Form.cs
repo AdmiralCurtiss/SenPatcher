@@ -18,6 +18,7 @@ namespace SenPatcherGui {
 		private FileStorage Storage;
 
 		public Sen3Form(string path, FileStorage storage) {
+			SenLib.Logging.Log(string.Format("Initializing CS3 GUI for patching at {0}.", path));
 			Path = path;
 			Storage = storage;
 
@@ -30,6 +31,7 @@ namespace SenPatcherGui {
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
 			try {
+				SenLib.Logging.Log("Patching CS3.");
 				bool fixButtonRemapping = checkBoxFixButtonRemapping.Checked;
 				bool allowNightmare = checkBoxAllowNightmare.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
@@ -56,6 +58,7 @@ namespace SenPatcherGui {
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
 			try {
+				SenLib.Logging.Log("Unpatching CS3.");
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen3Mods.GetExecutableMods());
 				mods.AddRange(Sen3Mods.GetAssetMods());

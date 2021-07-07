@@ -23,6 +23,7 @@ namespace SenLib {
 		// - if 'fix' is true  -> the correctness state of the files after this call; so if true we either found no issues or we fixed them all
 		public static bool FixupIncorrectEncodingInFilenames(string gamepath, int sengame, bool fix, ProgressReporter progress) {
 			try {
+				Logging.Log(string.Format("Filename encoding check at {0} for game {1}, fix: {2}.", gamepath, sengame, fix));
 				if (sengame == 1) {
 					bool s1 = FixEffectsSamples(gamepath, cs1: true, fix: fix, progress: progress);
 					bool s2 = FixSoundEffectsCS1(gamepath, fix: fix, progress: progress);
@@ -85,16 +86,19 @@ namespace SenLib {
 			string sampledir = Path.Combine(gamepath, subdir);
 			if (!Directory.Exists(sampledir)) {
 				// something is busted but it's not the filenames, we can't do anything about this
+				Logging.Log(string.Format("{0} does not exist.", sampledir));
 				return false;
 			}
 
 			foreach (FileSystemInfo f in new DirectoryInfo(sampledir).GetFileSystemInfos()) {
+				Logging.Log(string.Format("Checking {0}...", f.FullName));
 				string path;
 				string name;
 				bool deleteDir;
 				if (f is DirectoryInfo) {
 					// for the known encoding errors, this must always be a subdir with exactly one file in it
 					var subdirinfos = ((DirectoryInfo)f).GetFileSystemInfos();
+					Logging.Log(string.Format("{0} is directory, has {1} subobjects.", f.FullName, subdirinfos.Length));
 					if (subdirinfos.Length != 1 || !(subdirinfos[0] is FileInfo)) {
 						continue;
 					}
@@ -102,16 +106,19 @@ namespace SenLib {
 					name = $"{f.Name}/{subdirinfos[0].Name}";
 					deleteDir = true;
 				} else if (f is FileInfo) {
+					Logging.Log(string.Format("{0} is file.", f.FullName));
 					path = f.FullName;
 					name = f.Name;
 					deleteDir = false;
 				} else {
+					Logging.Log(string.Format("{0} is neither?", f.FullName));
 					continue;
 				}
 
 				HashWithName target;
 				using (DuplicatableFileStream fs = new DuplicatableFileStream(path)) {
 					SHA1 hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					Logging.Log(string.Format("{0} => {1}", f.FullName, hash.ToString()));
 					target = files.FirstOrDefault(x => x.Hash == hash);
 				}
 				if (target != null && name != target.Name) {
@@ -133,9 +140,11 @@ namespace SenLib {
 
 			if (fix) {
 				// either we didn't encounter any issues or we fixed them
+				Logging.Log("Returning true.");
 				return true;
 			} else {
 				// we didn't encounter any issues, so report that this folder does not need fixing
+				Logging.Log("Returning false.");
 				return false;
 			}
 		}
@@ -148,6 +157,7 @@ namespace SenLib {
 			string targetdir = Path.Combine(gamepath, subdir);
 			if (!Directory.Exists(targetdir)) {
 				// can't do anything here
+				Logging.Log(string.Format("{0} does not exist.", targetdir));
 				return false;
 			}
 
@@ -157,12 +167,15 @@ namespace SenLib {
 				SHA1? hash;
 				using (DuplicatableFileStream fs = new DuplicatableFileStream(f.FullName)) {
 					hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					Logging.Log(string.Format("{0} => {1}", f.FullName, hash.ToString()));
 				}
 				if (hash != null && hash.Value == targethash) {
 					if (f.Name == targetName) {
 						if (fix) {
+							Logging.Log("Returning true.");
 							return true; // this is already fixed
 						} else {
+							Logging.Log("Returning false.");
 							return false; // does not need fixing
 						}
 					} else if (f.Name == asciiName) {
@@ -180,11 +193,13 @@ namespace SenLib {
 						// we have a broken encoding file, move it
 						progress.Message(string.Format("Renaming {0} to {1}", otherFileInfo.FullName, targetName));
 						FileMoveOrRemoveSource(otherFileInfo.FullName, Path.Combine(targetdir, targetName), targethash);
+						Logging.Log("Returning true.");
 						return true;
 					} else {
 						// we have the ascii m file, this might be from a previous patch run, so just copy it
 						progress.Message(string.Format("Copying {0} to {1}", asciiFileInfo.FullName, targetName));
 						FileCopyIfTargetNotExists(asciiFileInfo.FullName, Path.Combine(targetdir, targetName), targethash);
+						Logging.Log("Returning true.");
 						return true;
 					}
 				} else {
@@ -194,11 +209,13 @@ namespace SenLib {
 					} else {
 						progress.Message(string.Format("Missing file {0}, but can be copied from {1}", targetName, asciiFileInfo.Name));
 					}
+					Logging.Log("Returning true.");
 					return true;
 				}
 			}
 
 			// we can't fix this
+			Logging.Log("Returning false.");
 			return false;
 		}
 
@@ -206,6 +223,7 @@ namespace SenLib {
 			string subdir = "data/chr/npc";
 			string targetdir = Path.Combine(gamepath, subdir);
 			if (!Directory.Exists(targetdir)) {
+				Logging.Log(string.Format("{0} does not exist.", targetdir));
 				return false;
 			}
 
@@ -214,16 +232,19 @@ namespace SenLib {
 			DirectoryInfo wrongdir = null;
 			DirectoryInfo rightdir = null;
 			foreach (DirectoryInfo d in new DirectoryInfo(targetdir).EnumerateDirectories()) {
+				Logging.Log(string.Format("Checking {0}", d.FullName));
 				if (!d.Name.StartsWith("npc", StringComparison.InvariantCultureIgnoreCase)) {
 					if (d.Name == targetname) {
 						if (rightdir != null) {
 							// this should not be possible, bail
+							Logging.Log("Returning false.");
 							return false;
 						}
 						rightdir = d;
 					} else {
 						if (wrongdir != null) {
 							// this is the second unknown dir, we have a problem
+							Logging.Log("Returning false.");
 							return false;
 						}
 						wrongdir = d;
@@ -232,14 +253,17 @@ namespace SenLib {
 			}
 			if (rightdir == null && wrongdir == null) {
 				// couldn't find any dir, give up
+				Logging.Log("Returning false.");
 				return false;
 			}
 			if (rightdir != null && wrongdir == null) {
 				// this folder already has the correct name and there is no wrong one, nothing do to here
 				if (fix) {
+					Logging.Log("Returning true.");
 					return true;
 				} else {
 					// we didn't encounter any issues, so report that this folder does not need fixing
+					Logging.Log("Returning false.");
 					return false;
 				}
 			}
@@ -249,24 +273,29 @@ namespace SenLib {
 			if (File.Exists(infpath)) {
 				using (DuplicatableFileStream fs = new DuplicatableFileStream(infpath)) {
 					hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					Logging.Log(string.Format("{0} => {1}", infpath, hash.ToString()));
 				}
 				if (hash == new SHA1(0x6a2a9964df308b23ul, 0x307e436580efd036ul, 0x67c0ac08u)) {
 					if (fix) {
 						progress.Message(string.Format("Renaming {0} to {1}", wrongdir.FullName, targetname));
 						DirectoryMoveOrRemoveSource(wrongdir.FullName, Path.Combine(gamepath, subdir, targetname));
 						// we fixed it
+						Logging.Log("Returning true.");
 						return true;
 					} else {
 						// this is in need of fixing
 						progress.Message(string.Format("Found incorrect folder {0}, should be {1}", wrongdir.FullName, targetname));
+						Logging.Log("Returning true.");
 						return true;
 					}
 				} else {
 					// not the right file, can't fix anything here
+					Logging.Log("Returning false.");
 					return false;
 				}
 			} else {
 				// not the right directory, we can't fix anything here
+				Logging.Log("Returning false.");
 				return false;
 			}
 		}
@@ -275,12 +304,14 @@ namespace SenLib {
 			string targetdir = Path.Combine(gamepath, subdir);
 			if (!Directory.Exists(targetdir)) {
 				// can't do anything here
+				Logging.Log(string.Format("{0} does not exist.", targetdir));
 				return false;
 			}
 
 			var dirinfos = new DirectoryInfo(targetdir).GetDirectories();
 			if (!(dirinfos.Length == 1 || dirinfos.Length == 2)) {
 				// there should only be one subdirectory here, but we allow 2 in case we have the real one + a wrong one from a file restore
+				Logging.Log("Returning false.");
 				return false;
 			}
 			string targetname = "\u6ca1_\u30ac\u30c8\u30ea\u30f3\u30b0\u30ac\u30f3";
@@ -290,10 +321,12 @@ namespace SenLib {
 				bool dir1isreal = dirinfos[1].Name == targetname;
 				if (dir0isreal && dir1isreal) {
 					// both are right, this should never happen but pretend we fixed I guess???
+					Logging.Log("Returning true.");
 					return true;
 				}
 				if (!dir0isreal && !dir1isreal) {
 					// both are wrong, dunno what to do here
+					Logging.Log("Returning false.");
 					return false;
 				}
 				dirinfo = dir0isreal ? dirinfos[1] : dirinfos[0];
@@ -304,9 +337,11 @@ namespace SenLib {
 			if (targetname == dirinfo.Name) {
 				// we're good
 				if (fix) {
+					Logging.Log("Returning true.");
 					return true;
 				} else {
 					// nothing to fix
+					Logging.Log("Returning false.");
 					return false;
 				}
 			}
@@ -316,24 +351,29 @@ namespace SenLib {
 				SHA1? hash;
 				using (DuplicatableFileStream fs = new DuplicatableFileStream(infpath)) {
 					hash = HyoutaUtils.ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					Logging.Log(string.Format("{0} => {1}", infpath, hash.ToString()));
 				}
 				if (hash == new SHA1(0xe773a19f67feba62ul, 0xbb16ef2112eab24dul, 0xc3b7bd83u)) {
 					if (fix) {
 						progress.Message(string.Format("Renaming {0} to {1}", dirinfo.FullName, targetname));
 						DirectoryMoveOrRemoveSource(dirinfo.FullName, Path.Combine(gamepath, subdir, targetname));
 						// fixed it
+						Logging.Log("Returning true.");
 						return true;
 					} else {
 						// in need of fixing
 						progress.Message(string.Format("Found incorrect folder {0}, should be {1}", dirinfo.FullName, targetname));
+						Logging.Log("Returning true.");
 						return true;
 					}
 				} else {
 					// file is not what we expected, can't fix this
+					Logging.Log("Returning false.");
 					return false;
 				}
 			} else {
 				// file doesn't exist, clearly we have the wrong folder, can't do anything
+				Logging.Log("Returning false.");
 				return false;
 			}
 		}
@@ -345,8 +385,10 @@ namespace SenLib {
 						throw new Exception(string.Format("File {0} mismatches expected SHA1 of {1}.", target, hash.ToString()));
 					}
 				}
+				Logging.Log(string.Format("Deleting {0}", source));
 				File.Delete(source);
 			} else {
+				Logging.Log(string.Format("Moving {0} to {1}", source, target));
 				File.Move(source, target);
 			}
 		}
@@ -359,6 +401,7 @@ namespace SenLib {
 					}
 				}
 			} else {
+				Logging.Log(string.Format("Copying {0} to {1}", source, target));
 				File.Copy(source, target);
 			}
 		}
@@ -366,8 +409,10 @@ namespace SenLib {
 		private static void DirectoryMoveOrRemoveSource(string source, string target) {
 			if (Directory.Exists(target)) {
 				ThrowIfNotDirectoriesHaveIdenticalContent(source, target);
+				Logging.Log(string.Format("Deleting {0}", source));
 				Directory.Delete(source, true);
 			} else {
+				Logging.Log(string.Format("Moving {0} to {1}", source, target));
 				Directory.Move(source, target);
 			}
 		}

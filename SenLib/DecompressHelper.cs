@@ -14,6 +14,7 @@ namespace SenLib {
 		}
 
 		public static Stream DecompressFromStream(Stream instream) {
+			Logging.Log(string.Format("Decompressing {0} bytes", instream.Length));
 			instream.Position = 0;
 			int filter = instream.ReadUInt8();
 

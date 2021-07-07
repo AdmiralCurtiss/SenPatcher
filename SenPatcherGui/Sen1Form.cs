@@ -18,6 +18,7 @@ namespace SenPatcherGui {
 		private FileStorage Storage;
 
 		public Sen1Form(string path, FileStorage storage) {
+			SenLib.Logging.Log(string.Format("Initializing CS1 GUI for patching at {0}.", path));
 			Path = path;
 			Storage = storage;
 
@@ -49,6 +50,7 @@ namespace SenPatcherGui {
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
 			try {
+				SenLib.Logging.Log("Patching CS1.");
 				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 				bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
 				int turboKey = comboBoxTurboModeKey.SelectedIndex;
@@ -80,6 +82,7 @@ namespace SenPatcherGui {
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
 			try {
+				SenLib.Logging.Log("Unpatching CS1.");
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen1Mods.GetExecutableMods());
 				mods.AddRange(Sen1Mods.GetAssetMods());

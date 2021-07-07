@@ -22,6 +22,7 @@ namespace SenLib.Sen3 {
 			}
 		}
 		private static KnownFile[] InitKnownFiles() {
+			Logging.Log("Initializing CS3 file data.");
 			return new KnownFile[] {
 			new KnownFile(new SHA1(0x9c78d23b2b80fa5aul, 0x0042caf00dc67244ul, 0xd6265d25u), DecompressHelper.DecompressFromBuffer(Properties.Resources.v00_e0441).CopyToByteArrayStreamAndDispose(), writeToBackup: false),
 			new KnownFile(new SHA1(0xac35607991b8d7b2ul, 0xe1e1b9cbd4deb578ul, 0x45697915u), DecompressHelper.DecompressFromBuffer(Properties.Resources.v00_s0027).CopyToByteArrayStreamAndDispose(), writeToBackup: false),

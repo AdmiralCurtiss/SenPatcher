@@ -189,6 +189,7 @@
     <Compile Include="FilenameFix.cs" />
     <Compile Include="FileStorage.cs" />
     <Compile Include="KnownFile.cs" />
+    <Compile Include="Logging.cs" />
     <Compile Include="PatchResult.cs" />
     <Compile Include="PeExe.cs" />
     <Compile Include="Pkg.cs" />

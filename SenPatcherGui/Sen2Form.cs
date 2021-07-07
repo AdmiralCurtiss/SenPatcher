@@ -18,6 +18,7 @@ namespace SenPatcherGui {
 		private FileStorage Storage;
 
 		public Sen2Form(string path, FileStorage storage) {
+			SenLib.Logging.Log(string.Format("Initializing CS2 GUI for patching at {0}.", path));
 			Path = path;
 			Storage = storage;
 
@@ -30,6 +31,7 @@ namespace SenPatcherGui {
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
 			try {
+				SenLib.Logging.Log("Patching CS2.");
 				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 				bool patchAudioThread = checkBoxPatchAudioThread.Checked;
 				int audioThreadDivisor = 1000;
@@ -61,6 +63,7 @@ namespace SenPatcherGui {
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
 			try {
+				SenLib.Logging.Log("Unpatching CS2.");
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen2Mods.GetExecutableMods());
 				mods.AddRange(Sen2Mods.GetAssetMods());

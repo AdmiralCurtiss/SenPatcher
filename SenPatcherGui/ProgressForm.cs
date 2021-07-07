@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,15 +24,21 @@ namespace SenPatcherGui {
 				Parent = parent;
 			}
 
-			public void Message(string msg, int current = -1, int total = -1) {
+			public void Message(string msg, int current = -1, int total = -1, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0) {
+				if (current != -1 && total != -1) {
+					SenLib.Logging.LogForwarded(string.Format("Progress: {0}/{1}", current, total), memberName, sourceFilePath, sourceLineNumber);
+				}
+				SenLib.Logging.LogForwarded(msg, memberName, sourceFilePath, sourceLineNumber);
 				Parent.PushMessage(msg, current, total);
 			}
 
-			public void Error(string msg) {
+			public void Error(string msg, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0) {
+				SenLib.Logging.LogForwarded(string.Format("ERROR: {0}", msg), memberName, sourceFilePath, sourceLineNumber);
 				Parent.PushMessage(string.Format("ERROR: {0}", msg));
 			}
 
-			public void Finish(bool success) {
+			public void Finish(bool success, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0) {
+				SenLib.Logging.LogForwarded(string.Format("Task finished with {0}.", success ? "success" : "failure"), memberName, sourceFilePath, sourceLineNumber);
 				if (success) {
 					Parent.CloseFromPopulationThread();
 				} else {
