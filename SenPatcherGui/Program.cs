@@ -15,6 +15,7 @@ namespace SenPatcherGui {
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(new MainForm());
+			SenLib.Logging.Flush();
 		}
 	}
 }

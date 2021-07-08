@@ -40,6 +40,7 @@ namespace SenPatcherGui {
 
 			Progress.Message("Successfully patched game files.");
 			Progress.Finish(true);
+			SenLib.Logging.Flush();
 		}
 
 		public static void RunPatch(GamePatchClass patch) {
@@ -111,6 +112,7 @@ namespace SenPatcherGui {
 
 			Progress.Message("Successfully restored game files.");
 			Progress.Finish(true);
+			SenLib.Logging.Flush();
 		}
 
 		public static void RunUnpatch(GameUnpatchClass patch) {
