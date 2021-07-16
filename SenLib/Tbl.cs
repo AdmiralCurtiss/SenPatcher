@@ -28,13 +28,32 @@ namespace SenLib {
 			for (int i = 0; i < entryCount; ++i) {
 				var d = new TblEntry();
 				d.Name = stream.ReadUTF8Nullterm();
-				ushort count = stream.ReadUInt16(e);
+				ushort count = GetLength(d.Name, stream, e);
 				d.Data = stream.ReadBytes(count);
 				entries.Add(d);
 			}
 
 			Definitions = definitions;
 			Entries = entries;
+		}
+
+		private ushort GetLength(string name, DuplicatableStream stream, EndianUtils.Endianness e) {
+			switch (name) {
+				case "QSTitle": {
+						// some of these have incorrect length fields in the official files, manually determine length here...
+						stream.DiscardBytes(2);
+						long p = stream.Position;
+						stream.DiscardBytes(3);
+						stream.ReadUTF8Nullterm();
+						stream.ReadUTF8Nullterm();
+						stream.DiscardBytes(13);
+						ushort length = (ushort)(stream.Position - p);
+						stream.Position = p;
+						return length;
+					}
+				default:
+					return stream.ReadUInt16(e);
+			}
 		}
 
 		public void WriteToStream(Stream s, EndianUtils.Endianness e) {
@@ -55,10 +74,18 @@ namespace SenLib {
 	public class TblDefinition {
 		public string Name;
 		public uint Unknown;
+
+		public override string ToString() {
+			return Name;
+		}
 	}
 
 	public class TblEntry {
 		public string Name;
 		public byte[] Data;
+
+		public override string ToString() {
+			return Name;
+		}
 	}
 }

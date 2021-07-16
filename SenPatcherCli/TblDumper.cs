@@ -31,6 +31,8 @@ namespace SenPatcherCli {
 		QSCoolVoice,
 
 		TextTableData,
+
+		QSTitle,
 	}
 
 	public class TblDumper {
@@ -61,6 +63,15 @@ namespace SenPatcherCli {
 						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
 						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
 						sb.AppendFormat(" MQ {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
 						while (true) {
 							int b = stream.ReadByte();
 							if (b == -1) break;
@@ -114,6 +125,33 @@ namespace SenPatcherCli {
 						sb.AppendFormat(" MQ {0:x4}", stream.ReadUInt16());
 						sb.AppendFormat(" String {0:x4}", stream.ReadUInt16());
 						sb.AppendFormat(" {0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.Append("\n");
+						break;
+					case TblType.MasterQuartzStatus:
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.AppendFormat(" Lv {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:D4}", stream.ReadUInt16());
+						while (true) {
+							int b = stream.ReadByte();
+							if (b == -1) break;
+							sb.AppendFormat(" {0:x2}", b);
+						}
 						sb.Append("\n");
 						break;
 					case TblType.TextTableData:
@@ -309,6 +347,32 @@ namespace SenPatcherCli {
 							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
 							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
 							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+							while (true) {
+								int b = stream.ReadByte();
+								if (b == -1) break;
+								sb.AppendFormat(" {0:x2}", b);
+							}
+							foreach (string s in postprint) {
+								sb.AppendFormat("\n{0}", s);
+							}
+							sb.Append("\n");
+							break;
+						}
+					case TblType.QSTitle: {
+							sb.Append("[").Append(i).Append("] ");
+							sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+							stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+							List<string> postprint = new List<string>();
+							sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16());
+							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+							sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
 							while (true) {
 								int b = stream.ReadByte();
 								if (b == -1) break;
