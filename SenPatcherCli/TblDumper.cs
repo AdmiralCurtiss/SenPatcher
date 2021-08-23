@@ -2,6 +2,7 @@
 using HyoutaUtils;
 using HyoutaUtils.Streams;
 using SenLib;
+using SenLib.Sen3;
 using System;
 using System.Collections.Generic;
 using System.IO;

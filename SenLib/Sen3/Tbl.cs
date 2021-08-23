@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenLib {
+namespace SenLib.Sen3 {
 	public class Tbl {
 		public List<TblDefinition> Definitions;
 		public List<TblEntry> Entries;

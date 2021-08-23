@@ -286,7 +286,7 @@
     <Compile Include="SenCommonPaths.cs" />
     <Compile Include="SenScriptPatcher.cs" />
     <Compile Include="SenUtils.cs" />
-    <Compile Include="Tbl.cs" />
+    <Compile Include="Sen3\Tbl.cs" />
     <Compile Include="Version.cs" />
     <Compile Include="VoiceTiming.cs" />
     <Compile Include="VoiceTable.cs" />
