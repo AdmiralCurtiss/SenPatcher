@@ -58,6 +58,7 @@ namespace SenLib.Sen1 {
 			new KnownFile(new SHA1(0xb838141d25f707a7ul, 0xc95191db2f8c324aul, 0x3e0a34c0u), "data/scripts/talk/dat_us/tk_vandyck.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_vandyck.dat"),
 			new KnownFile(new SHA1(0x684cc74b0837ff14ul, 0x08124f8b8a05cfd9ul, 0xc9a09195u), "data/se/wav/ed8" + '\uff4d' + "2123.wav", "data/se/wav/ed8m2123.wav", "senpatcher_bkp/data_se_wav_ed8m2123.wav"),
 			new KnownFile(new SHA1(0x90a5c55ed954d771ul, 0x11563b9f3bb62ce7ul, 0xc534135au), "data/text/dat/t_voice.tbl"),
+			new KnownFile(new SHA1(0xb64ec4d8b6204216ul, 0x6e97e60c57555203ul, 0x9c49c465u), "data/text/dat_us/t_item.tbl"),
 			new KnownFile(new SHA1(0xd5f7bf4c4c575efdul, 0x5699e8bbd4040b81ul, 0x276a7284u), "data/text/dat_us/t_magic.tbl", "senpatcher_bkp/data_text_dat_us_t_magic.tbl"),
 			new KnownFile(new SHA1(0xf4b9ff78474452aaul, 0xc44f4b0c07c5a3ccul, 0x1ce27359u), "data/text/dat_us/t_vctiming.tbl", "data/text/dat/t_vctiming.tbl"),
 			new KnownFile(new SHA1(0xdc8fa92820abc1b4ul, 0x6a646b4d75ba5d23ul, 0x9bd22ee9u), "data/text/dat_us/t_voice.tbl"),
