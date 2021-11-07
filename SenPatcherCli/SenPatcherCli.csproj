@@ -49,6 +49,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptParser.cs" />
+    <Compile Include="TblDumperCS1.cs" />
     <Compile Include="t_voice_tbl.cs" />
     <Compile Include="wav_samples.cs" />
   </ItemGroup>

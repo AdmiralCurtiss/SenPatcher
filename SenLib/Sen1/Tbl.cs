@@ -29,6 +29,31 @@ namespace SenLib.Sen1 {
 
 		private ushort GetLength(string name, DuplicatableStream stream, EndianUtils.Endianness e) {
 			switch (name) {
+				//case "item": {
+				//		stream.ReadUInt16(e);
+				//		long p = stream.Position;
+				//		stream.Position += 4;
+				//		stream.ReadUTF8Nullterm();
+				//		stream.Position += 46;
+				//		stream.ReadUTF8Nullterm();
+				//		stream.ReadUTF8Nullterm();
+				//		long l = stream.Position - p;
+				//		stream.Position = p;
+				//		return (ushort)l;
+				//	}
+				//case "magic": {
+				//		stream.ReadUInt16(e);
+				//		long p = stream.Position;
+				//		stream.Position += 4;
+				//		stream.ReadUTF8Nullterm();
+				//		stream.Position += 24;
+				//		stream.ReadUTF8Nullterm();
+				//		stream.ReadUTF8Nullterm();
+				//		stream.ReadUTF8Nullterm();
+				//		long l = stream.Position - p;
+				//		stream.Position = p;
+				//		return (ushort)l;
+				//	}
 				default:
 					return stream.ReadUInt16(e);
 			}
