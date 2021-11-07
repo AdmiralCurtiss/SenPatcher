@@ -268,6 +268,7 @@
     <Compile Include="Sen2\Sen2KnownFiles.cs" />
     <Compile Include="Sen2\Sen2Mods.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
+    <Compile Include="Sen2\Tbl.cs" />
     <Compile Include="Sen3\FileFixes\ed8_3_exe.cs" />
     <Compile Include="Sen3\FileFixes\t_text.cs" />
     <Compile Include="Sen3\FileFixes\t_notecook.cs" />
