@@ -121,6 +121,43 @@ namespace SenLib.Sen2.FileFixes {
 			return "Fix typo in Emma's S-Craft.";
 		}
 
+		public static string GetPhysicalClass(long value) {
+			string c = "D";
+			if (value >= 110) c = "C";
+			if (value >= 115) c = "C+";
+			if (value >= 120) c = "B";
+			if (value >= 125) c = "B+";
+			if (value >= 130) c = "A";
+			if (value >= 135) c = "A+";
+			if (value >= 140) c = "S";
+			if (value >= 150) c = "S+";
+			if (value >= 250) c = "SS";
+			if (value >= 300) c = "SS+";
+			if (value >= 350) c = "SSS";
+			if (value >= 400) c = "SSS+";
+			if (value >= 450) c = "4S";
+			if (value >= 500) c = "4S+";
+			return c;
+		}
+		public static string GetMagicClass(long value) {
+			string c = "D";
+			if (value >= 120) c = "C";
+			if (value >= 135) c = "C+";
+			if (value >= 150) c = "B";
+			if (value >= 165) c = "B+";
+			if (value >= 180) c = "A";
+			if (value >= 195) c = "A+";
+			if (value >= 210) c = "S";
+			if (value >= 225) c = "S+";
+			if (value >= 250) c = "SS";
+			if (value >= 300) c = "SS+";
+			if (value >= 350) c = "SSS";
+			if (value >= 400) c = "SSS+";
+			if (value >= 450) c = "4S";
+			if (value >= 600) c = "5S";
+			return c;
+		}
+
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
 			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x92de0d29c0ad4a9eul, 0xa935870674976924ul, 0xd5df756du));
 			if (s == null) {
@@ -156,6 +193,23 @@ namespace SenLib.Sen2.FileFixes {
 			//		entry.Data = item.ToBinary();
 			//	}
 			//}
+
+			//var sb = new System.Text.StringBuilder();
+			//foreach (TblEntry entry in tbl.Entries) {
+			//	if (entry.Name == "magic") {
+			//		var item = new MagicData(entry.Data);
+			//		if (item.Effect1_Type == 0x01 || item.Effect1_Type == 0x02 || item.Effect1_Type == 0x70) {
+			//			bool isMagic = item.Effect1_Type == 0x02 || item.Effect1_Type == 0x70;
+			//			sb.AppendFormat("{0} / Power {1} / {2} / Craft Class {3} / Art Class {4} / In-Game Description: {5}\n",
+			//				item.Name, item.Effect1_Value1, isMagic ? "Magic" : "Physical", GetPhysicalClass(item.Effect1_Value1),
+			//				GetMagicClass(item.Effect1_Value1), item.Desc.Replace("\n", "{n}")
+			//			);
+			//		} else {
+			//			//sb.AppendFormat("{0} / In-Game Description: {1}\n", item.Name, item.Desc.Replace("\n", "{n}"));
+			//		}
+			//	}
+			//}
+			//File.WriteAllText(@"c:\__ed8\__script-compare_cs2\magic-classes.txt", sb.ToString(), System.Text.Encoding.UTF8);
 
 			MemoryStream ms = new MemoryStream();
 			tbl.WriteToStream(ms, EndianUtils.Endianness.LittleEndian);
