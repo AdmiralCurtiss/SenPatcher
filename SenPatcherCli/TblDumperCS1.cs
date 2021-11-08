@@ -19,8 +19,8 @@ namespace SenPatcherCli.Sen1 {
 	public class TblDumper {
 		public Tbl BaseTbl;
 
-		public TblDumper(DuplicatableStream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian) {
-			BaseTbl = new Tbl(stream, e);
+		public TblDumper(DuplicatableStream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
+			BaseTbl = new Tbl(stream, e, encoding);
 		}
 
 		public TblType? IdentifyEntry(int index) {
@@ -32,8 +32,8 @@ namespace SenPatcherCli.Sen1 {
 			}
 		}
 
-		public static void Dump(string filenametxt, string filenametbl, EndianUtils.Endianness e) {
-			var tbl = new TblDumper(new HyoutaUtils.Streams.DuplicatableFileStream(filenametbl), e);
+		public static void Dump(string filenametxt, string filenametbl, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding) {
+			var tbl = new TblDumper(new HyoutaUtils.Streams.DuplicatableFileStream(filenametbl), e, encoding);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < tbl.BaseTbl.Entries.Count; ++i) {
 				DuplicatableByteArrayStream stream;
@@ -46,7 +46,7 @@ namespace SenPatcherCli.Sen1 {
 							List<string> postprint = new List<string>();
 							sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16(e));
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
-							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
 							sb.Append("\n");
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
@@ -76,8 +76,8 @@ namespace SenPatcherCli.Sen1 {
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
-							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
-							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
 							sb.Append("\n");
 							while (true) {
 								int b = stream.ReadByte();
@@ -98,8 +98,7 @@ namespace SenPatcherCli.Sen1 {
 							sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16(e));
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
 							sb.Append("\n");
-							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
-							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
@@ -107,8 +106,10 @@ namespace SenPatcherCli.Sen1 {
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.Append("\n");
+							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+							sb.Append("\n");
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
@@ -119,9 +120,9 @@ namespace SenPatcherCli.Sen1 {
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
-							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
-							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
-							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
 							while (true) {
 								int b = stream.ReadByte();
 								if (b == -1) break;
@@ -130,7 +131,7 @@ namespace SenPatcherCli.Sen1 {
 							foreach (string s in postprint) {
 								sb.AppendFormat("\n{0}", s);
 							}
-							sb.Append("\n");
+							sb.Append("\n===========================================\n");
 							break;
 						}
 					default:
