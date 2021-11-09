@@ -139,6 +139,15 @@
   <data name="ed8m4217" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\ed8m4217.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="insa_05" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\insa_05.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="insa_08" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\insa_08.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="insa_09" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\insa_09.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="jump009" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen3\FileFixes\jump009.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>

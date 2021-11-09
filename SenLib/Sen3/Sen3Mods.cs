@@ -40,6 +40,9 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.t_magic());
 			f.Add(new FileFixes.t_notecook());
 			f.Add(new FileFixes.t_text());
+			f.Add(new FileFixes.insa05());
+			f.Add(new FileFixes.insa08());
+			f.Add(new FileFixes.insa09());
 			return f;
 		}
 	}

@@ -271,6 +271,9 @@
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="Sen2\Tbl.cs" />
     <Compile Include="Sen3\FileFixes\ed8_3_exe.cs" />
+    <Compile Include="Sen3\FileFixes\insa05.cs" />
+    <Compile Include="Sen3\FileFixes\insa08.cs" />
+    <Compile Include="Sen3\FileFixes\insa09.cs" />
     <Compile Include="Sen3\FileFixes\t_text.cs" />
     <Compile Include="Sen3\FileFixes\t_notecook.cs" />
     <Compile Include="Sen3\FileFixes\t_magic.cs" />
@@ -319,6 +322,9 @@
     <None Include="Sen2\FileFixes\ed82u142j.bin" />
     <None Include="Sen3\FileFixes\cvis0061.bin" />
     <None Include="Sen3\FileFixes\cvis1008.bin" />
+    <None Include="Sen3\FileFixes\insa_05.bin" />
+    <None Include="Sen3\FileFixes\insa_08.bin" />
+    <None Include="Sen3\FileFixes\insa_09.bin" />
     <None Include="Sen3\FileFixes\jump009.bin" />
     <None Include="Sen3\FileFixes\v00_e0441.bin" />
     <None Include="Sen3\FileFixes\v00_s0027.bin" />

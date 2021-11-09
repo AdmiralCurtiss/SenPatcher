@@ -133,6 +133,36 @@ namespace SenLib.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] insa_05 {
+            get {
+                object obj = ResourceManager.GetObject("insa_05", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] insa_08 {
+            get {
+                object obj = ResourceManager.GetObject("insa_08", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] insa_09 {
+            get {
+                object obj = ResourceManager.GetObject("insa_09", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] jump009 {
             get {
                 object obj = ResourceManager.GetObject("jump009", resourceCulture);
