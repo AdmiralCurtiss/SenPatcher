@@ -16,6 +16,8 @@ namespace SenPatcherCli.Sen2 {
 		item_q,
 		condition,
 		magic,
+		QSCook,
+		QSCoolVoice,
 	}
 
 	public class TblDumper {
@@ -191,6 +193,53 @@ namespace SenPatcherCli.Sen2 {
 							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
 							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
 							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+							while (true) {
+								int b = stream.ReadByte();
+								if (b == -1) break;
+								sb.AppendFormat(" {0:x2}", b);
+							}
+							foreach (string s in postprint) {
+								sb.AppendFormat("\n{0}", s);
+							}
+							sb.Append("\n");
+							break;
+						}
+					case TblType.QSCoolVoice: {
+							sb.Append("[").Append(i).Append("] ");
+							sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+							stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+							sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16(e));
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+							while (true) {
+								int b = stream.ReadByte();
+								if (b == -1) break;
+								sb.AppendFormat(" {0:x2}", b);
+							}
+							sb.Append("\n");
+							break;
+						}
+					case TblType.QSCook: {
+							sb.Append("[").Append(i).Append("] ");
+							sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+							stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+							List<string> postprint = new List<string>();
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+							sb.AppendFormat("Idx {0:x4}", stream.ReadUInt16(e));
+							for (int j = 0; j < 8; ++j) {
+								sb.AppendFormat(" ReqItem {0:x4}", stream.ReadUInt16(e));
+								sb.AppendFormat(" Qty {0:x4}", stream.ReadUInt16(e));
+								sb.Append("\n");
+							}
+							for (int j = 0; j < 4; ++j) {
+								sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+								postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+								postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+								sb.Append("\n");
+							}
 							while (true) {
 								int b = stream.ReadByte();
 								if (b == -1) break;

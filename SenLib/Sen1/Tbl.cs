@@ -29,31 +29,31 @@ namespace SenLib.Sen1 {
 
 		private ushort GetLength(string name, DuplicatableStream stream, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding) {
 			switch (name) {
-				//case "item": {
-				//		stream.ReadUInt16(e);
-				//		long p = stream.Position;
-				//		stream.Position += 4;
-				//		stream.ReadNulltermString(encoding);
-				//		stream.Position += 46;
-				//		stream.ReadNulltermString(encoding);
-				//		stream.ReadNulltermString(encoding);
-				//		long l = stream.Position - p;
-				//		stream.Position = p;
-				//		return (ushort)l;
-				//	}
-				//case "magic": {
-				//		stream.ReadUInt16(e);
-				//		long p = stream.Position;
-				//		stream.Position += 4;
-				//		stream.ReadNulltermString(encoding);
-				//		stream.Position += 24;
-				//		stream.ReadNulltermString(encoding);
-				//		stream.ReadNulltermString(encoding);
-				//		stream.ReadNulltermString(encoding);
-				//		long l = stream.Position - p;
-				//		stream.Position = p;
-				//		return (ushort)l;
-				//	}
+				case "item": {
+						stream.ReadUInt16(e);
+						long p = stream.Position;
+						stream.Position += 4;
+						stream.ReadNulltermString(encoding);
+						stream.Position += 46;
+						stream.ReadNulltermString(encoding);
+						stream.ReadNulltermString(encoding);
+						long l = stream.Position - p;
+						stream.Position = p;
+						return (ushort)l;
+					}
+				case "magic": {
+						stream.ReadUInt16(e);
+						long p = stream.Position;
+						stream.Position += 4;
+						stream.ReadNulltermString(encoding);
+						stream.Position += 24;
+						stream.ReadNulltermString(encoding);
+						stream.ReadNulltermString(encoding);
+						stream.ReadNulltermString(encoding);
+						long l = stream.Position - p;
+						stream.Position = p;
+						return (ushort)l;
+					}
 				default:
 					return stream.ReadUInt16(e);
 			}

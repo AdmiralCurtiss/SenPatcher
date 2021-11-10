@@ -1,5 +1,6 @@
 ﻿using HyoutaUtils;
 using HyoutaUtils.Streams;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -43,7 +44,16 @@ namespace SenLib.Sen2.FileFixes {
 
 	public class text_dat_us_t_item_tbl : FileMod {
 		public string GetDescription() {
-			return "";
+			return "Fix minor formatting errors in item descriptions and sync art and quartz descriptions.";
+		}
+
+		public static string FixHpEpCpSpacing(string desc, int start = 2) {
+			for (int i = start; i < desc.Length; ++i) {
+				if ((desc[i - 2] >= '0' && desc[i - 2] <= '9') && (desc[i - 1] == 'H' || desc[i - 1] == 'E' || desc[i - 1] == 'C') && desc[i] == 'P') {
+					return FixHpEpCpSpacing(desc.Insert(i - 1, " "), i + 1);
+				}
+			}
+			return desc;
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -67,12 +77,72 @@ namespace SenLib.Sen2.FileFixes {
 			//	}
 			//}
 
-			//{
-			//	int idx = 741;
-			//	var item = new ItemData(tbl.Entries[idx].Data);
-			//	item.desc = item.desc.Insert(5, "(R)");
-			//	tbl.Entries[idx].Data = item.ToBinary();
-			//}
+			foreach (TblEntry entry in tbl.Entries) {
+				if (entry.Name == "item" || entry.Name == "item_q") {
+					var item = new ItemData(entry.Data, entry.Name == "item_q");
+					item.Desc = FixHpEpCpSpacing(item.Desc);
+					entry.Data = item.ToBinary();
+				}
+			}
+
+			{
+				// clarify Cheese Curry Noodles
+				var entry = tbl.Entries[999];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.InsertSubstring(22, item.Desc, 31, 10);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				// missing gender lock on some staves
+				var m = new ItemData(tbl.Entries[327].Data, false).Desc.Substring(14, 9);
+				var f = new ItemData(tbl.Entries[328].Data, false).Desc.Substring(14, 11);
+				{
+					var entry = tbl.Entries[116];
+					var item = new ItemData(entry.Data, entry.Name == "item_q");
+					item.Desc = item.Desc.Insert(21, m);
+					entry.Data = item.ToBinary();
+				}
+				{
+					var entry = tbl.Entries[117];
+					var item = new ItemData(entry.Data, entry.Name == "item_q");
+					item.Desc = item.Desc.Insert(29, m);
+					entry.Data = item.ToBinary();
+				}
+				{
+					var entry = tbl.Entries[119];
+					var item = new ItemData(entry.Data, entry.Name == "item_q");
+					item.Desc = item.Desc.Insert(31, m);
+					entry.Data = item.ToBinary();
+				}
+				{
+					var entry = tbl.Entries[121];
+					var item = new ItemData(entry.Data, entry.Name == "item_q");
+					item.Desc = item.Desc.Insert(21, f);
+					entry.Data = item.ToBinary();
+				}
+				{
+					var entry = tbl.Entries[122];
+					var item = new ItemData(entry.Data, entry.Name == "item_q");
+					item.Desc = item.Desc.Insert(29, f);
+					entry.Data = item.ToBinary();
+				}
+				{
+					var entry = tbl.Entries[124];
+					var item = new ItemData(entry.Data, entry.Name == "item_q");
+					item.Desc = item.Desc.Insert(31, f);
+					entry.Data = item.ToBinary();
+				}
+			}
+
+			{
+				// wrong buff order in Crystal Dress
+				var entry = tbl.Entries[294];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.InsertSubstring(22, item.Desc, 7, 7);
+				item.Desc = item.Desc.Remove(7, 7);
+				entry.Data = item.ToBinary();
+			}
 
 			MemoryStream ms = new MemoryStream();
 			tbl.WriteToStream(ms, EndianUtils.Endianness.LittleEndian);

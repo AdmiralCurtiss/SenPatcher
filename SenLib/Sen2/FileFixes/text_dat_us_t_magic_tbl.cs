@@ -118,7 +118,7 @@ namespace SenLib.Sen2.FileFixes {
 
 	public class text_dat_us_t_magic_tbl : FileMod {
 		public string GetDescription() {
-			return "Fix typo in Emma's S-Craft.";
+			return "Fix typo in Emma's S-Craft and sync art and quartz descriptions.";
 		}
 
 		public static string GetPhysicalClass(long value) {
