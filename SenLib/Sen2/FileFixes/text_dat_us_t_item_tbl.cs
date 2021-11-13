@@ -144,9 +144,132 @@ namespace SenLib.Sen2.FileFixes {
 				entry.Data = item.ToBinary();
 			}
 
+			{
+				// extra space in Yaksha
+				var entry = tbl.Entries[587];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.Remove(9, 1);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				// capitalization inconsistency in Heat Up
+				var entry = tbl.Entries[597];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.ReplaceSubstring(32, 9, item.Desc, 57, 9);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				// capitalization inconsistency in Heat Up R
+				var entry = tbl.Entries[613];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.ReplaceSubstring(35, 9, item.Desc, 69, 9);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				// missing turn count for buff in Dark Matter/R
+				var other = (new ItemData(tbl.Entries[698].Data, tbl.Entries[698].Name == "item_q")).Desc.Substring(28, 10);
+				var entry = tbl.Entries[694];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.InsertSubstring(48, other, 0, other.Length);
+				entry.Data = item.ToBinary();
+				var entry2 = tbl.Entries[707];
+				var item2 = new ItemData(entry2.Data, entry2.Name == "item_q");
+				item2.Desc = item2.Desc.InsertSubstring(51, other, 0, other.Length);
+				entry2.Data = item2.ToBinary();
+			}
+
+			{
+				// missing turn count for buff in Seraphic Ring/R
+				var other = (new ItemData(tbl.Entries[955].Data, tbl.Entries[955].Name == "item_q")).Desc.Substring(22, 10);
+				var entry = tbl.Entries[699];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.InsertSubstring(60, other, 0, other.Length);
+				entry.Data = item.ToBinary();
+				var entry2 = tbl.Entries[712];
+				var item2 = new ItemData(entry2.Data, entry2.Name == "item_q");
+				item2.Desc = item2.Desc.InsertSubstring(63, other, 0, other.Length);
+				entry2.Data = item2.ToBinary();
+			}
+
+			{
+				// awkward phrasing on Revolution
+				var entry = tbl.Entries[545];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				string str = item.Desc.Substring(45, 7);
+				item.Desc = item.Desc.Remove(45, 7).InsertSubstring(52, str, 0, str.Length);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				// awkward phrasing on Waterfall
+				var entry = tbl.Entries[586];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				string str = item.Desc.Substring(45, 6);
+				item.Desc = item.Desc.Remove(45, 6).InsertSubstring(52, str, 0, str.Length);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				var magicStream = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x92de0d29c0ad4a9eul, 0xa935870674976924ul, 0xd5df756du));
+				if (magicStream != null) {
+					var magicTbl = new Tbl(magicStream, EndianUtils.Endianness.LittleEndian);
+					SyncMagicDescriptions(tbl, magicTbl);
+				}
+			}
+
 			MemoryStream ms = new MemoryStream();
 			tbl.WriteToStream(ms, EndianUtils.Endianness.LittleEndian);
 			return new FileModResult[] { new FileModResult("data/text/dat_us/t_item.tbl", ms) };
+		}
+
+		public static void SyncMagicDescriptions(Tbl itemTbl, Tbl magicTbl) {
+			SyncDescription(itemTbl, 522, magicTbl, 18, useMagic: true); // Adamantine Shield
+			SyncDescription(itemTbl, 537, magicTbl, 18, useMagic: true); // Adamantine Shield R
+			SyncDescription(itemTbl, 550, magicTbl, 20, useMagic: true); // Frost Edge
+			SyncDescription(itemTbl, 569, magicTbl, 20, useMagic: true); // Frost Edge R
+			SyncDescription(itemTbl, 593, magicTbl, 33, useMagic: false); // Volcanic Rain
+			SyncDescription(itemTbl, 595, magicTbl, 35, useMagic: true); // Purgatorial Flame
+			SyncDescription(itemTbl, 611, magicTbl, 35, useMagic: true); // Purgatorial Flame R
+			SyncDescription(itemTbl, 598, magicTbl, 38, useMagic: true); // Forte
+			SyncDescription(itemTbl, 614, magicTbl, 38, useMagic: true); // Forte R
+			SyncDescription(itemTbl, 599, magicTbl, 39, useMagic: true); // La Forte
+			SyncDescription(itemTbl, 615, magicTbl, 39, useMagic: true); // La Forte R
+			SyncDescription(itemTbl, 632, magicTbl, 44, useMagic: true); // Ragna Vortex
+			SyncDescription(itemTbl, 648, magicTbl, 44, useMagic: true); // Ragna Vortex R
+			SyncDescription(itemTbl, 664, magicTbl, 49, useMagic: true); // Demonic Scythe
+			SyncDescription(itemTbl, 680, magicTbl, 49, useMagic: true); // Demonic Scythe R
+			SyncDescription(itemTbl, 665, magicTbl, 50, useMagic: true); // Grim Butterfly
+			SyncDescription(itemTbl, 681, magicTbl, 50, useMagic: true); // Grim Butterfly R
+			SyncDescription(itemTbl, 669, magicTbl, 54, useMagic: true); // Chrono Burst
+			SyncDescription(itemTbl, 685, magicTbl, 54, useMagic: true); // Chrono Burst R
+			SyncDescription(itemTbl, 696, magicTbl, 58, useMagic: false); // Altair Channon
+			SyncDescription(itemTbl, 697, magicTbl, 59, useMagic: true); // Fortuna
+			SyncDescription(itemTbl, 710, magicTbl, 59, useMagic: true); // Fortuna R
+			SyncDescription(itemTbl, 726, magicTbl, 65, useMagic: true); // Claiomh Solarion
+			SyncDescription(itemTbl, 739, magicTbl, 65, useMagic: true); // Claiomh Solarion R
+		}
+
+		private static void SyncDescription(Tbl itemTbl, int itemId, Tbl magicTbl, int magicId, bool useMagic) {
+			var itemEntry = itemTbl.Entries[itemId];
+			var item = new ItemData(itemEntry.Data, itemEntry.Name == "item_q");
+			var magicEntry = magicTbl.Entries[magicId];
+			var magic = new MagicData(magicEntry.Data);
+			int itemDescStart = item.Desc.LastIndexOf('\n') + 1;
+			int magicDescStart = magic.Desc.LastIndexOf('\n') + 1;
+			if (item.Desc[itemDescStart] == '(') {
+				while (item.Desc[itemDescStart] != ')') { ++itemDescStart; }
+				itemDescStart += 2;
+			}
+			if (useMagic) {
+				item.Desc = item.Desc.ReplaceSubstring(itemDescStart, item.Desc.Length - itemDescStart, magic.Desc, magicDescStart, magic.Desc.Length - magicDescStart);
+				itemEntry.Data = item.ToBinary();
+			} else {
+				magic.Desc = magic.Desc.ReplaceSubstring(magicDescStart, magic.Desc.Length - magicDescStart, item.Desc, itemDescStart, item.Desc.Length - itemDescStart);
+				magicEntry.Data = magic.ToBinary();
+			}
 		}
 
 		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {

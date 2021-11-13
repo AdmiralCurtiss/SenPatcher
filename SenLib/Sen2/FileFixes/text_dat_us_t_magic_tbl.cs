@@ -173,6 +173,14 @@ namespace SenLib.Sen2.FileFixes {
 				entry.Data[0x4a] = tmp;
 			}
 
+			// remove misplaced (R) from Curia
+			{
+				var entry = tbl.Entries[29];
+				var item = new MagicData(entry.Data);
+				item.Desc = item.Desc.Remove(5, 3);
+				entry.Data = item.ToBinary();
+			}
+
 			//List<MagicData> items = new List<MagicData>();
 			//foreach (TblEntry entry in tbl.Entries) {
 			//	if (entry.Name == "magic") {
@@ -210,6 +218,40 @@ namespace SenLib.Sen2.FileFixes {
 			//	}
 			//}
 			//File.WriteAllText(@"c:\__ed8\__script-compare_cs2\magic-classes.txt", sb.ToString(), System.Text.Encoding.UTF8);
+
+			foreach (TblEntry entry in tbl.Entries) {
+				if (entry.Name == "magic") {
+					var item = new MagicData(entry.Data);
+					item.Desc = text_dat_us_t_item_tbl.FixHpEpCpSpacing(item.Desc);
+					entry.Data = item.ToBinary();
+				}
+			}
+
+			{
+				// missing turn count for buff in Dark Matter
+				var other = (new MagicData(tbl.Entries[60].Data)).Desc.Substring(28, 10);
+				var entry = tbl.Entries[56];
+				var item = new MagicData(entry.Data);
+				item.Desc = item.Desc.InsertSubstring(48, other, 0, other.Length);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				// missing turn count for buff in Seraphic Ring
+				var other = (new MagicData(tbl.Entries[72].Data)).Desc.Substring(42, 10);
+				var entry = tbl.Entries[61];
+				var item = new MagicData(entry.Data);
+				item.Desc = item.Desc.InsertSubstring(60, other, 0, other.Length);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				var itemStream = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x0ab9f575af611369ul, 0x4b18c0128cf1343aul, 0xc6b48300u));
+				if (itemStream != null) {
+					var itemTbl = new Tbl(itemStream, EndianUtils.Endianness.LittleEndian);
+					text_dat_us_t_item_tbl.SyncMagicDescriptions(itemTbl, tbl);
+				}
+			}
 
 			MemoryStream ms = new MemoryStream();
 			tbl.WriteToStream(ms, EndianUtils.Endianness.LittleEndian);
