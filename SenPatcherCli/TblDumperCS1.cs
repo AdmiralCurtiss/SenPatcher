@@ -17,32 +17,55 @@ namespace SenPatcherCli.Sen1 {
 	}
 
 	public class TblDumper {
-		public Tbl BaseTbl;
+		public Tbl t_item;
+		public Tbl t_magic;
+		private EndianUtils.Endianness Endian;
+		private TextUtils.GameTextEncoding Encoding;
 
-		public TblDumper(DuplicatableStream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
-			BaseTbl = new Tbl(stream, e, encoding);
+		private Dictionary<ushort, SenLib.Sen1.FileFixes.MagicData> Magic;
+
+		public TblDumper(
+			DuplicatableStream t_item_stream,
+			DuplicatableStream t_magic_stream,
+			EndianUtils.Endianness endian = EndianUtils.Endianness.LittleEndian,
+			TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8
+		) {
+			Endian = endian;
+			Encoding = encoding;
+			t_item = new Tbl(t_item_stream, endian, encoding);
+			t_magic = new Tbl(t_magic_stream, endian, encoding);
+
+			Magic = new Dictionary<ushort, SenLib.Sen1.FileFixes.MagicData>();
+			foreach (var e in t_magic.Entries) {
+				var m = new SenLib.Sen1.FileFixes.MagicData(e.Data, endian, encoding);
+				Magic.Add(m.Idx, m);
+			}
 		}
 
-		public TblType? IdentifyEntry(int index) {
+		public static TblType? IdentifyEntry(Tbl tbl, int index) {
 			try {
-				return (TblType)Enum.Parse(typeof(TblType), BaseTbl.Entries[index].Name);
+				return (TblType)Enum.Parse(typeof(TblType), tbl.Entries[index].Name);
 			} catch (Exception) {
-				Console.WriteLine("no entry for {0}", BaseTbl.Entries[index].Name);
+				Console.WriteLine("no entry for {0}", tbl.Entries[index].Name);
 				return null;
 			}
 		}
 
-		public static void Dump(string filenametxt, string filenametbl, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding) {
-			var tbl = new TblDumper(new HyoutaUtils.Streams.DuplicatableFileStream(filenametbl), e, encoding);
+		public void Dump(string path) {
+			Dump(t_item, Path.Combine(path, "t_item.txt"), Endian, Encoding);
+			Dump(t_magic, Path.Combine(path, "t_magic.txt"), Endian, Encoding);
+		}
+
+		public void Dump(Tbl tbl, string filenametxt, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding) {
 			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < tbl.BaseTbl.Entries.Count; ++i) {
+			for (int i = 0; i < tbl.Entries.Count; ++i) {
 				DuplicatableByteArrayStream stream;
-				TblType? tblType = tbl.IdentifyEntry(i);
+				TblType? tblType = IdentifyEntry(tbl, i);
 				switch (tblType) {
 					case TblType.item: {
 							sb.Append("[").Append(i).Append("] ");
-							sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
-							stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+							sb.Append(tbl.Entries[i].Name).Append(":");
+							stream = new DuplicatableByteArrayStream(tbl.Entries[i].Data);
 							List<string> postprint = new List<string>();
 							sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16(e));
 							sb.AppendFormat(" Usable by {0:x4}", stream.ReadUInt16(e));
@@ -62,9 +85,9 @@ namespace SenPatcherCli.Sen1 {
 								byte rarity = stream.ReadUInt8(); // 0 = N, 1 == R, 2 = SR
 								ushort art1 = stream.ReadUInt16(e);
 								ushort procChance = stream.ReadUInt16(e); // for status/breaker
-								sb.AppendFormat(" Art1 {0,5}", art1);
-								sb.AppendFormat(" | Art2 {0,5}", art2);
-								sb.AppendFormat(" | Art3 {0,5}", art3);
+								sb.AppendFormat(" Art1 {0}", art1 == 0xffff ? "(None)" : Magic[art1].Name);
+								sb.AppendFormat(" | Art2 {0}", art2 == 0xffff ? "(None)" : Magic[art2].Name);
+								sb.AppendFormat(" | Art3 {0}", art3 == 0xffff ? "(None)" : Magic[art3].Name);
 								sb.Append("\n");
 								sb.AppendFormat(" Rarity  {0:x2}", rarity);
 								sb.AppendFormat(" | Passive {0:x2}", passiveEffect);
@@ -114,8 +137,8 @@ namespace SenPatcherCli.Sen1 {
 						}
 					case TblType.magic: {
 							sb.Append("[").Append(i).Append("] ");
-							sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
-							stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+							sb.Append(tbl.Entries[i].Name).Append(":");
+							stream = new DuplicatableByteArrayStream(tbl.Entries[i].Data);
 							List<string> postprint = new List<string>();
 							sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16(e));
 							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
@@ -158,8 +181,8 @@ namespace SenPatcherCli.Sen1 {
 						}
 					default:
 						sb.Append("[").Append(i).Append("] ");
-						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
-						foreach (byte b in tbl.BaseTbl.Entries[i].Data) {
+						sb.Append(tbl.Entries[i].Name).Append(":");
+						foreach (byte b in tbl.Entries[i].Data) {
 							sb.AppendFormat(" {0:x2}", b);
 						}
 						sb.Append("\n");
@@ -170,12 +193,11 @@ namespace SenPatcherCli.Sen1 {
 		}
 
 		public static void InjectItemsIntoSaveFile(string savefilename, string itemtblfilename) {
-			var tbl = new TblDumper(new HyoutaUtils.Streams.DuplicatableFileStream(itemtblfilename), EndianUtils.Endianness.LittleEndian);
+			var tbl = new Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(itemtblfilename), EndianUtils.Endianness.LittleEndian);
 			List<ushort> itemIds = new List<ushort>();
-			for (int i = 0; i < tbl.BaseTbl.Entries.Count; ++i) {
-				TblType? tblType = tbl.IdentifyEntry(i);
-				if (tblType == TblType.item) {
-					var stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+			for (int i = 0; i < tbl.Entries.Count; ++i) {
+				if (tbl.Entries[i].Name == "item") {
+					var stream = new DuplicatableByteArrayStream(tbl.Entries[i].Data);
 					itemIds.Add(stream.ReadUInt16());
 				}
 			}

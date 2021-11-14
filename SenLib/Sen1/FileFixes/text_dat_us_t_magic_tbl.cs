@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace SenLib.Sen1.FileFixes {
-	internal class MagicData {
+	public class MagicData {
 		public ushort Idx;
 		public ushort Unknown0;
 		public string Flags;
@@ -30,11 +30,11 @@ namespace SenLib.Sen1.FileFixes {
 		public string Name;
 		public string Desc;
 
-		internal MagicData(byte[] data) {
+		public MagicData(byte[] data, EndianUtils.Endianness endian = EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
 			var stream = new DuplicatableByteArrayStream(data);
-			Idx = stream.ReadUInt16();
-			Unknown0 = stream.ReadUInt16();
-			Flags = stream.ReadUTF8Nullterm();
+			Idx = stream.ReadUInt16(endian);
+			Unknown0 = stream.ReadUInt16(endian);
+			Flags = stream.ReadNulltermString(encoding);
 			Unknown1a = stream.ReadUInt8();
 			Unknown1b = stream.ReadUInt8();
 			Unknown1c = stream.ReadUInt8();
@@ -42,23 +42,23 @@ namespace SenLib.Sen1.FileFixes {
 			Unknown1e = stream.ReadUInt8();
 			Range = stream.ReadUInt8();
 			Effect1_Type = stream.ReadUInt8();
-			Effect1_Value1 = stream.ReadUInt16();
-			Effect1_Value2 = stream.ReadUInt16();
+			Effect1_Value1 = stream.ReadUInt16(endian);
+			Effect1_Value2 = stream.ReadUInt16(endian);
 			Effect2_Type = stream.ReadUInt8();
-			Effect2_Value1 = stream.ReadUInt16();
-			Effect2_Value2 = stream.ReadUInt16();
+			Effect2_Value1 = stream.ReadUInt16(endian);
+			Effect2_Value2 = stream.ReadUInt16(endian);
 			Unknown5e = stream.ReadUInt8();
 			Unknown6a = stream.ReadUInt8();
-			Unknown6b = stream.ReadUInt16();
+			Unknown6b = stream.ReadUInt16(endian);
 			Unbalance = stream.ReadUInt8();
 			Unknown6d = stream.ReadUInt8();
-			Unknown6e = stream.ReadUInt16();
-			Anim = stream.ReadUTF8Nullterm();
-			Name = stream.ReadUTF8Nullterm();
-			Desc = stream.ReadUTF8Nullterm();
+			Unknown6e = stream.ReadUInt16(endian);
+			Anim = stream.ReadNulltermString(encoding);
+			Name = stream.ReadNulltermString(encoding);
+			Desc = stream.ReadNulltermString(encoding);
 		}
 
-		internal byte[] ToBinary() {
+		public byte[] ToBinary() {
 			MemoryStream ms = new MemoryStream();
 			ms.WriteUInt16(Idx);
 			ms.WriteUInt16(Unknown0);
