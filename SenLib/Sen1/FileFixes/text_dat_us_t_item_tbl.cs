@@ -133,6 +133,25 @@ namespace SenLib.Sen1.FileFixes {
 			return "Minor fixes in item descriptions.";
 		}
 
+		public static string GetMagicClass(long value) {
+			string c = "D";
+			if (value >= 120) c = "C";
+			if (value >= 135) c = "C+";
+			if (value >= 170) c = "B";
+			if (value >= 200) c = "B+";
+			if (value >= 210) c = "A";
+			if (value >= 240) c = "A+";
+			if (value >= 255) c = "S";
+			if (value >= 295) c = "S+";
+			if (value >= 315) c = "SS";
+			if (value >= 345) c = "SS+";
+			if (value >= 370) c = "SSS";
+			if (value >= 405) c = "SSS+";
+			if (value >= 450) c = "4S";
+			if (value >= 600) c = "5S";
+			return c;
+		}
+
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
 			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xb64ec4d8b6204216ul, 0x6e97e60c57555203ul, 0x9c49c465u));
 			if (s == null) {
@@ -165,9 +184,22 @@ namespace SenLib.Sen1.FileFixes {
 				foreach (TblEntry entry in tbl.Entries) {
 					var item = new ItemData(entry.Data);
 					if (item.ItemType == 0xaa) {
+						bool isSingleArt = IsSingleArt(item) && magic[item.Action2Value1_Art1].Name == item.Name;
+
 						// series consistency: add R to rare quartzes
-						if (item.Action2_Rarity == 1 && IsSingleArt(item) && magic[item.Action2Value1_Art1].Name == item.Name) {
+						if (isSingleArt && item.Action2_Rarity == 1) {
 							item.Name += " R";
+						}
+
+						// series consistency: add magic power class to description
+						if (isSingleArt) {
+							int where = item.Desc.IndexOf(']');
+							if (where != -1) {
+								var m = magic[item.Action2Value1_Art1];
+								if (m.Effect1_Type == 0x01 || m.Effect1_Type == 0x02 || m.Effect1_Type == 0x70 || (m.Effect1_Type >= 0xd9 && m.Effect1_Type <= 0xdd) || m.Effect1_Type == 0xdf) {
+									item.Desc = item.Desc.Insert(where, " - Class " + GetMagicClass(m.Effect1_Value1));
+								}
+							}
 						}
 
 						// series consistency: quartz that just boost a stat and nothing else should say Stat Boost
