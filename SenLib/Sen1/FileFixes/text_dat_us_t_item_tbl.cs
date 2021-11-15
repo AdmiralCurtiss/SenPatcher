@@ -225,7 +225,7 @@ namespace SenLib.Sen1.FileFixes {
 			return new FileModResult[] { new FileModResult("data/text/dat_us/t_item.tbl", ms) };
 		}
 
-		private static void FixRarenessIdentifierInDescription(ItemData item) {
+		public static void FixRarenessIdentifierInDescription(ItemData item) {
 			// first identify what's already here
 			byte identifiedRarity = 0;
 			if (item.Desc[5] == '(' && item.Desc[6] == 'R' && item.Desc[7] == ')') {
@@ -247,11 +247,11 @@ namespace SenLib.Sen1.FileFixes {
 			}
 		}
 
-		private static bool IsSingleArt(ItemData item) {
+		public static bool IsSingleArt(ItemData item) {
 			return item.Action2Value1_Art1 != 0xffff && item.Action1Value1_Art2 == 0xffff && item.Action1Value2_Art3 == 0xffff;
 		}
 
-		private static bool IsStatusQuartz(ItemData item) {
+		public static bool IsStatusQuartz(ItemData item) {
 			if (item.Action2Value1_Art1 == 0xffff && item.Action1Value1_Art2 == 0xffff && item.Action1Value2_Art3 == 0xffff
 				&& item.Status_Breaker == 0 && item.Range == 0 && item.AttackArea == 0 && item.Action2_Rarity == 0
 				&& item.Action1_PassiveEffect == 0 && item.Action2Value2_ProcChance == 0) {
@@ -271,7 +271,7 @@ namespace SenLib.Sen1.FileFixes {
 			return false;
 		}
 
-		private static bool IsSpecialQuartz(ItemData item) {
+		public static bool IsSpecialQuartz(ItemData item) {
 			if (item.Action2Value1_Art1 == 0xffff && item.Action1Value1_Art2 == 0xffff && item.Action1Value2_Art3 == 0xffff && item.Action1_PassiveEffect != 0) {
 				return true;
 			}

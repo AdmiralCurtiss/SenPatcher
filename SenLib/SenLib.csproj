@@ -233,6 +233,7 @@
     <Compile Include="Sen1\FileFixes\se_wav_ed8m4217_wav.cs" />
     <Compile Include="Sen1\FileFixes\se_wav_ed8m4097_wav.cs" />
     <Compile Include="Sen1\FileFixes\se_wav_ed8m2150_wav.cs" />
+    <Compile Include="Sen1\FileFixes\text_dat_t_item_tbl.cs" />
     <Compile Include="Sen1\FileFixes\text_dat_us_t_item_tbl.cs" />
     <Compile Include="Sen1\FileFixes\text_dat_us_t_magic_tbl.cs" />
     <Compile Include="Sen1\FileFixes\text_dat_t_voice_tbl.cs" />
