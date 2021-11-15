@@ -132,6 +132,18 @@ namespace SenLib.Sen1.FileFixes {
 			//}
 			//File.WriteAllText(@"c:\__ed8\__script-compare\magic-classes.txt", sb.ToString(), System.Text.Encoding.UTF8);
 
+			for (int i = 7; i < 62; i++) {
+				TblEntry entry = tbl.Entries[i];
+				var m = new MagicData(entry.Data);
+				if (m.Effect1_Type == 0x01 || m.Effect1_Type == 0x02 || m.Effect1_Type == 0x70 || (m.Effect1_Type >= 0xd9 && m.Effect1_Type <= 0xdd) || m.Effect1_Type == 0xdf) {
+					int where = m.Desc.IndexOf(']');
+					if (where != -1) {
+						m.Desc = m.Desc.Insert(where, " - Class " + text_dat_us_t_item_tbl.GetMagicClass(m.Effect1_Value1));
+						entry.Data = m.ToBinary();
+					}
+				}
+			}
+
 			MemoryStream ms = new MemoryStream();
 			tbl.WriteToStream(ms, EndianUtils.Endianness.LittleEndian);
 			return new FileModResult[] { new FileModResult("data/text/dat_us/t_magic.tbl", ms) };
