@@ -69,6 +69,7 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_book_dat_us_book02_dat());
 			f.Add(new FileFixes.scripts_book_dat_us_book03_dat());
 			f.Add(new FileFixes.text_dat_us_t_item_tbl());
+			f.Add(new FileFixes.text_dat_us_t_notecook_tbl());
 			return f;
 		}
 	}

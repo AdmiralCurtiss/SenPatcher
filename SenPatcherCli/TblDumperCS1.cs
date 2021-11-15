@@ -14,11 +14,13 @@ namespace SenPatcherCli.Sen1 {
 	public enum TblType {
 		item,
 		magic,
+		QSCook,
 	}
 
 	public class TblDumper {
 		public Tbl t_item;
 		public Tbl t_magic;
+		public Tbl t_notecook;
 		private EndianUtils.Endianness Endian;
 		private TextUtils.GameTextEncoding Encoding;
 
@@ -27,6 +29,7 @@ namespace SenPatcherCli.Sen1 {
 		public TblDumper(
 			DuplicatableStream t_item_stream,
 			DuplicatableStream t_magic_stream,
+			DuplicatableStream t_notecook_stream,
 			EndianUtils.Endianness endian = EndianUtils.Endianness.LittleEndian,
 			TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8
 		) {
@@ -34,6 +37,7 @@ namespace SenPatcherCli.Sen1 {
 			Encoding = encoding;
 			t_item = new Tbl(t_item_stream, endian, encoding);
 			t_magic = new Tbl(t_magic_stream, endian, encoding);
+			t_notecook = new Tbl(t_notecook_stream, endian, encoding);
 
 			Magic = new Dictionary<ushort, SenLib.Sen1.FileFixes.MagicData>();
 			foreach (var e in t_magic.Entries) {
@@ -54,6 +58,7 @@ namespace SenPatcherCli.Sen1 {
 		public void Dump(string path) {
 			Dump(t_item, Path.Combine(path, "t_item.txt"), Endian, Encoding);
 			Dump(t_magic, Path.Combine(path, "t_magic.txt"), Endian, Encoding);
+			Dump(t_notecook, Path.Combine(path, "t_notecook.txt"), Endian, Encoding);
 		}
 
 		public void Dump(Tbl tbl, string filenametxt, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding) {
@@ -177,6 +182,35 @@ namespace SenPatcherCli.Sen1 {
 								sb.AppendFormat("\n{0}", s);
 							}
 							sb.Append("\n===========================================\n");
+							break;
+						}
+					case TblType.QSCook: {
+							sb.Append("[").Append(i).Append("] ");
+							sb.Append(tbl.Entries[i].Name).Append(":");
+							stream = new DuplicatableByteArrayStream(tbl.Entries[i].Data);
+							List<string> postprint = new List<string>();
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+							sb.AppendFormat("Idx {0:x4}", stream.ReadUInt16(e));
+							for (int j = 0; j < 8; ++j) {
+								sb.AppendFormat(" ReqItem {0:x4}", stream.ReadUInt16(e));
+								sb.AppendFormat(" Qty {0:x4}", stream.ReadUInt16(e));
+								sb.Append("\n");
+							}
+							for (int j = 0; j < 4; ++j) {
+								sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+								postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+								postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+								sb.Append("\n");
+							}
+							while (true) {
+								int b = stream.ReadByte();
+								if (b == -1) break;
+								sb.AppendFormat(" {0:x2}", b);
+							}
+							foreach (string s in postprint) {
+								sb.AppendFormat("\n{0}", s);
+							}
+							sb.Append("\n");
 							break;
 						}
 					default:
