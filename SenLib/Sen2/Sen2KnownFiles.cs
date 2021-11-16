@@ -33,6 +33,7 @@ namespace SenLib.Sen2 {
 			new KnownFile(new SHA1(0xda6f79f56616cb07ul, 0x3cc7205f895b1c0dul, 0x389c0e2du), "data/scripts/book/dat_us/book03.dat"),
 			new KnownFile(new SHA1(0x5b2fee612159bcb9ul, 0x3b2c6831f94f7b1ful, 0x4dd6231cu), "data/scripts/book/dat_us/book04.dat"),
 			new KnownFile(new SHA1(0xdcd1d5c83e8201c4ul, 0x2492abbe664f61eeul, 0x3a2187ffu), "data/scripts/book/dat_us/book05.dat"),
+			new KnownFile(new SHA1(0xcc2ff5a5eadebb18ul, 0xa6db19106284dd35ul, 0xac201243u), "data/scripts/scena/dat_us/e7101.dat"),
 
 			// v1.4.1
 			new KnownFile(new SHA1(0xfb45b576c39bcd2eul, 0x2806c2344c4f131eul, 0xc9611a1cu), "bin/Win32/ed8_2_PC_US.exe", important: false, writeToBackup: false), // old xdelta patch for battle skip removal

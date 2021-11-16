@@ -256,6 +256,7 @@
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book03_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book05_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book04_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7101_dat.cs" />
     <Compile Include="Sen2\FileFixes\text_dat_us_t_notecook_tbl.cs" />
     <Compile Include="Sen2\FileFixes\text_dat_us_t_item_tbl.cs" />
     <Compile Include="Sen2\FileFixes\text_dat_us_t_magic_tbl.cs" />

@@ -43,6 +43,7 @@ namespace SenLib.Sen2 {
 			f.Add(new FileFixes.scripts_book_dat_us_book03_dat());
 			f.Add(new FileFixes.scripts_book_dat_us_book04_dat());
 			f.Add(new FileFixes.scripts_book_dat_us_book05_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_e7101_dat());
 			return f;
 		}
 	}

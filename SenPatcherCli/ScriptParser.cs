@@ -68,7 +68,7 @@ namespace SenPatcherCli {
 			} else {
 				for (long i = 0; i < functionCount; ++i) {
 					s.Position = functionPositions[i];
-					var ops = ParseFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1]);
+					var ops = ParseFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e);
 					funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
 				}
 			}
@@ -84,7 +84,7 @@ namespace SenPatcherCli {
 			}
 			List<byte> sb = new List<byte>();
 			List<byte> contentbytes = new List<byte>();
-			ReadString(s, sb, contentbytes);
+			ReadString(s, sb, contentbytes, e);
 			string str = Encoding.UTF8.GetString(sb.ToArray());
 			text.AddRange(str.Split(new string[] { "\\n" }, StringSplitOptions.None));
 			return text;
@@ -97,7 +97,7 @@ namespace SenPatcherCli {
 			return (a, b);
 		}
 
-		private static List<string> ParseFunction(Stream s, long end) {
+		private static List<string> ParseFunction(Stream s, long end, EndianUtils.Endianness e) {
 			// actually parsing this is more work than i thought it would be, so just guess
 			// this will have false positives but that's okay
 			List<string> text = new List<string>();
@@ -109,7 +109,7 @@ namespace SenPatcherCli {
 						ushort speaker = s.ReadUInt16();
 						List<byte> sb = new List<byte>();
 						List<byte> contentbytes = new List<byte>();
-						ReadString(s, sb, contentbytes);
+						ReadString(s, sb, contentbytes, e);
 						if (LooksLikeValidString(contentbytes)) {
 							string str = Encoding.UTF8.GetString(sb.ToArray());
 							text.Add(str);
@@ -127,7 +127,7 @@ namespace SenPatcherCli {
 			return contentbytes.Count >= 3;
 		}
 
-		private static void ReadString(Stream s, List<byte> sb, List<byte> contentbytes) {
+		private static void ReadString(Stream s, List<byte> sb, List<byte> contentbytes, EndianUtils.Endianness e) {
 			while (true) {
 				byte next = s.ReadUInt8();
 				if (next < 0x20) {
@@ -142,9 +142,26 @@ namespace SenPatcherCli {
 						sb.Add((byte)'f');
 						sb.Add((byte)'}');
 					} else if (next == 0x10) {
-						s.ReadUInt16();
-					} else if (next == 0x11 || next == 0x12) {
-						s.ReadUInt32();
+						sb.Add((byte)'{');
+						ushort v = s.ReadUInt16(e);
+						foreach (char c in string.Format("0x10:{0:D5}", v)) {
+							sb.Add((byte)c);
+						}
+						sb.Add((byte)'}');
+					} else if (next == 0x11) {
+						sb.Add((byte)'{');
+						uint v = s.ReadUInt32(e);
+						foreach (char c in string.Format("0x11:{0:D5}", v)) {
+							sb.Add((byte)c);
+						}
+						sb.Add((byte)'}');
+					} else if (next == 0x12) {
+						sb.Add((byte)'{');
+						uint v = s.ReadUInt32(e);
+						foreach (char c in string.Format("0x12:{0:D5}", v)) {
+							sb.Add((byte)c);
+						}
+						sb.Add((byte)'}');
 					}
 				} else {
 					//if (next == 0x23) {
