@@ -13,7 +13,7 @@ namespace SenPatcherCli {
 	}
 
 	public static class ScriptParser {
-		public static List<ScriptFunction> Parse(Stream s, bool isBook, EndianUtils.Endianness? endian = null) {
+		public static List<ScriptFunction> Parse(Stream s, bool isBook, Dictionary<ushort, string> voiceIds = null, EndianUtils.Endianness? endian = null) {
 			EndianUtils.Endianness e = endian.HasValue ? endian.Value : (s.PeekUInt32(EndianUtils.Endianness.LittleEndian) == 0x20 ? EndianUtils.Endianness.LittleEndian : EndianUtils.Endianness.BigEndian);
 			uint headerLength = s.ReadUInt32(e);
 			if (headerLength != 0x20) {
@@ -61,14 +61,14 @@ namespace SenPatcherCli {
 						funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
 					} else {
 						s.Position = functionPositions[i];
-						var ops = ParseBookFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e);
+						var ops = ParseBookFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e, voiceIds);
 						funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
 					}
 				}
 			} else {
 				for (long i = 0; i < functionCount; ++i) {
 					s.Position = functionPositions[i];
-					var ops = ParseFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e);
+					var ops = ParseFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e, voiceIds);
 					funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
 				}
 			}
@@ -76,7 +76,7 @@ namespace SenPatcherCli {
 			return funcs;
 		}
 
-		private static List<string> ParseBookFunction(Stream s, long end, EndianUtils.Endianness e) {
+		private static List<string> ParseBookFunction(Stream s, long end, EndianUtils.Endianness e, Dictionary<ushort, string> voiceIds) {
 			List<string> text = new List<string>();
 			short dataCounter = s.ReadInt16(e);
 			for (int i = 0; i < dataCounter; ++i) {
@@ -84,7 +84,7 @@ namespace SenPatcherCli {
 			}
 			List<byte> sb = new List<byte>();
 			List<byte> contentbytes = new List<byte>();
-			ReadString(s, sb, contentbytes, e);
+			ReadString(s, sb, contentbytes, e, voiceIds);
 			string str = Encoding.UTF8.GetString(sb.ToArray());
 			text.AddRange(str.Split(new string[] { "\\n" }, StringSplitOptions.None));
 			return text;
@@ -97,7 +97,7 @@ namespace SenPatcherCli {
 			return (a, b);
 		}
 
-		private static List<string> ParseFunction(Stream s, long end, EndianUtils.Endianness e) {
+		private static List<string> ParseFunction(Stream s, long end, EndianUtils.Endianness e, Dictionary<ushort, string> voiceIds) {
 			// actually parsing this is more work than i thought it would be, so just guess
 			// this will have false positives but that's okay
 			List<string> text = new List<string>();
@@ -109,7 +109,7 @@ namespace SenPatcherCli {
 						ushort speaker = s.ReadUInt16();
 						List<byte> sb = new List<byte>();
 						List<byte> contentbytes = new List<byte>();
-						ReadString(s, sb, contentbytes, e);
+						ReadString(s, sb, contentbytes, e, voiceIds);
 						if (LooksLikeValidString(contentbytes)) {
 							string str = Encoding.UTF8.GetString(sb.ToArray());
 							text.Add(str);
@@ -127,7 +127,7 @@ namespace SenPatcherCli {
 			return contentbytes.Count >= 3;
 		}
 
-		private static void ReadString(Stream s, List<byte> sb, List<byte> contentbytes, EndianUtils.Endianness e) {
+		private static void ReadString(Stream s, List<byte> sb, List<byte> contentbytes, EndianUtils.Endianness e, Dictionary<ushort, string> voiceIds) {
 			while (true) {
 				byte next = s.ReadUInt8();
 				if (next < 0x20) {
@@ -151,8 +151,18 @@ namespace SenPatcherCli {
 					} else if (next == 0x11) {
 						sb.Add((byte)'{');
 						uint v = s.ReadUInt32(e);
-						foreach (char c in string.Format("0x11:{0:D5}", v)) {
-							sb.Add((byte)c);
+						string voiceclip;
+						if (voiceIds != null && voiceIds.TryGetValue((ushort)v, out voiceclip)) {
+							foreach (char c in "0x11:") {
+								sb.Add((byte)c);
+							}
+							foreach (byte b in Encoding.UTF8.GetBytes(voiceclip)) {
+								sb.Add(b);
+							}
+						} else {
+							foreach (char c in string.Format("0x11:{0:D5}", v)) {
+								sb.Add((byte)c);
+							}
 						}
 						sb.Add((byte)'}');
 					} else if (next == 0x12) {
