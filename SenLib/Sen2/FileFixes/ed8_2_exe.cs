@@ -86,6 +86,7 @@ namespace SenLib.Sen2.FileFixes {
 			newVersionStringStream.WriteAsciiNullterm(newVersionString);
 			byte[] newVersionStringBytes = newVersionStringStream.CopyToByteArrayAndDispose();
 			var regionStrings = state.RegionScriptCompilerFunctionStrings;
+			regionStrings.Address = regionStrings.Address.Align(4);
 			uint addressNewVersionString = regionStrings.Address;
 			ms.Position = state.Mapper.MapRamToRom(regionStrings.Address);
 			ms.Write(newVersionStringBytes);
@@ -96,6 +97,24 @@ namespace SenLib.Sen2.FileFixes {
 			ms.WriteUInt32(addressNewVersionString, EndianUtils.Endianness.LittleEndian);
 			ms.Position = state.Mapper.MapRamToRom(state.PushAddressVersionCrashRpt);
 			ms.WriteUInt32(addressNewVersionString + (uint)(versionString.Length - 5), EndianUtils.Endianness.LittleEndian);
+
+			// update title bar to actually say CS2
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6af3ec : 0x6b043c);
+			ms.WriteUInt8((byte)(ms.PeekUInt8() + 3)); // update string length
+			ms.ReadUInt8();
+			long titleBarPushPosition = ms.Position;
+			ms.Position = state.Mapper.MapRamToRom(ms.ReadUInt32());
+			string titleText = ms.ReadAsciiNullterm().Insert(44, "II ");
+			MemoryStream newTitleStringStream = new MemoryStream();
+			newTitleStringStream.WriteAsciiNullterm(titleText);
+			byte[] newTitleStringBytes = newTitleStringStream.CopyToByteArrayAndDispose();
+			regionStrings.Address = regionStrings.Address.Align(4);
+			uint addressNewTitleString = regionStrings.Address;
+			ms.Position = state.Mapper.MapRamToRom(regionStrings.Address);
+			ms.Write(newTitleStringBytes);
+			regionStrings.TakeToAddress(state.Mapper.MapRomToRam(ms.Position), "CS2 title bar string");
+			ms.Position = titleBarPushPosition;
+			ms.WriteUInt32(addressNewTitleString, EndianUtils.Endianness.LittleEndian);
 
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/Win32/ed8_2_PC_JP.exe" : "bin/Win32/ed8_2_PC_US.exe", ms) };
 		}
