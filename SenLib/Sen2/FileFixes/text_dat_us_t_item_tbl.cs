@@ -217,6 +217,50 @@ namespace SenLib.Sen2.FileFixes {
 				if (magicStream != null) {
 					var magicTbl = new Tbl(magicStream, EndianUtils.Endianness.LittleEndian);
 					SyncMagicDescriptions(tbl, magicTbl);
+
+					//var magic = new Dictionary<ushort, MagicData>();
+					//foreach (var e in magicTbl.Entries) {
+					//	if (e.Name == "magic") {
+					//		var m = new MagicData(e.Data);
+					//		magic.Add(m.Idx, m);
+					//	}
+					//}
+					//foreach (TblEntry entry in tbl.Entries) {
+					//	if (entry.Name == "item_q") {
+					//		var item = new ItemData(entry.Data, true);
+					//		var quartzdata = new DuplicatableByteArrayStream(item.Unknown2);
+					//		quartzdata.DiscardBytes(8);
+					//		ushort magic0 = quartzdata.ReadUInt16();
+					//		ushort magic1 = quartzdata.ReadUInt16();
+					//		ushort magic2 = quartzdata.ReadUInt16();
+					//		ushort magic3 = quartzdata.ReadUInt16();
+					//		ushort magic4 = quartzdata.ReadUInt16();
+					//		ushort magic5 = quartzdata.ReadUInt16();
+					//		if (magic0 != 0xffff && magic1 == 0xffff && magic2 == 0xffff && magic3 == 0xffff && magic4 == 0xffff && magic5 == 0xffff) {
+					//			string itemdesc0 = item.Desc.Split('\n')[0].Replace("(R)", "").Replace("(SR)", "");
+					//			string itemdesc1 = item.Desc.Split('\n')[1];
+					//			if (itemdesc1.StartsWith("(")) {
+					//				itemdesc1 = itemdesc1.Substring(itemdesc1.IndexOf(")") + 2);
+					//			}
+					//			string magicdesc0 = magic[magic0].Desc.Split('\n')[0];
+					//			string magicdesc1 = magic[magic0].Desc.Split('\n')[1];
+					//			if (itemdesc0 != magicdesc0) {
+					//				Console.WriteLine();
+					//				Console.WriteLine(item.Name);
+					//				Console.WriteLine(itemdesc0);
+					//				Console.WriteLine(magicdesc0);
+					//				Console.WriteLine();
+					//			}
+					//			if (itemdesc1 != magicdesc1) {
+					//				Console.WriteLine();
+					//				Console.WriteLine(item.Name);
+					//				Console.WriteLine(itemdesc1);
+					//				Console.WriteLine(magicdesc1);
+					//				Console.WriteLine();
+					//			}
+					//		}
+					//	}
+					//}
 				}
 			}
 
@@ -239,6 +283,8 @@ namespace SenLib.Sen2.FileFixes {
 			SyncDescription(itemTbl, 615, magicTbl, 39, useMagic: true); // La Forte R
 			SyncDescription(itemTbl, 632, magicTbl, 44, useMagic: true); // Ragna Vortex
 			SyncDescription(itemTbl, 648, magicTbl, 44, useMagic: true); // Ragna Vortex R
+			SyncDescription(itemTbl, 663, magicTbl, 48, useMagic: true); // Soul Blur
+			SyncDescription(itemTbl, 679, magicTbl, 48, useMagic: true); // Soul Blur R
 			SyncDescription(itemTbl, 664, magicTbl, 49, useMagic: true); // Demonic Scythe
 			SyncDescription(itemTbl, 680, magicTbl, 49, useMagic: true); // Demonic Scythe R
 			SyncDescription(itemTbl, 665, magicTbl, 50, useMagic: true); // Grim Butterfly
