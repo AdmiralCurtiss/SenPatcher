@@ -172,6 +172,181 @@ namespace SenLib.Sen1.FileFixes {
 				tbl.Entries[idx].Data = item.ToBinary();
 			}
 
+			{
+				// incorrect plural
+				int idx = 105;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Name = item.Name.Remove(item.Name.Length - 1, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+
+			{
+				// missing stat
+				int idx = 157;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.InsertSubstring(20, new ItemData(tbl.Entries[156].Data).Desc, 7, 6);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+
+			{
+				// missing equip limitation
+				int idx = 159;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.InsertSubstring(14, new ItemData(tbl.Entries[168].Data).Desc, 27, 11);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+
+			// stat formatting consistency
+			{
+				int idx = 363;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.InsertSubstring(11, item.Desc, 15, 2);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			foreach (int idx in new int[] { 143, 179, 217, 242, 250 }) {
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.Replace('\u3010', '[');
+				item.Desc = item.Desc.Replace('\u3011', ']');
+				item.Desc = item.Desc.Replace(' ', '/');
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+
+			for (int i = 873; i < 953; ++i) {
+				// stray spaces at the end of the item name
+				int idx = i;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				if (item.Name.EndsWith(" ")) {
+					item.Name = item.Name.Substring(0, item.Name.Length - 1);
+					tbl.Entries[idx].Data = item.ToBinary();
+				}
+			}
+
+			// a bunch of 'easy to use' -> 'easy-to-use' and the like
+			{
+				int idx = 127;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(28, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(31, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 128;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(41, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(44, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 144;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(50, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(53, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 147;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(64, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(67, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 150;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(64, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(67, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 151;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(64, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(67, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 185;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(23, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(26, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 192;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(36, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(39, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 193;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(61, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(64, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 196;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(61, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(64, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 199;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(61, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(64, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 225;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(30, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(33, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 251;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(20, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(23, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 252;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(20, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(23, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 253;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(33, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(36, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 197;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(27, 1, "-", 0, 1);
+				item.Desc = item.Desc.ReplaceSubstring(30, 1, "-", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 132;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(38, 1, " ", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 181;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.ReplaceSubstring(24, 1, " ", 0, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+
 			var magic_s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xd5f7bf4c4c575efdul, 0x5699e8bbd4040b81ul, 0x276a7284u));
 			if (magic_s != null) {
 				var magic_tbl = new Tbl(magic_s);

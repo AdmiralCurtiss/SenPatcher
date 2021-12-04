@@ -108,26 +108,114 @@ namespace SenPatcherCli.Sen1 {
 								sb.AppendFormat(" | Value2 {0,5}", stream.ReadUInt16(e));
 								sb.Append("\n");
 							}
-							sb.AppendFormat(" STR+{0,5} ", stream.ReadUInt16(e));
-							sb.AppendFormat(" | DEF+{0,5} ", stream.ReadUInt16(e));
-							sb.AppendFormat(" | ATS+{0,5} ", stream.ReadUInt16(e));
-							sb.AppendFormat(" | ADF+{0,5} ", stream.ReadUInt16(e));
-							sb.Append("\n");
-							sb.AppendFormat(" ACC+{0,5}%", stream.ReadUInt16(e));
-							sb.AppendFormat(" | EVA+{0,5}%", stream.ReadUInt16(e));
-							sb.AppendFormat(" | SPD+{0,5} ", stream.ReadUInt16(e));
-							sb.AppendFormat(" | MOV+{0,5} ", stream.ReadUInt16(e));
-							sb.Append("\n");
-							sb.AppendFormat(" HP+ {0,5} ", stream.ReadUInt16(e));
-							sb.AppendFormat(" | EP+ {0,5} ", stream.ReadUInt16(e));
-							sb.Append("\n");
+							List<string> stats = new List<string>();
+							{
+								ushort str = stream.ReadUInt16(e);
+								ushort def = stream.ReadUInt16(e);
+								ushort ats = stream.ReadUInt16(e);
+								ushort adf = stream.ReadUInt16(e);
+								ushort acc = stream.ReadUInt16(e);
+								ushort eva = stream.ReadUInt16(e);
+								ushort spd = stream.ReadUInt16(e);
+								ushort mov = stream.ReadUInt16(e);
+								ushort hp = stream.ReadUInt16(e);
+								ushort ep = stream.ReadUInt16(e);
+								bool printedAnything = false;
+								//sb.Append(" [STATS] ");
+								//printedAnything = true;
+								if (str > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" STR+{0,5} ", str);
+									stats.Add(string.Format("STR+{0}", str));
+									printedAnything = true;
+								}
+								if (def > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" DEF+{0,5} ", def);
+									stats.Add(string.Format("DEF+{0}", def));
+									printedAnything = true;
+								}
+								if (ats > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" ATS+{0,5} ", ats);
+									stats.Add(string.Format("ATS+{0}", ats));
+									printedAnything = true;
+								}
+								if (adf > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" ADF+{0,5} ", adf);
+									stats.Add(string.Format("ADF+{0}", adf));
+									printedAnything = true;
+								}
+
+								if (acc > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" ACC+{0,5}%", acc);
+									stats.Add(string.Format("ACC+{0}%", acc));
+									printedAnything = true;
+								}
+								if (eva > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" EVA+{0,5}%", eva);
+									stats.Add(string.Format("EVA+{0}%", eva));
+									printedAnything = true;
+								}
+								if (spd > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" SPD+{0,5} ", spd);
+									stats.Add(string.Format("SPD+{0}", spd));
+									printedAnything = true;
+								}
+								if (mov > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" MOV+{0,5} ", mov);
+									stats.Add(string.Format("MOV+{0}", mov));
+									printedAnything = true;
+								}
+								if (hp > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" HP+ {0,5} ", hp);
+									stats.Add(string.Format("HP+{0}", hp));
+									printedAnything = true;
+								}
+								if (ep > 0) {
+									if (printedAnything) {
+										sb.Append(" |");
+									}
+									sb.AppendFormat(" EP+ {0,5} ", ep);
+									stats.Add(string.Format("EP+{0}", ep));
+									printedAnything = true;
+								}
+								if (printedAnything) {
+									sb.Append("\n");
+								}
+							}
 							sb.AppendFormat(" Mira {0,6}", stream.ReadUInt32(e));
 							sb.AppendFormat(" | CarryLimit {0,3}", stream.ReadUInt8()); // max you're allowed to have
 							sb.AppendFormat(" | SortOrder {0,5}", stream.ReadUInt16(e)); // within the type
 							sb.AppendFormat(" | ? {0,5}", stream.ReadUInt16(e)); // only shows up on quartzes, no idea what this is though
 							sb.AppendFormat(" | ? {0:x4}", stream.ReadUInt16(e)); // DLC related? or maybe costume related?
 							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
-							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+							string desc = stream.ReadNulltermString(encoding);
+							postprint.Add(desc.Replace("\n", "{n}"));
 							sb.Append("\n");
 							while (true) {
 								int b = stream.ReadByte();
@@ -137,7 +225,18 @@ namespace SenPatcherCli.Sen1 {
 							foreach (string s in postprint) {
 								sb.AppendFormat("\n{0}", s);
 							}
+
+							//if (stats.Count > 0) {
+							//	var parts = desc.Split(new char[] { '[', ']', '/', '(', ')', '\n' });
+							//	foreach (string stat in stats) {
+							//		if (!parts.Contains(stat)) {
+							//			sb.AppendFormat("\nStat description mismatch {0}!", stat);
+							//		}
+							//	}
+							//}
+
 							sb.Append("\n\n===========================================\n\n");
+
 							break;
 						}
 					case TblType.magic: {
