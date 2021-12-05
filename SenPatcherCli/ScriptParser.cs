@@ -128,6 +128,7 @@ namespace SenPatcherCli {
 		}
 
 		private static void ReadString(Stream s, List<byte> sb, List<byte> contentbytes, EndianUtils.Endianness e, Dictionary<ushort, string> voiceIds) {
+			int lastlinestart = sb.Count;
 			while (true) {
 				byte next = s.ReadUInt8();
 				if (next < 0x20) {
@@ -137,10 +138,12 @@ namespace SenPatcherCli {
 						sb.Add((byte)'{');
 						sb.Add((byte)'n');
 						sb.Add((byte)'}');
+						lastlinestart = sb.Count;
 					} else if (next == 0x02) {
 						sb.Add((byte)'{');
 						sb.Add((byte)'f');
 						sb.Add((byte)'}');
+						lastlinestart = sb.Count;
 					} else if (next == 0x10) {
 						sb.Add((byte)'{');
 						ushort v = s.ReadUInt16(e);
@@ -149,22 +152,25 @@ namespace SenPatcherCli {
 						}
 						sb.Add((byte)'}');
 					} else if (next == 0x11) {
-						sb.Add((byte)'{');
+						List<byte> tmp = new List<byte>();
+						tmp.Add((byte)'{');
 						uint v = s.ReadUInt32(e);
 						string voiceclip;
 						if (voiceIds != null && voiceIds.TryGetValue((ushort)v, out voiceclip)) {
 							foreach (char c in "0x11:") {
-								sb.Add((byte)c);
+								tmp.Add((byte)c);
 							}
 							foreach (byte b in Encoding.UTF8.GetBytes(voiceclip)) {
-								sb.Add(b);
+								tmp.Add(b);
 							}
 						} else {
 							foreach (char c in string.Format("0x11:{0:D5}", v)) {
-								sb.Add((byte)c);
+								tmp.Add((byte)c);
 							}
 						}
-						sb.Add((byte)'}');
+						tmp.Add((byte)'}');
+						sb.InsertRange(lastlinestart, tmp);
+						lastlinestart += tmp.Count;
 					} else if (next == 0x12) {
 						sb.Add((byte)'{');
 						uint v = s.ReadUInt32(e);

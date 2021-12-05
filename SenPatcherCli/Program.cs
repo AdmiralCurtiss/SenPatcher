@@ -15,9 +15,17 @@ namespace SenPatcherCli {
 		public static int Main(string[] args) {
 			if (args.Length >= 2 && args[0] == "--parse-script") {
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1])) {
-					var funcs = ScriptParser.Parse(fs.CopyToByteArrayStreamAndDispose(), false);
+					var tbl = new t_voice_tbl(new HyoutaUtils.Streams.DuplicatableFileStream(args[2]), args[3] == "be" ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian);
+					Dictionary<ushort, string> byIndex = new Dictionary<ushort, string>();
+					foreach (var e in tbl.Entries) {
+						if (byIndex.ContainsKey(e.Index)) {
+						} else {
+							byIndex.Add(e.Index, e.Name);
+						}
+					}
 
-					using (var outfs = new FileStream(args.Length > 2 ? args[2] : args[1] + ".txt", FileMode.Create)) {
+					var funcs = ScriptParser.Parse(fs.CopyToByteArrayStreamAndDispose(), false, byIndex);
+					using (var outfs = new FileStream(args[1] + ".txt", FileMode.Create)) {
 						foreach (var func in funcs) {
 							outfs.WriteUTF8(func.Name);
 							outfs.WriteUTF8("\n");

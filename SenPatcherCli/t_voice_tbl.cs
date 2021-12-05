@@ -12,9 +12,8 @@ namespace SenPatcherCli {
 	public class t_voice_tbl {
 		public List<t_voice_tbl_entry> Entries;
 
-		public t_voice_tbl(Stream stream) {
+		public t_voice_tbl(Stream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian) {
 			Stream s = new DuplicatableByteArrayStream(stream.CopyToByteArray());
-			EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian;
 			ushort count = s.ReadUInt16(e);
 
 			if (s.PeekUInt32(e) == 1) {
@@ -127,9 +126,9 @@ namespace SenPatcherCli {
 			Unknown1 = s.ReadUInt56(EndianUtils.Endianness.BigEndian);
 			Unknown2 = s.ReadUInt64(EndianUtils.Endianness.BigEndian);
 
-			if (Unknown1 != 0 || Unknown2 != 0x1000000c842) {
-				throw new Exception("unexpected format");
-			}
+			//if (Unknown1 != 0 || Unknown2 != 0x1000000c842) {
+			//	throw new Exception("unexpected format");
+			//}
 
 			return;
 		}
