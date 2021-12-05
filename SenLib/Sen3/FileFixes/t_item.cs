@@ -238,6 +238,14 @@ namespace SenLib.Sen3.FileFixes {
 				tbl_en.Entries[38].Data = m.ToBinary();
 			}
 
+			// Steel Bell
+			{
+				var m = new ItemData(tbl_en.Entries[541].Data);
+				string n = new ItemData(tbl_en.Entries[501].Data).name;
+				m.desc = m.desc.ReplaceSubstring(10, 7, n, 0, n.Length);
+				tbl_en.Entries[541].Data = m.ToBinary();
+			}
+
 			// A bunch of items that claim EP when they should be CP
 			foreach (int idx in new int[] {
 				51, 52, 53, 54, 61, 62, 63, 64, 65, 66, 67,
