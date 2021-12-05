@@ -97,19 +97,42 @@ namespace SenLib.Sen1.FileFixes {
 			return "Fix typo in Emma's S-Craft.";
 		}
 
-		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
-			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xd5f7bf4c4c575efdul, 0x5699e8bbd4040b81ul, 0x276a7284u));
-			if (s == null) {
-				return null;
-			}
-			var tbl = new Tbl(s, EndianUtils.Endianness.LittleEndian);
-
+		public static void PatchMagicTbl(Tbl tbl) {
 			// fix typo in Emma's S-Craft
 			{
 				var entry = tbl.Entries[100];
 				byte tmp = entry.Data[0x37];
 				entry.Data[0x37] = entry.Data[0x39];
 				entry.Data[0x39] = tmp;
+			}
+
+			// remove 'temporarily' in Forte & La Forte for consistency with CS2
+			{
+				int idx = 34;
+				var magic = new MagicData(tbl.Entries[idx].Data);
+				magic.Desc = magic.Desc.ReplaceSubstring(40, 13, "G", 0, 1);
+				tbl.Entries[idx].Data = magic.ToBinary();
+			}
+			{
+				int idx = 35;
+				var magic = new MagicData(tbl.Entries[idx].Data);
+				magic.Desc = magic.Desc.ReplaceSubstring(45, 13, "G", 0, 1);
+				tbl.Entries[idx].Data = magic.ToBinary();
+			}
+
+			// match formatting in Soul Blur to CS2
+			{
+				int idx = 44;
+				var magic = new MagicData(tbl.Entries[idx].Data);
+				magic.Desc = magic.Desc.InsertSubstring(46, "-", 0, 1);
+				magic.Desc = magic.Desc.ReplaceSubstring(51, 1, " ", 0, 1);
+				tbl.Entries[idx].Data = magic.ToBinary();
+			}
+
+			foreach (int idx in new int[] { 32, 33, 75 }) {
+				var magic = new MagicData(tbl.Entries[idx].Data);
+				magic.Desc = Sen2.FileFixes.text_dat_us_t_item_tbl.FixHpEpCpSpacing(magic.Desc);
+				tbl.Entries[idx].Data = magic.ToBinary();
 			}
 
 			//List<MagicData> items = new List<MagicData>();
@@ -142,6 +165,22 @@ namespace SenLib.Sen1.FileFixes {
 						entry.Data = m.ToBinary();
 					}
 				}
+			}
+		}
+
+		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xd5f7bf4c4c575efdul, 0x5699e8bbd4040b81ul, 0x276a7284u));
+			if (s == null) {
+				return null;
+			}
+			var tbl = new Tbl(s, EndianUtils.Endianness.LittleEndian);
+			PatchMagicTbl(tbl);
+
+			var item_s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xb64ec4d8b6204216ul, 0x6e97e60c57555203ul, 0x9c49c465u));
+			if (item_s != null) {
+				var item_tbl = new Tbl(item_s);
+				text_dat_us_t_item_tbl.PatchItemTbl(item_tbl);
+				text_dat_us_t_item_tbl.SyncItemMagicTbl(item_tbl, tbl);
 			}
 
 			MemoryStream ms = new MemoryStream();
