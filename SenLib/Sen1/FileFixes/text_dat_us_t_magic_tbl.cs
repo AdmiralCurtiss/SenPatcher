@@ -135,6 +135,22 @@ namespace SenLib.Sen1.FileFixes {
 				tbl.Entries[idx].Data = magic.ToBinary();
 			}
 
+			// double space in Needle Shoot
+			{
+				int idx = 7;
+				var magic = new MagicData(tbl.Entries[idx].Data);
+				magic.Desc = magic.Desc.Remove(19, 1);
+				tbl.Entries[idx].Data = magic.ToBinary();
+			}
+
+			// add turn count to Chrono Break
+			{
+				int idx = 49;
+				var magic = new MagicData(tbl.Entries[idx].Data);
+				magic.Desc = magic.Desc.InsertSubstring(33, new MagicData(tbl.Entries[48].Data).Desc, 41, 10);
+				tbl.Entries[idx].Data = magic.ToBinary();
+			}
+
 			//List<MagicData> items = new List<MagicData>();
 			//foreach (TblEntry entry in tbl.Entries) {
 			//	items.Add(new MagicData(entry.Data));

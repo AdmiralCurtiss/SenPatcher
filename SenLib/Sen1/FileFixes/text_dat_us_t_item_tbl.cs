@@ -380,6 +380,43 @@ namespace SenLib.Sen1.FileFixes {
 				item.Desc = Sen2.FileFixes.text_dat_us_t_item_tbl.FixHpEpCpSpacing(item.Desc);
 				tbl.Entries[idx].Data = item.ToBinary();
 			}
+
+			// double space in Needle Shoot/R
+			{
+				int idx = 537;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.Remove(19, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 551;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.Remove(22, 1);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+
+			// poorly-sounding description on Nightmare, sync to CS2's
+			{
+				int idx = 688;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.InsertSubstring(38, new ItemData(tbl.Entries[527].Data).Desc, 47, 8);
+				item.Desc = item.Desc.ReplaceSubstring(46, 17, item.Name, 0, item.Name.Length);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+
+			// add turn count to Chrono Break/R
+			{
+				int idx = 672;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.InsertSubstring(33, new ItemData(tbl.Entries[671].Data).Desc, 41, 10);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
+			{
+				int idx = 686;
+				var item = new ItemData(tbl.Entries[idx].Data);
+				item.Desc = item.Desc.InsertSubstring(36, new ItemData(tbl.Entries[671].Data).Desc, 41, 10);
+				tbl.Entries[idx].Data = item.ToBinary();
+			}
 		}
 
 		public static void SyncItemMagicTbl(Tbl item_tbl, Tbl magic_tbl) {
@@ -495,6 +532,8 @@ namespace SenLib.Sen1.FileFixes {
 			SyncDescription(item_tbl, 682, magic_tbl, 45, useMagic: true); // Demonic Scythe R
 			SyncDescription(item_tbl, 669, magic_tbl, 46, useMagic: true); // Grim Butterfly
 			SyncDescription(item_tbl, 683, magic_tbl, 46, useMagic: true); // Grim Butterfly R
+			SyncDescription(item_tbl, 673, magic_tbl, 50, useMagic: true); // Chrono Burst
+			SyncDescription(item_tbl, 687, magic_tbl, 50, useMagic: true); // Chrono Burst R
 			SyncDescription(item_tbl, 697, magic_tbl, 53, useMagic: true); // Cross Crusade
 			SyncDescription(item_tbl, 708, magic_tbl, 53, useMagic: true); // Cross Crusade R
 			SyncDescription(item_tbl, 698, magic_tbl, 54, useMagic: false); // Altair Cannon
