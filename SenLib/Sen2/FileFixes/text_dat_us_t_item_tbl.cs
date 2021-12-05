@@ -56,13 +56,7 @@ namespace SenLib.Sen2.FileFixes {
 			return desc;
 		}
 
-		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
-			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x0ab9f575af611369ul, 0x4b18c0128cf1343aul, 0xc6b48300u));
-			if (s == null) {
-				return null;
-			}
-			var tbl = new Tbl(s, EndianUtils.Endianness.LittleEndian);
-
+		public static void PatchItemTbl(Tbl tbl) {
 			//List<ItemData> items = new List<ItemData>();
 			//foreach (TblEntry entry in tbl.Entries) {
 			//	if (entry.Name == "item" || entry.Name == "item_q") {
@@ -213,9 +207,42 @@ namespace SenLib.Sen2.FileFixes {
 			}
 
 			{
+				// missing space on Acala Gem
+				var entry = tbl.Entries[548];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.Insert(9, " ");
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				// Chrono Burst 'Attack twice' -> 'Act twice'
+				var entry = tbl.Entries[669];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.ReplaceSubstring(23, 5, item.Desc, 88, 2);
+				entry.Data = item.ToBinary();
+			}
+			{
+				// Chrono Burst R 'Attack twice' -> 'Act twice'
+				var entry = tbl.Entries[685];
+				var item = new ItemData(entry.Data, entry.Name == "item_q");
+				item.Desc = item.Desc.ReplaceSubstring(26, 5, item.Desc, 99, 2);
+				entry.Data = item.ToBinary();
+			}
+		}
+
+		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x0ab9f575af611369ul, 0x4b18c0128cf1343aul, 0xc6b48300u));
+			if (s == null) {
+				return null;
+			}
+			var tbl = new Tbl(s, EndianUtils.Endianness.LittleEndian);
+			PatchItemTbl(tbl);
+
+			{
 				var magicStream = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x92de0d29c0ad4a9eul, 0xa935870674976924ul, 0xd5df756du));
 				if (magicStream != null) {
 					var magicTbl = new Tbl(magicStream, EndianUtils.Endianness.LittleEndian);
+					text_dat_us_t_magic_tbl.PatchMagicTbl(magicTbl);
 					SyncMagicDescriptions(tbl, magicTbl);
 
 					//var magic = new Dictionary<ushort, MagicData>();
@@ -283,6 +310,8 @@ namespace SenLib.Sen2.FileFixes {
 			SyncDescription(itemTbl, 615, magicTbl, 39, useMagic: true); // La Forte R
 			SyncDescription(itemTbl, 632, magicTbl, 44, useMagic: true); // Ragna Vortex
 			SyncDescription(itemTbl, 648, magicTbl, 44, useMagic: true); // Ragna Vortex R
+			SyncDescription(itemTbl, 634, magicTbl, 46, useMagic: true); // Holy Breath
+			SyncDescription(itemTbl, 650, magicTbl, 46, useMagic: true); // Holy Breath R
 			SyncDescription(itemTbl, 663, magicTbl, 48, useMagic: true); // Soul Blur
 			SyncDescription(itemTbl, 679, magicTbl, 48, useMagic: true); // Soul Blur R
 			SyncDescription(itemTbl, 664, magicTbl, 49, useMagic: true); // Demonic Scythe

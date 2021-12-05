@@ -158,13 +158,7 @@ namespace SenLib.Sen2.FileFixes {
 			return c;
 		}
 
-		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
-			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x92de0d29c0ad4a9eul, 0xa935870674976924ul, 0xd5df756du));
-			if (s == null) {
-				return null;
-			}
-			var tbl = new Tbl(s, EndianUtils.Endianness.LittleEndian);
-
+		public static void PatchMagicTbl(Tbl tbl) {
 			// fix typo in Emma's S-Craft
 			{
 				var entry = tbl.Entries[144];
@@ -246,9 +240,43 @@ namespace SenLib.Sen2.FileFixes {
 			}
 
 			{
+				// Grail Burst 'Attack twice' -> 'Act twice'
+				var entry = tbl.Entries[71];
+				var item = new MagicData(entry.Data);
+				item.Desc = item.Desc.ReplaceSubstring(36, 5, (new MagicData(tbl.Entries[54].Data)).Desc, 97, 2);
+				entry.Data = item.ToBinary();
+			}
+			{
+				// Chrono Burst 'Attack twice' -> 'Act twice'
+				var entry = tbl.Entries[54];
+				var item = new MagicData(entry.Data);
+				item.Desc = item.Desc.ReplaceSubstring(23, 5, item.Desc, 97, 2);
+				entry.Data = item.ToBinary();
+			}
+
+			{
+				// Add 'sacred' into Holy Breath's description like CS1
+				var entry = tbl.Entries[46];
+				var item = new MagicData(entry.Data);
+				item.Desc = item.Desc.InsertSubstring(79, (new MagicData(tbl.Entries[306].Data)).Name, 1, 6);
+				item.Desc = item.Desc.InsertSubstring(79, item.Desc, 44, 1);
+				entry.Data = item.ToBinary();
+			}
+		}
+
+		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			var s = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x92de0d29c0ad4a9eul, 0xa935870674976924ul, 0xd5df756du));
+			if (s == null) {
+				return null;
+			}
+			var tbl = new Tbl(s, EndianUtils.Endianness.LittleEndian);
+			PatchMagicTbl(tbl);
+
+			{
 				var itemStream = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x0ab9f575af611369ul, 0x4b18c0128cf1343aul, 0xc6b48300u));
 				if (itemStream != null) {
 					var itemTbl = new Tbl(itemStream, EndianUtils.Endianness.LittleEndian);
+					text_dat_us_t_item_tbl.PatchItemTbl(itemTbl);
 					text_dat_us_t_item_tbl.SyncMagicDescriptions(itemTbl, tbl);
 				}
 			}
