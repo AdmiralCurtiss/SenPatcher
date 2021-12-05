@@ -32,6 +32,8 @@ namespace SenLib.Sen3 {
 			new KnownFile(new SHA1(0x05f162efc3d880e9ul, 0x4398ae4e10108aa0ul, 0x18f30feeu), "data/asset/D3D11_us/I_JMP009.pkg"),
 			new KnownFile(new SHA1(0x6c33cf8b1cf93950ul, 0xd802f5ac9de1b213ul, 0xc0b45033u), "data/movie_us/webm/insa_05.webm"),
 			new KnownFile(new SHA1(0x97b37cb0d324014dul, 0x8db6b2965f1836eful, 0xfdb1ce01u), "data/movie_us/webm/insa_08.webm", "data/movie_us/webm/insa_09.webm"),
+			new KnownFile(new SHA1(0xbb3220cb9f85e554ul, 0xfd1196688bcc1ea5ul, 0x78a3d234u), "data/scripts/scena/dat_en/f2000.dat"),
+			new KnownFile(new SHA1(0xf00fc1a818c84469ul, 0xfd34cfb593d03ad4ul, 0x24393aceu), "data/scripts/scena/dat_en/t0260.dat"),
 			new KnownFile(new SHA1(0x660380324204ba12ul, 0xb6b100333cff246ful, 0xe6e18674u), "data/text/dat/t_item.tbl"),
 			new KnownFile(new SHA1(0x5deee9b833b2bb93ul, 0xb0a326f586943f3dul, 0x2e2424b9u), "data/text/dat_en/t_item_en.tbl", "data/text/dat_fr/t_item_en.tbl"),
 			new KnownFile(new SHA1(0x78602fdfed633bb3ul, 0xe41303f135d93674ul, 0x40c25c38u), "data/text/dat_en/t_item_fr.tbl", "data/text/dat_fr/t_item_fr.tbl"),
