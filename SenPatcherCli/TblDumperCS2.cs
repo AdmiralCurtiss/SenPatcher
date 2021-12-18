@@ -18,6 +18,7 @@ namespace SenPatcherCli.Sen2 {
 		magic,
 		QSCook,
 		QSCoolVoice,
+		voice,
 	}
 
 	public class TblDumper {
@@ -247,6 +248,30 @@ namespace SenPatcherCli.Sen2 {
 							}
 							foreach (string s in postprint) {
 								sb.AppendFormat("\n{0}", s);
+							}
+							sb.Append("\n");
+							break;
+						}
+					case TblType.voice: {
+							sb.Append("[").Append(i).Append("] ");
+							sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+							stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+							List<string> postprint = new List<string>();
+							sb.AppendFormat(" Idx {0}", stream.ReadUInt16(e));
+							postprint.Add(stream.ReadNulltermString(encoding).Replace("\n", "{n}"));
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e)); // these might be different sizes
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e)); // these might be different sizes
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e)); // these might be different sizes
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e)); // these might be different sizes
+							sb.AppendFormat(" {0:x4}", stream.ReadUInt16(e));
+							sb.AppendFormat(" {0:x8}", stream.ReadUInt32(e));
+							while (true) {
+								int b = stream.ReadByte();
+								if (b == -1) break;
+								sb.AppendFormat(" {0:x2}", b);
+							}
+							foreach (string s in postprint) {
+								sb.AppendFormat(" {0}", s);
 							}
 							sb.Append("\n");
 							break;
