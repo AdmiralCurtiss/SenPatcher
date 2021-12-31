@@ -69,7 +69,7 @@ namespace SenLib {
 		public uint UnknownHeaderBytes;
 		public List<BookEntry> Entries;
 
-		public BookTable(Stream s, EndianUtils.Endianness? endian = null) {
+		public BookTable(Stream s, EndianUtils.Endianness? endian = null, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
 			EndianUtils.Endianness e = endian.HasValue ? endian.Value : (s.PeekUInt32(EndianUtils.Endianness.LittleEndian) == 0x20 ? EndianUtils.Endianness.LittleEndian : EndianUtils.Endianness.BigEndian);
 			uint headerLength = s.ReadUInt32(e);
 			if (headerLength != 0x20) {
@@ -123,7 +123,7 @@ namespace SenLib {
 					for (int j = 0; j < dataCounter; ++j) {
 						data[j] = new BookDataStruct(s, e);
 					}
-					string text = s.ReadUTF8Nullterm();
+					string text = s.ReadNulltermString(encoding);
 					byte terminator = s.ReadUInt8();
 					if (terminator != 0x01) {
 						throw new Exception("unexpected format");
