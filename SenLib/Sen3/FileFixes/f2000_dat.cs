@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SenLib.Sen3.FileFixes {
 	class f2000_dat : FileMod {
 		public string GetDescription() {
-			return "Fix Hamilton gender (scene 1, text).";
+			return "Fix Hamilton gender (scene 2, text only).";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -17,7 +17,14 @@ namespace SenLib.Sen3.FileFixes {
 			if (file == null) {
 				return null;
 			}
-			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_en/f2000.dat", file) };
+
+			var bin = file.CopyToMemory();
+			var patcher = new SenScriptPatcher(bin);
+
+			// switch gender in line from Angelica
+			patcher.ExtendPartialCommand(0x46cf, 0x1b0, 0x482b, new byte[] { 0x73 });
+
+			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_en/f2000.dat", bin) };
 		}
 
 		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
