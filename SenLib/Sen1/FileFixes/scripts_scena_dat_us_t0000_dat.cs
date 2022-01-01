@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_t0000_dat : FileMod {
 		public string GetDescription() {
-			return "Fix wrong apostrophe on Thors campus grounds.";
+			return "Fix minor formatting issues on Thors campus grounds.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -18,6 +18,22 @@ namespace SenLib.Sen1.FileFixes {
 			var patcher = new SenScriptPatcher(bin);
 			patcher.ReplacePartialCommand(0x1c6e0, 0x8b, 0x1c71f, 3, new byte[] { 0x27 });
 			patcher.ReplacePartialCommand(0x1c6e0, 0x89, 0x1c74f, 3, new byte[] { 0x27 });
+
+			// formatting issues in Alisa Chapter 1 Evening bonding event
+			bin.SwapBytes(0x79307, 0x7930d);
+
+			// formatting issues in Jusis Chapter 3 Day bonding event
+			bin.SwapBytes(0x7c3a8, 0x7c3ab);
+			bin.Position = 0x7c3cd;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x7c4b5, 0x7c4bb);
+			bin.SwapBytes(0x7c55a, 0x7c55f);
+			bin.SwapBytes(0x7c585, 0x7c58a);
+			bin.SwapBytes(0x7c651, 0x7c659);
+			bin.SwapBytes(0x7c908, 0x7c910);
+			bin.SwapBytes(0x7c957, 0x7c95d);
+			bin.SwapBytes(0x7c9be, 0x7c9c2);
+			bin.SwapBytes(0x7ce6f, 0x7ce74);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0000.dat", bin) };
 		}
