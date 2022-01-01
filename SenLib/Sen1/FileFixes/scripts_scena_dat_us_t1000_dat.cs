@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_t1000_dat : FileMod {
 		public string GetDescription() {
-			return "Fix continuity error in chapter 3. (text only; this was officially fixed on PS4, but not on PC)";
+			return "Fix continuity error in chapter 3 and a few formatting issues in the main Trista area.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -27,6 +27,11 @@ namespace SenLib.Sen1.FileFixes {
 
 			// two lines later, linebreak was moved to a nicer spot, might as well apply that too
 			bin.SwapBytes(0x25bee, 0x25bfb);
+
+			// formatting issues in Machias Chapter 1 Day bonding event
+			bin.SwapBytes(0x39da5, 0x39dac);
+			bin.Position = 0x39f87;
+			bin.WriteUInt8(0x01);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t1000.dat", bin) };
 		}

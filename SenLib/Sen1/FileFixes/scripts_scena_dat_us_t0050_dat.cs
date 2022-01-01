@@ -18,6 +18,12 @@ namespace SenLib.Sen1.FileFixes {
 			var patcher = new SenScriptPatcher(bin);
 			patcher.RemovePartialCommand(0x11b02, 0x44, 0x11b10, 1);
 
+			// formatting issues in Laura Chapter 1 Day bonding event
+			bin.SwapBytes(0x14e92, 0x14e95);
+			bin.SwapBytes(0x1505a, 0x15061);
+			bin.SwapBytes(0x15186, 0x1518e);
+			bin.SwapBytes(0x153a1, 0x153a6);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0050.dat", bin) };
 		}
 
