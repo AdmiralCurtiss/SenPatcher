@@ -16,7 +16,7 @@ namespace SenLib.Sen1.FileFixes {
 			MemoryStream bin = s.CopyToMemoryAndDispose();
 
 			// formatting issues in Jusis Chapter 2 Evening bonding event
-			bin.SwapBytes(0x10d0c, 0x10d0e);
+			bin.SwapBytes(0x10d09, 0x10d0c);
 			bin.SwapBytes(0x10e1a, 0x10e1f);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0060.dat", bin) };
