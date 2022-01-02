@@ -41,6 +41,11 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x7a4ab, 0x7a4b3);
 			bin.SwapBytes(0x7a598, 0x7a59d);
 
+			// formatting issues in Fie Chapter 5 Evening bonding event
+			bin.SwapBytes(0x7f942, 0x7f947);
+			bin.Position = 0x7fcc6;
+			bin.WriteUInt8(0x01);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0000.dat", bin) };
 		}
 

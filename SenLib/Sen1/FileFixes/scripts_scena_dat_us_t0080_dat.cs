@@ -47,6 +47,11 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x30df7, 0x30dfc);
 			bin.SwapBytes(0x30f4e, 0x30f53);
 
+			// formatting issues in Machias Chapter 5 Evening bonding event
+			bin.SwapBytes(0x2e4ca, 0x2e4cd);
+			bin.SwapBytes(0x2efa4, 0x2efa8);
+			bin.SwapBytes(0x2fd55, 0x2fd61);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0080.dat", bin) };
 		}
 

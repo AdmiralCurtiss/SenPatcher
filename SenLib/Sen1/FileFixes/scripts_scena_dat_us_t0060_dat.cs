@@ -19,6 +19,17 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x10d09, 0x10d0c);
 			bin.SwapBytes(0x10e1a, 0x10e1f);
 
+			// formatting issues in Towa Chapter 5 Evening bonding event
+			bin.Position = 0x129ff;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x12f39, 0x12f3e);
+			bin.SwapBytes(0x130c3, 0x130c6);
+			bin.SwapBytes(0x1343f, 0x1344b);
+			bin.SwapBytes(0x13465, 0x13475);
+			bin.SwapBytes(0x134a7, 0x134b1);
+			bin.SwapBytes(0x13861, 0x13866);
+			bin.SwapBytes(0x13aac, 0x13ab1);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0060.dat", bin) };
 		}
 
