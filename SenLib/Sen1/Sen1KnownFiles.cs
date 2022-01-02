@@ -51,6 +51,7 @@ namespace SenLib.Sen1 {
 			new KnownFile(new SHA1(0xd5805f2f25de668aul, 0x4ececc8f6cad0aaaul, 0xe64a3cf8u), "data/scripts/scena/dat_us/t0080.dat", "senpatcher_bkp/data_scripts_scena_dat_us_t0080.dat"),
 			new KnownFile(new SHA1(0x84d3de50b7318f20ul, 0xb4fe48836404d134ul, 0xa124be52u), "data/scripts/scena/dat_us/t1000.dat", "senpatcher_bkp/data_scripts_scena_dat_us_t1000.dat"),
 			new KnownFile(new SHA1(0x44c4abb3f8e01ddeul, 0x0e36ca1d11cd433ful, 0x37c10788u), "data/scripts/scena/dat_us/t1010.dat", "senpatcher_bkp/data_scripts_scena_dat_us_t1010.dat"),
+			new KnownFile(new SHA1(0x5574310597160a8bul, 0x94e2a8ccf2ad2dfdul, 0xc22c79d2u), "data/scripts/scena/dat_us/t1020.dat"),
 			new KnownFile(new SHA1(0x954a31dd3eaf244ful, 0x159fbe83607ae870ul, 0xf3bdc89fu), "data/scripts/scena/dat_us/t1030.dat"),
 			new KnownFile(new SHA1(0x60ff5f6535daa1deul, 0xbc7ecab2d514a387ul, 0xeeecb587u), "data/scripts/scena/dat_us/t1050.dat"),
 			new KnownFile(new SHA1(0x4f2a0d4b4c1602bbul, 0xd9aec8dc0785f334ul, 0xc6c285f9u), "data/scripts/scena/dat_us/t1500.dat", "senpatcher_bkp/data_scripts_scena_dat_us_t1500.dat"),

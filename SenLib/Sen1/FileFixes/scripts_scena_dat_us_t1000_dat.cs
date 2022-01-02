@@ -33,6 +33,16 @@ namespace SenLib.Sen1.FileFixes {
 			bin.Position = 0x39f87;
 			bin.WriteUInt8(0x01);
 
+			// formatting issues in Fie Chapter 3 Day bonding event
+			bin.Position = 0x3914a;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x391b3, 0x391b8);
+			bin.SwapBytes(0x39202, 0x39208);
+			bin.Position = 0x39227;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x39430, 0x39436);
+			bin.SwapBytes(0x3945b, 0x3945f);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t1000.dat", bin) };
 		}
 

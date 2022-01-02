@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_t0010_dat : FileMod {
 		public string GetDescription() {
-			return "Fix double space in Chapter 6 scene in front of school building.";
+			return "Fix minor formatting issues in Thors (bottom floor).";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -17,6 +17,14 @@ namespace SenLib.Sen1.FileFixes {
 
 			var patcher = new SenScriptPatcher(bin);
 			patcher.RemovePartialCommand(0xfbbf, 0x53, 0xfbcf, 1);
+
+			// formatting issues in Towa Chapter 3 Day bonding event
+			bin.Position = 0x29d48;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x2a3fc, 0x2a3ff);
+			bin.SwapBytes(0x2a421, 0x2a42a);
+			bin.SwapBytes(0x2a6e3, 0x2a6e6);
+			bin.SwapBytes(0x2a62a, 0x2a62f);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0010.dat", bin) };
 		}

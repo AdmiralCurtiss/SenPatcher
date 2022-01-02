@@ -28,6 +28,10 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x320a5, 0x320ab);
 			bin.SwapBytes(0x32175, 0x32179);
 
+			// formatting issues in Machias Chapter 3 Day bonding event
+			bin.SwapBytes(0x2d214, 0x2d21d);
+			bin.SwapBytes(0x2d32f, 0x2d332);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0080.dat", bin) };
 		}
 

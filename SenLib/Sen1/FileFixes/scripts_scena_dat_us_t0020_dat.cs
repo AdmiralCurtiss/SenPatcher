@@ -27,6 +27,19 @@ namespace SenLib.Sen1.FileFixes {
 			bin.Position = 0x57c0c;
 			bin.WriteUInt8(0x01);
 
+			// formatting issues in Elliot Chapter 3 Day bonding event
+			bin.SwapBytes(0x55e76, 0x55e7d);
+			bin.SwapBytes(0x56007, 0x5600c);
+			bin.Position = 0x561fb;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x56238, 0x5623d);
+			bin.SwapBytes(0x5627b, 0x56280);
+			bin.SwapBytes(0x563be, 0x563c2);
+
+			// formatting issues in Alisa Chapter 3 Day bonding event
+			bin.SwapBytes(0x550aa, 0x550b1);
+			bin.SwapBytes(0x550d0, 0x550dc);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0020.dat", bin) };
 		}
 
