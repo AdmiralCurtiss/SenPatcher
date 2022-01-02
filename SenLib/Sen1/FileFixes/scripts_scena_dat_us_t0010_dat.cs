@@ -19,8 +19,13 @@ namespace SenLib.Sen1.FileFixes {
 			patcher.RemovePartialCommand(0xfbbf, 0x53, 0xfbcf, 1);
 
 			// formatting issues in Towa Chapter 3 Day bonding event
+			bin.SwapBytes(0x292ef, 0x292f4);
+			bin.SwapBytes(0x29cf4, 0x29cf8);
 			bin.Position = 0x29d48;
 			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x29e57, 0x29e5b);
+			bin.SwapBytes(0x29e78, 0x29e7e);
+			bin.SwapBytes(0x2a13e, 0x2a143);
 			bin.SwapBytes(0x2a3fc, 0x2a3ff);
 			bin.SwapBytes(0x2a421, 0x2a42a);
 			bin.SwapBytes(0x2a6e3, 0x2a6e6);
