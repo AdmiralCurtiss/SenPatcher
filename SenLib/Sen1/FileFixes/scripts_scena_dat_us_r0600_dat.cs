@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_r0600_dat : FileMod {
 		public string GetDescription() {
-			return "Fix wrong elipsis in Chapter 6 Jusis bonding event.";
+			return "Fix minor formatting issues in western Trista outskirts.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -15,8 +15,14 @@ namespace SenLib.Sen1.FileFixes {
 			}
 			MemoryStream bin = s.CopyToMemoryAndDispose();
 
+			// formatting issues in Jusis Chapter 6 Day bonding event
 			bin.Position = 0xc171;
 			bin.WriteUInt24(0x2e2e2e);
+
+			// formatting issues in Alisa Chapter 5 Day bonding event
+			bin.SwapBytes(0xb00b, 0xb013);
+			bin.SwapBytes(0xb2bb, 0xb2c0);
+			bin.SwapBytes(0xb2e4, 0xb2e7);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/r0600.dat", bin) };
 		}

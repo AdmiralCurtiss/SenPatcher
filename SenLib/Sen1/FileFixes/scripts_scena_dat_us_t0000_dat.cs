@@ -35,6 +35,12 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x7c9be, 0x7c9c2);
 			bin.SwapBytes(0x7ce6f, 0x7ce74);
 
+			// formatting issues in Alisa Chapter 5 Day bonding event
+			bin.SwapBytes(0x79ad0, 0x79ad6);
+			bin.SwapBytes(0x7a484, 0x7a488);
+			bin.SwapBytes(0x7a4ab, 0x7a4b3);
+			bin.SwapBytes(0x7a598, 0x7a59d);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0000.dat", bin) };
 		}
 
