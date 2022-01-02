@@ -31,6 +31,10 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x164d8, 0x164dd);
 			bin.SwapBytes(0x16627, 0x1662a);
 
+			// formatting issues in Laura Chapter 5 Day bonding event
+			bin.Position = 0x17070;
+			bin.WriteUInt8(0x01);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0050.dat", bin) };
 		}
 

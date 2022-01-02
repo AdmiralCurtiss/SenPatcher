@@ -35,6 +35,13 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x100a9, 0x100b0);
 			bin.SwapBytes(0x100cf, 0x100d8);
 
+			// formatting issues in Gaius Chapter 5 Day bonding event
+			bin.SwapBytes(0x109d0, 0x109d3);
+			bin.Position = 0x10c48;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x10d5b, 0x10d60);
+			bin.SwapBytes(0x117bf, 0x117c3);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t1050.dat", bin) };
 		}
 

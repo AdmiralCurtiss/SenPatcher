@@ -43,6 +43,11 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x39430, 0x39436);
 			bin.SwapBytes(0x3945b, 0x3945f);
 
+			// formatting issues in Emma Chapter 5 Day bonding event
+			bin.SwapBytes(0x3aa47, 0x3aa4c);
+			bin.SwapBytes(0x3ab64, 0x3ab6c);
+			bin.SwapBytes(0x3ac71, 0x3ac74);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t1000.dat", bin) };
 		}
 
