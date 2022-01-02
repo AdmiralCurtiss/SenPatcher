@@ -44,7 +44,9 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x305c0, 0x305c4);
 			bin.SwapBytes(0x30b71, 0x30b75);
 			bin.SwapBytes(0x30b96, 0x30b9f);
-			bin.SwapBytes(0x30df7, 0x30dfc);
+			bin.SwapBytes(0x30df1, 0x30dfc);
+			bin.Position = 0x30e17;
+			bin.WriteUInt8(0x01);
 			bin.SwapBytes(0x30f4e, 0x30f53);
 
 			// formatting issues in Machias Chapter 5 Evening bonding event
