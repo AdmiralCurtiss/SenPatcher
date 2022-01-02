@@ -210,6 +210,7 @@
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0100_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0110_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0600_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0610_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0601_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0800_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_m0040_dat.cs" />
@@ -225,8 +226,10 @@
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1000_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1020_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1030_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1040_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1050_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1010_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1110_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1500_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t3500_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_beryl_dat.cs" />
