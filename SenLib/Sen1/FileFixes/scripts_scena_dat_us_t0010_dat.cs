@@ -24,7 +24,7 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x2a3fc, 0x2a3ff);
 			bin.SwapBytes(0x2a421, 0x2a42a);
 			bin.SwapBytes(0x2a6e3, 0x2a6e6);
-			bin.SwapBytes(0x2a62a, 0x2a62f);
+			bin.SwapBytes(0x2a72a, 0x2a72f);
 
 			// formatting issues in Fie Chapter 4 Day bonding event
 			bin.SwapBytes(0x2b045, 0x2b04a);
