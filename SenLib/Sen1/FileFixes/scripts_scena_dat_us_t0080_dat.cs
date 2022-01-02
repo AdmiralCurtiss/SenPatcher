@@ -32,6 +32,21 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x2d214, 0x2d21d);
 			bin.SwapBytes(0x2d32f, 0x2d332);
 
+			// formatting issues in Jusis Chapter 4 Day bonding event
+			bin.SwapBytes(0x2c35f, 0x2c362);
+			bin.SwapBytes(0x2c467, 0x2c46a);
+			bin.SwapBytes(0x2c4dd, 0x2c4e2);
+
+			// formatting issues in Emma Chapter 4 Day bonding event
+			bin.Position = 0x303f1;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x3042b, 0x3042f);
+			bin.SwapBytes(0x305c0, 0x305c4);
+			bin.SwapBytes(0x30b71, 0x30b75);
+			bin.SwapBytes(0x30b96, 0x30b9f);
+			bin.SwapBytes(0x30df7, 0x30dfc);
+			bin.SwapBytes(0x30f4e, 0x30f53);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0080.dat", bin) };
 		}
 

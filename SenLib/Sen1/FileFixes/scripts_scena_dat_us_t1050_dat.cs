@@ -25,6 +25,16 @@ namespace SenLib.Sen1.FileFixes {
 			bin.Position = 0x12a3e;
 			bin.WriteUInt8(0x01);
 
+			// formatting issues in Machias Chapter 4 Day bonding event
+			bin.SwapBytes(0xf9f8, 0xf9fa);
+			bin.SwapBytes(0xfa9f, 0xfaa8);
+			bin.SwapBytes(0xfac4, 0xfad2);
+			bin.SwapBytes(0xfb8d, 0xfb93);
+			bin.SwapBytes(0xfe48, 0xfe4d);
+			bin.SwapBytes(0xfe98, 0xfe9e);
+			bin.SwapBytes(0x100a9, 0x100b0);
+			bin.SwapBytes(0x100cf, 0x100d8);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t1050.dat", bin) };
 		}
 
