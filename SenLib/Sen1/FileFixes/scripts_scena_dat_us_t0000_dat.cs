@@ -46,6 +46,38 @@ namespace SenLib.Sen1.FileFixes {
 			bin.Position = 0x7fcc6;
 			bin.WriteUInt8(0x01);
 
+			// formatting issues in Fie Chapter 6 Day bonding event
+			bin.SwapBytes(0x8024c, 0x80251);
+			bin.SwapBytes(0x8080e, 0x80814);
+
+			// formatting issues in Elliot Chapter 6 Day bonding event
+			bin.Position = 0x7dec6;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x7df0f, 0x7df13);
+			bin.SwapBytes(0x7df36, 0x7df3b);
+			bin.SwapBytes(0x7df7d, 0x7df87);
+			bin.SwapBytes(0x7dff0, 0x7dff6);
+			bin.SwapBytes(0x7e05d, 0x7e066);
+			bin.Position = 0x7e07f;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x7e14e, 0x7e151);
+
+			// formatting issues in Alisa Chapter 6 Evening bonding event
+			bin.Position = 0x7adaf;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x7af31, 0x7af36);
+			bin.SwapBytes(0x7b2a5, 0x7b2ae);
+			bin.Position = 0x7b2ca;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x7b3e2, 0x7b3e6);
+			bin.Position = 0x7b407;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x7b8f2, 0x7b8f5);
+			bin.SwapBytes(0x7b91b, 0x7b91f);
+			bin.SwapBytes(0x7b98d, 0x7b991);
+			bin.SwapBytes(0x7b9e5, 0x7b9ea);
+			bin.SwapBytes(0x7ba07, 0x7ba0f);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0000.dat", bin) };
 		}
 

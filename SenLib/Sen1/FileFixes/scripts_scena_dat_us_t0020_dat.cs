@@ -49,6 +49,25 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x56d54, 0x56d63);
 			bin.SwapBytes(0x56d9d, 0x56da1);
 
+			// formatting issues in Gaius Chapter 6 Day bonding event
+			bin.SwapBytes(0x59357, 0x5935c);
+			bin.SwapBytes(0x59482, 0x59486);
+			bin.SwapBytes(0x5972f, 0x59736);
+			bin.SwapBytes(0x5976f, 0x59778);
+
+			// formatting issues in Crow Chapter 6 Evening bonding event
+			bin.SwapBytes(0x59f0a, 0x59f11);
+			bin.SwapBytes(0x5a022, 0x5a027);
+			bin.Position = 0x5a048;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x5a1cb, 0x5a1ce);
+			bin.SwapBytes(0x5a1f3, 0x5a1fa);
+			bin.SwapBytes(0x5a240, 0x5a245);
+			bin.SwapBytes(0x5a47b, 0x5a480);
+			bin.SwapBytes(0x5aaa0, 0x5aaa6);
+			bin.SwapBytes(0x5aac6, 0x5aad1);
+			bin.SwapBytes(0x5ac44, 0x5ac48);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0020.dat", bin) };
 		}
 

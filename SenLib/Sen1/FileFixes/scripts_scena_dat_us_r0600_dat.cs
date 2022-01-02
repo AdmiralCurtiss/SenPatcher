@@ -18,6 +18,7 @@ namespace SenLib.Sen1.FileFixes {
 			// formatting issues in Jusis Chapter 6 Day bonding event
 			bin.Position = 0xc171;
 			bin.WriteUInt24(0x2e2e2e);
+			bin.SwapBytes(0xbf07, 0xbf11);
 
 			// formatting issues in Alisa Chapter 5 Day bonding event
 			bin.SwapBytes(0xb00b, 0xb013);

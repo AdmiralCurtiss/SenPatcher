@@ -52,6 +52,9 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x2efa4, 0x2efa8);
 			bin.SwapBytes(0x2fd55, 0x2fd61);
 
+			// formatting issues in Emma/Fie midterms event
+			bin.SwapBytes(0x33b77, 0x33b7c);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0080.dat", bin) };
 		}
 

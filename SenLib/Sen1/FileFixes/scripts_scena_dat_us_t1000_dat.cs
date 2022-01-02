@@ -48,6 +48,15 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x3ab64, 0x3ab6c);
 			bin.SwapBytes(0x3ac71, 0x3ac74);
 
+			// formatting issues in Millium Chapter 6 Evening bonding event
+			bin.SwapBytes(0x3c1fb, 0x3c201);
+			bin.SwapBytes(0x3c4db, 0x3c4e4);
+			bin.SwapBytes(0x3c500, 0x3c510);
+			bin.SwapBytes(0x3c558, 0x3c55c);
+			bin.SwapBytes(0x3c581, 0x3c585);
+			bin.SwapBytes(0x3c5d0, 0x3c5d5);
+			bin.SwapBytes(0x3c5fa, 0x3c5ff);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t1000.dat", bin) };
 		}
 

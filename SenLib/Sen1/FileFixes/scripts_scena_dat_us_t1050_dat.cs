@@ -42,6 +42,18 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x10d5b, 0x10d60);
 			bin.SwapBytes(0x117bf, 0x117c3);
 
+			// formatting issues in Sara Chapter 6 Day bonding event
+			bin.Position = 0x13713;
+			bin.WriteUInt8(0x01);
+			bin.Position = 0x137d7;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x138e7, 0x138ec);
+			bin.Position = 0x139a5;
+			bin.WriteUInt8(0x01);
+			bin.Position = 0x13b38;
+			bin.WriteUInt8(0x01);
+			bin.SwapBytes(0x13bce, 0x13bd2);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t1050.dat", bin) };
 		}
 
