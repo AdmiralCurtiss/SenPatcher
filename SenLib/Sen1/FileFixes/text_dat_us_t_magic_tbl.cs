@@ -94,7 +94,7 @@ namespace SenLib.Sen1.FileFixes {
 
 	public class text_dat_us_t_magic_tbl : FileMod {
 		public string GetDescription() {
-			return "Fix typo in Emma's S-Craft.";
+			return "Series consistency fixes in EN magic descriptions.";
 		}
 
 		public static void PatchMagicTbl(Tbl tbl) {

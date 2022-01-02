@@ -130,7 +130,7 @@ namespace SenLib.Sen1.FileFixes {
 
 	public class text_dat_us_t_item_tbl : FileMod {
 		public string GetDescription() {
-			return "Minor fixes in item descriptions.";
+			return "Series consistency fixes in EN item descriptions.";
 		}
 
 		public static string GetMagicClass(long value) {

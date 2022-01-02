@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_t0010_dat : FileMod {
 		public string GetDescription() {
-			return "Fix minor formatting issues in Thors (bottom floor).";
+			return "Fix formatting issues in Thors (bottom floor).";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

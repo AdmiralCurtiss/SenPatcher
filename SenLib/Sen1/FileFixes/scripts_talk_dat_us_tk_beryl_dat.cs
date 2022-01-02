@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_talk_dat_us_tk_beryl_dat : FileMod {
 		public string GetDescription() {
-			return "Fix wrong apostrophe in conversation with Beryl.";
+			return "Fix formatting issues in conversation with Beryl.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

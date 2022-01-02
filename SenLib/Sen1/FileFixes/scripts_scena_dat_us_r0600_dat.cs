@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_r0600_dat : FileMod {
 		public string GetDescription() {
-			return "Fix minor formatting issues in western Trista outskirts.";
+			return "Fix formatting issues in western Trista highway.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

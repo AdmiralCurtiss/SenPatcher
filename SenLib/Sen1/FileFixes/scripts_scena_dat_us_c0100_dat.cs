@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_c0100_dat : FileMod {
 		public string GetDescription() {
-			return "Fix text errors on Vainqueur Street.";
+			return "Fix text and voice errors on Vainqueur Street.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_t1050_dat : FileMod {
 		public string GetDescription() {
-			return "Fix minor formatting issues in Kirsche's.";
+			return "Fix formatting issues in Kirsche's.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_c0110_dat : FileMod {
 		public string GetDescription() {
-			return "Fix wrong apostrophe in Le Sage scene (?)";
+			return "Fix formatting issues in Le Sage (Heimdallr).";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

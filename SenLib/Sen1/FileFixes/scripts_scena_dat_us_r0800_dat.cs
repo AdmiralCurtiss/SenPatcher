@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_r0800_dat : FileMod {
 		public string GetDescription() {
-			return "Fix double space in southern Nord plains.";
+			return "Fix formatting issues in southern Nord plains.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -15,6 +15,7 @@ namespace SenLib.Sen1.FileFixes {
 			}
 			MemoryStream bin = s.CopyToMemoryAndDispose();
 
+			// double space
 			var patcher = new SenScriptPatcher(bin);
 			patcher.RemovePartialCommand(0xf877, 0x46, 0xf89c, 1);
 

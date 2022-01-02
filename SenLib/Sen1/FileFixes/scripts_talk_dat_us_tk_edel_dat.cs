@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_talk_dat_us_tk_edel_dat : FileMod {
 		public string GetDescription() {
-			return "Fix double space in conversation with Edel.";
+			return "Fix formatting issues in conversation with Edel.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

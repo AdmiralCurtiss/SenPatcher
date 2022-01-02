@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_talk_dat_us_tk_heinrich_dat : FileMod {
 		public string GetDescription() {
-			return "Fix wrong elipsis in conversation with Heinrich.";
+			return "Fix formatting issues in conversation with Heinrich.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

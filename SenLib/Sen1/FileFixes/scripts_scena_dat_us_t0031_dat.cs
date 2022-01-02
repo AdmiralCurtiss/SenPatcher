@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_t0031_dat : FileMod {
 		public string GetDescription() {
-			return "Fix typos in Stella Garden.";
+			return "Fix text errors in Stella Garten.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

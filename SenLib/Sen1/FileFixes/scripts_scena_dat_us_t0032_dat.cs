@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_t0032_dat : FileMod {
 		public string GetDescription() {
-			return "Fix wrong elipsis in teahouse festival events.";
+			return "Fix formatting issues in teahouse festival events.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {

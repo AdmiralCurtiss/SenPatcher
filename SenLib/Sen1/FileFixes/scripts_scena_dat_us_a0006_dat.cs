@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_a0006_dat : FileMod {
 		public string GetDescription() {
-			return "Fix double spaces in debug map.";
+			return "Fix formatting issues in debug map.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
