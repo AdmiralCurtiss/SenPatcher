@@ -47,7 +47,7 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x56b35, 0x56b3a);
 			bin.SwapBytes(0x56d2a, 0x56d37);
 			bin.SwapBytes(0x56d54, 0x56d63);
-			bin.SwapBytes(0x56d9d, 0x56da1);
+			bin.SwapBytes(0x5729d, 0x572a1);
 
 			// formatting issues in Gaius Chapter 6 Day bonding event
 			bin.SwapBytes(0x59357, 0x5935c);
