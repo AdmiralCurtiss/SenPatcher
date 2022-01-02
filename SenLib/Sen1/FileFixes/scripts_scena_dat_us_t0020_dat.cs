@@ -40,6 +40,15 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x550aa, 0x550b1);
 			bin.SwapBytes(0x550d0, 0x550dc);
 
+			// formatting issues in Elliot Chapter 4 Evening bonding event
+			bin.SwapBytes(0x56913, 0x56919);
+			bin.SwapBytes(0x5693c, 0x56940);
+			bin.SwapBytes(0x56af4, 0x56af7);
+			bin.SwapBytes(0x56b35, 0x56b3a);
+			bin.SwapBytes(0x56d2a, 0x56d37);
+			bin.SwapBytes(0x56d54, 0x56d63);
+			bin.SwapBytes(0x56d9d, 0x56da1);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0020.dat", bin) };
 		}
 

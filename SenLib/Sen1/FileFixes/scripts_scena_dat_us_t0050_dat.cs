@@ -5,7 +5,7 @@ using System.IO;
 namespace SenLib.Sen1.FileFixes {
 	public class scripts_scena_dat_us_t0050_dat : FileMod {
 		public string GetDescription() {
-			return "Fix double space in Mishy Panic.";
+			return "Fix minor formatting issues in the Gymnasium.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -15,6 +15,7 @@ namespace SenLib.Sen1.FileFixes {
 			}
 			MemoryStream bin = s.CopyToMemoryAndDispose();
 
+			// double space
 			var patcher = new SenScriptPatcher(bin);
 			patcher.RemovePartialCommand(0x11b02, 0x44, 0x11b10, 1);
 
@@ -23,6 +24,12 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x1505a, 0x15061);
 			bin.SwapBytes(0x15186, 0x1518e);
 			bin.SwapBytes(0x153a1, 0x153a6);
+
+			// formatting issues in Laura Chapter 4 Evening bonding event
+			bin.SwapBytes(0x162a6, 0x162ab);
+			bin.SwapBytes(0x164ae, 0x164b4);
+			bin.SwapBytes(0x164d8, 0x164dd);
+			bin.SwapBytes(0x16627, 0x1662a);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0050.dat", bin) };
 		}
