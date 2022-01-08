@@ -13,7 +13,14 @@ namespace SenLib.Sen4 {
 			bool disablePauseOnFocusLoss = false
 		) {
 			var f = new List<FileMod>();
-			// TODO
+			for (int i = 0; i < 2; ++i) {
+				f.Add(new FileFixes.ed8_4_exe(
+					jp: i == 0,
+					allowSwitchToNightmare: allowSwitchToNightmare,
+					disableMouseCapture: disableMouseCapture,
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+				));
+			}
 			return f;
 		}
 
