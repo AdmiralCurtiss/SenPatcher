@@ -28,7 +28,7 @@ namespace SenLib.Sen3 {
 			return f;
 		}
 
-		public static List<FileMod> GetAssetMods() {
+		public static List<FileMod> GetAssetMods(bool allowSwitchToNightmare = false) {
 			var f = new List<FileMod>();
 			f.Add(new FileFixes.voice_opus_v00e0441());
 			f.Add(new FileFixes.voice_opus_v00s2728());
@@ -39,7 +39,7 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.t_item());
 			f.Add(new FileFixes.t_magic());
 			f.Add(new FileFixes.t_notecook());
-			f.Add(new FileFixes.t_text());
+			f.Add(new FileFixes.t_text(allowSwitchToNightmare));
 			f.Add(new FileFixes.insa05());
 			f.Add(new FileFixes.insa08());
 			f.Add(new FileFixes.insa09());

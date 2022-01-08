@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen3.FileFixes {
 	class t_text : FileMod {
+		private bool AllowSwitchToNightmare;
+
+		public t_text(bool allowSwitchToNightmare) {
+			AllowSwitchToNightmare = allowSwitchToNightmare;
+		}
+
 		public string GetDescription() {
 			return "Fix a few system messages.";
 		}
@@ -19,6 +25,12 @@ namespace SenLib.Sen3.FileFixes {
 				return null;
 			}
 			var tbl_en = new Tbl(file_en, EndianUtils.Endianness.LittleEndian);
+
+			if (AllowSwitchToNightmare) {
+				var m = new TextTableData(tbl_en.Entries[99].Data);
+				m.str = m.str.Split('\n')[0];
+				tbl_en.Entries[99].Data = m.ToBinary();
+			}
 
 			// this description is gibberish because someone assumed %s is the MQ name instead of the character name, rewrite it so it makes sense
 			for (int i = 0; i < 2; ++i) {

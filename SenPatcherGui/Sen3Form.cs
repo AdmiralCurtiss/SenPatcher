@@ -47,7 +47,9 @@ namespace SenPatcherGui {
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss
 				));
 				if (patchAssets) {
-					mods.AddRange(Sen3Mods.GetAssetMods());
+					mods.AddRange(Sen3Mods.GetAssetMods(
+						allowSwitchToNightmare: allowNightmare
+					));
 				}
 
 				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
