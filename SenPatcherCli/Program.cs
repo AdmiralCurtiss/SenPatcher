@@ -3,6 +3,7 @@ using SenLib;
 using SenLib.Sen1;
 using SenLib.Sen2;
 using SenLib.Sen3;
+using SenLib.Sen4;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -133,6 +134,8 @@ namespace SenPatcherCli {
 				sengame = 2;
 			} else if (File.Exists(System.IO.Path.Combine(path, "Sen3Launcher.exe"))) {
 				sengame = 3;
+			} else if (File.Exists(System.IO.Path.Combine(path, "Sen4Launcher.exe"))) {
+				sengame = 4;
 			} else {
 				Console.WriteLine($"Failed to detect what game {path} is.");
 				return -1;
@@ -144,6 +147,7 @@ namespace SenPatcherCli {
 				case 1: knownFiles = Sen1KnownFiles.Files; break;
 				case 2: knownFiles = Sen2KnownFiles.Files; break;
 				case 3: knownFiles = Sen3KnownFiles.Files; break;
+				case 4: knownFiles = Sen4KnownFiles.Files; break;
 				default: return -1; // shouldn't get here
 			}
 			FileStorage storage = FileModExec.InitializeAndPersistFileStorage(path, knownFiles, new CliProgressReporter())?.Storage;
@@ -189,7 +193,20 @@ namespace SenPatcherCli {
 					disableMouseCapture: true,
 					disablePauseOnFocusLoss: true
 				));
-				mods.AddRange(Sen3Mods.GetAssetMods());
+				mods.AddRange(Sen3Mods.GetAssetMods(
+					allowSwitchToNightmare: true
+				));
+				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
+			} else if (sengame == 4) {
+				var mods = new List<FileMod>();
+				mods.AddRange(Sen4Mods.GetExecutableMods(
+					allowSwitchToNightmare: true,
+					disableMouseCapture: true,
+					disablePauseOnFocusLoss: true
+				));
+				mods.AddRange(Sen4Mods.GetAssetMods(
+					allowSwitchToNightmare: true
+				));
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
 			} else {
 				return -1; // shouldn't get here
