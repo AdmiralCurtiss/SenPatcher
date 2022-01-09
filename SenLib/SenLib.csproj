@@ -309,6 +309,7 @@
     <Compile Include="Sen3\Sen3Mods.cs" />
     <Compile Include="Sen4\FileFixes\ed8_4_exe.cs" />
     <Compile Include="Sen4\FileFixes\t_item.cs" />
+    <Compile Include="Sen4\FileFixes\t_mstqrt.cs" />
     <Compile Include="Sen4\FileFixes\t_text.cs" />
     <Compile Include="Sen4\Sen4ExecutablePatches.cs" />
     <Compile Include="Sen4\Sen4ExecutablePatches.WindowHacks.cs" />

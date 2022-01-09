@@ -14,6 +14,8 @@ namespace SenPatcherCli.Sen4 {
 	public enum TblType {
 		item,
 		item_q,
+
+		MasterQuartzMemo,
 	}
 
 	public class TblDumper {
@@ -154,6 +156,15 @@ namespace SenPatcherCli.Sen4 {
 							sb.Append("\n\n");
 							break;
 						}
+					case TblType.MasterQuartzMemo:
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						sb.AppendFormat(" MQ {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" String {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.Append("\n");
+						break;
 					default:
 						sb.Append("[").Append(i).Append("] ");
 						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
