@@ -73,6 +73,12 @@
     <Compile Include="Sen1SystemDataForm.Designer.cs">
       <DependentUpon>Sen1SystemDataForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Sen4Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Sen4Form.Designer.cs">
+      <DependentUpon>Sen4Form.cs</DependentUpon>
+    </Compile>
     <Compile Include="Sen3Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -117,6 +123,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Sen1SystemDataForm.resx">
       <DependentUpon>Sen1SystemDataForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Sen4Form.resx">
+      <DependentUpon>Sen4Form.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Sen3Form.resx">
       <DependentUpon>Sen3Form.cs</DependentUpon>

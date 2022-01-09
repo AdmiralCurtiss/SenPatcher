@@ -4,6 +4,7 @@ using SenLib;
 using SenLib.Sen1;
 using SenLib.Sen2;
 using SenLib.Sen3;
+using SenLib.Sen4;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -45,6 +46,13 @@ namespace SenPatcherGui {
 		private static string GetDefaultPathCS3() {
 			if (Directory.Exists(SenCommonPaths.Sen3SteamDir)) {
 				return SenCommonPaths.Sen3SteamDir;
+			}
+			return @"c:\";
+		}
+
+		private static string GetDefaultPathCS4() {
+			if (Directory.Exists(SenCommonPaths.Sen4SteamDir)) {
+				return SenCommonPaths.Sen4SteamDir;
 			}
 			return @"c:\";
 		}
@@ -426,6 +434,108 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				new Sen3Form(init.Path, init.Storage).ShowDialog();
+			}
+		}
+
+		private void buttonCS4Patch_Click(object sender, EventArgs e) {
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.CheckFileExists = false;
+				d.ValidateNames = false;
+				d.InitialDirectory = GetDefaultPathCS4();
+				d.FileName = "Sen4Launcher.exe";
+				d.Filter = "CS4 root game directory (Sen4Launcher.exe)|Sen4Launcher.exe|All files (*.*)|*.*";
+				if (d.ShowDialog() == DialogResult.OK) {
+					OpenCs4GameDir(d.FileName);
+				}
+			}
+		}
+
+		private class Cs4GameInitClass {
+			// input
+			public string Sen4LauncherPath;
+			public ProgressReporter Progress;
+
+			// output
+			public string Path;
+			public FileStorage Storage;
+
+			public bool ShouldProceedToPatchOptionWindow;
+
+			public Cs4GameInitClass(string launcherPath, ProgressReporter progress) {
+				Sen4LauncherPath = launcherPath;
+				Progress = progress;
+			}
+
+			public void Cs4GameInit() {
+				int CurrentProgress = 0;
+				int TotalProgress = 3;
+				bool shouldAutoCloseWindow = true;
+				try {
+					Progress.Message("Checking Sen4Launcher.exe...", CurrentProgress++, TotalProgress);
+					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(Sen4LauncherPath)) {
+						SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+						if (hash != new SHA1(0x5f480136aa4c3b53ul, 0xadd422bf75b63350ul, 0xfa58d202u)) {
+							Progress.Error("Selected file does not appear to be Sen4Launcher.exe of version 1.2.");
+							Progress.Finish(false);
+							return;
+						}
+					}
+				} catch (Exception ex) {
+					Progress.Error("Error while validating Sen4Launcher.exe: " + ex.Message);
+					Progress.Finish(false);
+					return;
+				}
+
+				try {
+					Path = System.IO.Path.GetDirectoryName(Sen4LauncherPath);
+					Progress.Message("Initializing patch data...", CurrentProgress++, TotalProgress);
+					var files = Sen4KnownFiles.Files;
+					Progress.Message("Initializing game data...", CurrentProgress++, TotalProgress);
+					var storageInit = FileModExec.InitializeAndPersistFileStorage(Path, files, Progress);
+					Storage = storageInit?.Storage;
+					if (storageInit == null || storageInit.Errors.Count != 0) {
+						shouldAutoCloseWindow = false;
+					}
+				} catch (Exception ex) {
+					Progress.Error("Error while initializing CS4 patch/game data: " + ex.Message);
+					Progress.Finish(false);
+					return;
+				}
+
+				ShouldProceedToPatchOptionWindow = Path != null && Storage != null;
+				if (shouldAutoCloseWindow) {
+					Progress.Message("Initialized CS4 data, proceeding to patch options...", CurrentProgress, TotalProgress);
+				} else {
+					Progress.Message("", CurrentProgress, TotalProgress);
+					if (ShouldProceedToPatchOptionWindow) {
+						Progress.Error(
+							  "Encountered problems while initializing CS4 data. "
+							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
+							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
+							+ "Please also ensure you're trying to patch a compatible version of the game. (NISA release version 1.2; other game versions are not compatible, though if you own the EGS version I'd appreciate a report about file differences, if any!)"
+						);
+					} else {
+						Progress.Error(
+							  "Unrecoverable issues while initializing CS4 data. "
+							+ "Please ensure SenPatcher has read and write access to the selected game directory, then try again."
+						);
+					}
+				}
+				Progress.Finish(shouldAutoCloseWindow);
+			}
+		}
+
+		private void OpenCs4GameDir(string launcherPath) {
+			var progressForm = new ProgressForm();
+			var progress = progressForm.GetProgressReporter();
+			var init = new Cs4GameInitClass(launcherPath, progress);
+			var thread = new System.Threading.Thread(init.Cs4GameInit);
+			thread.Start();
+			progressForm.ShowDialog();
+
+			thread.Join();
+			if (init.ShouldProceedToPatchOptionWindow) {
+				new Sen4Form(init.Path, init.Storage).ShowDialog();
 			}
 		}
 	}

@@ -32,6 +32,8 @@
 			this.buttonCS2Patch = new System.Windows.Forms.Button();
 			this.buttonCS3Patch = new System.Windows.Forms.Button();
 			this.label1 = new System.Windows.Forms.Label();
+			this.buttonCS4Patch = new System.Windows.Forms.Button();
+			this.label4 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// buttonCS1Patch
@@ -132,11 +134,34 @@
 			this.label1.TabIndex = 7;
 			this.label1.Text = "Trails of Cold Steel III: (NISA PC release version 1.05)";
 			// 
+			// buttonCS4Patch
+			// 
+			this.buttonCS4Patch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonCS4Patch.Location = new System.Drawing.Point(12, 260);
+			this.buttonCS4Patch.Name = "buttonCS4Patch";
+			this.buttonCS4Patch.Size = new System.Drawing.Size(317, 21);
+			this.buttonCS4Patch.TabIndex = 10;
+			this.buttonCS4Patch.Text = "Patch game";
+			this.buttonCS4Patch.UseVisualStyleBackColor = true;
+			this.buttonCS4Patch.Click += new System.EventHandler(this.buttonCS4Patch_Click);
+			// 
+			// label4
+			// 
+			this.label4.AutoSize = true;
+			this.label4.Location = new System.Drawing.Point(9, 244);
+			this.label4.Name = "label4";
+			this.label4.Size = new System.Drawing.Size(254, 13);
+			this.label4.TabIndex = 9;
+			this.label4.Text = "Trails of Cold Steel IV: (NISA PC release version 1.2)";
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(341, 242);
+			this.ClientSize = new System.Drawing.Size(341, 295);
+			this.Controls.Add(this.buttonCS4Patch);
+			this.Controls.Add(this.label4);
 			this.Controls.Add(this.buttonCS3Patch);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.buttonCS2Sysdata);
@@ -163,6 +188,8 @@
 		private System.Windows.Forms.Button buttonCS2Patch;
 		private System.Windows.Forms.Button buttonCS3Patch;
 		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Button buttonCS4Patch;
+		private System.Windows.Forms.Label label4;
 	}
 }
 

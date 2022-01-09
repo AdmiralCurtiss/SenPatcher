@@ -16,6 +16,8 @@ namespace SenLib {
 
 		public static readonly string Sen3SteamDir = @"c:\Program Files (x86)\Steam\steamapps\common\The Legend of Heroes Trails of Cold Steel III\";
 
+		public static readonly string Sen4SteamDir = @"c:\Program Files (x86)\Steam\steamapps\common\The Legend of Heroes Trails of Cold Steel IV\";
+
 		private static string _SavedGamesFolder = null;
 		public static string SavedGamesFolder {
 			get {
