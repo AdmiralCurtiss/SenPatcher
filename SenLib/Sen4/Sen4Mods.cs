@@ -26,6 +26,7 @@ namespace SenLib.Sen4 {
 
 		public static List<FileMod> GetAssetMods(bool allowSwitchToNightmare = false) {
 			var f = new List<FileMod>();
+			f.Add(new FileFixes.t_item());
 			f.Add(new FileFixes.t_text(allowSwitchToNightmare));
 			return f;
 		}

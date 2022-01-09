@@ -24,6 +24,11 @@ namespace SenLib.Sen4 {
 		private static KnownFile[] InitKnownFiles() {
 			Logging.Log("Initializing CS4 file data.");
 			return new KnownFile[] {
+				new KnownFile(new SHA1(0xe16749c32d8a877cul, 0x4a6181337f7f20b3ul, 0x0e40f379u), "data/text/dat_en/t_item_en.tbl"),
+				new KnownFile(new SHA1(0xa6a6031210ad60feul, 0xe7cf1949e4c31be2ul, 0xdb4fc413u), "data/text/dat_en/t_itemhelp.tbl"),
+				new KnownFile(new SHA1(0xd7acccb681c5456aul, 0xb53a4217c3496185ul, 0xb67cc718u), "data/text/dat_en/t_magic.tbl"),
+				new KnownFile(new SHA1(0x40ae4f525021b550ul, 0xb77e045a00841a42ul, 0xbc460a77u), "data/text/dat_en/t_mstqrt.tbl"),
+				new KnownFile(new SHA1(0xc755b53e8ba8618eul, 0x9e55d4e7c83cccb7ul, 0xe7298fbbu), "data/text/dat_en/t_notecook.tbl"),
 				new KnownFile(new SHA1(0xb80489ae03c9c909ul, 0x53e7285b920df660ul, 0x148768efu), "data/text/dat_en/t_text.tbl"),
 				new KnownFile(new SHA1(0xc8669cb40e015c16ul, 0xec16776bd9a30945ul, 0xb5545a72u), "bin/Win64/ed8_4_PC.exe"),
 				new KnownFile(new SHA1(0xf3952664b8da2607ul, 0x23677c91980ef9bcul, 0xf5c3113au), "bin/Win64/ed8_4_PC_JP.exe"),

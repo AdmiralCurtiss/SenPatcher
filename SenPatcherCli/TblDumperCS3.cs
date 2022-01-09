@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenPatcherCli {
+namespace SenPatcherCli.Sen3 {
 	public enum TblType {
 		MasterQuartzStatus,
 		MasterQuartzBase,

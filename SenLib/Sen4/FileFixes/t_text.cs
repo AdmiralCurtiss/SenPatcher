@@ -45,7 +45,7 @@ namespace SenLib.Sen4.FileFixes {
 			if (file_en == null) {
 				return null;
 			}
-			var tbl_en = new Sen3.Tbl(file_en, EndianUtils.Endianness.LittleEndian);
+			var tbl_en = new Tbl(file_en, EndianUtils.Endianness.LittleEndian);
 
 			//List<TextTableData> tmp = new List<TextTableData>();
 			//for (int i = 0; i < tbl_en.Entries.Count; ++i) {
