@@ -5,6 +5,7 @@ Fixes and customizations for:
 - The XSEED PC release of The Legend of Heroes: Trails of Cold Steel
 - The XSEED PC release of The Legend of Heroes: Trails of Cold Steel II
 - The NISA PC release of The Legend of Heroes: Trails of Cold Steel III
+- The NISA PC release of The Legend of Heroes: Trails of Cold Steel IV
 
 https://github.com/AdmiralCurtiss/SenPatcher
 
@@ -19,7 +20,7 @@ Feature Set for Trails of Cold Steel
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to keep the game running while in background.
 * Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
-* Option to edit the vestigal System Data button mapping.
+* Option to edit the vestigial System Data button mapping from the PS3 version.
 
 Note: Compatible with version 1.6 of the game only.
 
@@ -33,7 +34,7 @@ Feature Set for Trails of Cold Steel II
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to keep the game running while in background.
 * Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
-* Option to edit the vestigal System Data button mapping.
+* Option to edit the vestigial System Data button mapping from the PS3 version.
 
 Note: Compatible with versions 1.4.1 and 1.4.2 of the game only.
 
@@ -48,3 +49,12 @@ Feature Set for Trails of Cold Steel III
 * Option to keep the game running while in background.
 
 Note: Compatible with version 1.05 of the game only.
+
+Feature Set for Trails of Cold Steel IV
+=======================================
+
+* Option to allow changing difficulty to Nightmare mid-playthrough.
+* Option to disable the mouse being captured by the game and its movement being used for the game camera.
+* Option to keep the game running while in background.
+
+Note: Compatible with version 1.2 of the game only.
