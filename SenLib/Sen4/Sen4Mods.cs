@@ -10,7 +10,8 @@ namespace SenLib.Sen4 {
 		public static List<FileMod> GetExecutableMods(
 			bool allowSwitchToNightmare = false,
 			bool disableMouseCapture = false,
-			bool disablePauseOnFocusLoss = false
+			bool disablePauseOnFocusLoss = false,
+			bool separateSwapConfirmCancelOption = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
@@ -18,7 +19,8 @@ namespace SenLib.Sen4 {
 					jp: i == 0,
 					allowSwitchToNightmare: allowSwitchToNightmare,
 					disableMouseCapture: disableMouseCapture,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
+					separateSwapConfirmCancelOption: separateSwapConfirmCancelOption
 				));
 			}
 			return f;

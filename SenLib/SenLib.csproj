@@ -312,6 +312,7 @@
     <Compile Include="Sen4\FileFixes\t_mstqrt.cs" />
     <Compile Include="Sen4\FileFixes\t_text.cs" />
     <Compile Include="Sen4\Sen4ExecutablePatches.cs" />
+    <Compile Include="Sen4\Sen4ExecutablePatches.SwapConfirmCancel.cs" />
     <Compile Include="Sen4\Sen4ExecutablePatches.WindowHacks.cs" />
     <Compile Include="Sen4\Sen4ExecutablePatchState.cs" />
     <Compile Include="Sen4\Sen4ExecutablePatchState.ScriptCompilerDummy.cs" />

@@ -202,7 +202,8 @@ namespace SenPatcherCli {
 				mods.AddRange(Sen4Mods.GetExecutableMods(
 					allowSwitchToNightmare: true,
 					disableMouseCapture: true,
-					disablePauseOnFocusLoss: true
+					disablePauseOnFocusLoss: true,
+					separateSwapConfirmCancelOption: true
 				));
 				mods.AddRange(Sen4Mods.GetAssetMods(
 					allowSwitchToNightmare: true
