@@ -9,19 +9,22 @@ namespace SenLib.Sen4.FileFixes {
 		bool DisableMouseCapture;
 		bool DisablePauseOnFocusLoss;
 		bool SeparateSwapConfirmCancelOption;
+		bool FixSwappedButtonsWhenDynamicPromptsOff;
 
 		public ed8_4_exe(
 			bool jp,
 			bool allowSwitchToNightmare,
 			bool disableMouseCapture,
 			bool disablePauseOnFocusLoss,
-			bool separateSwapConfirmCancelOption
+			bool separateSwapConfirmCancelOption,
+			bool fixSwappedButtonsWhenDynamicPromptsOff
 		) {
 			IsJp = jp;
 			AllowSwitchToNightmare = allowSwitchToNightmare;
 			DisableMouseCapture = disableMouseCapture;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			SeparateSwapConfirmCancelOption = separateSwapConfirmCancelOption;
+			FixSwappedButtonsWhenDynamicPromptsOff = fixSwappedButtonsWhenDynamicPromptsOff;
 		}
 
 		public string GetDescription() {
@@ -83,6 +86,9 @@ namespace SenLib.Sen4.FileFixes {
 
 			if (SeparateSwapConfirmCancelOption) {
 				Sen4ExecutablePatches.PatchSeparateSwapConfirmCancelOption(ms, PatchInfo);
+			}
+			if (FixSwappedButtonsWhenDynamicPromptsOff) {
+				Sen4ExecutablePatches.PatchFixPcConfirmCancelWhenSwapped(ms, PatchInfo);
 			}
 
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/Win64/ed8_4_PC_JP.exe" : "bin/Win64/ed8_4_PC.exe", ms) };

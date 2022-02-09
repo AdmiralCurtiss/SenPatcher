@@ -47,6 +47,8 @@ namespace SenLib.Sen4 {
 				parseBoolean.WriteJump5Byte(0xe8); // call parseBoolean
 
 				jumpBack.WriteJump5Byte(0xe9);     // jmp jumpBack
+
+				state.RegionScriptCompilerFunction.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Separate Confirm/Cancel swap option");
 			}
 
 			// replace function that usually checks for (mapping == Switch) with (SwapOX && mapping != PC)

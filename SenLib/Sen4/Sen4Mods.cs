@@ -11,7 +11,8 @@ namespace SenLib.Sen4 {
 			bool allowSwitchToNightmare = false,
 			bool disableMouseCapture = false,
 			bool disablePauseOnFocusLoss = false,
-			bool separateSwapConfirmCancelOption = false
+			bool separateSwapConfirmCancelOption = false,
+			bool fixSwappedButtonsWhenDynamicPromptsOff = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
@@ -20,7 +21,8 @@ namespace SenLib.Sen4 {
 					allowSwitchToNightmare: allowSwitchToNightmare,
 					disableMouseCapture: disableMouseCapture,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
-					separateSwapConfirmCancelOption: separateSwapConfirmCancelOption
+					separateSwapConfirmCancelOption: separateSwapConfirmCancelOption,
+					fixSwappedButtonsWhenDynamicPromptsOff: fixSwappedButtonsWhenDynamicPromptsOff
 				));
 			}
 			return f;
