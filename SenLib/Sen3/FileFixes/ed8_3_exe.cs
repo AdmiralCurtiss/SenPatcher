@@ -90,6 +90,8 @@ namespace SenLib.Sen3.FileFixes {
 				ms.WriteUInt32((uint)(addressNewVersionString - loadAddrCrashRptVersionStringOffset) + (uint)(versionString.Length - 4), EndianUtils.Endianness.LittleEndian);
 			}
 
+			Sen3ExecutablePatches.PatchFixControllerMappings(ms, PatchInfo);
+
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/x64/ed8_3_PC_JP.exe" : "bin/x64/ed8_3_PC.exe", ms) };
 		}
 
