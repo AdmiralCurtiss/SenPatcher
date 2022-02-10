@@ -75,6 +75,7 @@ namespace SenLib.Sen2.FileFixes {
 				Sen2ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, state);
 			}
 			Sen2ExecutablePatches.PatchRemoveBattleAnalyzeDebugScreenshot(ms, state);
+			Sen2ExecutablePatches.PatchFixControllerMappings(ms, state);
 
 			// add indicator to the title screen that we're running a modified executable
 			ms.Position = state.Mapper.MapRamToRom(state.PushAddressVersionString);
