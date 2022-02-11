@@ -12,15 +12,19 @@ namespace SenLib.Sen3 {
 			bool jp = state.IsJp;
 			var be = EndianUtils.Endianness.BigEndian;
 
-			if (jp) return;
+			if (jp) {
+				// JP version has different register allocation in these functions, need to adjust more stuff...
+				// seems to also have the circle/cross remapping issues CS2 has, based on the button prompts that show up
+				return;
+			}
 
-			long addressStructMemAlloc = (jp ? 0 : 0x1401312d9) + 2;
-			long addressInjectPos = jp ? 0 : 0x140130dde;
-			long addressMapLookupCode = jp ? 0 : 0x1401315f2;
-			long lengthMapLookupCodeForCopy = 0x3d;
+			long addressStructMemAlloc = (jp ? 0x14012dd59 : 0x1401312d9) + 2;
+			long addressInjectPos = jp ? 0x14012d85c : 0x140130dde;
+			long addressMapLookupCode = jp ? 0x14012e056 : 0x1401315f2;
+			long lengthMapLookupCodeForCopy = jp ? 0x43 : 0x3d;
 			long lengthMapLookupCodeForDelete = lengthMapLookupCodeForCopy + 2;
-			long addressMapLookupSuccessForDelete = addressMapLookupCode + 0x4c;
-			long lengthMapLookupSuccessForDelete = 3;
+			long addressMapLookupSuccessForDelete = jp ? 0x14012e0a8 : 0x14013163e;
+			long lengthMapLookupSuccessForDelete = jp ? 4 : 3;
 
 			// grab the map lookup code
 			bin.Position = state.Mapper.MapRamToRom(addressMapLookupCode);
@@ -96,7 +100,7 @@ namespace SenLib.Sen3 {
 			using (var lookup_success = new BranchHelper1Byte(bin, state.Mapper))
 			using (var lookup_fail = new BranchHelper1Byte(bin, state.Mapper)) {
 				// on success: result should be in ecx
-				// on fail: result should be in eax
+				// on fail: result doesn't matter, restores itself
 				lookup_success.SetTarget((ulong)(addressMapLookupSuccessForDelete + lengthMapLookupSuccessForDelete));
 				lookup_fail.SetTarget((ulong)(addressMapLookupCode + lengthMapLookupCodeForDelete));
 

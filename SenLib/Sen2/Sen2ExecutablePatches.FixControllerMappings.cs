@@ -12,15 +12,19 @@ namespace SenLib.Sen2 {
 			bool jp = state.IsJp;
 			var be = EndianUtils.Endianness.BigEndian;
 
-			if (jp) return;
+			if (jp) {
+				// JP is still semi-broken even with this fix.
+				// Something about the Cross/Circle-swap seems to be handled incorrectly...
+				return;
+			}
 
-			long addressStructMemAlloc = (jp ? 0 : 0x6ad9ac) + 1;
-			long addressInjectPos = jp ? 0 : 0x6acf8f;
-			long addressMapLookupCode = jp ? 0 : 0x6ae73b;
+			long addressStructMemAlloc = (jp ? 0x6ac97c : 0x6ad9ac) + 1;
+			long addressInjectPos = jp ? 0x6ac02f : 0x6acf8f;
+			long addressMapLookupCode = jp ? 0x6ad70b : 0x6ae73b;
 			long lengthMapLookupCodeForDelete = 0x36;
-			long addressMapLookupPops = jp ? 0 : 0x6ae76d;
-			long addressMapLookupSuccessPush = jp ? 0 : 0x6ae77a;
-			long addressMapLookupFailMov = jp ? 0 : 0x6ae771;
+			long addressMapLookupPops = addressMapLookupCode + (0x6ae76d - 0x6ae73b);
+			long addressMapLookupSuccessPush = addressMapLookupCode + (0x6ae77a - 0x6ae73b);
+			long addressMapLookupFailMov = addressMapLookupCode + (0x6ae771 - 0x6ae73b);
 
 			// increase struct allocation by 0x20 bytes
 			bin.Position = state.Mapper.MapRamToRom(addressStructMemAlloc);
