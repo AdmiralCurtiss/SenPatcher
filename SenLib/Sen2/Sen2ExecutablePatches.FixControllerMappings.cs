@@ -12,12 +12,6 @@ namespace SenLib.Sen2 {
 			bool jp = state.IsJp;
 			var be = EndianUtils.Endianness.BigEndian;
 
-			if (jp) {
-				// JP is still semi-broken even with this fix.
-				// Something about the Cross/Circle-swap seems to be handled incorrectly...
-				return;
-			}
-
 			long addressStructMemAlloc = (jp ? 0x6ac97c : 0x6ad9ac) + 1;
 			long addressInjectPos = jp ? 0x6ac02f : 0x6acf8f;
 			long addressMapLookupCode = jp ? 0x6ad70b : 0x6ae73b;
@@ -144,6 +138,50 @@ namespace SenLib.Sen2 {
 				bin.WriteUInt24(0x83f920, be);     // cmp ecx,20h
 				lookup_fail.WriteJump(0x73);       // jnb lookup_fail
 				lookup_success.WriteJump(0xeb);    // jmp lookup_success
+			}
+
+			if (jp) {
+				// swap the config <-> game mapping for circle and cross to match the English executable
+				bin.SwapBytes(state.Mapper.MapRamToRom(0x6ac8b2 + 1), state.Mapper.MapRamToRom(0x6ac8ab + 1));
+				bin.SwapBytes(state.Mapper.MapRamToRom(0x6ac6ee + 1), state.Mapper.MapRamToRom(0x6ac6f5 + 1));
+
+				// swap actions 4/5 on mouse config and controller config readin
+				foreach (long addr in new long[] { 0x6abdba, 0x6abfd5 }) {
+					using (var jumpToNewCode = new BranchHelper4Byte(bin, state.Mapper))
+					using (var replacedCall = new BranchHelper4Byte(bin, state.Mapper))
+					using (var check5 = new BranchHelper1Byte(bin, state.Mapper))
+					using (var checkdone = new BranchHelper1Byte(bin, state.Mapper))
+					using (var jumpBack = new BranchHelper4Byte(bin, state.Mapper)) {
+						bin.Position = state.Mapper.MapRamToRom(addr + 1);
+						long calladdr = bin.ReadInt32() + addr + 5;
+						replacedCall.SetTarget((ulong)calladdr);
+
+						bin.Position = state.Mapper.MapRamToRom(addr);
+						jumpToNewCode.WriteJump5Byte(0xe9); // jmp jumpToNewCode
+						jumpBack.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+
+						long newRegionStartRam = state.RegionScriptCompilerFunction23.Address;
+						long newRegionStartRom = state.Mapper.MapRamToRom(newRegionStartRam);
+						bin.Position = newRegionStartRom;
+						jumpToNewCode.SetTarget((ulong)newRegionStartRam);
+
+						replacedCall.WriteJump5Byte(0xe8);   // call (replaced function call)
+						bin.WriteUInt24(0x8d4dcc, be);       // lea ecx,[ebp-34h]
+						bin.WriteUInt16(0x8b11, be);         // mov edx,dword ptr[ecx]
+						bin.WriteUInt24(0x83fa04, be);       // cmp edx,4
+						check5.WriteJump(0x75);              // jne check5
+						bin.WriteUInt48(0xc70105000000, be); // mov dword ptr[ecx],5
+						bin.WriteUInt16(0xeb0b, be);         // jmp checkdone
+						check5.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+						bin.WriteUInt24(0x83fa05, be);       // cmp edx,5
+						checkdone.WriteJump(0x75);           // jne checkdone
+						bin.WriteUInt48(0xc70104000000, be); // mov dword ptr[ecx],4
+						checkdone.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+						jumpBack.WriteJump5Byte(0xe9);       // jmp jumpBack
+
+						state.RegionScriptCompilerFunction23.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Fix controller button mappings: Swap O/X at 0x" + addr.ToString("X8"));
+					}
+				}
 			}
 		}
 	}
