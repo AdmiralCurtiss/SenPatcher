@@ -182,6 +182,15 @@ namespace SenLib.Sen2 {
 						state.RegionScriptCompilerFunction23.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Fix controller button mappings: Swap O/X at 0x" + addr.ToString("X8"));
 					}
 				}
+
+				// this is the function that handles the button prompt (re)mapping
+				//bin.Position = state.Mapper.MapRamToRom(0x6964D5);
+				//bin.WriteUInt8(0xcc);
+
+				// this inits the struct responsible for telling which button to use for the textbox text advance prompts
+				// the JP version incorrectly uses the cancel button instead of the confirm button, so swap that around
+				bin.Position = state.Mapper.MapRamToRom(0x699777);
+				bin.WriteUInt8(4);
 			}
 		}
 	}
