@@ -83,6 +83,13 @@ namespace SenLib.Sen1.FileFixes {
 				Sen1ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);
 			}
 
+			if (IsJp) {
+				// this inits the struct responsible for telling which button to use for the textbox text advance prompts
+				// the JP version incorrectly uses the cancel button instead of the confirm button, so swap that around
+				ms.Position = PatchInfo.Mapper.MapRamToRom(0x467222);
+				ms.WriteUInt8(4);
+			}
+
 			// add indicator to the title screen that we're running a modified executable
 			ms.Position = PatchInfo.Mapper.MapRamToRom(PatchInfo.PushAddressVersionString);
 			uint addressVersionString = ms.ReadUInt32(EndianUtils.Endianness.LittleEndian);
