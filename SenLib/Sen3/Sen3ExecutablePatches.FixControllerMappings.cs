@@ -12,23 +12,12 @@ namespace SenLib.Sen3 {
 			bool jp = state.IsJp;
 			var be = EndianUtils.Endianness.BigEndian;
 
-			if (jp) {
-				// JP version has different register allocation in these functions, need to adjust more stuff...
-				// seems to also have the circle/cross remapping issues CS2 has, based on the button prompts that show up
-				return;
-			}
-
 			long addressStructMemAlloc = (jp ? 0x14012dd59 : 0x1401312d9) + 2;
 			long addressInjectPos = jp ? 0x14012d85c : 0x140130dde;
 			long addressMapLookupCode = jp ? 0x14012e056 : 0x1401315f2;
-			long lengthMapLookupCodeForCopy = jp ? 0x43 : 0x3d;
-			long lengthMapLookupCodeForDelete = lengthMapLookupCodeForCopy + 2;
+			long lengthMapLookupCodeForDelete = jp ? 0x45 : 0x3f;
 			long addressMapLookupSuccessForDelete = jp ? 0x14012e0a8 : 0x14013163e;
 			long lengthMapLookupSuccessForDelete = jp ? 4 : 3;
-
-			// grab the map lookup code
-			bin.Position = state.Mapper.MapRamToRom(addressMapLookupCode);
-			byte[] lookupCode = bin.ReadBytes(lengthMapLookupCodeForCopy);
 
 			// increase struct allocation by 0x20 bytes
 			bin.Position = state.Mapper.MapRamToRom(addressStructMemAlloc);
@@ -40,6 +29,11 @@ namespace SenLib.Sen3 {
 			using (var jumpBack = new BranchHelper4Byte(bin, state.Mapper))
 			using (var begin_loop_1 = new BranchHelper1Byte(bin, state.Mapper))
 			using (var begin_loop_2 = new BranchHelper1Byte(bin, state.Mapper))
+			using (var lookup_1 = new BranchHelper1Byte(bin, state.Mapper))
+			using (var lookup_2 = new BranchHelper1Byte(bin, state.Mapper))
+			using (var lookup_3 = new BranchHelper1Byte(bin, state.Mapper))
+			using (var lookup_4 = new BranchHelper1Byte(bin, state.Mapper))
+			using (var lookup_5 = new BranchHelper1Byte(bin, state.Mapper))
 			using (var lookup_fail = new BranchHelper1Byte(bin, state.Mapper)) {
 				bin.Position = state.Mapper.MapRamToRom(addressInjectPos);
 				ulong overwrittenInstructions = bin.PeekUInt64(be);
@@ -64,12 +58,38 @@ namespace SenLib.Sen3 {
 				bin.WriteUInt32(0x4983f920, be); // cmp r9,20h
 				begin_loop_1.WriteJump(0x72);    // jb begin_loop_1
 
+				// look up each key in the (presumably) std::map<int, int>
+				// and write it into the lookup table in the other direction
 				bin.WriteUInt24(0x4d33c9, be);   // xor r9,r9
 				begin_loop_2.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
 				bin.WriteUInt24(0x498bdd, be);   // mov rbx,r13
-				bin.Write(lookupCode);           // performs most of a lookup for r9d in rbx
+				bin.WriteUInt24(0x488b03, be);   // mov rax,qword ptr [rbx]
+				bin.WriteUInt32(0x488b5010, be); // mov rdx,qword ptr [rax + 0x10]
+				bin.WriteUInt24(0x488bc2, be);   // mov rax,rdx
+				bin.WriteUInt32(0x488b4a08, be); // mov rcx,qword ptr [rdx + 0x8]
+				bin.WriteUInt32(0x80791900, be); // cmp byte ptr [rcx + 0x19],0x0
+				lookup_4.WriteJump(0x75);        // jnz lookup_4
+				lookup_1.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+				bin.WriteUInt32(0x4439491c, be); // cmp dword ptr [rcx + 0x1c],r9d
+				lookup_2.WriteJump(0x7d);        // jge lookup_2
+				bin.WriteUInt32(0x488b4910, be); // mov rcx,qword ptr [rcx + 0x10]
+				lookup_3.WriteJump(0xeb);        // jmp lookup_3
+				lookup_2.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+				bin.WriteUInt24(0x488bc1, be);   // mov rax,rcx
+				bin.WriteUInt24(0x488b09, be);   // mov rcx,qword ptr [rcx]
+				lookup_3.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+				bin.WriteUInt32(0x80791900, be); // cmp byte ptr [rcx + 0x19],0x0
+				lookup_1.WriteJump(0x74);        // jz  lookup_1
+				bin.WriteUInt24(0x483bc2, be);   // cmp rax,rdx
+				lookup_4.WriteJump(0x74);        // jz  lookup_4
+				bin.WriteUInt32(0x443b481c, be); // cmp r9d,dword ptr [rax + 0x1c]
+				lookup_5.WriteJump(0x7d);        // jge lookup_5
+				lookup_4.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+				bin.WriteUInt24(0x488bc2, be);   // mov rax,rdx
+				lookup_5.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+				bin.WriteUInt24(0x483bc2, be);   // cmp rax,rdx
 				bin.WriteUInt24(0x418bc9, be);   // mov ecx,r9d
-				lookup_fail.WriteJump(0x74);     // jz lookup_fail
+				lookup_fail.WriteJump(0x74);     // jz  lookup_fail
 				bin.WriteUInt24(0x8b4820, be);   // mov ecx,dword ptr[rax + 20h]
 				lookup_fail.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
 				// r9d now contains the UNMAPPED value
@@ -99,19 +119,65 @@ namespace SenLib.Sen3 {
 			// replace with new lookup code
 			using (var lookup_success = new BranchHelper1Byte(bin, state.Mapper))
 			using (var lookup_fail = new BranchHelper1Byte(bin, state.Mapper)) {
-				// on success: result should be in ecx
+				// on success: result should be in ecx (on US) or eax (on JP)
 				// on fail: result doesn't matter, restores itself
 				lookup_success.SetTarget((ulong)(addressMapLookupSuccessForDelete + lengthMapLookupSuccessForDelete));
 				lookup_fail.SetTarget((ulong)(addressMapLookupCode + lengthMapLookupCodeForDelete));
 
 				bin.Position = state.Mapper.MapRamToRom(addressMapLookupCode);
-				bin.WriteUInt24(0x418bc1, be);     // mov eax,r9d
-				bin.WriteUInt24(0x83f820, be);     // cmp eax,20h
-				lookup_fail.WriteJump(0x73);       // jnb lookup_fail
-				bin.WriteUInt40(0x0fb64c0300u | ((ulong)allocLengthOld), be); // movzx ecx,byte ptr[rbx+rax+allocLengthOld]
-				bin.WriteUInt24(0x83f920, be);     // cmp ecx,20h
-				lookup_fail.WriteJump(0x73);       // jnb lookup_fail
-				lookup_success.WriteJump(0xeb);    // jmp lookup_success
+				if (!jp) {
+					bin.WriteUInt24(0x418bc1, be);     // mov eax,r9d
+				}
+				bin.WriteUInt24(0x83f820, be);         // cmp eax,20h
+				lookup_fail.WriteJump(0x73);           // jnb lookup_fail
+				if (!jp) {
+					bin.WriteUInt40(0x0fb64c0300u | ((ulong)allocLengthOld), be); // movzx ecx,byte ptr[rbx+rax+allocLengthOld]
+					bin.WriteUInt24(0x83f920, be);                                // cmp ecx,20h
+				} else {
+					bin.WriteUInt40(0x0fb6440300u | ((ulong)allocLengthOld), be); // movzx eax,byte ptr[rbx+rax+allocLengthOld]
+					bin.WriteUInt24(0x83f820, be);                                // cmp eax,20h
+				}
+				lookup_fail.WriteJump(0x73);           // jnb lookup_fail
+				lookup_success.WriteJump(0xeb);        // jmp lookup_success
+			}
+
+			if (jp) {
+				// swap actions 4/5 on controller config readin so we get identical mapping behavior between JP/US builds
+				using (var jumpToNewCode = new BranchHelper4Byte(bin, state.Mapper))
+				using (var replacedCall = new BranchHelper4Byte(bin, state.Mapper))
+				using (var check5 = new BranchHelper1Byte(bin, state.Mapper))
+				using (var checkdone = new BranchHelper1Byte(bin, state.Mapper))
+				using (var jumpBack = new BranchHelper4Byte(bin, state.Mapper)) {
+					long addr = 0x14012d75d;
+					bin.Position = state.Mapper.MapRamToRom(addr + 1);
+					long calladdr = bin.ReadInt32() + addr + 5;
+					replacedCall.SetTarget((ulong)calladdr);
+
+					bin.Position = state.Mapper.MapRamToRom(addr);
+					jumpToNewCode.WriteJump5Byte(0xe9); // jmp jumpToNewCode
+					jumpBack.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+
+					long newRegionStartRam = state.RegionScriptCompilerFunction.Address;
+					long newRegionStartRom = state.Mapper.MapRamToRom(newRegionStartRam);
+					bin.Position = newRegionStartRom;
+					jumpToNewCode.SetTarget((ulong)newRegionStartRam);
+
+					replacedCall.WriteJump5Byte(0xe8);   // call (replaced function call)
+					bin.WriteUInt40(0x488d4c2450, be);   // lea rcx,[rsp+50h]
+					bin.WriteUInt16(0x8b11, be);         // mov edx,dword ptr[rcx]
+					bin.WriteUInt24(0x83fa04, be);       // cmp edx,4
+					check5.WriteJump(0x75);              // jne check5
+					bin.WriteUInt48(0xc70105000000, be); // mov dword ptr[rcx],5
+					bin.WriteUInt16(0xeb0b, be);         // jmp checkdone
+					check5.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+					bin.WriteUInt24(0x83fa05, be);       // cmp edx,5
+					checkdone.WriteJump(0x75);           // jne checkdone
+					bin.WriteUInt48(0xc70104000000, be); // mov dword ptr[rcx],4
+					checkdone.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+					jumpBack.WriteJump5Byte(0xe9);       // jmp jumpBack
+
+					state.RegionScriptCompilerFunction.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Fix controller button mappings: Swap O/X");
+				}
 			}
 		}
 	}
