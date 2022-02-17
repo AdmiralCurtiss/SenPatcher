@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SenLib.Sen2 {
 	public partial class Sen2ExecutablePatchState {
 		// global u32 (or maybe u8?) that stores whether '-compile' was passed as a command line option
-		// we remove this flag so we could reuse this for something else, but right now we don't
+		// we reuse this flag as an indicator whether arts support is active so we should modify the view matrix for it
 		public long AddressOfScriptCompilerFlag { get { return IsJp ? 0x10f2f88 : 0x10f7808; } }
 
 		// string '-compile', no longer used, maybe repurpose

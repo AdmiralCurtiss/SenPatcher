@@ -272,6 +272,7 @@
     <Compile Include="Sen2\FileFixes\text_dat_us_t_magic_tbl.cs" />
     <Compile Include="Sen2\Sen2ExecutableBgmTimingLocations.cs" />
     <Compile Include="Sen2\Sen2ExecutableCodeSpaceLocations.cs" />
+    <Compile Include="Sen2\Sen2ExecutablePatches.ArtsSupportCutin.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.FixControllerMappings.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.DebugLeftovers.cs" />
     <Compile Include="Sen2\Sen2ExecutablePatches.WindowHacks.cs" />
