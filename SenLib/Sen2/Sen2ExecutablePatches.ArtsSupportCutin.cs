@@ -11,15 +11,14 @@ namespace SenLib.Sen2 {
 		public static void PatchFixArtsSupportCutin(Stream bin, Sen2ExecutablePatchState state) {
 			bool jp = state.IsJp;
 			var be = EndianUtils.Endianness.BigEndian;
-			if (jp) { return; }
 
 			// force link abilities to always trigger
-			//ms.Position = state.Mapper.MapRamToRom(jp ? 0 : 0x61fe5a);
-			//ms.WriteUInt24(0xc6c001, EndianUtils.Endianness.BigEndian);
+			//bin.Position = state.Mapper.MapRamToRom(jp ? 0x62030a : 0x61fe5a);
+			//bin.WriteUInt24(0xc6c001, EndianUtils.Endianness.BigEndian);
 
-			long addressInjectPos = jp ? 0 : 0x560917;
-			long flagOffInjectPos = jp ? 0 : 0x468251;
-			long flagOnInjectPos = jp ? 0 : 0x433aa0;
+			long addressInjectPos = jp ? 0x560be7 : 0x560917;
+			long flagOffInjectPos = jp ? 0x468091 : 0x468251;
+			long flagOnInjectPos = jp ? 0x433650 : 0x433aa0;
 			long addressFlag = state.AddressOfScriptCompilerFlag;
 
 			// turn on flag when arts support starts
@@ -97,15 +96,20 @@ namespace SenLib.Sen2 {
 				bin.WriteUInt16(0x84c9, be);           // test cl,cl
 				skip_modification.WriteJump(0x74);     // jz skip_modification
 
+				// fix visibility
 				bin.WriteUInt40(0xf30f10402c, be);     // movss xmm0,dword ptr[eax+2ch]
-				//bin.WriteUInt40(0xbacdcccc3d, be);     // mov edx,float(0.1)
-				//bin.WriteUInt40(0xbacdcc4c3e, be);     // mov edx,float(0.2)
-				//bin.WriteUInt40(0xba0000403f, be);     // mov edx,float(0.75)
 				bin.WriteUInt40(0xba0000503f, be);     // mov edx,float(0.8125)
-				//bin.WriteUInt40(0xba0000603f, be);     // mov edx,float(0.875)
 				bin.WriteUInt32(0x660f6eca, be);       // movd xmm1,edx
 				bin.WriteUInt32(0xf30f59c1, be);       // mulss xmm0,xmm1
 				bin.WriteUInt40(0xf30f11402c, be);     // movss dword ptr[eax+2ch],xmm0
+
+				// modify y position
+				bin.WriteUInt40(0xf30f104024, be);     // movss xmm0,dword ptr[eax+24h]
+				bin.WriteUInt40(0xbacdcc4c3e, be);     // mov edx,float(0.2)
+				bin.WriteUInt32(0x660f6eca, be);       // movd xmm1,edx
+				bin.WriteUInt32(0xf30f58c1, be);       // addss xmm0,xmm1
+				bin.WriteUInt40(0xf30f114024, be);     // movss dword ptr[eax+24h],xmm0
+
 				skip_modification.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
 
 				bin.WriteUInt32(instr1);
