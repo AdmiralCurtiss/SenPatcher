@@ -19,6 +19,7 @@ namespace SenLib.Sen2 {
 			long addressInjectPos = jp ? 0x560be7 : 0x560917;
 			long flagOffInjectPos = jp ? 0x468091 : 0x468251;
 			long flagOnInjectPos = jp ? 0x433650 : 0x433aa0;
+			long texcoordInjectPos = jp ? 0x4a22a9 : 0x4a25b9;
 			long addressFlag = state.AddressOfScriptCompilerFlag;
 
 			// turn on flag when arts support starts
@@ -39,9 +40,9 @@ namespace SenLib.Sen2 {
 				jumpToNewCode.SetTarget((ulong)newRegionStartRam);
 
 				bin.Write(instr);
-				bin.WriteUInt16(0xc605, be);     // mov byte ptr[addressFlag],1
+				bin.WriteUInt16(0xc605, be);     // mov byte ptr[addressFlag],2
 				bin.WriteInt32((int)(addressFlag));
-				bin.WriteInt8(1);
+				bin.WriteInt8(2);
 				jumpBack.WriteJump5Byte(0xe9);   // jmp jumpBack
 
 				state.RegionScriptCompilerFunction23.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Arts Support cutin fixes: Flag on");
@@ -68,6 +69,45 @@ namespace SenLib.Sen2 {
 				jumpBack.WriteJump5Byte(0xe9);   // jmp jumpBack
 
 				state.RegionScriptCompilerFunction23.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Arts Support cutin fixes: Flag off");
+			}
+
+			// fix texcoords when running at not 1280x720
+			using (var jumpToNewCode = new BranchHelper4Byte(bin, state.Mapper))
+			using (var jumpBack = new BranchHelper4Byte(bin, state.Mapper))
+			using (var skip_modification = new BranchHelper1Byte(bin, state.Mapper)) {
+				bin.Position = state.Mapper.MapRamToRom(texcoordInjectPos);
+				ulong instr = bin.PeekUInt48();
+				jumpToNewCode.WriteJump5Byte(0xe9); // jmp jumpToNewCode
+				bin.WriteUInt8(0x90); // nop
+				jumpBack.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+
+				long newRegionStartRam = state.Region50a.Address;
+				long newRegionStartRom = state.Mapper.MapRamToRom(newRegionStartRam);
+				bin.Position = newRegionStartRom;
+				jumpToNewCode.SetTarget((ulong)newRegionStartRam);
+
+				// eax, edx is free
+				// xmm0, xmm1, xmm2 need to be fixed up
+				bin.WriteUInt8(0xba);                  // mov edx,addressFlag
+				bin.WriteInt32((int)(addressFlag));
+				bin.WriteUInt16(0x8a02, be);           // mov al,byte ptr[edx]
+				bin.WriteUInt16(0x3c02, be);           // cmp al,2
+				skip_modification.WriteJump(0x75);     // jne skip_modification
+
+				bin.WriteUInt24(0xc60201, be);         // mov byte ptr[edx],1
+				bin.WriteUInt40(0xb8cdcc4c3d, be);     // mov eax,float(0.05)
+				bin.WriteUInt32(0x660f6ec0, be);       // movd xmm0,eax
+				bin.WriteUInt40(0xb80000803f, be);     // mov eax,float(1.0)
+				bin.WriteUInt32(0x660f6ec8, be);       // movd xmm1,eax
+				bin.WriteUInt40(0xb8cdcc4c3e, be);     // mov eax,float(0.2)
+				bin.WriteUInt32(0x660f6ed0, be);       // movd xmm2,eax
+
+				skip_modification.SetTarget(state.Mapper.MapRomToRam((ulong)bin.Position));
+
+				bin.WriteUInt48(instr);
+				jumpBack.WriteJump5Byte(0xe9);   // jmp jumpBack
+
+				state.Region50a.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Arts Support cutin fixes: Modify texcoords");
 			}
 
 			// modify matrix during arts support
