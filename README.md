@@ -20,6 +20,7 @@ Feature Set for Trails of Cold Steel
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to keep the game running while in background.
 * Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
+* Option to fix a bug that displays the Arts Support cut-in incorrectly at resolutions other than 1280x720.
 * Option to edit the vestigial System Data button mapping from the PS3 version.
 
 Note: Compatible with version 1.6 of the game only.
@@ -34,6 +35,8 @@ Feature Set for Trails of Cold Steel II
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to keep the game running while in background.
 * Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
+* Option to fix a bug that applies complicated button mappings incorrectly, causing the actual button actions and the displayed button prompts to mismatch.
+* Option to fix a bug that displays the Arts Support cut-in incorrectly.
 * Option to edit the vestigial System Data button mapping from the PS3 version.
 
 Note: Compatible with versions 1.4.1 and 1.4.2 of the game only.
@@ -46,6 +49,7 @@ Feature Set for Trails of Cold Steel III
 * Option to fix the in-game button remapping options being incorrectly enabled/disabled, disallowing various sensible mappings.
 * Option to allow changing difficulty to Nightmare mid-playthrough.
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
+* Option to fix a bug that applies complicated button mappings incorrectly, causing the actual button actions and the displayed button prompts to mismatch.
 * Option to keep the game running while in background.
 
 Note: Compatible with version 1.05 of the game only.
@@ -56,5 +60,6 @@ Feature Set for Trails of Cold Steel IV
 * Option to allow changing difficulty to Nightmare mid-playthrough.
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to keep the game running while in background.
+* Option to force the controller button Confirm/Cancel layout to English/Xbox or Japanese/Nintendo style.
 
 Note: Compatible with version 1.2 of the game only.
