@@ -82,6 +82,7 @@ namespace SenLib.Sen1.FileFixes {
 			if (DisablePauseOnFocusLoss) {
 				Sen1ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);
 			}
+			Sen1ExecutablePatches.PatchFixArtsSupportCutin(ms, PatchInfo);
 
 			if (IsJp) {
 				// this inits the struct responsible for telling which button to use for the textbox text advance prompts

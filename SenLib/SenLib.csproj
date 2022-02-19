@@ -256,6 +256,7 @@
     <Compile Include="Sen1\Sen1Mods.cs" />
     <Compile Include="Sen1\Sen1SystemData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sen1\Sen1ExecutablePatches.ArtsSupportCutin.cs" />
     <Compile Include="Sen1\Tbl.cs" />
     <Compile Include="Sen2\FileFixes\ed8_2_exe.cs" />
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book00_dat.cs" />
