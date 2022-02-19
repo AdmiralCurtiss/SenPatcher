@@ -38,6 +38,8 @@
 			this.checkBoxFixVoiceFileLang = new System.Windows.Forms.CheckBox();
 			this.checkBoxDisableMouseCam = new System.Windows.Forms.CheckBox();
 			this.checkBoxDisablePauseOnFocusLoss = new System.Windows.Forms.CheckBox();
+			this.checkBoxControllerMapping = new System.Windows.Forms.CheckBox();
+			this.checkBoxArtsSupport = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label5
@@ -93,7 +95,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 333);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 379);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 14;
@@ -185,7 +187,7 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 280);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 326);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
 			this.checkBoxDisableMouseCam.TabIndex = 12;
@@ -195,18 +197,44 @@
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 303);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 349);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
 			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 13;
 			this.checkBoxDisablePauseOnFocusLoss.Text = "Keep game running when in Background";
 			this.checkBoxDisablePauseOnFocusLoss.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxControllerMapping
+			// 
+			this.checkBoxControllerMapping.AutoSize = true;
+			this.checkBoxControllerMapping.Checked = true;
+			this.checkBoxControllerMapping.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxControllerMapping.Location = new System.Drawing.Point(97, 280);
+			this.checkBoxControllerMapping.Name = "checkBoxControllerMapping";
+			this.checkBoxControllerMapping.Size = new System.Drawing.Size(409, 17);
+			this.checkBoxControllerMapping.TabIndex = 15;
+			this.checkBoxControllerMapping.Text = "Fix inconsistent Controller Button Prompts and Mappings when remapping buttons";
+			this.checkBoxControllerMapping.UseVisualStyleBackColor = true;
+			// 
+			// checkBoxArtsSupport
+			// 
+			this.checkBoxArtsSupport.AutoSize = true;
+			this.checkBoxArtsSupport.Checked = true;
+			this.checkBoxArtsSupport.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxArtsSupport.Location = new System.Drawing.Point(97, 303);
+			this.checkBoxArtsSupport.Name = "checkBoxArtsSupport";
+			this.checkBoxArtsSupport.Size = new System.Drawing.Size(228, 17);
+			this.checkBoxArtsSupport.TabIndex = 16;
+			this.checkBoxArtsSupport.Text = "Fix invisible character in Arts Support cut-in";
+			this.checkBoxArtsSupport.UseVisualStyleBackColor = true;
+			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 386);
+			this.ClientSize = new System.Drawing.Size(534, 432);
+			this.Controls.Add(this.checkBoxArtsSupport);
+			this.Controls.Add(this.checkBoxControllerMapping);
 			this.Controls.Add(this.checkBoxDisablePauseOnFocusLoss);
 			this.Controls.Add(this.checkBoxDisableMouseCam);
 			this.Controls.Add(this.checkBoxFixVoiceFileLang);
@@ -246,5 +274,7 @@
 		private System.Windows.Forms.CheckBox checkBoxFixVoiceFileLang;
 		private System.Windows.Forms.CheckBox checkBoxDisableMouseCam;
 		private System.Windows.Forms.CheckBox checkBoxDisablePauseOnFocusLoss;
+		private System.Windows.Forms.CheckBox checkBoxControllerMapping;
+		private System.Windows.Forms.CheckBox checkBoxArtsSupport;
 	}
 }

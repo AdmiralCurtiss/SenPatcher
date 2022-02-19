@@ -59,6 +59,7 @@ namespace SenPatcherGui {
 				bool patchAssets = checkBoxAssetPatches.Checked;
 				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
 				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
+				bool fixArtsSupport = checkBoxArtsSupport.Checked;
 
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen1Mods.GetExecutableMods(
@@ -69,7 +70,7 @@ namespace SenPatcherGui {
 					correctLanguageVoiceTables: fixVoiceTables,
 					disableMouseCapture: disableMouseCapture,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
-					fixArtsSupport: true
+					fixArtsSupport: fixArtsSupport
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen1Mods.GetAssetMods());

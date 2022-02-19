@@ -33,6 +33,8 @@
 			this.checkBoxAllowNightmare = new System.Windows.Forms.CheckBox();
 			this.checkBoxDisableMouseCam = new System.Windows.Forms.CheckBox();
 			this.checkBoxDisablePauseOnFocusLoss = new System.Windows.Forms.CheckBox();
+			this.checkBoxButtonLayout = new System.Windows.Forms.CheckBox();
+			this.comboBoxButtonLayout = new System.Windows.Forms.ComboBox();
 			this.SuspendLayout();
 			// 
 			// label2
@@ -66,7 +68,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 197);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 224);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 14;
@@ -124,7 +126,7 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 145);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 168);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
 			this.checkBoxDisableMouseCam.TabIndex = 12;
@@ -134,18 +136,42 @@
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 168);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 191);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
 			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 13;
 			this.checkBoxDisablePauseOnFocusLoss.Text = "Keep game running when in Background";
 			this.checkBoxDisablePauseOnFocusLoss.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxButtonLayout
+			// 
+			this.checkBoxButtonLayout.AutoSize = true;
+			this.checkBoxButtonLayout.Location = new System.Drawing.Point(97, 145);
+			this.checkBoxButtonLayout.Name = "checkBoxButtonLayout";
+			this.checkBoxButtonLayout.Size = new System.Drawing.Size(208, 17);
+			this.checkBoxButtonLayout.TabIndex = 15;
+			this.checkBoxButtonLayout.Text = "Force Confirm/Cancel button layout to:";
+			this.checkBoxButtonLayout.UseVisualStyleBackColor = true;
+			this.checkBoxButtonLayout.CheckedChanged += new System.EventHandler(this.checkBoxButtonLayout_CheckedChanged);
+			// 
+			// comboBoxButtonLayout
+			// 
+			this.comboBoxButtonLayout.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.comboBoxButtonLayout.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.comboBoxButtonLayout.FormattingEnabled = true;
+			this.comboBoxButtonLayout.Location = new System.Drawing.Point(303, 142);
+			this.comboBoxButtonLayout.Name = "comboBoxButtonLayout";
+			this.comboBoxButtonLayout.Size = new System.Drawing.Size(219, 21);
+			this.comboBoxButtonLayout.TabIndex = 16;
+			// 
 			// Sen4Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 250);
+			this.ClientSize = new System.Drawing.Size(534, 277);
+			this.Controls.Add(this.comboBoxButtonLayout);
+			this.Controls.Add(this.checkBoxButtonLayout);
 			this.Controls.Add(this.checkBoxDisablePauseOnFocusLoss);
 			this.Controls.Add(this.checkBoxDisableMouseCam);
 			this.Controls.Add(this.checkBoxAllowNightmare);
@@ -174,5 +200,7 @@
 		private System.Windows.Forms.CheckBox checkBoxAllowNightmare;
 		private System.Windows.Forms.CheckBox checkBoxDisableMouseCam;
 		private System.Windows.Forms.CheckBox checkBoxDisablePauseOnFocusLoss;
+		private System.Windows.Forms.CheckBox checkBoxButtonLayout;
+		private System.Windows.Forms.ComboBox comboBoxButtonLayout;
 	}
 }

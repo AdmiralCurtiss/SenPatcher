@@ -27,6 +27,12 @@ namespace SenPatcherGui {
 
 			int assetPatchCount = Sen4Mods.GetAssetMods().Count;
 			checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
+
+			comboBoxButtonLayout.Items.Clear();
+			comboBoxButtonLayout.Items.Add("Xbox or English PlayStation Style (Confirm on bottom, Cancel on right)");
+			comboBoxButtonLayout.Items.Add("Nintendo or Japanese PlayStation Style (Confirm on right, Cancel on bottom)");
+			comboBoxButtonLayout.SelectedIndex = 1;
+			comboBoxButtonLayout.Enabled = checkBoxButtonLayout.Checked;
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
@@ -36,14 +42,16 @@ namespace SenPatcherGui {
 				bool patchAssets = checkBoxAssetPatches.Checked;
 				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
 				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
+				bool confirmCancelOption = checkBoxButtonLayout.Checked;
+				bool defaultJpLayout = confirmCancelOption && comboBoxButtonLayout.SelectedIndex == 1;
 
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen4Mods.GetExecutableMods(
 					allowSwitchToNightmare: allowNightmare,
 					disableMouseCapture: disableMouseCapture,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
-					separateSwapConfirmCancelOption: false,
-					defaultSwapConfirmCancelOptionOn: false,
+					separateSwapConfirmCancelOption: confirmCancelOption,
+					defaultSwapConfirmCancelOptionOn: defaultJpLayout,
 					fixSwappedButtonsWhenDynamicPromptsOff: true
 				));
 				if (patchAssets) {
@@ -72,6 +80,10 @@ namespace SenPatcherGui {
 
 		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
 			new TextDisplayForm("Asset fix details for Cold Steel 4", SenUtils.ExtractUserFriendlyStringFromModDescriptions(Sen4Mods.GetAssetMods())).ShowDialog();
+		}
+
+		private void checkBoxButtonLayout_CheckedChanged(object sender, EventArgs e) {
+			comboBoxButtonLayout.Enabled = checkBoxButtonLayout.Checked;
 		}
 	}
 }
