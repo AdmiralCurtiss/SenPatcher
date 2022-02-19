@@ -11,18 +11,17 @@ namespace SenLib.Sen1 {
 		public static void PatchFixArtsSupportCutin(Stream bin, Sen1ExecutablePatchState state) {
 			bool jp = state.IsJp;
 			var be = EndianUtils.Endianness.BigEndian;
-			if (jp) return;
 
 			// force link abilities to always trigger
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0 : 0x688407);
-			bin.WriteUInt24(0xc6c001, EndianUtils.Endianness.BigEndian);
+			//bin.Position = state.Mapper.MapRamToRom(jp ? 0x686907 : 0x688407);
+			//bin.WriteUInt24(0xc6c001, EndianUtils.Endianness.BigEndian);
 
-			long addressInjectPos = jp ? 0 : 0x5d277d;
-			long flagOffInjectPos = jp ? 0 : 0x4b67aa;
-			long flagOnInjectPos = jp ? 0 : 0x491db5;
-			long texcoordInjectPos1 = jp ? 0 : 0x506599;
-			long texcoordInjectPos2 = jp ? 0 : 0x506723;
-			long configStructPos = jp ? 0 : 0x1304dd0;
+			long addressInjectPos = jp ? 0x5d15ad : 0x5d277d;
+			long flagOffInjectPos = jp ? 0x4b4f5a : 0x4b67aa;
+			long flagOnInjectPos = jp ? 0x490565 : 0x491db5;
+			long texcoordInjectPos1 = jp ? 0x504e69 : 0x506599;
+			long texcoordInjectPos2 = jp ? 0x504ff3 : 0x506723;
+			long configStructPos = jp ? 0x1302a30 : 0x1304dd0;
 			long addressFlag = state.AddressOfScriptCompilerFlag;
 
 			// turn on flag when arts support starts
@@ -198,7 +197,7 @@ namespace SenLib.Sen1 {
 				bin.WriteUInt64(0xc74424fc398ee33f, be); // mov dword ptr[esp-4h],float(16/9)
 				bin.WriteUInt32(0xd94424fc, be);         // fld dword ptr[esp-4h]
 				bin.WriteUInt16(0xdee9, be);             // fsubp
-				bin.WriteUInt64(0xc74424fc3333f3be, be); // mov dword ptr[esp-4h],float(-0.475)
+				bin.WriteUInt64(0xc74424fcc1ca01bf, be); // mov dword ptr[esp-4h],float(-0.507)
 				bin.WriteUInt32(0xd94424fc, be);         // fld dword ptr[esp-4h]
 				bin.WriteUInt16(0xdec9, be);             // fmulp
 
