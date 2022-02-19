@@ -24,6 +24,9 @@ namespace SenPatcherGui {
 		}
 
 		private static string GetDefaultPathCS1() {
+			if (Directory.Exists(Properties.Settings.Default.Sen1Path)) {
+				return Properties.Settings.Default.Sen1Path;
+			}
 			if (Directory.Exists(SenCommonPaths.Sen1SteamDir)) {
 				return SenCommonPaths.Sen1SteamDir;
 			}
@@ -34,6 +37,9 @@ namespace SenPatcherGui {
 		}
 
 		private static string GetDefaultPathCS2() {
+			if (Directory.Exists(Properties.Settings.Default.Sen2Path)) {
+				return Properties.Settings.Default.Sen2Path;
+			}
 			if (Directory.Exists(SenCommonPaths.Sen2SteamDir)) {
 				return SenCommonPaths.Sen2SteamDir;
 			}
@@ -44,6 +50,9 @@ namespace SenPatcherGui {
 		}
 
 		private static string GetDefaultPathCS3() {
+			if (Directory.Exists(Properties.Settings.Default.Sen3Path)) {
+				return Properties.Settings.Default.Sen3Path;
+			}
 			if (Directory.Exists(SenCommonPaths.Sen3SteamDir)) {
 				return SenCommonPaths.Sen3SteamDir;
 			}
@@ -51,6 +60,9 @@ namespace SenPatcherGui {
 		}
 
 		private static string GetDefaultPathCS4() {
+			if (Directory.Exists(Properties.Settings.Default.Sen4Path)) {
+				return Properties.Settings.Default.Sen4Path;
+			}
 			if (Directory.Exists(SenCommonPaths.Sen4SteamDir)) {
 				return SenCommonPaths.Sen4SteamDir;
 			}
@@ -163,6 +175,8 @@ namespace SenPatcherGui {
 
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
+				Properties.Settings.Default.Sen1Path = init.Path;
+				PropagateDefaultPathToUnset(init.Path);
 				new Sen1Form(init.Path, init.Storage).ShowDialog();
 			}
 		}
@@ -273,6 +287,8 @@ namespace SenPatcherGui {
 
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
+				Properties.Settings.Default.Sen2Path = init.Path;
+				PropagateDefaultPathToUnset(init.Path);
 				new Sen2Form(init.Path, init.Storage).ShowDialog();
 			}
 		}
@@ -433,6 +449,8 @@ namespace SenPatcherGui {
 
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
+				Properties.Settings.Default.Sen3Path = init.Path;
+				PropagateDefaultPathToUnset(init.Path);
 				new Sen3Form(init.Path, init.Storage).ShowDialog();
 			}
 		}
@@ -535,8 +553,40 @@ namespace SenPatcherGui {
 
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
+				Properties.Settings.Default.Sen4Path = init.Path;
+				PropagateDefaultPathToUnset(init.Path);
 				new Sen4Form(init.Path, init.Storage).ShowDialog();
 			}
+		}
+
+		private void PropagateDefaultPathToUnset(string path) {
+			try {
+				string parent = Path.GetDirectoryName(path);
+				if (Properties.Settings.Default.Sen1Path == "") {
+					string p = Path.Combine(parent, "Trails of Cold Steel");
+					if (Directory.Exists(p)) {
+						Properties.Settings.Default.Sen1Path = p;
+					}
+				}
+				if (Properties.Settings.Default.Sen2Path == "") {
+					string p = Path.Combine(parent, "Trails of Cold Steel II");
+					if (Directory.Exists(p)) {
+						Properties.Settings.Default.Sen2Path = p;
+					}
+				}
+				if (Properties.Settings.Default.Sen3Path == "") {
+					string p = Path.Combine(parent, "The Legend of Heroes Trails of Cold Steel III");
+					if (Directory.Exists(p)) {
+						Properties.Settings.Default.Sen3Path = p;
+					}
+				}
+				if (Properties.Settings.Default.Sen4Path == "") {
+					string p = Path.Combine(parent, "The Legend of Heroes Trails of Cold Steel IV");
+					if (Directory.Exists(p)) {
+						Properties.Settings.Default.Sen4Path = p;
+					}
+				}
+			} catch (Exception) { }
 		}
 	}
 }

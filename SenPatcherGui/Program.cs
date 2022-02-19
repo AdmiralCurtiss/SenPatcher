@@ -16,6 +16,9 @@ namespace SenPatcherGui {
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(new MainForm());
 			SenLib.Logging.Flush();
+			try {
+				Properties.Settings.Default.Save();
+			} catch (Exception) { }
 		}
 	}
 }
