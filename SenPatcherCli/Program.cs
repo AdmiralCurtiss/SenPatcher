@@ -167,7 +167,8 @@ namespace SenPatcherCli {
 					fixTextureIds: true,
 					correctLanguageVoiceTables: true,
 					disableMouseCapture: true,
-					disablePauseOnFocusLoss: true
+					disablePauseOnFocusLoss: true,
+					fixArtsSupport: true
 				));
 				mods.AddRange(Sen1Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
@@ -180,7 +181,9 @@ namespace SenPatcherCli {
 					patchBgmQueueing: true,
 					correctLanguageVoiceTables: true,
 					disableMouseCapture: true,
-					disablePauseOnFocusLoss: true
+					disablePauseOnFocusLoss: true,
+					fixControllerMapping: true,
+					fixArtsSupport: true
 				));
 				mods.AddRange(Sen2Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
@@ -191,7 +194,8 @@ namespace SenPatcherCli {
 					allowSwitchToNightmare: true,
 					swapBrokenMasterQuartzValuesForDisplay: true,
 					disableMouseCapture: true,
-					disablePauseOnFocusLoss: true
+					disablePauseOnFocusLoss: true,
+					fixControllerMapping: true
 				));
 				mods.AddRange(Sen3Mods.GetAssetMods(
 					allowSwitchToNightmare: true
@@ -204,6 +208,7 @@ namespace SenPatcherCli {
 					disableMouseCapture: true,
 					disablePauseOnFocusLoss: true,
 					separateSwapConfirmCancelOption: true,
+					defaultSwapConfirmCancelOptionOn: true,
 					fixSwappedButtonsWhenDynamicPromptsOff: true
 				));
 				mods.AddRange(Sen4Mods.GetAssetMods(

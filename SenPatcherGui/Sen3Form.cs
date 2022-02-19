@@ -44,7 +44,8 @@ namespace SenPatcherGui {
 					allowSwitchToNightmare: allowNightmare,
 					swapBrokenMasterQuartzValuesForDisplay: true,
 					disableMouseCapture: disableMouseCapture,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
+					fixControllerMapping: true
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen3Mods.GetAssetMods(

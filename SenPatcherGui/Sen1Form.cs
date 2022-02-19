@@ -68,7 +68,8 @@ namespace SenPatcherGui {
 					fixTextureIds: fixTextureIds,
 					correctLanguageVoiceTables: fixVoiceTables,
 					disableMouseCapture: disableMouseCapture,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
+					fixArtsSupport: true
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen1Mods.GetAssetMods());

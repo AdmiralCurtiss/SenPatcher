@@ -12,6 +12,7 @@ namespace SenLib.Sen4 {
 			bool disableMouseCapture = false,
 			bool disablePauseOnFocusLoss = false,
 			bool separateSwapConfirmCancelOption = false,
+			bool defaultSwapConfirmCancelOptionOn = false,
 			bool fixSwappedButtonsWhenDynamicPromptsOff = false
 		) {
 			var f = new List<FileMod>();
@@ -22,6 +23,7 @@ namespace SenLib.Sen4 {
 					disableMouseCapture: disableMouseCapture,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					separateSwapConfirmCancelOption: separateSwapConfirmCancelOption,
+					defaultSwapConfirmCancelOptionOn: defaultSwapConfirmCancelOptionOn,
 					fixSwappedButtonsWhenDynamicPromptsOff: fixSwappedButtonsWhenDynamicPromptsOff
 				));
 			}

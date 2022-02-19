@@ -41,7 +41,10 @@ namespace SenPatcherGui {
 				mods.AddRange(Sen4Mods.GetExecutableMods(
 					allowSwitchToNightmare: allowNightmare,
 					disableMouseCapture: disableMouseCapture,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
+					separateSwapConfirmCancelOption: false,
+					defaultSwapConfirmCancelOptionOn: false,
+					fixSwappedButtonsWhenDynamicPromptsOff: true
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen4Mods.GetAssetMods(

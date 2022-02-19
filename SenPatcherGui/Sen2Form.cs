@@ -49,7 +49,9 @@ namespace SenPatcherGui {
 					patchBgmQueueing: patchBgmQueueing,
 					correctLanguageVoiceTables: fixVoiceTables,
 					disableMouseCapture: disableMouseCapture,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
+					fixControllerMapping: true,
+					fixArtsSupport: true
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen2Mods.GetAssetMods());

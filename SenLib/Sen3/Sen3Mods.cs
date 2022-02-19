@@ -12,7 +12,8 @@ namespace SenLib.Sen3 {
 			bool allowSwitchToNightmare = false,
 			bool swapBrokenMasterQuartzValuesForDisplay = false,
 			bool disableMouseCapture = false,
-			bool disablePauseOnFocusLoss = false
+			bool disablePauseOnFocusLoss = false,
+			bool fixControllerMapping = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
@@ -22,7 +23,8 @@ namespace SenLib.Sen3 {
 					allowSwitchToNightmare: allowSwitchToNightmare,
 					swapBrokenMasterQuartzValuesForDisplay: swapBrokenMasterQuartzValuesForDisplay,
 					disableMouseCapture: disableMouseCapture,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
+					fixControllerMapping: fixControllerMapping
 				));
 			}
 			return f;

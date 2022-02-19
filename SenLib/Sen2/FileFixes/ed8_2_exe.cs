@@ -12,6 +12,8 @@ namespace SenLib.Sen2.FileFixes {
 		bool CorrectLanguageVoiceTables;
 		bool DisableMouseCapture;
 		bool DisablePauseOnFocusLoss;
+		bool FixControllerMapping;
+		bool FixArtsSupport;
 
 		public ed8_2_exe(
 			bool jp,
@@ -21,7 +23,9 @@ namespace SenLib.Sen2.FileFixes {
 			bool patchBgmQueueing,
 			bool correctLanguageVoiceTables,
 			bool disableMouseCapture,
-			bool disablePauseOnFocusLoss
+			bool disablePauseOnFocusLoss,
+			bool fixControllerMapping,
+			bool fixArtsSupport
 		) {
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
@@ -31,6 +35,8 @@ namespace SenLib.Sen2.FileFixes {
 			CorrectLanguageVoiceTables = correctLanguageVoiceTables;
 			DisableMouseCapture = disableMouseCapture;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
+			FixControllerMapping = fixControllerMapping;
+			FixArtsSupport = fixArtsSupport;
 		}
 
 		public string GetDescription() {
@@ -75,8 +81,12 @@ namespace SenLib.Sen2.FileFixes {
 				Sen2ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, state);
 			}
 			Sen2ExecutablePatches.PatchRemoveBattleAnalyzeDebugScreenshot(ms, state);
-			Sen2ExecutablePatches.PatchFixControllerMappings(ms, state);
-			Sen2ExecutablePatches.PatchFixArtsSupportCutin(ms, state);
+			if (FixControllerMapping) {
+				Sen2ExecutablePatches.PatchFixControllerMappings(ms, state);
+			}
+			if (FixArtsSupport) {
+				Sen2ExecutablePatches.PatchFixArtsSupportCutin(ms, state);
+			}
 
 			// add indicator to the title screen that we're running a modified executable
 			ms.Position = state.Mapper.MapRamToRom(state.PushAddressVersionString);

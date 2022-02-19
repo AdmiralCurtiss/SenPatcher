@@ -14,7 +14,8 @@ namespace SenLib.Sen1 {
 			bool fixTextureIds = false,
 			bool correctLanguageVoiceTables = false,
 			bool disableMouseCapture = false,
-			bool disablePauseOnFocusLoss = false
+			bool disablePauseOnFocusLoss = false,
+			bool fixArtsSupport = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
@@ -26,7 +27,8 @@ namespace SenLib.Sen1 {
 					fixTextureIds: fixTextureIds,
 					correctLanguageVoiceTables: correctLanguageVoiceTables,
 					disableMouseCapture: disableMouseCapture,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss
+					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
+					fixArtsSupport: fixArtsSupport
 				));
 			}
 			return f;

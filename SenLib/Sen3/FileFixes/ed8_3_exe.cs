@@ -10,6 +10,7 @@ namespace SenLib.Sen3.FileFixes {
 		bool SwapBrokenMasterQuartzValuesForDisplay;
 		bool DisableMouseCapture;
 		bool DisablePauseOnFocusLoss;
+		bool FixControllerMapping;
 
 		public ed8_3_exe(
 			bool jp,
@@ -17,7 +18,8 @@ namespace SenLib.Sen3.FileFixes {
 			bool allowSwitchToNightmare,
 			bool swapBrokenMasterQuartzValuesForDisplay,
 			bool disableMouseCapture,
-			bool disablePauseOnFocusLoss
+			bool disablePauseOnFocusLoss,
+			bool fixControllerMapping
 		) {
 			IsJp = jp;
 			FixInGameButtonMappingValidity = fixInGameButtonMappingValidity;
@@ -25,6 +27,7 @@ namespace SenLib.Sen3.FileFixes {
 			SwapBrokenMasterQuartzValuesForDisplay = swapBrokenMasterQuartzValuesForDisplay;
 			DisableMouseCapture = disableMouseCapture;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
+			FixControllerMapping = fixControllerMapping;
 		}
 
 		public string GetDescription() {
@@ -90,7 +93,9 @@ namespace SenLib.Sen3.FileFixes {
 				ms.WriteUInt32((uint)(addressNewVersionString - loadAddrCrashRptVersionStringOffset) + (uint)(versionString.Length - 4), EndianUtils.Endianness.LittleEndian);
 			}
 
-			Sen3ExecutablePatches.PatchFixControllerMappings(ms, PatchInfo);
+			if (FixControllerMapping) {
+				Sen3ExecutablePatches.PatchFixControllerMappings(ms, PatchInfo);
+			}
 
 			return new FileModResult[] { new FileModResult(IsJp ? "bin/x64/ed8_3_PC_JP.exe" : "bin/x64/ed8_3_PC.exe", ms) };
 		}

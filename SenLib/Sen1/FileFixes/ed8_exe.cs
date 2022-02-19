@@ -16,6 +16,7 @@ namespace SenLib.Sen1.FileFixes {
 		bool CorrectLanguageVoiceTables;
 		bool DisableMouseCapture;
 		bool DisablePauseOnFocusLoss;
+		bool FixArtsSupport;
 
 		public ed8_exe(
 			bool jp,
@@ -25,7 +26,8 @@ namespace SenLib.Sen1.FileFixes {
 			bool fixTextureIds,
 			bool correctLanguageVoiceTables,
 			bool disableMouseCapture,
-			bool disablePauseOnFocusLoss
+			bool disablePauseOnFocusLoss,
+			bool fixArtsSupport
 		) {
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
@@ -35,6 +37,7 @@ namespace SenLib.Sen1.FileFixes {
 			CorrectLanguageVoiceTables = correctLanguageVoiceTables;
 			DisableMouseCapture = disableMouseCapture;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
+			FixArtsSupport = fixArtsSupport;
 		}
 
 		public string GetDescription() {
@@ -82,7 +85,9 @@ namespace SenLib.Sen1.FileFixes {
 			if (DisablePauseOnFocusLoss) {
 				Sen1ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);
 			}
-			Sen1ExecutablePatches.PatchFixArtsSupportCutin(ms, PatchInfo);
+			if (FixArtsSupport) {
+				Sen1ExecutablePatches.PatchFixArtsSupportCutin(ms, PatchInfo);
+			}
 
 			if (IsJp) {
 				// this inits the struct responsible for telling which button to use for the textbox text advance prompts

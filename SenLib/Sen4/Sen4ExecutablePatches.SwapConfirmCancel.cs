@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SenLib.Sen4 {
 	public static partial class Sen4ExecutablePatches {
-		public static void PatchSeparateSwapConfirmCancelOption(Stream bin, Sen4ExecutablePatchState state) {
+		public static void PatchSeparateSwapConfirmCancelOption(Stream bin, Sen4ExecutablePatchState state, bool defaultSwapConfirmCancelOptionOn) {
 			bool jp = state.IsJp;
 			var be = EndianUtils.Endianness.BigEndian;
 
@@ -40,7 +40,7 @@ namespace SenLib.Sen4 {
 
 				// config struct byte at 0x4e is unused, so take that to store the setting
 				bin.WriteUInt32(0x4c8d464e, be);   // lea r8,[rsi + 4Eh]
-				bin.WriteUInt32(0x41c60000, be);   // mov byte ptr[r8],0
+				bin.WriteUInt32(0x41c60000 | (defaultSwapConfirmCancelOptionOn ? 1u : 0u), be);   // mov byte ptr[r8],defaultSwapConfirmCancelOptionOn
 				bin.WriteUInt24(0x488d15, be);     // lea rdx,[SwapOX]
 				bin.WriteInt32((int)(newRegionStartRom - (bin.Position + 4)));
 				bin.WriteUInt24(0x498bcf, be);     // mov rcx,r15

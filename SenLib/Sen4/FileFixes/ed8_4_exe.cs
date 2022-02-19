@@ -9,6 +9,7 @@ namespace SenLib.Sen4.FileFixes {
 		bool DisableMouseCapture;
 		bool DisablePauseOnFocusLoss;
 		bool SeparateSwapConfirmCancelOption;
+		bool DefaultSwapConfirmCancelOptionOn;
 		bool FixSwappedButtonsWhenDynamicPromptsOff;
 
 		public ed8_4_exe(
@@ -17,6 +18,7 @@ namespace SenLib.Sen4.FileFixes {
 			bool disableMouseCapture,
 			bool disablePauseOnFocusLoss,
 			bool separateSwapConfirmCancelOption,
+			bool defaultSwapConfirmCancelOptionOn,
 			bool fixSwappedButtonsWhenDynamicPromptsOff
 		) {
 			IsJp = jp;
@@ -24,6 +26,7 @@ namespace SenLib.Sen4.FileFixes {
 			DisableMouseCapture = disableMouseCapture;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			SeparateSwapConfirmCancelOption = separateSwapConfirmCancelOption;
+			DefaultSwapConfirmCancelOptionOn = defaultSwapConfirmCancelOptionOn;
 			FixSwappedButtonsWhenDynamicPromptsOff = fixSwappedButtonsWhenDynamicPromptsOff;
 		}
 
@@ -85,7 +88,7 @@ namespace SenLib.Sen4.FileFixes {
 			}
 
 			if (SeparateSwapConfirmCancelOption) {
-				Sen4ExecutablePatches.PatchSeparateSwapConfirmCancelOption(ms, PatchInfo);
+				Sen4ExecutablePatches.PatchSeparateSwapConfirmCancelOption(ms, PatchInfo, DefaultSwapConfirmCancelOptionOn);
 			}
 			if (FixSwappedButtonsWhenDynamicPromptsOff) {
 				Sen4ExecutablePatches.PatchFixPcConfirmCancelWhenSwapped(ms, PatchInfo);
