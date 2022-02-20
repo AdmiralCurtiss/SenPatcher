@@ -158,7 +158,7 @@ namespace SenLib.Sen2 {
 
 				// fix visibility
 				bin.WriteUInt40(0xf30f10402c, be);     // movss xmm0,dword ptr[eax+2ch]
-				bin.WriteUInt40(0xba0000503f, be);     // mov edx,float(0.8125)
+				bin.WriteUInt40(0xba0000403f, be);     // mov edx,float(0.75)
 				bin.WriteUInt32(0x660f6eca, be);       // movd xmm1,edx
 				bin.WriteUInt32(0xf30f59c1, be);       // mulss xmm0,xmm1
 				bin.WriteUInt40(0xf30f11402c, be);     // movss dword ptr[eax+2ch],xmm0
