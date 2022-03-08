@@ -88,6 +88,29 @@ namespace SenLib.Sen2.FileFixes {
 				Sen2ExecutablePatches.PatchFixArtsSupportCutin(ms, state);
 			}
 
+			// call CreateMutex without names so multiple instances of CS2 don't block eachother
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x71d484 : 0x71e4e4);
+			ms.WriteUInt24(0x6a0090, EndianUtils.Endianness.BigEndian); // push 0, nop
+
+			// 1.4.1/2 was seemingly compiled with the wrong gog galaxy headers, resulting in a few incorrect function offsets
+			// amazingly this doesn't crash, but it does mean achievements don't work, so fix that
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6adb69 : 0x6aeb99);
+			ms.WriteUInt8(0x40);
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6adbd9 : 0x6aec09);
+			ms.WriteUInt8(0x40);
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6ae019 : 0x6af049);
+			ms.WriteUInt8(0x40);
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6ae0a9 : 0x6af109);
+			ms.WriteUInt8(0x40);
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6ae5f5 : 0x6af645);
+			ms.WriteUInt8(0x2c);
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6ae756 : 0x6af7a6);
+			ms.WriteUInt8(0x2c);
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6af217 : 0x6b0267);
+			ms.WriteUInt8(0x48);
+			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x6af37f : 0x6b03cf);
+			ms.WriteUInt8(0x2c);
+
 			// add indicator to the title screen that we're running a modified executable
 			ms.Position = state.Mapper.MapRamToRom(state.PushAddressVersionString);
 			uint addressVersionString = ms.ReadUInt32(EndianUtils.Endianness.LittleEndian);
