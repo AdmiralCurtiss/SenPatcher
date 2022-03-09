@@ -27,6 +27,7 @@ namespace FileCompressor {
 			List<string> infiles = new List<string>();
 			Prefilter filter = Prefilter.None;
 			Exhaustion exhaustion = Exhaustion.Standard;
+			bool decompress = false;
 
 			for (int i = 0; i < args.Length; ++i) {
 				if (args[i] == "--filter") {
@@ -35,6 +36,8 @@ namespace FileCompressor {
 				} else if (args[i] == "--exhaustion") {
 					++i;
 					exhaustion = (Exhaustion)Enum.Parse(typeof(Exhaustion), args[i], true);
+				} else if (args[i] == "--decompress") {
+					decompress = true;
 				} else {
 					infiles.Add(args[i]);
 				}
@@ -51,6 +54,19 @@ namespace FileCompressor {
 				foreach (object e in Enum.GetValues(typeof(Exhaustion))) {
 					Console.WriteLine("      " + e.ToString());
 				}
+				Console.WriteLine("  --decompress");
+			}
+
+			if (decompress) {
+				foreach (string infile in infiles) {
+					string outfile = infile + ".dec";
+					Stream decompressed = SenLib.DecompressHelper.DecompressFromStream(new FileStream(infile, FileMode.Open, FileAccess.Read, FileShare.Read).CopyToMemoryAndDispose());
+					using (var fs = new FileStream(outfile, FileMode.Create)) {
+						decompressed.Position = 0;
+						StreamUtils.CopyStream(decompressed, fs);
+					}
+				}
+				return;
 			}
 
 			foreach (string infile in infiles) {
