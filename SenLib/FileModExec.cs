@@ -73,16 +73,31 @@ namespace SenLib {
 				bool diskWriteSuccess = true;
 				foreach (FileModResult result in results) {
 					string path = Path.Combine(gamedir, result.TargetPath);
-					if (result.ResultData != null) {
-						if (!SenUtils.TryWriteFileIfDifferent(result.ResultData, path)) {
-							progress.Error(string.Format("Failed to write to disk: {0}", path));
+					if (result.Type == FileModResultType.File) {
+						if (result.ResultData != null) {
+							if (!SenUtils.TryWriteFileIfDifferent(result.ResultData, path)) {
+								progress.Error(string.Format("Failed to write to disk: {0}", path));
+								diskWriteSuccess = false;
+							}
+						} else {
+							if (!SenUtils.TryDeleteFile(path)) {
+								progress.Error(string.Format("Failed to delete from disk: {0}", path));
+								diskWriteSuccess = false;
+							}
+						}
+					} else if (result.Type == FileModResultType.CreateFolder) {
+						if (!SenUtils.TryCreateDirectory(path)) {
+							progress.Error(string.Format("Failed to create directory on disk: {0}", path));
+							diskWriteSuccess = false;
+						}
+					} else if (result.Type == FileModResultType.DeleteFolder) {
+						if (!SenUtils.TryDeleteEmptyDirectory(path)) {
+							progress.Error(string.Format("Failed to delete directory on disk: {0}", path));
 							diskWriteSuccess = false;
 						}
 					} else {
-						if (!SenUtils.TryDeleteFile(path)) {
-							progress.Error(string.Format("Failed to delete from disk: {0}", path));
-							diskWriteSuccess = false;
-						}
+						progress.Error("Invalid mod result type.");
+						diskWriteSuccess = false;
 					}
 				}
 

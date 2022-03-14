@@ -66,6 +66,32 @@ namespace SenLib {
 			}
 		}
 
+		public static bool TryCreateDirectory(string path) {
+			try {
+				if (Directory.Exists(path)) {
+					return true;
+				}
+				Directory.CreateDirectory(path);
+				return true;
+			} catch (Exception ex) {
+				SenLib.Logging.Log(string.Format("Error while creating directory {0}: {1}", path, ex.ToString()));
+				return false;
+			}
+		}
+
+		public static bool TryDeleteEmptyDirectory(string path) {
+			try {
+				if (!Directory.Exists(path)) {
+					return true;
+				}
+				Directory.Delete(path);
+				return true;
+			} catch (Exception ex) {
+				SenLib.Logging.Log(string.Format("Error while deleting directory {0}: {1}", path, ex.ToString()));
+				return false;
+			}
+		}
+
 		public static string ExtractUserFriendlyStringFromModDescriptions(List<FileMod> mods) {
 			StringBuilder sb = new StringBuilder();
 			foreach (FileMod mod in mods) {

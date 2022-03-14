@@ -6,8 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace SenLib.Sen2 {
+	public enum Sen2Version {
+		v14, v141, v142
+	}
+
 	public class Sen2Mods {
 		public static List<FileMod> GetExecutableMods(
+			Sen2Version version,
 			bool removeTurboSkip = false,
 			bool patchAudioThread = false,
 			int audioThreadDivisor = 1000,
@@ -21,6 +26,7 @@ namespace SenLib.Sen2 {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
 				f.Add(new FileFixes.ed8_2_exe(
+					version,
 					jp: i == 0,
 					removeTurboSkip: removeTurboSkip,
 					patchAudioThread: patchAudioThread,
@@ -36,7 +42,7 @@ namespace SenLib.Sen2 {
 			return f;
 		}
 
-		public static List<FileMod> GetAssetMods() {
+		public static List<FileMod> GetAssetMods(Sen2Version version) {
 			var f = new List<FileMod>();
 			f.Add(new FileFixes.text_dat_us_t_magic_tbl());
 			f.Add(new FileFixes.text_dat_us_t_item_tbl());
@@ -50,7 +56,22 @@ namespace SenLib.Sen2 {
 			f.Add(new FileFixes.scripts_book_dat_us_book05_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_e7101_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t4080_dat());
+			f.Add(new FileFixes.scripts_scena_asm_t1001_tbl(version));
+			f.Add(new FileFixes.scripts_scena_dat_t1001_dat(version));
+			f.Add(new FileFixes.scripts_scena_dat_us_t1001_dat(version));
 			return f;
+		}
+
+		public static bool CanRevertTo(Sen2Version version, FileStorage storage) {
+			var exemods = GetExecutableMods(version);
+			foreach (var exemod in exemods) {
+				if (exemod.TryRevert(storage) == null) {
+					return false;
+				}
+			}
+			return (new FileFixes.scripts_scena_asm_t1001_tbl(version).TryRevert(storage)) != null
+				&& (new FileFixes.scripts_scena_dat_t1001_dat(version).TryRevert(storage)) != null
+				&& (new FileFixes.scripts_scena_dat_us_t1001_dat(version).TryRevert(storage)) != null;
 		}
 	}
 }

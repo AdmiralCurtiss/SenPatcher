@@ -188,6 +188,15 @@ namespace SenLib {
 									continue;
 								}
 							}
+						} else if (acquisitionMethod is KnownFileAcquisitionMethodFunction) {
+							var method = acquisitionMethod as KnownFileAcquisitionMethodFunction;
+							SenLib.Logging.Log("Trying acquisition via custom function...");
+							if (method.Exec(storage, localErrors, ref shouldWriteBackupArchive)) {
+								success = true;
+								break;
+							} else {
+								continue;
+							}
 						} else {
 							// shouldn't happen
 							SenLib.Logging.Log("Unknown acquisition type.");

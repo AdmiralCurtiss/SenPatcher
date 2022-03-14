@@ -265,6 +265,9 @@
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book03_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book05_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book04_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_asm_t1001_tbl.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_t1001_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t1001_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t4080_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7101_dat.cs" />
     <Compile Include="Sen2\FileFixes\text_dat_us_t_voice_tbl.cs" />
@@ -353,6 +356,17 @@
     <None Include="Sen1\FileFixes\vctiming_us_4.bin" />
     <None Include="Sen2\FileFixes\ed82j142.bin" />
     <None Include="Sen2\FileFixes\ed82u142j.bin" />
+    <None Include="Sen2\FileFixes\ed82_j140_to_j142_data.bin" />
+    <None Include="Sen2\FileFixes\ed82_j140_to_j142_header.bin" />
+    <None Include="Sen2\FileFixes\ed82_j140_to_j142_rdata.bin" />
+    <None Include="Sen2\FileFixes\ed82_j140_to_j142_rsrc.bin" />
+    <None Include="Sen2\FileFixes\ed82_j140_to_j142_text.bin" />
+    <None Include="Sen2\FileFixes\ed82_j142_to_u142_data.bin" />
+    <None Include="Sen2\FileFixes\ed82_j142_to_u142_header.bin" />
+    <None Include="Sen2\FileFixes\ed82_j142_to_u142_rsrc.bin" />
+    <None Include="Sen2\FileFixes\ed82_j142_to_u142_text.bin" />
+    <None Include="Sen2\FileFixes\ed82_u140j142_to_u142_rdata.bin" />
+    <None Include="Sen2\FileFixes\t1001_dat_to_tbl.bin" />
     <None Include="Sen3\FileFixes\cvis0061.bin" />
     <None Include="Sen3\FileFixes\cvis1008.bin" />
     <None Include="Sen3\FileFixes\insa_05.bin" />

@@ -83,6 +83,106 @@ namespace SenLib.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] ed82_j140_to_j142_data {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j140_to_j142_data", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_j140_to_j142_header {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j140_to_j142_header", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_j140_to_j142_rdata {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j140_to_j142_rdata", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_j140_to_j142_rsrc {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j140_to_j142_rsrc", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_j140_to_j142_text {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j140_to_j142_text", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_j142_to_u142_data {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j142_to_u142_data", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_j142_to_u142_header {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j142_to_u142_header", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_j142_to_u142_rsrc {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j142_to_u142_rsrc", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_j142_to_u142_text {
+            get {
+                object obj = ResourceManager.GetObject("ed82_j142_to_u142_text", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ed82_u140j142_to_u142_rdata {
+            get {
+                object obj = ResourceManager.GetObject("ed82_u140j142_to_u142_rdata", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] ed82j142 {
             get {
                 object obj = ResourceManager.GetObject("ed82j142", resourceCulture);
@@ -186,6 +286,16 @@ namespace SenLib.Properties {
         internal static byte[] pc8v10286_15 {
             get {
                 object obj = ResourceManager.GetObject("pc8v10286_15", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] t1001_dat_to_tbl {
+            get {
+                object obj = ResourceManager.GetObject("t1001_dat_to_tbl", resourceCulture);
                 return ((byte[])(obj));
             }
         }

@@ -264,7 +264,7 @@ namespace SenPatcherGui {
 							  "Encountered problems while initializing CS2 data. "
 							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
 							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
-							+ "Please also ensure you're trying to patch a compatible version of the game. (XSEED release version 1.4.1 or version 1.4.2; other game versions are not compatible)"
+							+ "Please also ensure you're trying to patch a compatible version of the game. (XSEED release version 1.4, 1.4.1, or 1.4.2; other game versions are not compatible)"
 						);
 					} else {
 						Progress.Error(

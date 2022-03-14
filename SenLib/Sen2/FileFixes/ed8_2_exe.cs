@@ -4,6 +4,7 @@ using System.IO;
 
 namespace SenLib.Sen2.FileFixes {
 	public class ed8_2_exe : FileMod {
+		Sen2Version Version;
 		bool IsJp;
 		bool RemoveTurboSkip;
 		bool PatchAudioThread;
@@ -16,6 +17,7 @@ namespace SenLib.Sen2.FileFixes {
 		bool FixArtsSupport;
 
 		public ed8_2_exe(
+			Sen2Version version,
 			bool jp,
 			bool removeTurboSkip,
 			bool patchAudioThread,
@@ -27,6 +29,7 @@ namespace SenLib.Sen2.FileFixes {
 			bool fixControllerMapping,
 			bool fixArtsSupport
 		) {
+			Version = version;
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
 			PatchAudioThread = patchAudioThread;
@@ -44,10 +47,30 @@ namespace SenLib.Sen2.FileFixes {
 		}
 
 		private HyoutaUtils.Checksum.SHA1 GetExecutableHash() {
-			return IsJp ? new HyoutaUtils.Checksum.SHA1(0x7d1db7e0bb91ab77ul, 0xa3fd1eba53b0ed25ul, 0x806186c1u) : new HyoutaUtils.Checksum.SHA1(0xb08ece4ee38e6e3aul, 0x99e58eb11cffb45eul, 0x49704f86u);
+			switch (Version) {
+				case Sen2Version.v14:
+					var us140 = new HyoutaUtils.Checksum.SHA1(0xe5f2e2682557af7aul, 0x2f52b2299ba0980ful, 0x218c5e66u);
+					var jp140 = new HyoutaUtils.Checksum.SHA1(0x825e264333896356ul, 0x5f49e3c40aa0aec1ul, 0xd77229fau);
+					return IsJp ? jp140 : us140;
+				case Sen2Version.v141:
+					var us141 = new HyoutaUtils.Checksum.SHA1(0xd5c333b4cd517d43ul, 0xe3868e159fbec37dul, 0xba4122d6u);
+					var jp141 = new HyoutaUtils.Checksum.SHA1(0xb8158fb59e43c02eul, 0x904f813150d84133ul, 0x6d1a13e5u);
+					return IsJp ? jp141 : us141;
+				case Sen2Version.v142:
+					var us142 = new HyoutaUtils.Checksum.SHA1(0xb08ece4ee38e6e3aul, 0x99e58eb11cffb45eul, 0x49704f86u);
+					var jp142 = new HyoutaUtils.Checksum.SHA1(0x7d1db7e0bb91ab77ul, 0xa3fd1eba53b0ed25ul, 0x806186c1u);
+					return IsJp ? jp142 : us142;
+				default:
+					throw new System.Exception();
+			}
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
+			// we only support patching v1.4.2
+			if (Version != Sen2Version.v142) {
+				return null;
+			}
+
 			var s = storage.TryGetDuplicate(GetExecutableHash());
 			if (s == null) {
 				return null;
@@ -116,7 +139,7 @@ namespace SenLib.Sen2.FileFixes {
 			uint addressVersionString = ms.ReadUInt32(EndianUtils.Endianness.LittleEndian);
 			ms.Position = state.Mapper.MapRamToRom(addressVersionString);
 			string versionString = ms.ReadAsciiNullterm();
-			string newVersionString = versionString + "  SenPatcher " + Version.SenPatcherVersion;
+			string newVersionString = versionString + "  SenPatcher " + SenLib.Version.SenPatcherVersion;
 			MemoryStream newVersionStringStream = new MemoryStream();
 			newVersionStringStream.WriteAsciiNullterm(newVersionString);
 			byte[] newVersionStringBytes = newVersionStringStream.CopyToByteArrayAndDispose();
@@ -155,14 +178,6 @@ namespace SenLib.Sen2.FileFixes {
 		}
 
 		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
-			// if we have both v1.4.1s revert to that, since that likely means that was the original input
-			var us141 = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xd5c333b4cd517d43ul, 0xe3868e159fbec37dul, 0xba4122d6u));
-			var jp141 = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xb8158fb59e43c02eul, 0x904f813150d84133ul, 0x6d1a13e5u));
-			if (us141 != null && jp141 != null) {
-				return new FileModResult[] { new FileModResult(IsJp ? "bin/Win32/ed8_2_PC_JP.exe" : "bin/Win32/ed8_2_PC_US.exe", IsJp ? jp141 : us141) };
-			}
-
-			// if we don't, v1.4.2 definitely was the input, so revert to that
 			var s = storage.TryGetDuplicate(GetExecutableHash());
 			if (s == null) {
 				return null;

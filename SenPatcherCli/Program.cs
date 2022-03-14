@@ -175,6 +175,7 @@ namespace SenPatcherCli {
 			} else if (sengame == 2) {
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen2Mods.GetExecutableMods(
+					Sen2Version.v142,
 					removeTurboSkip: true,
 					patchAudioThread: true,
 					audioThreadDivisor: 1000,
@@ -185,7 +186,7 @@ namespace SenPatcherCli {
 					fixControllerMapping: true,
 					fixArtsSupport: true
 				));
-				mods.AddRange(Sen2Mods.GetAssetMods());
+				mods.AddRange(Sen2Mods.GetAssetMods(Sen2Version.v142));
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
 			} else if (sengame == 3) {
 				var mods = new List<FileMod>();

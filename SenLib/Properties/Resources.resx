@@ -130,6 +130,36 @@
   <data name="ed82u142j" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen2\FileFixes\ed82u142j.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="ed82_j140_to_j142_data" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j140_to_j142_data.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_j140_to_j142_header" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j140_to_j142_header.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_j140_to_j142_rdata" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j140_to_j142_rdata.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_j140_to_j142_rsrc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j140_to_j142_rsrc.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_j140_to_j142_text" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j140_to_j142_text.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_j142_to_u142_data" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j142_to_u142_data.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_j142_to_u142_header" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j142_to_u142_header.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_j142_to_u142_rsrc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j142_to_u142_rsrc.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_j142_to_u142_text" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_j142_to_u142_text.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ed82_u140j142_to_u142_rdata" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\ed82_u140j142_to_u142_rdata.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="ed8m2150" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\ed8m2150.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -156,6 +186,9 @@
   </data>
   <data name="pc8v10286_15" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\pc8v10286_15.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="t1001_dat_to_tbl" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen2\FileFixes\t1001_dat_to_tbl.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="v00_e0441" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen3\FileFixes\v00_e0441.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

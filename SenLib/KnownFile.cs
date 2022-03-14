@@ -85,4 +85,8 @@ namespace SenLib {
 			WriteToBackup = writeToBackup;
 		}
 	}
+
+	public interface KnownFileAcquisitionMethodFunction : KnownFileAcquisitionMethod {
+		bool Exec(FileStorage storage, List<string> localErrors, ref bool shouldWriteBackupArchive);
+	}
 }

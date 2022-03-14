@@ -42,7 +42,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.buttonCS1Patch.Location = new System.Drawing.Point(12, 47);
 			this.buttonCS1Patch.Name = "buttonCS1Patch";
-			this.buttonCS1Patch.Size = new System.Drawing.Size(317, 21);
+			this.buttonCS1Patch.Size = new System.Drawing.Size(328, 21);
 			this.buttonCS1Patch.TabIndex = 2;
 			this.buttonCS1Patch.Text = "Patch game";
 			this.buttonCS1Patch.UseVisualStyleBackColor = true;
@@ -54,7 +54,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.labelVersion.Location = new System.Drawing.Point(12, 9);
 			this.labelVersion.Name = "labelVersion";
-			this.labelVersion.Size = new System.Drawing.Size(317, 13);
+			this.labelVersion.Size = new System.Drawing.Size(328, 13);
 			this.labelVersion.TabIndex = 0;
 			this.labelVersion.Text = "SenPatcher v0.0";
 			this.labelVersion.TextAlign = System.Drawing.ContentAlignment.TopRight;
@@ -62,7 +62,7 @@
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(12, 31);
+			this.label2.Location = new System.Drawing.Point(9, 31);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(258, 13);
 			this.label2.TabIndex = 1;
@@ -73,9 +73,9 @@
 			this.label3.AutoSize = true;
 			this.label3.Location = new System.Drawing.Point(9, 111);
 			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(309, 13);
+			this.label3.Size = new System.Drawing.Size(333, 13);
 			this.label3.TabIndex = 4;
-			this.label3.Text = "Trails of Cold Steel II: (XSEED PC release version 1.4.1 or 1.4.2)";
+			this.label3.Text = "Trails of Cold Steel II: (XSEED PC release version 1.4, 1.4.1, or 1.4.2)";
 			// 
 			// buttonCS1Sysdata
 			// 
@@ -83,7 +83,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.buttonCS1Sysdata.Location = new System.Drawing.Point(12, 74);
 			this.buttonCS1Sysdata.Name = "buttonCS1Sysdata";
-			this.buttonCS1Sysdata.Size = new System.Drawing.Size(317, 21);
+			this.buttonCS1Sysdata.Size = new System.Drawing.Size(328, 21);
 			this.buttonCS1Sysdata.TabIndex = 3;
 			this.buttonCS1Sysdata.Text = "Edit System Save Data";
 			this.buttonCS1Sysdata.UseVisualStyleBackColor = true;
@@ -95,7 +95,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.buttonCS2Sysdata.Location = new System.Drawing.Point(12, 154);
 			this.buttonCS2Sysdata.Name = "buttonCS2Sysdata";
-			this.buttonCS2Sysdata.Size = new System.Drawing.Size(317, 21);
+			this.buttonCS2Sysdata.Size = new System.Drawing.Size(328, 21);
 			this.buttonCS2Sysdata.TabIndex = 6;
 			this.buttonCS2Sysdata.Text = "Edit System Save Data";
 			this.buttonCS2Sysdata.UseVisualStyleBackColor = true;
@@ -107,7 +107,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.buttonCS2Patch.Location = new System.Drawing.Point(12, 127);
 			this.buttonCS2Patch.Name = "buttonCS2Patch";
-			this.buttonCS2Patch.Size = new System.Drawing.Size(317, 21);
+			this.buttonCS2Patch.Size = new System.Drawing.Size(328, 21);
 			this.buttonCS2Patch.TabIndex = 5;
 			this.buttonCS2Patch.Text = "Patch game";
 			this.buttonCS2Patch.UseVisualStyleBackColor = true;
@@ -119,7 +119,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.buttonCS3Patch.Location = new System.Drawing.Point(12, 207);
 			this.buttonCS3Patch.Name = "buttonCS3Patch";
-			this.buttonCS3Patch.Size = new System.Drawing.Size(317, 21);
+			this.buttonCS3Patch.Size = new System.Drawing.Size(328, 21);
 			this.buttonCS3Patch.TabIndex = 8;
 			this.buttonCS3Patch.Text = "Patch game";
 			this.buttonCS3Patch.UseVisualStyleBackColor = true;
@@ -140,7 +140,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.buttonCS4Patch.Location = new System.Drawing.Point(12, 260);
 			this.buttonCS4Patch.Name = "buttonCS4Patch";
-			this.buttonCS4Patch.Size = new System.Drawing.Size(317, 21);
+			this.buttonCS4Patch.Size = new System.Drawing.Size(328, 21);
 			this.buttonCS4Patch.TabIndex = 10;
 			this.buttonCS4Patch.Text = "Patch game";
 			this.buttonCS4Patch.UseVisualStyleBackColor = true;
@@ -159,7 +159,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(341, 295);
+			this.ClientSize = new System.Drawing.Size(352, 295);
 			this.Controls.Add(this.buttonCS4Patch);
 			this.Controls.Add(this.label4);
 			this.Controls.Add(this.buttonCS3Patch);

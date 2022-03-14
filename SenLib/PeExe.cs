@@ -12,8 +12,8 @@ namespace SenLib {
 		private DuplicatableStream Stream;
 		private EndianUtils.Endianness Endian;
 		private Coff Coff;
-		private OptionalHeader OptionalHeader;
-		private SectionHeader[] SectionHeaders;
+		public OptionalHeader OptionalHeader;
+		public SectionHeader[] SectionHeaders;
 
 		public PeExe(DuplicatableStream inputStream, EndianUtils.Endianness e) {
 			DuplicatableStream s = inputStream.Duplicate();
