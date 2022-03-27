@@ -39,7 +39,7 @@ Feature Set for Trails of Cold Steel II
 * Option to fix a bug that displays the Arts Support cut-in incorrectly.
 * Option to edit the vestigial System Data button mapping from the PS3 version.
 
-Note: Compatible with versions 1.4.1 and 1.4.2 of the game only.
+Note: Compatible with versions 1.4, 1.4.1, and 1.4.2 of the game only.
 
 
 Feature Set for Trails of Cold Steel III
