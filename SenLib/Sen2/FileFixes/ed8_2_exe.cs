@@ -110,6 +110,7 @@ namespace SenLib.Sen2.FileFixes {
 			if (FixArtsSupport) {
 				Sen2ExecutablePatches.PatchFixArtsSupportCutin(ms, state);
 			}
+			Sen2ExecutablePatches.PatchAddNullCheckBattleScopeCrashMaybe(ms, state);
 
 			// call CreateMutex without names so multiple instances of CS2 don't block eachother
 			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x71d484 : 0x71e4e4);

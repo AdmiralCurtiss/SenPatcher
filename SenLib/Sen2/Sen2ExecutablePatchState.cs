@@ -40,6 +40,7 @@ namespace SenLib.Sen2 {
 		public RegionHelper Region41 = null;
 		public RegionHelper Region32 = null;
 		public RegionHelper RegionD = null;
+		public RegionHelper RegionForBattleScopeNullCheckAddress = null;
 
 		public Sen2ExecutablePatchState(bool jp, HyoutaPluginBase.IRomMapper mapper) {
 			IsJp = jp;
@@ -141,6 +142,9 @@ namespace SenLib.Sen2 {
 				// this one is just a between-function padding, but good enough for a small snippet
 				RegionD = new RegionHelper(c.RegionDAddress, c.RegionDLength, "RegionD");
 			}
+			{
+				RegionForBattleScopeNullCheckAddress = new RegionHelper(c.RegionForBattleScopeNullCheckAddress, c.RegionForBattleScopeNullCheckLength, "RegionForBattleScopeNullCheck");
+			}
 		}
 
 		public void PrintStatistics() {
@@ -152,6 +156,7 @@ namespace SenLib.Sen2 {
 			Region41.PrintStatistics();
 			Region32.PrintStatistics();
 			RegionD.PrintStatistics();
+			RegionForBattleScopeNullCheckAddress.PrintStatistics();
 		}
 	}
 }

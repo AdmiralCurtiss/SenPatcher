@@ -33,6 +33,9 @@ namespace SenLib.Sen2 {
 		public uint RegionDAddress { get; private set; }
 		public uint RegionDLength { get; private set; }
 
+		public uint RegionForBattleScopeNullCheckAddress { get; private set; }
+		public uint RegionForBattleScopeNullCheckLength { get; private set; }
+
 		public Sen2ExecutableCodeSpaceLocations(bool jp) {
 			if (jp) {
 				Region50aAddress = 0x420bbb;
@@ -57,6 +60,9 @@ namespace SenLib.Sen2 {
 
 				RegionDAddress = 0x41fbe3;
 				RegionDLength = 0xd;
+
+				RegionForBattleScopeNullCheckAddress = 0x52e442;
+				RegionForBattleScopeNullCheckLength = 14;
 			} else {
 				Region50aAddress = 0x420c4b; // command 0x9
 				Region50aTarget = 0x4219cb; // command 0x6
@@ -80,6 +86,9 @@ namespace SenLib.Sen2 {
 
 				RegionDAddress = 0x41fc03;
 				RegionDLength = 0xd;
+
+				RegionForBattleScopeNullCheckAddress = 0x52e0d2;
+				RegionForBattleScopeNullCheckLength = 14;
 			}
 		}
 	}
