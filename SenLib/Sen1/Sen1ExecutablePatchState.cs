@@ -31,6 +31,9 @@ namespace SenLib.Sen1 {
 		// address of conditional jump statement for not displaying the R2 option in the settings when turbo is enabled
 		public long AddressJumpR2NotebookSettings { get; private set; }
 
+		// address of a conditional that jumps over setting the font kerning value to 0
+		public long AddressForce0Kerning { get; private set; }
+
 		// address of extra character in the middle of texture ID string of Thor MQ, for the HQ texture pack
 		public long RomAddressThorMasterQuartzTextureIdTypo { get; private set; }
 
@@ -59,6 +62,7 @@ namespace SenLib.Sen1 {
 				AddressJumpBattleResultsAutoSkip = 0x4f224f;
 				AddressJumpR2NotebookOpen = 0x5b812f;
 				AddressJumpR2NotebookSettings = 0x6dfaf0;
+				AddressForce0Kerning = 0x5a0631;
 				RomAddressThorMasterQuartzTextureIdTypo = 0x73adba;
 				PushAddressVersionString = 0x69042d;
 			}

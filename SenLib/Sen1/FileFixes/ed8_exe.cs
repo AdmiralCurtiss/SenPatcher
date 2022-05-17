@@ -17,6 +17,7 @@ namespace SenLib.Sen1.FileFixes {
 		bool DisableMouseCapture;
 		bool DisablePauseOnFocusLoss;
 		bool FixArtsSupport;
+		bool Force0Kerning;
 
 		public ed8_exe(
 			bool jp,
@@ -27,7 +28,8 @@ namespace SenLib.Sen1.FileFixes {
 			bool correctLanguageVoiceTables,
 			bool disableMouseCapture,
 			bool disablePauseOnFocusLoss,
-			bool fixArtsSupport
+			bool fixArtsSupport,
+			bool force0Kerning
 		) {
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
@@ -38,6 +40,7 @@ namespace SenLib.Sen1.FileFixes {
 			DisableMouseCapture = disableMouseCapture;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			FixArtsSupport = fixArtsSupport;
+			Force0Kerning = force0Kerning;
 		}
 
 		public string GetDescription() {
@@ -87,6 +90,9 @@ namespace SenLib.Sen1.FileFixes {
 			}
 			if (FixArtsSupport) {
 				Sen1ExecutablePatches.PatchFixArtsSupportCutin(ms, PatchInfo);
+			}
+			if (!IsJp && Force0Kerning) {
+				Sen1ExecutablePatches.PatchForce0Kerning(ms, PatchInfo);
 			}
 
 			if (IsJp) {

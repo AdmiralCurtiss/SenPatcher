@@ -168,7 +168,8 @@ namespace SenPatcherCli {
 					correctLanguageVoiceTables: true,
 					disableMouseCapture: true,
 					disablePauseOnFocusLoss: true,
-					fixArtsSupport: true
+					fixArtsSupport: true,
+					force0Kerning: true
 				));
 				mods.AddRange(Sen1Mods.GetAssetMods());
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());
@@ -184,7 +185,8 @@ namespace SenPatcherCli {
 					disableMouseCapture: true,
 					disablePauseOnFocusLoss: true,
 					fixControllerMapping: true,
-					fixArtsSupport: true
+					fixArtsSupport: true,
+					force0Kerning: true
 				));
 				mods.AddRange(Sen2Mods.GetAssetMods(Sen2Version.v142));
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());

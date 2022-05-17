@@ -40,6 +40,7 @@
 			this.checkBoxDisablePauseOnFocusLoss = new System.Windows.Forms.CheckBox();
 			this.checkBoxControllerMapping = new System.Windows.Forms.CheckBox();
 			this.checkBoxArtsSupport = new System.Windows.Forms.CheckBox();
+			this.checkBoxForce0Kerning = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label5
@@ -95,10 +96,10 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 379);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 402);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
-			this.buttonPatch.TabIndex = 14;
+			this.buttonPatch.TabIndex = 17;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -187,20 +188,20 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 326);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 349);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
-			this.checkBoxDisableMouseCam.TabIndex = 12;
+			this.checkBoxDisableMouseCam.TabIndex = 15;
 			this.checkBoxDisableMouseCam.Text = "Disable Mouse Capture and Mouse Camera";
 			this.checkBoxDisableMouseCam.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 349);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 372);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
-			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 13;
+			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 16;
 			this.checkBoxDisablePauseOnFocusLoss.Text = "Keep game running when in Background";
 			this.checkBoxDisablePauseOnFocusLoss.UseVisualStyleBackColor = true;
 			// 
@@ -212,7 +213,7 @@
 			this.checkBoxControllerMapping.Location = new System.Drawing.Point(97, 280);
 			this.checkBoxControllerMapping.Name = "checkBoxControllerMapping";
 			this.checkBoxControllerMapping.Size = new System.Drawing.Size(409, 17);
-			this.checkBoxControllerMapping.TabIndex = 15;
+			this.checkBoxControllerMapping.TabIndex = 12;
 			this.checkBoxControllerMapping.Text = "Fix inconsistent Controller Button Prompts and Mappings when remapping buttons";
 			this.checkBoxControllerMapping.UseVisualStyleBackColor = true;
 			// 
@@ -224,15 +225,26 @@
 			this.checkBoxArtsSupport.Location = new System.Drawing.Point(97, 303);
 			this.checkBoxArtsSupport.Name = "checkBoxArtsSupport";
 			this.checkBoxArtsSupport.Size = new System.Drawing.Size(228, 17);
-			this.checkBoxArtsSupport.TabIndex = 16;
+			this.checkBoxArtsSupport.TabIndex = 13;
 			this.checkBoxArtsSupport.Text = "Fix invisible character in Arts Support cut-in";
 			this.checkBoxArtsSupport.UseVisualStyleBackColor = true;
+			// 
+			// checkBoxForce0Kerning
+			// 
+			this.checkBoxForce0Kerning.AutoSize = true;
+			this.checkBoxForce0Kerning.Location = new System.Drawing.Point(97, 326);
+			this.checkBoxForce0Kerning.Name = "checkBoxForce0Kerning";
+			this.checkBoxForce0Kerning.Size = new System.Drawing.Size(396, 17);
+			this.checkBoxForce0Kerning.TabIndex = 14;
+			this.checkBoxForce0Kerning.Text = "Adjust font spacing for use with HD Cuprum font from CS3 or HD Texture Pack";
+			this.checkBoxForce0Kerning.UseVisualStyleBackColor = true;
 			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 432);
+			this.ClientSize = new System.Drawing.Size(534, 455);
+			this.Controls.Add(this.checkBoxForce0Kerning);
 			this.Controls.Add(this.checkBoxArtsSupport);
 			this.Controls.Add(this.checkBoxControllerMapping);
 			this.Controls.Add(this.checkBoxDisablePauseOnFocusLoss);
@@ -276,5 +288,6 @@
 		private System.Windows.Forms.CheckBox checkBoxDisablePauseOnFocusLoss;
 		private System.Windows.Forms.CheckBox checkBoxControllerMapping;
 		private System.Windows.Forms.CheckBox checkBoxArtsSupport;
+		private System.Windows.Forms.CheckBox checkBoxForce0Kerning;
 	}
 }

@@ -26,6 +26,9 @@ namespace SenLib.Sen2 {
 		// address of conditional jump statement for auto-skipping results when turbo button is held
 		public long AddressJumpBattleResultsAutoSkip { get; private set; }
 
+		// address of a conditional mov (cmovs) over setting the font kerning value to 0
+		public long AddressForce0Kerning { get; private set; }
+
 		// addresses of regions that can be repurposed for extra code space
 		public Sen2ExecutableCodeSpaceLocations CodeSpaceLocations { get; private set; }
 
@@ -55,6 +58,7 @@ namespace SenLib.Sen2 {
 				AddressJumpBattleResultsAutoSkip = 0x492bea;
 				AddressJumpBattleSomethingAutoSkip = 0x48474e;
 				AddressJumpBattleStartAutoSkip = 0x48388b;
+				AddressForce0Kerning = 0x5328e4;
 			}
 			CodeSpaceLocations = new Sen2ExecutableCodeSpaceLocations(jp);
 			BgmTimingPatchLocations = new Sen2ExecutableBgmTimingLocations(jp);

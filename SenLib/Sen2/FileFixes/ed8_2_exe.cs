@@ -15,6 +15,7 @@ namespace SenLib.Sen2.FileFixes {
 		bool DisablePauseOnFocusLoss;
 		bool FixControllerMapping;
 		bool FixArtsSupport;
+		bool Force0Kerning;
 
 		public ed8_2_exe(
 			Sen2Version version,
@@ -27,7 +28,8 @@ namespace SenLib.Sen2.FileFixes {
 			bool disableMouseCapture,
 			bool disablePauseOnFocusLoss,
 			bool fixControllerMapping,
-			bool fixArtsSupport
+			bool fixArtsSupport,
+			bool force0Kerning
 		) {
 			Version = version;
 			IsJp = jp;
@@ -40,6 +42,7 @@ namespace SenLib.Sen2.FileFixes {
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			FixControllerMapping = fixControllerMapping;
 			FixArtsSupport = fixArtsSupport;
+			Force0Kerning = force0Kerning;
 		}
 
 		public string GetDescription() {
@@ -109,6 +112,9 @@ namespace SenLib.Sen2.FileFixes {
 			}
 			if (FixArtsSupport) {
 				Sen2ExecutablePatches.PatchFixArtsSupportCutin(ms, state);
+			}
+			if (!IsJp && Force0Kerning) {
+				Sen2ExecutablePatches.PatchForce0Kerning(ms, state);
 			}
 			Sen2ExecutablePatches.PatchAddNullCheckBattleScopeCrashMaybe(ms, state);
 
