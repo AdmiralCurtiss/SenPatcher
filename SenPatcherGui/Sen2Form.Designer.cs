@@ -99,7 +99,7 @@
 			this.buttonPatch.Location = new System.Drawing.Point(12, 402);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
-			this.buttonPatch.TabIndex = 14;
+			this.buttonPatch.TabIndex = 17;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -188,20 +188,20 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 326);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 349);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
-			this.checkBoxDisableMouseCam.TabIndex = 12;
+			this.checkBoxDisableMouseCam.TabIndex = 15;
 			this.checkBoxDisableMouseCam.Text = "Disable Mouse Capture and Mouse Camera";
 			this.checkBoxDisableMouseCam.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 349);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 372);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
-			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 13;
+			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 16;
 			this.checkBoxDisablePauseOnFocusLoss.Text = "Keep game running when in Background";
 			this.checkBoxDisablePauseOnFocusLoss.UseVisualStyleBackColor = true;
 			// 
@@ -213,7 +213,7 @@
 			this.checkBoxControllerMapping.Location = new System.Drawing.Point(97, 280);
 			this.checkBoxControllerMapping.Name = "checkBoxControllerMapping";
 			this.checkBoxControllerMapping.Size = new System.Drawing.Size(409, 17);
-			this.checkBoxControllerMapping.TabIndex = 15;
+			this.checkBoxControllerMapping.TabIndex = 12;
 			this.checkBoxControllerMapping.Text = "Fix inconsistent Controller Button Prompts and Mappings when remapping buttons";
 			this.checkBoxControllerMapping.UseVisualStyleBackColor = true;
 			// 
@@ -225,18 +225,18 @@
 			this.checkBoxArtsSupport.Location = new System.Drawing.Point(97, 303);
 			this.checkBoxArtsSupport.Name = "checkBoxArtsSupport";
 			this.checkBoxArtsSupport.Size = new System.Drawing.Size(228, 17);
-			this.checkBoxArtsSupport.TabIndex = 16;
+			this.checkBoxArtsSupport.TabIndex = 13;
 			this.checkBoxArtsSupport.Text = "Fix invisible character in Arts Support cut-in";
 			this.checkBoxArtsSupport.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxForce0Kerning
 			// 
 			this.checkBoxForce0Kerning.AutoSize = true;
-			this.checkBoxForce0Kerning.Location = new System.Drawing.Point(97, 372);
+			this.checkBoxForce0Kerning.Location = new System.Drawing.Point(97, 326);
 			this.checkBoxForce0Kerning.Name = "checkBoxForce0Kerning";
-			this.checkBoxForce0Kerning.Size = new System.Drawing.Size(376, 17);
-			this.checkBoxForce0Kerning.TabIndex = 17;
-			this.checkBoxForce0Kerning.Text = "Force nicer letter spacing (works with vanilla or Cuprum HD Font mod only)";
+			this.checkBoxForce0Kerning.Size = new System.Drawing.Size(396, 17);
+			this.checkBoxForce0Kerning.TabIndex = 14;
+			this.checkBoxForce0Kerning.Text = "Adjust font spacing for use with HD Cuprum font from CS3 or HD Texture Pack";
 			this.checkBoxForce0Kerning.UseVisualStyleBackColor = true;
 			// 
 			// Sen2Form

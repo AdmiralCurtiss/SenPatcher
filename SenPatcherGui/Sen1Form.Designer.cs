@@ -86,10 +86,10 @@
 			// checkBoxAllowR2InTurboMode
 			// 
 			this.checkBoxAllowR2InTurboMode.AutoSize = true;
-			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(97, 260);
+			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(97, 283);
 			this.checkBoxAllowR2InTurboMode.Name = "checkBoxAllowR2InTurboMode";
 			this.checkBoxAllowR2InTurboMode.Size = new System.Drawing.Size(280, 17);
-			this.checkBoxAllowR2InTurboMode.TabIndex = 11;
+			this.checkBoxAllowR2InTurboMode.TabIndex = 13;
 			this.checkBoxAllowR2InTurboMode.Text = "Enable R2 Notebook Shortcut when Turbo is enabled";
 			this.checkBoxAllowR2InTurboMode.UseVisualStyleBackColor = true;
 			// 
@@ -99,7 +99,7 @@
 			this.label4.Location = new System.Drawing.Point(94, 309);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(87, 13);
-			this.label4.TabIndex = 12;
+			this.label4.TabIndex = 14;
 			this.label4.Text = "Turbo mode key:";
 			// 
 			// comboBoxTurboModeKey
@@ -109,7 +109,7 @@
 			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 306);
 			this.comboBoxTurboModeKey.Name = "comboBoxTurboModeKey";
 			this.comboBoxTurboModeKey.Size = new System.Drawing.Size(126, 21);
-			this.comboBoxTurboModeKey.TabIndex = 13;
+			this.comboBoxTurboModeKey.TabIndex = 15;
 			// 
 			// buttonPatch
 			// 
@@ -118,7 +118,7 @@
 			this.buttonPatch.Location = new System.Drawing.Point(12, 408);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
-			this.buttonPatch.TabIndex = 15;
+			this.buttonPatch.TabIndex = 17;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -129,7 +129,7 @@
 			this.label5.Location = new System.Drawing.Point(94, 336);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(408, 52);
-			this.label5.TabIndex = 14;
+			this.label5.TabIndex = 16;
 			this.label5.Text = resources.GetString("label5.Text");
 			// 
 			// checkBoxFixHdTextureId
@@ -194,20 +194,20 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 214);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 237);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
-			this.checkBoxDisableMouseCam.TabIndex = 9;
+			this.checkBoxDisableMouseCam.TabIndex = 11;
 			this.checkBoxDisableMouseCam.Text = "Disable Mouse Capture and Mouse Camera";
 			this.checkBoxDisableMouseCam.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 237);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 260);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
-			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 10;
+			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 12;
 			this.checkBoxDisablePauseOnFocusLoss.Text = "Keep game running when in Background";
 			this.checkBoxDisablePauseOnFocusLoss.UseVisualStyleBackColor = true;
 			// 
@@ -219,18 +219,18 @@
 			this.checkBoxArtsSupport.Location = new System.Drawing.Point(97, 191);
 			this.checkBoxArtsSupport.Name = "checkBoxArtsSupport";
 			this.checkBoxArtsSupport.Size = new System.Drawing.Size(308, 17);
-			this.checkBoxArtsSupport.TabIndex = 16;
+			this.checkBoxArtsSupport.TabIndex = 9;
 			this.checkBoxArtsSupport.Text = "Fix Arts Support cut-in issues when not running at 1280x720";
 			this.checkBoxArtsSupport.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxForce0Kerning
 			// 
 			this.checkBoxForce0Kerning.AutoSize = true;
-			this.checkBoxForce0Kerning.Location = new System.Drawing.Point(97, 283);
+			this.checkBoxForce0Kerning.Location = new System.Drawing.Point(97, 214);
 			this.checkBoxForce0Kerning.Name = "checkBoxForce0Kerning";
-			this.checkBoxForce0Kerning.Size = new System.Drawing.Size(376, 17);
-			this.checkBoxForce0Kerning.TabIndex = 17;
-			this.checkBoxForce0Kerning.Text = "Force nicer letter spacing (works with vanilla or Cuprum HD Font mod only)";
+			this.checkBoxForce0Kerning.Size = new System.Drawing.Size(396, 17);
+			this.checkBoxForce0Kerning.TabIndex = 10;
+			this.checkBoxForce0Kerning.Text = "Adjust font spacing for use with HD Cuprum font from CS3 or HD Texture Pack";
 			this.checkBoxForce0Kerning.UseVisualStyleBackColor = true;
 			// 
 			// Sen1Form
