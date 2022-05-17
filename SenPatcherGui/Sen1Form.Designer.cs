@@ -41,6 +41,7 @@
 			this.checkBoxDisableMouseCam = new System.Windows.Forms.CheckBox();
 			this.checkBoxDisablePauseOnFocusLoss = new System.Windows.Forms.CheckBox();
 			this.checkBoxArtsSupport = new System.Windows.Forms.CheckBox();
+			this.checkBoxForce0Kerning = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -95,7 +96,7 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(94, 286);
+			this.label4.Location = new System.Drawing.Point(94, 309);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(87, 13);
 			this.label4.TabIndex = 12;
@@ -105,7 +106,7 @@
 			// 
 			this.comboBoxTurboModeKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboBoxTurboModeKey.FormattingEnabled = true;
-			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 283);
+			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(187, 306);
 			this.comboBoxTurboModeKey.Name = "comboBoxTurboModeKey";
 			this.comboBoxTurboModeKey.Size = new System.Drawing.Size(126, 21);
 			this.comboBoxTurboModeKey.TabIndex = 13;
@@ -114,7 +115,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 385);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 408);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 15;
@@ -125,7 +126,7 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 313);
+			this.label5.Location = new System.Drawing.Point(94, 336);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(408, 52);
 			this.label5.TabIndex = 14;
@@ -222,11 +223,22 @@
 			this.checkBoxArtsSupport.Text = "Fix Arts Support cut-in issues when not running at 1280x720";
 			this.checkBoxArtsSupport.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxForce0Kerning
+			// 
+			this.checkBoxForce0Kerning.AutoSize = true;
+			this.checkBoxForce0Kerning.Location = new System.Drawing.Point(97, 283);
+			this.checkBoxForce0Kerning.Name = "checkBoxForce0Kerning";
+			this.checkBoxForce0Kerning.Size = new System.Drawing.Size(376, 17);
+			this.checkBoxForce0Kerning.TabIndex = 17;
+			this.checkBoxForce0Kerning.Text = "Force nicer letter spacing (works with vanilla or Cuprum HD Font mod only)";
+			this.checkBoxForce0Kerning.UseVisualStyleBackColor = true;
+			// 
 			// Sen1Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 438);
+			this.ClientSize = new System.Drawing.Size(534, 461);
+			this.Controls.Add(this.checkBoxForce0Kerning);
 			this.Controls.Add(this.checkBoxArtsSupport);
 			this.Controls.Add(this.checkBoxDisablePauseOnFocusLoss);
 			this.Controls.Add(this.checkBoxDisableMouseCam);
@@ -270,5 +282,6 @@
 		private System.Windows.Forms.CheckBox checkBoxDisableMouseCam;
 		private System.Windows.Forms.CheckBox checkBoxDisablePauseOnFocusLoss;
 		private System.Windows.Forms.CheckBox checkBoxArtsSupport;
+		private System.Windows.Forms.CheckBox checkBoxForce0Kerning;
 	}
 }

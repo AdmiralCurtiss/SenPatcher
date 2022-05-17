@@ -69,6 +69,12 @@ namespace SenLib.Sen1 {
 			binary.WriteUInt8(0x90); // nop
 		}
 
+		public static void PatchForce0Kerning(Stream binary, Sen1ExecutablePatchState patchInfo) {
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom((ulong)patchInfo.AddressForce0Kerning);
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+		}
+
 		public static void PatchThorMasterQuartzString(Stream binary, Sen1ExecutablePatchState patchInfo) {
 			binary.Position = patchInfo.RomAddressThorMasterQuartzTextureIdTypo;
 			long p = binary.Position;
