@@ -1,0 +1,47 @@
+The code itself is licensed under the license seen below the dashed line.
+
+However, note that the output of this code when run against copyrighted input
+data (eg, any of the game files for any of the Trails games) still contains
+copyrighted data. You may not distribute this output data unless you already
+hold the copyright for the input data. I also make no guarantees that the
+output data is in any way sensible, correct, or bug-free, so use at your own
+risk.
+
+------------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2020-2022 Admiral H. Curtiss
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+------------------------------------------------------------------------------
+
+Additionally, this tool uses the following submodules:
+
+== HyoutaUtils ==
+Licensed under the MIT License
+Copyright (c) 2013-2019 Admiral H. Curtiss
+See the HyoutaUtils LICENSE file for details.
+
+== lz4-sharp ==
+Licensed under a BSD 2-Clause license
+LZ4 Copyright (c) 2011-2016, Yann Collet
+lz4-sharp (c) 2021 Admiral H. Curtiss
+See the lz4-sharp LICENSE file for details.
