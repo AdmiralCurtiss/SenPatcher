@@ -1,45 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2ECD67B8-06F0-4D87-9E53-B4FD334CC541}</ProjectGuid>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SenLib</RootNamespace>
-    <AssemblyName>SenLib</AssemblyName>
-    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\HyoutaUtils\HyoutaPluginBase\DuplicatableStream.cs">
       <Link>HyoutaPluginBase\DuplicatableStream.cs</Link>
@@ -170,213 +134,16 @@
     <Compile Include="..\lz4-sharp\lz4-sharp\utils.cs">
       <Link>lz4-sharp\utils.cs</Link>
     </Compile>
-    <Compile Include="7zip\Common\CRC.cs" />
-    <Compile Include="7zip\Compress\LZMA\LzmaBase.cs" />
-    <Compile Include="7zip\Compress\LZMA\LzmaDecoder.cs" />
-    <Compile Include="7zip\Compress\LZ\LzOutWindow.cs" />
-    <Compile Include="7zip\Compress\RangeCoder\RangeCoder.cs" />
-    <Compile Include="7zip\Compress\RangeCoder\RangeCoderBit.cs" />
-    <Compile Include="7zip\Compress\RangeCoder\RangeCoderBitTree.cs" />
-    <Compile Include="7zip\ICoder.cs" />
-    <Compile Include="BookTable.cs" />
-    <Compile Include="BranchHelper1Byte.cs" />
-    <Compile Include="BranchHelper4Byte.cs" />
-    <Compile Include="DecompressHelper.cs" />
-    <Compile Include="FileModExec.cs" />
-    <Compile Include="FileModInvert.cs" />
-    <Compile Include="FileModResult.cs" />
-    <Compile Include="FileMod.cs" />
-    <Compile Include="FilenameFix.cs" />
-    <Compile Include="FileStorage.cs" />
-    <Compile Include="KnownFile.cs" />
-    <Compile Include="Logging.cs" />
-    <Compile Include="PatchResult.cs" />
-    <Compile Include="PeExe.cs" />
-    <Compile Include="Pkg.cs" />
-    <Compile Include="ProgressReporter.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
+    <Compile Update="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="RegionHelper64.cs" />
-    <Compile Include="RegionHelper.cs" />
-    <Compile Include="Sen1\FileFixes\ed8_exe.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_book_dat_us_book00_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_book_dat_us_book01_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_book_dat_us_book02_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_book_dat_us_book03_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_a0006_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0100_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_c0110_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0600_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0610_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0601_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_r0800_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_m0040_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0000_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0020_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0010_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0031_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0032_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0050_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0060_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0080_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0000c_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1000_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1020_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1030_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1040_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1050_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1010_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1110_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t1500_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t3500_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_beryl_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_edel_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_heinrich_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_laura_dat.cs" />
-    <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_vandyck_dat.cs" />
-    <Compile Include="Sen1\FileFixes\se_wav_ed8m2123_wav.cs" />
-    <Compile Include="Sen1\FileFixes\se_wav_ed8m4217_wav.cs" />
-    <Compile Include="Sen1\FileFixes\se_wav_ed8m4097_wav.cs" />
-    <Compile Include="Sen1\FileFixes\se_wav_ed8m2150_wav.cs" />
-    <Compile Include="Sen1\FileFixes\text_dat_t_item_tbl.cs" />
-    <Compile Include="Sen1\FileFixes\text_dat_us_t_item_tbl.cs" />
-    <Compile Include="Sen1\FileFixes\text_dat_us_t_magic_tbl.cs" />
-    <Compile Include="Sen1\FileFixes\text_dat_t_voice_tbl.cs" />
-    <Compile Include="Sen1\FileFixes\text_dat_us_t_notecook_tbl.cs" />
-    <Compile Include="Sen1\FileFixes\text_dat_us_t_voice_tbl.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatches.WindowHacks.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatches.VoiceTables.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatchState.ScriptCompilerDummy.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatchState.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatches.cs" />
-    <Compile Include="Sen1\Sen1KnownFiles.cs" />
-    <Compile Include="Sen1\Sen1Mods.cs" />
-    <Compile Include="Sen1\Sen1SystemData.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sen1\Sen1ExecutablePatches.ArtsSupportCutin.cs" />
-    <Compile Include="Sen1\Tbl.cs" />
-    <Compile Include="Sen2\FileFixes\ed8_2_exe.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book00_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book01_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book02_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book03_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book05_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book04_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_scena_asm_t1001_tbl.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_scena_dat_t1001_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t1001_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t4080_dat.cs" />
-    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7101_dat.cs" />
-    <Compile Include="Sen2\FileFixes\text_dat_us_t_voice_tbl.cs" />
-    <Compile Include="Sen2\FileFixes\text_dat_us_t_notecook_tbl.cs" />
-    <Compile Include="Sen2\FileFixes\text_dat_us_t_item_tbl.cs" />
-    <Compile Include="Sen2\FileFixes\text_dat_us_t_magic_tbl.cs" />
-    <Compile Include="Sen2\Sen2ExecutableBgmTimingLocations.cs" />
-    <Compile Include="Sen2\Sen2ExecutableCodeSpaceLocations.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.ArtsSupportCutin.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.FixControllerMappings.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.DebugLeftovers.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.NullChecks.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.WindowHacks.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.BgmQueueing.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.VoiceTables.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatchState.ScriptCompilerDummy.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatchState.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.BgmTiming.cs" />
-    <Compile Include="Sen2\Sen2ExecutablePatches.cs" />
-    <Compile Include="Sen2\Sen2KnownFiles.cs" />
-    <Compile Include="Sen2\Sen2Mods.cs" />
-    <Compile Include="Sen2\Sen2SystemData.cs" />
-    <Compile Include="Sen2\Tbl.cs" />
-    <Compile Include="Sen3\FileFixes\ed8_3_exe.cs" />
-    <Compile Include="Sen3\FileFixes\f2000_dat.cs" />
-    <Compile Include="Sen3\FileFixes\insa05.cs" />
-    <Compile Include="Sen3\FileFixes\insa08.cs" />
-    <Compile Include="Sen3\FileFixes\insa09.cs" />
-    <Compile Include="Sen3\FileFixes\t0260_dat.cs" />
-    <Compile Include="Sen3\FileFixes\t_text.cs" />
-    <Compile Include="Sen3\FileFixes\t_notecook.cs" />
-    <Compile Include="Sen3\FileFixes\t_magic.cs" />
-    <Compile Include="Sen3\FileFixes\t_item.cs" />
-    <Compile Include="Sen3\FileFixes\t_mstqrt.cs" />
-    <Compile Include="Sen3\FileFixes\I_JMP009_pkg.cs" />
-    <Compile Include="Sen3\FileFixes\I_CVIS1008_pkg.cs" />
-    <Compile Include="Sen3\FileFixes\I_CVIS0061_pkg.cs" />
-    <Compile Include="Sen3\FileFixes\voice_opus_v00s2728.cs" />
-    <Compile Include="Sen3\FileFixes\voice_opus_v00e0441.cs" />
-    <Compile Include="Sen3\Sen3ExecutablePatches.FixControllerMappings.cs" />
-    <Compile Include="Sen3\Sen3ExecutablePatchState.ScriptCompilerDummy.cs" />
-    <Compile Include="Sen3\Sen3ExecutablePatches.cs" />
-    <Compile Include="Sen3\Sen3ExecutablePatches.WindowHacks.cs" />
-    <Compile Include="Sen3\Sen3ExecutablePatchState.cs" />
-    <Compile Include="Sen3\Sen3ExecutablePatches.InGameButtonMapping.cs" />
-    <Compile Include="Sen3\Sen3KnownFiles.cs" />
-    <Compile Include="Sen3\Sen3Mods.cs" />
-    <Compile Include="Sen4\FileFixes\ed8_4_exe.cs" />
-    <Compile Include="Sen4\FileFixes\t_item.cs" />
-    <Compile Include="Sen4\FileFixes\t_mstqrt.cs" />
-    <Compile Include="Sen4\FileFixes\t_text.cs" />
-    <Compile Include="Sen4\Sen4ExecutablePatches.cs" />
-    <Compile Include="Sen4\Sen4ExecutablePatches.FixPcConfirmCancelWhenSwapped.cs" />
-    <Compile Include="Sen4\Sen4ExecutablePatches.SwapConfirmCancel.cs" />
-    <Compile Include="Sen4\Sen4ExecutablePatches.WindowHacks.cs" />
-    <Compile Include="Sen4\Sen4ExecutablePatchState.cs" />
-    <Compile Include="Sen4\Sen4ExecutablePatchState.ScriptCompilerDummy.cs" />
-    <Compile Include="Sen4\Sen4KnownFiles.cs" />
-    <Compile Include="Sen4\Sen4Mods.cs" />
-    <Compile Include="Sen4\Tbl.cs" />
-    <Compile Include="SenCommonPaths.cs" />
-    <Compile Include="SenScriptPatcher.cs" />
-    <Compile Include="SenUtils.cs" />
-    <Compile Include="Sen3\Tbl.cs" />
-    <Compile Include="Version.cs" />
-    <Compile Include="VoiceTiming.cs" />
-    <Compile Include="VoiceTable.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Sen2\Sen2ExecutablePatches.BgmQueueingSoundThreadSide.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
+    <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Sen1\FileFixes\ed8m2150.bin" />
-    <None Include="Sen1\FileFixes\ed8m4097.bin" />
-    <None Include="Sen1\FileFixes\ed8m4217.bin" />
-    <None Include="Sen1\FileFixes\pc8v02551_4.bin" />
-    <None Include="Sen1\FileFixes\pc8v10286_15.bin" />
-    <None Include="Sen1\FileFixes\vctiming_jp_3.bin" />
-    <None Include="Sen1\FileFixes\vctiming_jp_4.bin" />
-    <None Include="Sen1\FileFixes\vctiming_us_3.bin" />
-    <None Include="Sen1\FileFixes\vctiming_us_4.bin" />
-    <None Include="Sen2\FileFixes\ed82j142.bin" />
-    <None Include="Sen2\FileFixes\ed82u142j.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_data.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_header.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_rdata.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_rsrc.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_text.bin" />
-    <None Include="Sen2\FileFixes\ed82_j142_to_u142_data.bin" />
-    <None Include="Sen2\FileFixes\ed82_j142_to_u142_header.bin" />
-    <None Include="Sen2\FileFixes\ed82_j142_to_u142_rsrc.bin" />
-    <None Include="Sen2\FileFixes\ed82_j142_to_u142_text.bin" />
-    <None Include="Sen2\FileFixes\ed82_u140j142_to_u142_rdata.bin" />
-    <None Include="Sen2\FileFixes\t1001_dat_to_tbl.bin" />
-    <None Include="Sen3\FileFixes\cvis0061.bin" />
-    <None Include="Sen3\FileFixes\cvis1008.bin" />
-    <None Include="Sen3\FileFixes\insa_05.bin" />
-    <None Include="Sen3\FileFixes\insa_08.bin" />
-    <None Include="Sen3\FileFixes\insa_09.bin" />
-    <None Include="Sen3\FileFixes\jump009.bin" />
-    <None Include="Sen3\FileFixes\v00_e0441.bin" />
-    <None Include="Sen3\FileFixes\v00_s0027.bin" />
-    <None Include="Sen3\FileFixes\v00_s0028.bin" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
