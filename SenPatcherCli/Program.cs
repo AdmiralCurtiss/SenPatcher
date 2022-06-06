@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 namespace SenPatcherCli {
 	public class Program {
 		public static int Main(string[] args) {
+			//Playground.Run();
+			//return 0;
+
 			if (args.Length >= 2 && args[0] == "--parse-script") {
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1])) {
 					var tbl = new t_voice_tbl(new HyoutaUtils.Streams.DuplicatableFileStream(args[2]), args[3] == "be" ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian);
