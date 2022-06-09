@@ -15,6 +15,7 @@ namespace SenLib.Sen1.FileFixes {
 		bool FixTextureIds;
 		bool CorrectLanguageVoiceTables;
 		bool DisableMouseCapture;
+		bool ShowMouseCursor;
 		bool DisablePauseOnFocusLoss;
 		bool FixArtsSupport;
 		bool Force0Kerning;
@@ -27,6 +28,7 @@ namespace SenLib.Sen1.FileFixes {
 			bool fixTextureIds,
 			bool correctLanguageVoiceTables,
 			bool disableMouseCapture,
+			bool showMouseCursor,
 			bool disablePauseOnFocusLoss,
 			bool fixArtsSupport,
 			bool force0Kerning
@@ -38,6 +40,7 @@ namespace SenLib.Sen1.FileFixes {
 			FixTextureIds = fixTextureIds;
 			CorrectLanguageVoiceTables = correctLanguageVoiceTables;
 			DisableMouseCapture = disableMouseCapture;
+			ShowMouseCursor = showMouseCursor;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			FixArtsSupport = fixArtsSupport;
 			Force0Kerning = force0Kerning;
@@ -84,6 +87,9 @@ namespace SenLib.Sen1.FileFixes {
 			}
 			if (DisableMouseCapture) {
 				Sen1ExecutablePatches.PatchDisableMouseCapture(ms, PatchInfo);
+			}
+			if (ShowMouseCursor) {
+				Sen1ExecutablePatches.PatchShowMouseCursor(ms, PatchInfo);
 			}
 			if (DisablePauseOnFocusLoss) {
 				Sen1ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);

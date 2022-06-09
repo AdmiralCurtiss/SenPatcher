@@ -170,6 +170,7 @@ namespace SenPatcherCli {
 					fixTextureIds: true,
 					correctLanguageVoiceTables: true,
 					disableMouseCapture: true,
+					showMouseCursor: false,
 					disablePauseOnFocusLoss: true,
 					fixArtsSupport: true,
 					force0Kerning: true

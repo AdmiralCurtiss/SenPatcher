@@ -26,12 +26,6 @@ namespace SenLib.Sen1 {
 
 			// there's a third function at 0x53c766 that seems involved here, but leaving it alone seems to work just fine...
 
-			// remove call to ShowCursor(0)
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x7be0ea : 0x7bf9ba);
-			for (int i = 0; i < 8; ++i) {
-				bin.WriteUInt8(0x90); // nop
-			}
-
 			// skip mouse movement processing function or something like that?
 			bin.Position = state.Mapper.MapRamToRom(jp ? 0x446e3a : 0x446f8a);
 			bin.WriteUInt8(0x90); // nop
@@ -39,6 +33,16 @@ namespace SenLib.Sen1 {
 			bin.WriteUInt8(0x90); // nop
 			bin.WriteUInt8(0x90); // nop
 			bin.WriteUInt8(0x90); // nop
+		}
+
+		public static void PatchShowMouseCursor(Stream bin, Sen1ExecutablePatchState state) {
+			bool jp = state.IsJp;
+
+			// remove call to ShowCursor(0)
+			bin.Position = state.Mapper.MapRamToRom(jp ? 0x7be0ea : 0x7bf9ba);
+			for (int i = 0; i < 8; ++i) {
+				bin.WriteUInt8(0x90); // nop
+			}
 		}
 
 		public static void PatchDisablePauseOnFocusLoss(Stream bin, Sen1ExecutablePatchState state) {

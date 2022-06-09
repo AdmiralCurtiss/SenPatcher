@@ -14,6 +14,7 @@ namespace SenLib.Sen1 {
 			bool fixTextureIds = false,
 			bool correctLanguageVoiceTables = false,
 			bool disableMouseCapture = false,
+			bool showMouseCursor = false,
 			bool disablePauseOnFocusLoss = false,
 			bool fixArtsSupport = false,
 			bool force0Kerning = false
@@ -28,6 +29,7 @@ namespace SenLib.Sen1 {
 					fixTextureIds: fixTextureIds,
 					correctLanguageVoiceTables: correctLanguageVoiceTables,
 					disableMouseCapture: disableMouseCapture,
+					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixArtsSupport: fixArtsSupport,
 					force0Kerning: force0Kerning

@@ -58,6 +58,7 @@ namespace SenPatcherGui {
 				bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
 				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
+				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
 				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
 				bool fixArtsSupport = checkBoxArtsSupport.Checked;
 				bool force0Kerning = checkBoxForce0Kerning.Checked;
@@ -70,6 +71,7 @@ namespace SenPatcherGui {
 					fixTextureIds: fixTextureIds,
 					correctLanguageVoiceTables: fixVoiceTables,
 					disableMouseCapture: disableMouseCapture,
+					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixArtsSupport: fixArtsSupport,
 					force0Kerning: force0Kerning
