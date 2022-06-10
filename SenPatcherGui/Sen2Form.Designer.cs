@@ -42,6 +42,7 @@
 			this.checkBoxArtsSupport = new System.Windows.Forms.CheckBox();
 			this.checkBoxForce0Kerning = new System.Windows.Forms.CheckBox();
 			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
+			this.checkBoxFixBattleScopeCrash = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label5
@@ -102,11 +103,11 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(14, 484);
+			this.buttonPatch.Location = new System.Drawing.Point(14, 509);
 			this.buttonPatch.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(595, 47);
-			this.buttonPatch.TabIndex = 18;
+			this.buttonPatch.TabIndex = 19;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -269,11 +270,25 @@
 			this.checkBoxShowMouseCursor.Text = "Show Mouse Cursor";
 			this.checkBoxShowMouseCursor.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxFixBattleScopeCrash
+			// 
+			this.checkBoxFixBattleScopeCrash.AutoSize = true;
+			this.checkBoxFixBattleScopeCrash.Checked = true;
+			this.checkBoxFixBattleScopeCrash.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxFixBattleScopeCrash.Location = new System.Drawing.Point(113, 478);
+			this.checkBoxFixBattleScopeCrash.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+			this.checkBoxFixBattleScopeCrash.Name = "checkBoxFixBattleScopeCrash";
+			this.checkBoxFixBattleScopeCrash.Size = new System.Drawing.Size(413, 19);
+			this.checkBoxFixBattleScopeCrash.TabIndex = 18;
+			this.checkBoxFixBattleScopeCrash.Text = "Try to fix Battle Scope crash (experimental; please report if it still happens)";
+			this.checkBoxFixBattleScopeCrash.UseVisualStyleBackColor = true;
+			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(623, 545);
+			this.ClientSize = new System.Drawing.Size(623, 570);
+			this.Controls.Add(this.checkBoxFixBattleScopeCrash);
 			this.Controls.Add(this.checkBoxShowMouseCursor);
 			this.Controls.Add(this.checkBoxForce0Kerning);
 			this.Controls.Add(this.checkBoxArtsSupport);
@@ -322,5 +337,6 @@
 		private System.Windows.Forms.CheckBox checkBoxArtsSupport;
 		private System.Windows.Forms.CheckBox checkBoxForce0Kerning;
 		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
+		private System.Windows.Forms.CheckBox checkBoxFixBattleScopeCrash;
 	}
 }

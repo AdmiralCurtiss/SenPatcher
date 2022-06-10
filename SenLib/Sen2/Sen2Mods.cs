@@ -23,7 +23,8 @@ namespace SenLib.Sen2 {
 			bool disablePauseOnFocusLoss = false,
 			bool fixControllerMapping = false,
 			bool fixArtsSupport = false,
-			bool force0Kerning = false
+			bool force0Kerning = false,
+			bool fixBattleScopeCrash = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
@@ -40,7 +41,8 @@ namespace SenLib.Sen2 {
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixControllerMapping: fixControllerMapping,
 					fixArtsSupport: fixArtsSupport,
-					force0Kerning: force0Kerning
+					force0Kerning: force0Kerning,
+					fixBattleScopeCrash: fixBattleScopeCrash
 				));
 			}
 			return f;

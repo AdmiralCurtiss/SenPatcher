@@ -44,6 +44,7 @@ namespace SenPatcherGui {
 				bool fixArtsSupport = checkBoxArtsSupport.Checked;
 				bool fixControllerMapping = checkBoxControllerMapping.Checked;
 				bool force0Kerning = checkBoxForce0Kerning.Checked;
+				bool fixBattleScopeCrash = checkBoxFixBattleScopeCrash.Checked;
 
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen2Mods.GetExecutableMods(
@@ -58,7 +59,8 @@ namespace SenPatcherGui {
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixControllerMapping: fixControllerMapping,
 					fixArtsSupport: fixArtsSupport,
-					force0Kerning: force0Kerning
+					force0Kerning: force0Kerning,
+					fixBattleScopeCrash: fixBattleScopeCrash
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen2Mods.GetAssetMods(Sen2Version.v142));

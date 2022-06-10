@@ -191,7 +191,8 @@ namespace SenPatcherCli {
 					disablePauseOnFocusLoss: true,
 					fixControllerMapping: true,
 					fixArtsSupport: true,
-					force0Kerning: true
+					force0Kerning: true,
+					fixBattleScopeCrash: true
 				));
 				mods.AddRange(Sen2Mods.GetAssetMods(Sen2Version.v142));
 				result = FileModExec.ExecuteMods(path, storage, mods, new CliProgressReporter());

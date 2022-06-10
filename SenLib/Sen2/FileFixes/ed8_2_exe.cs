@@ -17,6 +17,7 @@ namespace SenLib.Sen2.FileFixes {
 		bool FixControllerMapping;
 		bool FixArtsSupport;
 		bool Force0Kerning;
+		bool FixBattleScopeCrash;
 
 		public ed8_2_exe(
 			Sen2Version version,
@@ -31,7 +32,8 @@ namespace SenLib.Sen2.FileFixes {
 			bool disablePauseOnFocusLoss,
 			bool fixControllerMapping,
 			bool fixArtsSupport,
-			bool force0Kerning
+			bool force0Kerning,
+			bool fixBattleScopeCrash
 		) {
 			Version = version;
 			IsJp = jp;
@@ -46,6 +48,7 @@ namespace SenLib.Sen2.FileFixes {
 			FixControllerMapping = fixControllerMapping;
 			FixArtsSupport = fixArtsSupport;
 			Force0Kerning = force0Kerning;
+			FixBattleScopeCrash = fixBattleScopeCrash;
 		}
 
 		public string GetDescription() {
@@ -122,7 +125,9 @@ namespace SenLib.Sen2.FileFixes {
 			if (!IsJp && Force0Kerning) {
 				Sen2ExecutablePatches.PatchForce0Kerning(ms, state);
 			}
-			Sen2ExecutablePatches.PatchAddNullCheckBattleScopeCrashMaybe(ms, state);
+			if (FixBattleScopeCrash) {
+				Sen2ExecutablePatches.PatchAddNullCheckBattleScopeCrashMaybe(ms, state);
+			}
 
 			// call CreateMutex without names so multiple instances of CS2 don't block eachother
 			ms.Position = state.Mapper.MapRamToRom(IsJp ? 0x71d484 : 0x71e4e4);
