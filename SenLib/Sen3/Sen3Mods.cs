@@ -12,6 +12,7 @@ namespace SenLib.Sen3 {
 			bool allowSwitchToNightmare = false,
 			bool swapBrokenMasterQuartzValuesForDisplay = false,
 			bool disableMouseCapture = false,
+			bool showMouseCursor = false,
 			bool disablePauseOnFocusLoss = false,
 			bool fixControllerMapping = false
 		) {
@@ -23,6 +24,7 @@ namespace SenLib.Sen3 {
 					allowSwitchToNightmare: allowSwitchToNightmare,
 					swapBrokenMasterQuartzValuesForDisplay: swapBrokenMasterQuartzValuesForDisplay,
 					disableMouseCapture: disableMouseCapture,
+					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixControllerMapping: fixControllerMapping
 				));

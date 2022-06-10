@@ -41,6 +41,7 @@ namespace SenPatcherGui {
 				bool allowNightmare = checkBoxAllowNightmare.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
 				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
+				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
 				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
 				bool confirmCancelOption = checkBoxButtonLayout.Checked;
 				bool defaultJpLayout = confirmCancelOption && comboBoxButtonLayout.SelectedIndex == 1;
@@ -49,6 +50,7 @@ namespace SenPatcherGui {
 				mods.AddRange(Sen4Mods.GetExecutableMods(
 					allowSwitchToNightmare: allowNightmare,
 					disableMouseCapture: disableMouseCapture,
+					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					separateSwapConfirmCancelOption: confirmCancelOption,
 					defaultSwapConfirmCancelOptionOn: defaultJpLayout,

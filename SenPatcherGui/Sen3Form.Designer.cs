@@ -35,14 +35,16 @@
 			this.checkBoxDisableMouseCam = new System.Windows.Forms.CheckBox();
 			this.checkBoxDisablePauseOnFocusLoss = new System.Windows.Forms.CheckBox();
 			this.checkBoxControllerMapping = new System.Windows.Forms.CheckBox();
+			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(12, 99);
+			this.label2.Location = new System.Drawing.Point(14, 114);
+			this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(79, 13);
+			this.label2.Size = new System.Drawing.Size(85, 15);
 			this.label2.TabIndex = 3;
 			this.label2.Text = "Patch Settings:";
 			// 
@@ -51,9 +53,10 @@
 			this.checkBoxFixButtonRemapping.AutoSize = true;
 			this.checkBoxFixButtonRemapping.Checked = true;
 			this.checkBoxFixButtonRemapping.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxFixButtonRemapping.Location = new System.Drawing.Point(97, 122);
+			this.checkBoxFixButtonRemapping.Location = new System.Drawing.Point(113, 141);
+			this.checkBoxFixButtonRemapping.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxFixButtonRemapping.Name = "checkBoxFixButtonRemapping";
-			this.checkBoxFixButtonRemapping.Size = new System.Drawing.Size(201, 17);
+			this.checkBoxFixButtonRemapping.Size = new System.Drawing.Size(232, 19);
 			this.checkBoxFixButtonRemapping.TabIndex = 6;
 			this.checkBoxFixButtonRemapping.Text = "Fix in-game button remapping options";
 			this.checkBoxFixButtonRemapping.UseVisualStyleBackColor = true;
@@ -61,18 +64,20 @@
 			// labelFile
 			// 
 			this.labelFile.AutoSize = true;
-			this.labelFile.Location = new System.Drawing.Point(57, 13);
+			this.labelFile.Location = new System.Drawing.Point(66, 15);
+			this.labelFile.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.labelFile.Name = "labelFile";
-			this.labelFile.Size = new System.Drawing.Size(16, 13);
+			this.labelFile.Size = new System.Drawing.Size(22, 15);
 			this.labelFile.TabIndex = 1;
 			this.labelFile.Text = "---";
 			// 
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(12, 13);
+			this.label1.Location = new System.Drawing.Point(14, 15);
+			this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(35, 13);
+			this.label1.Size = new System.Drawing.Size(37, 15);
 			this.label1.TabIndex = 0;
 			this.label1.Text = "Path: ";
 			// 
@@ -80,10 +85,11 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 243);
+			this.buttonPatch.Location = new System.Drawing.Point(14, 300);
+			this.buttonPatch.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.buttonPatch.Name = "buttonPatch";
-			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
-			this.buttonPatch.TabIndex = 14;
+			this.buttonPatch.Size = new System.Drawing.Size(595, 47);
+			this.buttonPatch.TabIndex = 12;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -92,9 +98,10 @@
 			// 
 			this.buttonUnpatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonUnpatch.Location = new System.Drawing.Point(12, 36);
+			this.buttonUnpatch.Location = new System.Drawing.Point(14, 42);
+			this.buttonUnpatch.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.buttonUnpatch.Name = "buttonUnpatch";
-			this.buttonUnpatch.Size = new System.Drawing.Size(510, 41);
+			this.buttonUnpatch.Size = new System.Drawing.Size(595, 47);
 			this.buttonUnpatch.TabIndex = 2;
 			this.buttonUnpatch.Text = "Remove Patches / Restore Original";
 			this.buttonUnpatch.UseVisualStyleBackColor = true;
@@ -105,9 +112,10 @@
 			this.checkBoxAssetPatches.AutoSize = true;
 			this.checkBoxAssetPatches.Checked = true;
 			this.checkBoxAssetPatches.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxAssetPatches.Location = new System.Drawing.Point(97, 99);
+			this.checkBoxAssetPatches.Location = new System.Drawing.Point(113, 114);
+			this.checkBoxAssetPatches.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxAssetPatches.Name = "checkBoxAssetPatches";
-			this.checkBoxAssetPatches.Size = new System.Drawing.Size(213, 17);
+			this.checkBoxAssetPatches.Size = new System.Drawing.Size(237, 19);
 			this.checkBoxAssetPatches.TabIndex = 4;
 			this.checkBoxAssetPatches.Text = "Apply fixes for known script/asset errors";
 			this.checkBoxAssetPatches.UseVisualStyleBackColor = true;
@@ -115,9 +123,10 @@
 			// buttonAssetFixDetails
 			// 
 			this.buttonAssetFixDetails.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonAssetFixDetails.Location = new System.Drawing.Point(385, 83);
+			this.buttonAssetFixDetails.Location = new System.Drawing.Point(449, 96);
+			this.buttonAssetFixDetails.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.buttonAssetFixDetails.Name = "buttonAssetFixDetails";
-			this.buttonAssetFixDetails.Size = new System.Drawing.Size(137, 44);
+			this.buttonAssetFixDetails.Size = new System.Drawing.Size(160, 51);
 			this.buttonAssetFixDetails.TabIndex = 5;
 			this.buttonAssetFixDetails.Text = "Show asset fix details... (may contain spoilers)";
 			this.buttonAssetFixDetails.UseVisualStyleBackColor = true;
@@ -128,9 +137,10 @@
 			this.checkBoxAllowNightmare.AutoSize = true;
 			this.checkBoxAllowNightmare.Checked = true;
 			this.checkBoxAllowNightmare.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxAllowNightmare.Location = new System.Drawing.Point(97, 145);
+			this.checkBoxAllowNightmare.Location = new System.Drawing.Point(113, 167);
+			this.checkBoxAllowNightmare.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxAllowNightmare.Name = "checkBoxAllowNightmare";
-			this.checkBoxAllowNightmare.Size = new System.Drawing.Size(276, 17);
+			this.checkBoxAllowNightmare.Size = new System.Drawing.Size(323, 19);
 			this.checkBoxAllowNightmare.TabIndex = 7;
 			this.checkBoxAllowNightmare.Text = "Allow changing difficulty to Nightmare mid-playthough";
 			this.checkBoxAllowNightmare.UseVisualStyleBackColor = true;
@@ -138,20 +148,22 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 191);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(113, 220);
+			this.checkBoxDisableMouseCam.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
-			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
-			this.checkBoxDisableMouseCam.TabIndex = 12;
+			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(254, 19);
+			this.checkBoxDisableMouseCam.TabIndex = 9;
 			this.checkBoxDisableMouseCam.Text = "Disable Mouse Capture and Mouse Camera";
 			this.checkBoxDisableMouseCam.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 214);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(113, 270);
+			this.checkBoxDisablePauseOnFocusLoss.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
-			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
-			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 13;
+			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(242, 19);
+			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 11;
 			this.checkBoxDisablePauseOnFocusLoss.Text = "Keep game running when in Background";
 			this.checkBoxDisablePauseOnFocusLoss.UseVisualStyleBackColor = true;
 			// 
@@ -160,18 +172,31 @@
 			this.checkBoxControllerMapping.AutoSize = true;
 			this.checkBoxControllerMapping.Checked = true;
 			this.checkBoxControllerMapping.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxControllerMapping.Location = new System.Drawing.Point(97, 168);
+			this.checkBoxControllerMapping.Location = new System.Drawing.Point(113, 194);
+			this.checkBoxControllerMapping.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxControllerMapping.Name = "checkBoxControllerMapping";
-			this.checkBoxControllerMapping.Size = new System.Drawing.Size(409, 17);
-			this.checkBoxControllerMapping.TabIndex = 15;
+			this.checkBoxControllerMapping.Size = new System.Drawing.Size(467, 19);
+			this.checkBoxControllerMapping.TabIndex = 8;
 			this.checkBoxControllerMapping.Text = "Fix inconsistent Controller Button Prompts and Mappings when remapping buttons";
 			this.checkBoxControllerMapping.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxShowMouseCursor
+			// 
+			this.checkBoxShowMouseCursor.AutoSize = true;
+			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(113, 245);
+			this.checkBoxShowMouseCursor.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+			this.checkBoxShowMouseCursor.Name = "checkBoxShowMouseCursor";
+			this.checkBoxShowMouseCursor.Size = new System.Drawing.Size(132, 19);
+			this.checkBoxShowMouseCursor.TabIndex = 10;
+			this.checkBoxShowMouseCursor.Text = "Show Mouse Cursor";
+			this.checkBoxShowMouseCursor.UseVisualStyleBackColor = true;
+			// 
 			// Sen3Form
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 296);
+			this.ClientSize = new System.Drawing.Size(623, 362);
+			this.Controls.Add(this.checkBoxShowMouseCursor);
 			this.Controls.Add(this.checkBoxControllerMapping);
 			this.Controls.Add(this.checkBoxDisablePauseOnFocusLoss);
 			this.Controls.Add(this.checkBoxDisableMouseCam);
@@ -184,6 +209,7 @@
 			this.Controls.Add(this.checkBoxFixButtonRemapping);
 			this.Controls.Add(this.labelFile);
 			this.Controls.Add(this.label1);
+			this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.Name = "Sen3Form";
 			this.Text = "Patch Cold Steel 3";
 			this.ResumeLayout(false);
@@ -204,5 +230,6 @@
 		private System.Windows.Forms.CheckBox checkBoxDisableMouseCam;
 		private System.Windows.Forms.CheckBox checkBoxDisablePauseOnFocusLoss;
 		private System.Windows.Forms.CheckBox checkBoxControllerMapping;
+		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
 	}
 }

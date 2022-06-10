@@ -26,12 +26,6 @@ namespace SenLib.Sen3 {
 				branch.SetTarget(jp ? 0x1400f7d61u : 0x1400f83e1u);
 			}
 
-			// remove call to ShowCursor(0)
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x140599444 : 0x1405a5804);
-			for (int i = 0; i < 8; ++i) {
-				bin.WriteUInt8(0x90); // nop
-			}
-
 			// skip mouse movement processing function or something like that?
 			bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400f88bd : 0x1400f8f3d);
 			bin.WriteUInt8(0x90); // nop
@@ -39,6 +33,16 @@ namespace SenLib.Sen3 {
 			bin.WriteUInt8(0x90); // nop
 			bin.WriteUInt8(0x90); // nop
 			bin.WriteUInt8(0x90); // nop
+		}
+
+		public static void PatchShowMouseCursor(Stream bin, Sen3ExecutablePatchState state) {
+			bool jp = state.IsJp;
+
+			// remove call to ShowCursor(0)
+			bin.Position = state.Mapper.MapRamToRom(jp ? 0x140599444 : 0x1405a5804);
+			for (int i = 0; i < 8; ++i) {
+				bin.WriteUInt8(0x90); // nop
+			}
 		}
 
 		public static void PatchDisablePauseOnFocusLoss(Stream bin, Sen3ExecutablePatchState state) {

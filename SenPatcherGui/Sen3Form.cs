@@ -36,6 +36,7 @@ namespace SenPatcherGui {
 				bool allowNightmare = checkBoxAllowNightmare.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
 				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
+				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
 				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
 				bool fixControllerMapping = checkBoxControllerMapping.Checked;
 
@@ -45,6 +46,7 @@ namespace SenPatcherGui {
 					allowSwitchToNightmare: allowNightmare,
 					swapBrokenMasterQuartzValuesForDisplay: true,
 					disableMouseCapture: disableMouseCapture,
+					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixControllerMapping: fixControllerMapping
 				));

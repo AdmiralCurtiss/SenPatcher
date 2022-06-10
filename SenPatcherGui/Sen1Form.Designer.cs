@@ -95,7 +95,7 @@
 			this.checkBoxAllowR2InTurboMode.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxAllowR2InTurboMode.Name = "checkBoxAllowR2InTurboMode";
 			this.checkBoxAllowR2InTurboMode.Size = new System.Drawing.Size(303, 19);
-			this.checkBoxAllowR2InTurboMode.TabIndex = 13;
+			this.checkBoxAllowR2InTurboMode.TabIndex = 14;
 			this.checkBoxAllowR2InTurboMode.Text = "Enable R2 Notebook Shortcut when Turbo is enabled";
 			this.checkBoxAllowR2InTurboMode.UseVisualStyleBackColor = true;
 			// 
@@ -106,7 +106,7 @@
 			this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(96, 15);
-			this.label4.TabIndex = 14;
+			this.label4.TabIndex = 15;
 			this.label4.Text = "Turbo mode key:";
 			// 
 			// comboBoxTurboModeKey
@@ -117,7 +117,7 @@
 			this.comboBoxTurboModeKey.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.comboBoxTurboModeKey.Name = "comboBoxTurboModeKey";
 			this.comboBoxTurboModeKey.Size = new System.Drawing.Size(146, 23);
-			this.comboBoxTurboModeKey.TabIndex = 15;
+			this.comboBoxTurboModeKey.TabIndex = 16;
 			// 
 			// buttonPatch
 			// 
@@ -127,7 +127,7 @@
 			this.buttonPatch.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(595, 47);
-			this.buttonPatch.TabIndex = 17;
+			this.buttonPatch.TabIndex = 18;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -139,7 +139,7 @@
 			this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(468, 60);
-			this.label5.TabIndex = 16;
+			this.label5.TabIndex = 17;
 			this.label5.Text = resources.GetString("label5.Text");
 			// 
 			// checkBoxFixHdTextureId
@@ -224,7 +224,7 @@
 			this.checkBoxDisablePauseOnFocusLoss.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(242, 19);
-			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 12;
+			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 13;
 			this.checkBoxDisablePauseOnFocusLoss.Text = "Keep game running when in Background";
 			this.checkBoxDisablePauseOnFocusLoss.UseVisualStyleBackColor = true;
 			// 
@@ -259,7 +259,7 @@
 			this.checkBoxShowMouseCursor.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxShowMouseCursor.Name = "checkBoxShowMouseCursor";
 			this.checkBoxShowMouseCursor.Size = new System.Drawing.Size(132, 19);
-			this.checkBoxShowMouseCursor.TabIndex = 18;
+			this.checkBoxShowMouseCursor.TabIndex = 12;
 			this.checkBoxShowMouseCursor.Text = "Show Mouse Cursor";
 			this.checkBoxShowMouseCursor.UseVisualStyleBackColor = true;
 			// 

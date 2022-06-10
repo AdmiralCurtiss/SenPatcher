@@ -12,6 +12,7 @@ namespace SenLib.Sen2.FileFixes {
 		bool PatchBgmQueueing;
 		bool CorrectLanguageVoiceTables;
 		bool DisableMouseCapture;
+		bool ShowMouseCursor;
 		bool DisablePauseOnFocusLoss;
 		bool FixControllerMapping;
 		bool FixArtsSupport;
@@ -26,6 +27,7 @@ namespace SenLib.Sen2.FileFixes {
 			bool patchBgmQueueing,
 			bool correctLanguageVoiceTables,
 			bool disableMouseCapture,
+			bool showMouseCursor,
 			bool disablePauseOnFocusLoss,
 			bool fixControllerMapping,
 			bool fixArtsSupport,
@@ -39,6 +41,7 @@ namespace SenLib.Sen2.FileFixes {
 			PatchBgmQueueing = patchBgmQueueing;
 			CorrectLanguageVoiceTables = correctLanguageVoiceTables;
 			DisableMouseCapture = disableMouseCapture;
+			ShowMouseCursor = showMouseCursor;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			FixControllerMapping = fixControllerMapping;
 			FixArtsSupport = fixArtsSupport;
@@ -102,6 +105,9 @@ namespace SenLib.Sen2.FileFixes {
 			}
 			if (DisableMouseCapture) {
 				Sen2ExecutablePatches.PatchDisableMouseCapture(ms, state);
+			}
+			if (ShowMouseCursor) {
+				Sen2ExecutablePatches.PatchShowMouseCursor(ms, state);
 			}
 			if (DisablePauseOnFocusLoss) {
 				Sen2ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, state);

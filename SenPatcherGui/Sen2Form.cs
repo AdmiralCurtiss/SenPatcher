@@ -39,6 +39,7 @@ namespace SenPatcherGui {
 				bool patchBgmQueueing = checkBoxBgmEnqueueingLogic.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
 				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
+				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
 				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
 				bool fixArtsSupport = checkBoxArtsSupport.Checked;
 				bool fixControllerMapping = checkBoxControllerMapping.Checked;
@@ -53,6 +54,7 @@ namespace SenPatcherGui {
 					patchBgmQueueing: patchBgmQueueing,
 					correctLanguageVoiceTables: fixVoiceTables,
 					disableMouseCapture: disableMouseCapture,
+					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixControllerMapping: fixControllerMapping,
 					fixArtsSupport: fixArtsSupport,

@@ -9,6 +9,7 @@ namespace SenLib.Sen3.FileFixes {
 		bool AllowSwitchToNightmare;
 		bool SwapBrokenMasterQuartzValuesForDisplay;
 		bool DisableMouseCapture;
+		bool ShowMouseCursor;
 		bool DisablePauseOnFocusLoss;
 		bool FixControllerMapping;
 
@@ -18,6 +19,7 @@ namespace SenLib.Sen3.FileFixes {
 			bool allowSwitchToNightmare,
 			bool swapBrokenMasterQuartzValuesForDisplay,
 			bool disableMouseCapture,
+			bool showMouseCursor,
 			bool disablePauseOnFocusLoss,
 			bool fixControllerMapping
 		) {
@@ -26,6 +28,7 @@ namespace SenLib.Sen3.FileFixes {
 			AllowSwitchToNightmare = allowSwitchToNightmare;
 			SwapBrokenMasterQuartzValuesForDisplay = swapBrokenMasterQuartzValuesForDisplay;
 			DisableMouseCapture = disableMouseCapture;
+			ShowMouseCursor = showMouseCursor;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			FixControllerMapping = fixControllerMapping;
 		}
@@ -60,6 +63,9 @@ namespace SenLib.Sen3.FileFixes {
 			}
 			if (DisableMouseCapture) {
 				Sen3ExecutablePatches.PatchDisableMouseCapture(ms, PatchInfo);
+			}
+			if (ShowMouseCursor) {
+				Sen3ExecutablePatches.PatchShowMouseCursor(ms, PatchInfo);
 			}
 			if (DisablePauseOnFocusLoss) {
 				Sen3ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);

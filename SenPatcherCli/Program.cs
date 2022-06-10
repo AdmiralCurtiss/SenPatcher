@@ -170,7 +170,7 @@ namespace SenPatcherCli {
 					fixTextureIds: true,
 					correctLanguageVoiceTables: true,
 					disableMouseCapture: true,
-					showMouseCursor: false,
+					showMouseCursor: true,
 					disablePauseOnFocusLoss: true,
 					fixArtsSupport: true,
 					force0Kerning: true
@@ -187,6 +187,7 @@ namespace SenPatcherCli {
 					patchBgmQueueing: true,
 					correctLanguageVoiceTables: true,
 					disableMouseCapture: true,
+					showMouseCursor: true,
 					disablePauseOnFocusLoss: true,
 					fixControllerMapping: true,
 					fixArtsSupport: true,
@@ -201,6 +202,7 @@ namespace SenPatcherCli {
 					allowSwitchToNightmare: true,
 					swapBrokenMasterQuartzValuesForDisplay: true,
 					disableMouseCapture: true,
+					showMouseCursor: true,
 					disablePauseOnFocusLoss: true,
 					fixControllerMapping: true
 				));
@@ -213,6 +215,7 @@ namespace SenPatcherCli {
 				mods.AddRange(Sen4Mods.GetExecutableMods(
 					allowSwitchToNightmare: true,
 					disableMouseCapture: true,
+					showMouseCursor: true,
 					disablePauseOnFocusLoss: true,
 					separateSwapConfirmCancelOption: true,
 					defaultSwapConfirmCancelOptionOn: true,

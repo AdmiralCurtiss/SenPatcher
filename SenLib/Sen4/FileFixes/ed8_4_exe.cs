@@ -7,6 +7,7 @@ namespace SenLib.Sen4.FileFixes {
 		bool IsJp;
 		bool AllowSwitchToNightmare;
 		bool DisableMouseCapture;
+		bool ShowMouseCursor;
 		bool DisablePauseOnFocusLoss;
 		bool SeparateSwapConfirmCancelOption;
 		bool DefaultSwapConfirmCancelOptionOn;
@@ -16,6 +17,7 @@ namespace SenLib.Sen4.FileFixes {
 			bool jp,
 			bool allowSwitchToNightmare,
 			bool disableMouseCapture,
+			bool showMouseCursor,
 			bool disablePauseOnFocusLoss,
 			bool separateSwapConfirmCancelOption,
 			bool defaultSwapConfirmCancelOptionOn,
@@ -24,6 +26,7 @@ namespace SenLib.Sen4.FileFixes {
 			IsJp = jp;
 			AllowSwitchToNightmare = allowSwitchToNightmare;
 			DisableMouseCapture = disableMouseCapture;
+			ShowMouseCursor = showMouseCursor;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			SeparateSwapConfirmCancelOption = separateSwapConfirmCancelOption;
 			DefaultSwapConfirmCancelOptionOn = defaultSwapConfirmCancelOptionOn;
@@ -54,6 +57,9 @@ namespace SenLib.Sen4.FileFixes {
 			}
 			if (DisableMouseCapture) {
 				Sen4ExecutablePatches.PatchDisableMouseCapture(ms, PatchInfo);
+			}
+			if (ShowMouseCursor) {
+				Sen4ExecutablePatches.PatchShowMouseCursor(ms, PatchInfo);
 			}
 			if (DisablePauseOnFocusLoss) {
 				Sen4ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);

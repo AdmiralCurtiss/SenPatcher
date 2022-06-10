@@ -10,6 +10,7 @@ namespace SenLib.Sen4 {
 		public static List<FileMod> GetExecutableMods(
 			bool allowSwitchToNightmare = false,
 			bool disableMouseCapture = false,
+			bool showMouseCursor = false,
 			bool disablePauseOnFocusLoss = false,
 			bool separateSwapConfirmCancelOption = false,
 			bool defaultSwapConfirmCancelOptionOn = false,
@@ -21,6 +22,7 @@ namespace SenLib.Sen4 {
 					jp: i == 0,
 					allowSwitchToNightmare: allowSwitchToNightmare,
 					disableMouseCapture: disableMouseCapture,
+					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					separateSwapConfirmCancelOption: separateSwapConfirmCancelOption,
 					defaultSwapConfirmCancelOptionOn: defaultSwapConfirmCancelOptionOn,
