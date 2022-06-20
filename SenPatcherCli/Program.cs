@@ -31,6 +31,21 @@ namespace SenPatcherCli {
 				return 0;
 			}
 
+			if (args.Length >= 2 && args[0] == "--extract-pka-to-pkg") {
+				string outpath = args.Length >= 3 ? args[2] : args[1] + ".ex";
+				Directory.CreateDirectory(outpath);
+				using var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1]);
+				using var pka = new Pka(fs);
+				for (int i = 0; i < pka.PkgCount; ++i) {
+					string pkgName = pka.GetPkgName(i);
+					Console.WriteLine("Building {0}", pkgName);
+					using var pkgStream = pka.BuildPkgToMemory(i);
+					using var outfs = new FileStream(Path.Combine(outpath, pkgName), FileMode.Create);
+					StreamUtils.CopyStream(pkgStream, outfs);
+				}
+				return 0;
+			}
+
 			if (args.Length >= 2 && args[0] == "--parse-script") {
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1])) {
 					var tbl = new t_voice_tbl(new HyoutaUtils.Streams.DuplicatableFileStream(args[2]), args[3] == "be" ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian);

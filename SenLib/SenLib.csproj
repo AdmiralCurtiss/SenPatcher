@@ -53,6 +53,9 @@
     <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\SHA1.cs">
       <Link>HyoutaUtils\SHA1.cs</Link>
     </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\SHA256.cs">
+      <Link>HyoutaUtils\SHA256.cs</Link>
+    </Compile>
     <Compile Include="..\HyoutaUtils\HyoutaUtils\EndianUtils.cs">
       <Link>HyoutaUtils\EndianUtils.cs</Link>
     </Compile>
