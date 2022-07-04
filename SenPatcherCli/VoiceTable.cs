@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace SenLib {
+namespace SenPatcherCli {
 	public class VoiceTable {
 		public List<VoiceTableEntry> Entries;
 		public byte[] UnknownStartOfFileData;

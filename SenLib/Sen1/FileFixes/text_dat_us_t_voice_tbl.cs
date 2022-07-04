@@ -1,4 +1,5 @@
 ﻿using HyoutaUtils;
+using HyoutaUtils.Streams;
 using System.Collections.Generic;
 using System.IO;
 
@@ -16,12 +17,26 @@ namespace SenLib.Sen1.FileFixes {
 				return null;
 			}
 
-			var data = new VoiceTable(voicetable);
-			data.Entries.Find(x => x.Index == 64300).Name = "pc8v10299";
-			data.Entries.Find(x => x.Index == 61752).Name += "_a"; // alternate take of the same line; PS4 uses this one and I agree, it's the better take in that context
+			var tbl = new Tbl(voicetable, EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
+
+			// Fix the Sara Finale voice clip
+			{
+				var e = tbl.Entries[13795];
+				var voice = new VoiceData(e.Data, EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
+				voice.Name = "pc8v10299";
+				e.Data = voice.ToBinary(EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
+			}
+
+			// alternate take of the same line; PS4 uses this one and I agree, it's the better take in that context
+			{
+				var e = tbl.Entries[11247];
+				var voice = new VoiceData(e.Data, EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
+				voice.Name += "_a";
+				e.Data = voice.ToBinary(EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
+			}
 
 			MemoryStream newvoicetable = new MemoryStream();
-			data.WriteToStream(newvoicetable, EndianUtils.Endianness.LittleEndian);
+			tbl.WriteToStream(newvoicetable, EndianUtils.Endianness.LittleEndian);
 
 			// We use the PS4 timings for here because several lines (particularly in the Prologue) were re-recorded between PS3 and PC
 			// and the PS4 timings should match that better.
@@ -57,6 +72,33 @@ namespace SenLib.Sen1.FileFixes {
 				new FileModResult("data/voice/wav/pc8v10299.wav", null),
 				new FileModResult("data/voice/wav/pc8v02551.wav", alisaclip),
 			};
+		}
+	}
+
+	public class VoiceData {
+		public ushort Index;
+		public string Name;
+		public ulong Unknown1;
+		public ushort Unknown2;
+		public uint Unknown3;
+
+		public VoiceData(byte[] data, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
+			var s = new DuplicatableByteArrayStream(data);
+			Index = s.ReadUInt16(e);
+			Name = s.ReadNulltermString(encoding);
+			Unknown1 = s.ReadUInt64(e);
+			Unknown2 = s.ReadUInt16(e);
+			Unknown3 = s.ReadUInt32(e);
+		}
+
+		public byte[] ToBinary(EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
+			MemoryStream s = new MemoryStream();
+			s.WriteUInt16(Index, e);
+			s.WriteNulltermString(Name, encoding);
+			s.WriteUInt64(Unknown1, e);
+			s.WriteUInt16(Unknown2, e);
+			s.WriteUInt32(Unknown3, e);
+			return s.CopyToByteArrayAndDispose();
 		}
 	}
 }

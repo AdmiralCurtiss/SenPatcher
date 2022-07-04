@@ -15,10 +15,10 @@ namespace SenLib.Sen1.FileFixes {
 			}
 
 			// remove the new-for-PC english voice clips from the JP voice table
-			var data = new VoiceTable(voicetable, EndianUtils.Endianness.LittleEndian);
-			data.Entries.RemoveRange(9495, data.Entries.Count - 9495);
+			var tbl = new Tbl(voicetable, EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.ShiftJIS);
+			tbl.Entries.RemoveRange(9495, tbl.Entries.Count - 9495);
 			MemoryStream newvoicetable = new MemoryStream();
-			data.WriteToStream(newvoicetable, EndianUtils.Endianness.LittleEndian);
+			tbl.WriteToStream(newvoicetable, EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.ShiftJIS);
 
 			// the PS3 and PS4 versions disagree slightly on some lines, I took the PS3 timings here but maybe the PS4 ones are better?
 			var newvoicetiming3 = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x60e82f9eb05d4b5dul, 0x15fbff5e3b341b0cul, 0xabfcae9du));
