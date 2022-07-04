@@ -17,6 +17,8 @@ namespace SenPatcherCli {
 			//Playground.Run();
 			//return 0;
 
+			int sengame;
+
 			if (args.Length >= 2 && args[0] == "--extract-pkg") {
 				string outpath = args.Length >= 3 ? args[2] : args[1] + ".ex";
 				Directory.CreateDirectory(outpath);
@@ -47,18 +49,51 @@ namespace SenPatcherCli {
 			}
 
 			if (args.Length >= 2 && args[0] == "--parse-script") {
-				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1])) {
-					var tbl = new t_voice_tbl(new HyoutaUtils.Streams.DuplicatableFileStream(args[2]), args[3] == "be" ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian);
+				string inputfilename = args[1];
+				string outputfilename = inputfilename + ".txt";
+				string voicetablefilename = args[2];
+				sengame = int.Parse(args[3]);
+				EndianUtils.Endianness endian = args[4] == "be" ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian;
+				TextUtils.GameTextEncoding encoding = args[5] == "sjis" ? TextUtils.GameTextEncoding.ShiftJIS : TextUtils.GameTextEncoding.UTF8;
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(inputfilename)) {
 					Dictionary<ushort, string> byIndex = new Dictionary<ushort, string>();
-					foreach (var e in tbl.Entries) {
-						if (byIndex.ContainsKey(e.Index)) {
-						} else {
-							byIndex.Add(e.Index, e.Name);
+					if (sengame == 1) {
+						var tbl = new SenLib.Sen1.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+						foreach (var e in tbl.Entries) {
+							var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+							if (!byIndex.ContainsKey(vd.Index)) {
+								byIndex.Add(vd.Index, vd.Name);
+							}
+						}
+					} else if (sengame == 2) {
+						var tbl = new SenLib.Sen2.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+						foreach (var e in tbl.Entries) {
+							// tbl header is different in CS2 but voice data payload is the same as CS1
+							var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+							if (!byIndex.ContainsKey(vd.Index)) {
+								byIndex.Add(vd.Index, vd.Name);
+							}
+						}
+					} else if (sengame == 3) {
+						var tbl = new SenLib.Sen3.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+						foreach (var e in tbl.Entries) {
+							var vd = new VoiceDataCS3(e.Data, endian, encoding);
+							if (!byIndex.ContainsKey(vd.Index)) {
+								byIndex.Add(vd.Index, vd.Name);
+							}
+						}
+					} else if (sengame == 4) {
+						var tbl = new SenLib.Sen4.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+						foreach (var e in tbl.Entries) {
+							var vd = new VoiceDataCS4(e.Data, endian, encoding);
+							if (!byIndex.ContainsKey(vd.Index)) {
+								byIndex.Add(vd.Index, vd.Name);
+							}
 						}
 					}
 
-					var funcs = ScriptParser.Parse(fs.CopyToByteArrayStreamAndDispose(), false, byIndex);
-					using (var outfs = new FileStream(args[1] + ".txt", FileMode.Create)) {
+					var funcs = ScriptParser.Parse(fs.CopyToByteArrayStreamAndDispose(), false, byIndex, endian, sengame);
+					using (var outfs = new FileStream(outputfilename, FileMode.Create)) {
 						foreach (var func in funcs) {
 							outfs.WriteUTF8(func.Name);
 							outfs.WriteUTF8("\n");
@@ -159,7 +194,6 @@ namespace SenPatcherCli {
 				return -1;
 			}
 
-			int sengame;
 			if (File.Exists(System.IO.Path.Combine(path, "Sen1Launcher.exe"))) {
 				sengame = 1;
 			} else if (File.Exists(System.IO.Path.Combine(path, "Sen2Launcher.exe"))) {
@@ -176,11 +210,20 @@ namespace SenPatcherCli {
 			FilenameFix.FixupIncorrectEncodingInFilenames(path, sengame, true, new CliProgressReporter());
 			KnownFile[] knownFiles;
 			switch (sengame) {
-				case 1: knownFiles = Sen1KnownFiles.Files; break;
-				case 2: knownFiles = Sen2KnownFiles.Files; break;
-				case 3: knownFiles = Sen3KnownFiles.Files; break;
-				case 4: knownFiles = Sen4KnownFiles.Files; break;
-				default: return -1; // shouldn't get here
+				case 1:
+					knownFiles = Sen1KnownFiles.Files;
+					break;
+				case 2:
+					knownFiles = Sen2KnownFiles.Files;
+					break;
+				case 3:
+					knownFiles = Sen3KnownFiles.Files;
+					break;
+				case 4:
+					knownFiles = Sen4KnownFiles.Files;
+					break;
+				default:
+					return -1; // shouldn't get here
 			}
 			FileStorage storage = FileModExec.InitializeAndPersistFileStorage(path, knownFiles, new CliProgressReporter())?.Storage;
 			if (storage == null) {

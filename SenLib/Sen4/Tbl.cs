@@ -13,13 +13,13 @@ namespace SenLib.Sen4 {
 		public List<TblDefinition> Definitions;
 		public List<TblEntry> Entries;
 
-		public Tbl(DuplicatableStream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian) {
+		public Tbl(DuplicatableStream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
 			ushort entryCount = stream.ReadUInt16(e);
 			uint definitionCount = stream.ReadUInt32(e);
 			List<TblDefinition> definitions = new List<TblDefinition>((int)definitionCount);
 			for (uint i = 0; i < definitionCount; ++i) {
 				var d = new TblDefinition();
-				d.Name = stream.ReadUTF8Nullterm();
+				d.Name = stream.ReadNulltermString(encoding);
 				d.Unknown = stream.ReadUInt32(e);
 				definitions.Add(d);
 			}
@@ -27,7 +27,7 @@ namespace SenLib.Sen4 {
 			List<TblEntry> entries = new List<TblEntry>(entryCount);
 			for (int i = 0; i < entryCount; ++i) {
 				var d = new TblEntry();
-				d.Name = stream.ReadUTF8Nullterm();
+				d.Name = stream.ReadNulltermString(encoding);
 				ushort count = GetLength(d.Name, stream, e);
 				d.Data = stream.ReadBytes(count);
 				entries.Add(d);
@@ -44,15 +44,15 @@ namespace SenLib.Sen4 {
 			}
 		}
 
-		public void WriteToStream(Stream s, EndianUtils.Endianness e) {
+		public void WriteToStream(Stream s, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
 			s.WriteUInt16((ushort)Entries.Count, e);
 			s.WriteUInt32((uint)Definitions.Count, e);
 			foreach (TblDefinition def in Definitions) {
-				s.WriteUTF8Nullterm(def.Name);
+				s.WriteNulltermString(def.Name, encoding);
 				s.WriteUInt32(def.Unknown, e);
 			}
 			foreach (TblEntry entry in Entries) {
-				s.WriteUTF8Nullterm(entry.Name);
+				s.WriteNulltermString(entry.Name, encoding);
 				s.WriteUInt16((ushort)entry.Data.Length, e);
 				s.Write(entry.Data);
 			}

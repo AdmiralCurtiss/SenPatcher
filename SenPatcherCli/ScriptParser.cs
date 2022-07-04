@@ -13,7 +13,7 @@ namespace SenPatcherCli {
 	}
 
 	public static class ScriptParser {
-		public static List<ScriptFunction> Parse(Stream s, bool isBook, Dictionary<ushort, string> voiceIds = null, EndianUtils.Endianness? endian = null) {
+		public static List<ScriptFunction> Parse(Stream s, bool isBook, Dictionary<ushort, string> voiceIds = null, EndianUtils.Endianness? endian = null, int sengame = 1) {
 			EndianUtils.Endianness e = endian.HasValue ? endian.Value : (s.PeekUInt32(EndianUtils.Endianness.LittleEndian) == 0x20 ? EndianUtils.Endianness.LittleEndian : EndianUtils.Endianness.BigEndian);
 			uint headerLength = s.ReadUInt32(e);
 			if (headerLength != 0x20) {
@@ -68,7 +68,7 @@ namespace SenPatcherCli {
 			} else {
 				for (long i = 0; i < functionCount; ++i) {
 					s.Position = functionPositions[i];
-					var ops = ParseFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e, voiceIds);
+					var ops = ParseFunction(s, (i + 1) == functionCount ? s.Length : functionPositions[i + 1], e, voiceIds, sengame);
 					funcs.Add(new ScriptFunction() { Name = functionNames[i], Ops = ops });
 				}
 			}
@@ -97,16 +97,21 @@ namespace SenPatcherCli {
 			return (a, b);
 		}
 
-		private static List<string> ParseFunction(Stream s, long end, EndianUtils.Endianness e, Dictionary<ushort, string> voiceIds) {
+		private static List<string> ParseFunction(Stream s, long end, EndianUtils.Endianness e, Dictionary<ushort, string> voiceIds, int sengame) {
 			// actually parsing this is more work than i thought it would be, so just guess
 			// this will have false positives but that's okay
+			int textcommand = (sengame == 1 || sengame == 2) ? 0x1a : 0x24;
 			List<string> text = new List<string>();
 			while (s.Position < end) {
 				byte a = s.ReadUInt8();
-				if (a == 0x1a) {
+				if (a == textcommand) {
 					long originalPosition = s.Position;
 					try {
 						ushort speaker = s.ReadUInt16();
+						uint unknown = 0;
+						if (!(sengame == 1 || sengame == 2)) {
+							unknown = s.ReadUInt32();
+						}
 						List<byte> sb = new List<byte>();
 						List<byte> contentbytes = new List<byte>();
 						ReadString(s, sb, contentbytes, e, voiceIds);

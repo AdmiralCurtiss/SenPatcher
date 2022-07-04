@@ -13,13 +13,13 @@ namespace SenLib.Sen3 {
 		public List<TblDefinition> Definitions;
 		public List<TblEntry> Entries;
 
-		public Tbl(DuplicatableStream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian) {
+		public Tbl(DuplicatableStream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
 			ushort entryCount = stream.ReadUInt16(e);
 			uint definitionCount = stream.ReadUInt32(e);
 			List<TblDefinition> definitions = new List<TblDefinition>((int)definitionCount);
 			for (uint i = 0; i < definitionCount; ++i) {
 				var d = new TblDefinition();
-				d.Name = stream.ReadUTF8Nullterm();
+				d.Name = stream.ReadNulltermString(encoding);
 				d.Unknown = stream.ReadUInt32(e);
 				definitions.Add(d);
 			}
@@ -27,8 +27,8 @@ namespace SenLib.Sen3 {
 			List<TblEntry> entries = new List<TblEntry>(entryCount);
 			for (int i = 0; i < entryCount; ++i) {
 				var d = new TblEntry();
-				d.Name = stream.ReadUTF8Nullterm();
-				ushort count = GetLength(d.Name, stream, e);
+				d.Name = stream.ReadNulltermString(encoding);
+				ushort count = GetLength(d.Name, stream, e, encoding);
 				d.Data = stream.ReadBytes(count);
 				entries.Add(d);
 			}
@@ -37,34 +37,34 @@ namespace SenLib.Sen3 {
 			Entries = entries;
 		}
 
-		private ushort GetLength(string name, DuplicatableStream stream, EndianUtils.Endianness e) {
+		private ushort GetLength(string name, DuplicatableStream stream, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding) {
 			switch (name) {
 				case "QSTitle": {
-						// some of these have incorrect length fields in the official files, manually determine length here...
-						stream.DiscardBytes(2);
-						long p = stream.Position;
-						stream.DiscardBytes(3);
-						stream.ReadUTF8Nullterm();
-						stream.ReadUTF8Nullterm();
-						stream.DiscardBytes(13);
-						ushort length = (ushort)(stream.Position - p);
-						stream.Position = p;
-						return length;
-					}
+					// some of these have incorrect length fields in the official files, manually determine length here...
+					stream.DiscardBytes(2);
+					long p = stream.Position;
+					stream.DiscardBytes(3);
+					stream.ReadNulltermString(encoding);
+					stream.ReadNulltermString(encoding);
+					stream.DiscardBytes(13);
+					ushort length = (ushort)(stream.Position - p);
+					stream.Position = p;
+					return length;
+				}
 				default:
 					return stream.ReadUInt16(e);
 			}
 		}
 
-		public void WriteToStream(Stream s, EndianUtils.Endianness e) {
+		public void WriteToStream(Stream s, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
 			s.WriteUInt16((ushort)Entries.Count, e);
 			s.WriteUInt32((uint)Definitions.Count, e);
 			foreach (TblDefinition def in Definitions) {
-				s.WriteUTF8Nullterm(def.Name);
+				s.WriteNulltermString(def.Name, encoding);
 				s.WriteUInt32(def.Unknown, e);
 			}
 			foreach (TblEntry entry in Entries) {
-				s.WriteUTF8Nullterm(entry.Name);
+				s.WriteNulltermString(entry.Name, encoding);
 				s.WriteUInt16((ushort)entry.Data.Length, e);
 				s.Write(entry.Data);
 			}
