@@ -77,6 +77,12 @@ namespace SenLib.Sen3.FileFixes {
 				Sen3ExecutablePatches.PatchForceXInput(ms, PatchInfo);
 			}
 
+			// call CreateMutex without names so multiple instances of CS don't block eachother
+			ms.Position = PatchInfo.Mapper.MapRamToRom(IsJp ? 0x14054f839 : 0x14055b9d9);
+			ms.WriteUInt24(0x4d31c0, EndianUtils.Endianness.BigEndian); // xor r8,r8
+			ms.Position = PatchInfo.Mapper.MapRamToRom(IsJp ? 0x14011c5e1 : 0x14011cae1);
+			ms.WriteUInt56(0x49c7c000000000, EndianUtils.Endianness.BigEndian); // mov r8,0
+
 			// add indicator to the title screen that we're running a modified executable
 			{
 				var state = PatchInfo;

@@ -114,6 +114,10 @@ namespace SenLib.Sen1.FileFixes {
 				ms.WriteUInt8(4);
 			}
 
+			// call CreateMutex without names so multiple instances of CS don't block eachother
+			ms.Position = PatchInfo.Mapper.MapRamToRom(IsJp ? 0x7cf9c3 : 0x7d1293);
+			ms.WriteUInt24(0x6a0090, EndianUtils.Endianness.BigEndian); // push 0, nop
+
 			// add indicator to the title screen that we're running a modified executable
 			ms.Position = PatchInfo.Mapper.MapRamToRom(PatchInfo.PushAddressVersionString);
 			uint addressVersionString = ms.ReadUInt32(EndianUtils.Endianness.LittleEndian);

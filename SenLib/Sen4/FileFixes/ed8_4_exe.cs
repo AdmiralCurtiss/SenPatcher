@@ -65,6 +65,12 @@ namespace SenLib.Sen4.FileFixes {
 				Sen4ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);
 			}
 
+			// call CreateMutex without names so multiple instances of CS don't block eachother
+			ms.Position = PatchInfo.Mapper.MapRamToRom(IsJp ? 0x1405adea9 : 0x1405b0439);
+			ms.WriteUInt24(0x4d31c0, EndianUtils.Endianness.BigEndian); // xor r8,r8
+			ms.Position = PatchInfo.Mapper.MapRamToRom(IsJp ? 0x1400d6041 : 0x1400d60c1);
+			ms.WriteUInt56(0x49c7c000000000, EndianUtils.Endianness.BigEndian); // mov r8,0
+
 			// add indicator to the title screen that we're running a modified executable
 			{
 				var state = PatchInfo;
