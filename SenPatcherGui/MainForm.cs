@@ -23,58 +23,12 @@ namespace SenPatcherGui {
 			labelVersion.Text = "Version " + SenLib.Version.SenPatcherVersion;
 		}
 
-		private static string GetDefaultPathCS1() {
-			if (Directory.Exists(Properties.Settings.Default.Sen1Path)) {
-				return Properties.Settings.Default.Sen1Path;
-			}
-			if (Directory.Exists(SenCommonPaths.Sen1SteamDir)) {
-				return SenCommonPaths.Sen1SteamDir;
-			}
-			if (Directory.Exists(SenCommonPaths.Sen1GalaxyDir)) {
-				return SenCommonPaths.Sen1GalaxyDir;
-			}
-			return @"c:\";
-		}
-
-		private static string GetDefaultPathCS2() {
-			if (Directory.Exists(Properties.Settings.Default.Sen2Path)) {
-				return Properties.Settings.Default.Sen2Path;
-			}
-			if (Directory.Exists(SenCommonPaths.Sen2SteamDir)) {
-				return SenCommonPaths.Sen2SteamDir;
-			}
-			if (Directory.Exists(SenCommonPaths.Sen2GalaxyDir)) {
-				return SenCommonPaths.Sen2GalaxyDir;
-			}
-			return @"c:\";
-		}
-
-		private static string GetDefaultPathCS3() {
-			if (Directory.Exists(Properties.Settings.Default.Sen3Path)) {
-				return Properties.Settings.Default.Sen3Path;
-			}
-			if (Directory.Exists(SenCommonPaths.Sen3SteamDir)) {
-				return SenCommonPaths.Sen3SteamDir;
-			}
-			return @"c:\";
-		}
-
-		private static string GetDefaultPathCS4() {
-			if (Directory.Exists(Properties.Settings.Default.Sen4Path)) {
-				return Properties.Settings.Default.Sen4Path;
-			}
-			if (Directory.Exists(SenCommonPaths.Sen4SteamDir)) {
-				return SenCommonPaths.Sen4SteamDir;
-			}
-			return @"c:\";
-		}
-
 		private void buttonCS1Patch_Click(object sender, EventArgs e) {
 			// this is not great UX wise, can we do better?
 			using (OpenFileDialog d = new OpenFileDialog()) {
 				d.CheckFileExists = false;
 				d.ValidateNames = false;
-				d.InitialDirectory = GetDefaultPathCS1();
+				d.InitialDirectory = GamePaths.GetDefaultPathCS1();
 				d.FileName = "Sen1Launcher.exe";
 				d.Filter = "CS1 root game directory (Sen1Launcher.exe)|Sen1Launcher.exe|All files (*.*)|*.*";
 				if (d.ShowDialog() == DialogResult.OK) {
@@ -176,7 +130,6 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				Properties.Settings.Default.Sen1Path = init.Path;
-				PropagateDefaultPathToUnset(init.Path);
 				new Sen1Form(init.Path, init.Storage).ShowDialog();
 			}
 		}
@@ -186,7 +139,7 @@ namespace SenPatcherGui {
 			using (OpenFileDialog d = new OpenFileDialog()) {
 				d.CheckFileExists = false;
 				d.ValidateNames = false;
-				d.InitialDirectory = GetDefaultPathCS2();
+				d.InitialDirectory = GamePaths.GetDefaultPathCS2();
 				d.FileName = "Sen2Launcher.exe";
 				d.Filter = "CS2 root game directory (Sen2Launcher.exe)|Sen2Launcher.exe|All files (*.*)|*.*";
 				if (d.ShowDialog() == DialogResult.OK) {
@@ -288,7 +241,6 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				Properties.Settings.Default.Sen2Path = init.Path;
-				PropagateDefaultPathToUnset(init.Path);
 				new Sen2Form(init.Path, init.Storage).ShowDialog();
 			}
 		}
@@ -355,7 +307,7 @@ namespace SenPatcherGui {
 			using (OpenFileDialog d = new OpenFileDialog()) {
 				d.CheckFileExists = false;
 				d.ValidateNames = false;
-				d.InitialDirectory = GetDefaultPathCS3();
+				d.InitialDirectory = GamePaths.GetDefaultPathCS3();
 				d.FileName = "Sen3Launcher.exe";
 				d.Filter = "CS3 root game directory (Sen3Launcher.exe)|Sen3Launcher.exe|All files (*.*)|*.*";
 				if (d.ShowDialog() == DialogResult.OK) {
@@ -450,7 +402,6 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				Properties.Settings.Default.Sen3Path = init.Path;
-				PropagateDefaultPathToUnset(init.Path);
 				new Sen3Form(init.Path, init.Storage).ShowDialog();
 			}
 		}
@@ -459,7 +410,7 @@ namespace SenPatcherGui {
 			using (OpenFileDialog d = new OpenFileDialog()) {
 				d.CheckFileExists = false;
 				d.ValidateNames = false;
-				d.InitialDirectory = GetDefaultPathCS4();
+				d.InitialDirectory = GamePaths.GetDefaultPathCS4();
 				d.FileName = "Sen4Launcher.exe";
 				d.Filter = "CS4 root game directory (Sen4Launcher.exe)|Sen4Launcher.exe|All files (*.*)|*.*";
 				if (d.ShowDialog() == DialogResult.OK) {
@@ -554,39 +505,8 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				Properties.Settings.Default.Sen4Path = init.Path;
-				PropagateDefaultPathToUnset(init.Path);
 				new Sen4Form(init.Path, init.Storage).ShowDialog();
 			}
-		}
-
-		private void PropagateDefaultPathToUnset(string path) {
-			try {
-				string parent = Path.GetDirectoryName(path);
-				if (Properties.Settings.Default.Sen1Path == "") {
-					string p = Path.Combine(parent, "Trails of Cold Steel");
-					if (Directory.Exists(p)) {
-						Properties.Settings.Default.Sen1Path = p;
-					}
-				}
-				if (Properties.Settings.Default.Sen2Path == "") {
-					string p = Path.Combine(parent, "Trails of Cold Steel II");
-					if (Directory.Exists(p)) {
-						Properties.Settings.Default.Sen2Path = p;
-					}
-				}
-				if (Properties.Settings.Default.Sen3Path == "") {
-					string p = Path.Combine(parent, "The Legend of Heroes Trails of Cold Steel III");
-					if (Directory.Exists(p)) {
-						Properties.Settings.Default.Sen3Path = p;
-					}
-				}
-				if (Properties.Settings.Default.Sen4Path == "") {
-					string p = Path.Combine(parent, "The Legend of Heroes Trails of Cold Steel IV");
-					if (Directory.Exists(p)) {
-						Properties.Settings.Default.Sen4Path = p;
-					}
-				}
-			} catch (Exception) { }
 		}
 	}
 }
