@@ -17,7 +17,8 @@ namespace SenLib.Sen1 {
 			bool showMouseCursor = false,
 			bool disablePauseOnFocusLoss = false,
 			bool fixArtsSupport = false,
-			bool force0Kerning = false
+			bool force0Kerning = false,
+			bool forceXInput = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
@@ -32,7 +33,8 @@ namespace SenLib.Sen1 {
 					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixArtsSupport: fixArtsSupport,
-					force0Kerning: force0Kerning
+					force0Kerning: force0Kerning,
+					forceXInput: forceXInput
 				));
 			}
 			return f;

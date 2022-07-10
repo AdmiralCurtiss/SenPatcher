@@ -43,6 +43,7 @@
 			this.checkBoxArtsSupport = new System.Windows.Forms.CheckBox();
 			this.checkBoxForce0Kerning = new System.Windows.Forms.CheckBox();
 			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
+			this.checkBoxForceXInput = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -91,43 +92,43 @@
 			// checkBoxAllowR2InTurboMode
 			// 
 			this.checkBoxAllowR2InTurboMode.AutoSize = true;
-			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(113, 350);
+			this.checkBoxAllowR2InTurboMode.Location = new System.Drawing.Point(113, 373);
 			this.checkBoxAllowR2InTurboMode.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxAllowR2InTurboMode.Name = "checkBoxAllowR2InTurboMode";
 			this.checkBoxAllowR2InTurboMode.Size = new System.Drawing.Size(303, 19);
-			this.checkBoxAllowR2InTurboMode.TabIndex = 14;
+			this.checkBoxAllowR2InTurboMode.TabIndex = 15;
 			this.checkBoxAllowR2InTurboMode.Text = "Enable R2 Notebook Shortcut when Turbo is enabled";
 			this.checkBoxAllowR2InTurboMode.UseVisualStyleBackColor = true;
 			// 
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(110, 380);
+			this.label4.Location = new System.Drawing.Point(110, 403);
 			this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(96, 15);
-			this.label4.TabIndex = 15;
+			this.label4.TabIndex = 16;
 			this.label4.Text = "Turbo mode key:";
 			// 
 			// comboBoxTurboModeKey
 			// 
 			this.comboBoxTurboModeKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboBoxTurboModeKey.FormattingEnabled = true;
-			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(218, 376);
+			this.comboBoxTurboModeKey.Location = new System.Drawing.Point(218, 399);
 			this.comboBoxTurboModeKey.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.comboBoxTurboModeKey.Name = "comboBoxTurboModeKey";
 			this.comboBoxTurboModeKey.Size = new System.Drawing.Size(146, 23);
-			this.comboBoxTurboModeKey.TabIndex = 16;
+			this.comboBoxTurboModeKey.TabIndex = 17;
 			// 
 			// buttonPatch
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
 			| System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(15, 487);
+			this.buttonPatch.Location = new System.Drawing.Point(15, 510);
 			this.buttonPatch.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(595, 47);
-			this.buttonPatch.TabIndex = 18;
+			this.buttonPatch.TabIndex = 19;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -135,11 +136,11 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(110, 411);
+			this.label5.Location = new System.Drawing.Point(110, 434);
 			this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(468, 60);
-			this.label5.TabIndex = 17;
+			this.label5.TabIndex = 18;
 			this.label5.Text = resources.GetString("label5.Text");
 			// 
 			// checkBoxFixHdTextureId
@@ -263,11 +264,23 @@
 			this.checkBoxShowMouseCursor.Text = "Show Mouse Cursor";
 			this.checkBoxShowMouseCursor.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxForceXInput
+			// 
+			this.checkBoxForceXInput.AutoSize = true;
+			this.checkBoxForceXInput.Location = new System.Drawing.Point(113, 348);
+			this.checkBoxForceXInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+			this.checkBoxForceXInput.Name = "checkBoxForceXInput";
+			this.checkBoxForceXInput.Size = new System.Drawing.Size(415, 19);
+			this.checkBoxForceXInput.TabIndex = 14;
+			this.checkBoxForceXInput.Text = "Force all controllers as XInput (may fix issues with newer Xbox controllers)";
+			this.checkBoxForceXInput.UseVisualStyleBackColor = true;
+			// 
 			// Sen1Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(623, 546);
+			this.ClientSize = new System.Drawing.Size(623, 569);
+			this.Controls.Add(this.checkBoxForceXInput);
 			this.Controls.Add(this.checkBoxShowMouseCursor);
 			this.Controls.Add(this.checkBoxForce0Kerning);
 			this.Controls.Add(this.checkBoxArtsSupport);
@@ -316,5 +329,6 @@
 		private System.Windows.Forms.CheckBox checkBoxArtsSupport;
 		private System.Windows.Forms.CheckBox checkBoxForce0Kerning;
 		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
+		private System.Windows.Forms.CheckBox checkBoxForceXInput;
 	}
 }

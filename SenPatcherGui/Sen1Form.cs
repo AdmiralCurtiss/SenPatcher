@@ -62,6 +62,7 @@ namespace SenPatcherGui {
 				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
 				bool fixArtsSupport = checkBoxArtsSupport.Checked;
 				bool force0Kerning = checkBoxForce0Kerning.Checked;
+				bool forceXInput = checkBoxForceXInput.Checked;
 
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen1Mods.GetExecutableMods(
@@ -74,7 +75,8 @@ namespace SenPatcherGui {
 					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
 					fixArtsSupport: fixArtsSupport,
-					force0Kerning: force0Kerning
+					force0Kerning: force0Kerning,
+					forceXInput: forceXInput
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen1Mods.GetAssetMods());

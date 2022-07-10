@@ -36,6 +36,7 @@
 			this.checkBoxDisablePauseOnFocusLoss = new System.Windows.Forms.CheckBox();
 			this.checkBoxControllerMapping = new System.Windows.Forms.CheckBox();
 			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
+			this.checkBoxForceXInput = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label2
@@ -85,11 +86,11 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(14, 300);
+			this.buttonPatch.Location = new System.Drawing.Point(14, 326);
 			this.buttonPatch.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(595, 47);
-			this.buttonPatch.TabIndex = 12;
+			this.buttonPatch.TabIndex = 13;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -191,11 +192,23 @@
 			this.checkBoxShowMouseCursor.Text = "Show Mouse Cursor";
 			this.checkBoxShowMouseCursor.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxForceXInput
+			// 
+			this.checkBoxForceXInput.AutoSize = true;
+			this.checkBoxForceXInput.Location = new System.Drawing.Point(113, 295);
+			this.checkBoxForceXInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+			this.checkBoxForceXInput.Name = "checkBoxForceXInput";
+			this.checkBoxForceXInput.Size = new System.Drawing.Size(415, 19);
+			this.checkBoxForceXInput.TabIndex = 12;
+			this.checkBoxForceXInput.Text = "Force all controllers as XInput (may fix issues with newer Xbox controllers)";
+			this.checkBoxForceXInput.UseVisualStyleBackColor = true;
+			// 
 			// Sen3Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(623, 362);
+			this.ClientSize = new System.Drawing.Size(623, 388);
+			this.Controls.Add(this.checkBoxForceXInput);
 			this.Controls.Add(this.checkBoxShowMouseCursor);
 			this.Controls.Add(this.checkBoxControllerMapping);
 			this.Controls.Add(this.checkBoxDisablePauseOnFocusLoss);
@@ -231,5 +244,6 @@
 		private System.Windows.Forms.CheckBox checkBoxDisablePauseOnFocusLoss;
 		private System.Windows.Forms.CheckBox checkBoxControllerMapping;
 		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
+		private System.Windows.Forms.CheckBox checkBoxForceXInput;
 	}
 }

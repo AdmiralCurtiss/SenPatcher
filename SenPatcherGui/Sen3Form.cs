@@ -39,6 +39,7 @@ namespace SenPatcherGui {
 				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
 				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
 				bool fixControllerMapping = checkBoxControllerMapping.Checked;
+				bool forceXInput = checkBoxForceXInput.Checked;
 
 				var mods = new List<FileMod>();
 				mods.AddRange(Sen3Mods.GetExecutableMods(
@@ -48,7 +49,8 @@ namespace SenPatcherGui {
 					disableMouseCapture: disableMouseCapture,
 					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
-					fixControllerMapping: fixControllerMapping
+					fixControllerMapping: fixControllerMapping,
+					forceXInput: forceXInput
 				));
 				if (patchAssets) {
 					mods.AddRange(Sen3Mods.GetAssetMods(

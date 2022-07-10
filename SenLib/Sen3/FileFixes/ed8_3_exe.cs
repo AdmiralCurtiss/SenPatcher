@@ -12,6 +12,7 @@ namespace SenLib.Sen3.FileFixes {
 		bool ShowMouseCursor;
 		bool DisablePauseOnFocusLoss;
 		bool FixControllerMapping;
+		bool ForceXInput;
 
 		public ed8_3_exe(
 			bool jp,
@@ -21,7 +22,8 @@ namespace SenLib.Sen3.FileFixes {
 			bool disableMouseCapture,
 			bool showMouseCursor,
 			bool disablePauseOnFocusLoss,
-			bool fixControllerMapping
+			bool fixControllerMapping,
+			bool forceXInput
 		) {
 			IsJp = jp;
 			FixInGameButtonMappingValidity = fixInGameButtonMappingValidity;
@@ -31,6 +33,7 @@ namespace SenLib.Sen3.FileFixes {
 			ShowMouseCursor = showMouseCursor;
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			FixControllerMapping = fixControllerMapping;
+			ForceXInput = forceXInput;
 		}
 
 		public string GetDescription() {
@@ -69,6 +72,9 @@ namespace SenLib.Sen3.FileFixes {
 			}
 			if (DisablePauseOnFocusLoss) {
 				Sen3ExecutablePatches.PatchDisablePauseOnFocusLoss(ms, PatchInfo);
+			}
+			if (ForceXInput) {
+				Sen3ExecutablePatches.PatchForceXInput(ms, PatchInfo);
 			}
 
 			// add indicator to the title screen that we're running a modified executable

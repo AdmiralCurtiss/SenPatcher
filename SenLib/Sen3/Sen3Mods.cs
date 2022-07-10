@@ -14,7 +14,8 @@ namespace SenLib.Sen3 {
 			bool disableMouseCapture = false,
 			bool showMouseCursor = false,
 			bool disablePauseOnFocusLoss = false,
-			bool fixControllerMapping = false
+			bool fixControllerMapping = false,
+			bool forceXInput = false
 		) {
 			var f = new List<FileMod>();
 			for (int i = 0; i < 2; ++i) {
@@ -26,7 +27,8 @@ namespace SenLib.Sen3 {
 					disableMouseCapture: disableMouseCapture,
 					showMouseCursor: showMouseCursor,
 					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
-					fixControllerMapping: fixControllerMapping
+					fixControllerMapping: fixControllerMapping,
+					forceXInput: forceXInput
 				));
 			}
 			return f;

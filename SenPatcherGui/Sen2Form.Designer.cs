@@ -43,6 +43,7 @@
 			this.checkBoxForce0Kerning = new System.Windows.Forms.CheckBox();
 			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
 			this.checkBoxFixBattleScopeCrash = new System.Windows.Forms.CheckBox();
+			this.checkBoxForceXInput = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label5
@@ -103,11 +104,11 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(14, 509);
+			this.buttonPatch.Location = new System.Drawing.Point(14, 532);
 			this.buttonPatch.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(595, 47);
-			this.buttonPatch.TabIndex = 19;
+			this.buttonPatch.TabIndex = 20;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -275,19 +276,31 @@
 			this.checkBoxFixBattleScopeCrash.AutoSize = true;
 			this.checkBoxFixBattleScopeCrash.Checked = true;
 			this.checkBoxFixBattleScopeCrash.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxFixBattleScopeCrash.Location = new System.Drawing.Point(113, 478);
+			this.checkBoxFixBattleScopeCrash.Location = new System.Drawing.Point(113, 503);
 			this.checkBoxFixBattleScopeCrash.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
 			this.checkBoxFixBattleScopeCrash.Name = "checkBoxFixBattleScopeCrash";
 			this.checkBoxFixBattleScopeCrash.Size = new System.Drawing.Size(413, 19);
-			this.checkBoxFixBattleScopeCrash.TabIndex = 18;
+			this.checkBoxFixBattleScopeCrash.TabIndex = 19;
 			this.checkBoxFixBattleScopeCrash.Text = "Try to fix Battle Scope crash (experimental; please report if it still happens)";
 			this.checkBoxFixBattleScopeCrash.UseVisualStyleBackColor = true;
+			// 
+			// checkBoxForceXInput
+			// 
+			this.checkBoxForceXInput.AutoSize = true;
+			this.checkBoxForceXInput.Location = new System.Drawing.Point(113, 478);
+			this.checkBoxForceXInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+			this.checkBoxForceXInput.Name = "checkBoxForceXInput";
+			this.checkBoxForceXInput.Size = new System.Drawing.Size(415, 19);
+			this.checkBoxForceXInput.TabIndex = 18;
+			this.checkBoxForceXInput.Text = "Force all controllers as XInput (may fix issues with newer Xbox controllers)";
+			this.checkBoxForceXInput.UseVisualStyleBackColor = true;
 			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(623, 570);
+			this.ClientSize = new System.Drawing.Size(623, 593);
+			this.Controls.Add(this.checkBoxForceXInput);
 			this.Controls.Add(this.checkBoxFixBattleScopeCrash);
 			this.Controls.Add(this.checkBoxShowMouseCursor);
 			this.Controls.Add(this.checkBoxForce0Kerning);
@@ -338,5 +351,6 @@
 		private System.Windows.Forms.CheckBox checkBoxForce0Kerning;
 		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
 		private System.Windows.Forms.CheckBox checkBoxFixBattleScopeCrash;
+		private System.Windows.Forms.CheckBox checkBoxForceXInput;
 	}
 }

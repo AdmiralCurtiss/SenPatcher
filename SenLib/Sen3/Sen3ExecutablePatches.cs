@@ -121,5 +121,15 @@ namespace SenLib.Sen3 {
 				codespace.TakeToAddress(state.Mapper.MapRomToRam(bin.Position), "Master Quartz description: Swap params on sentinel flag");
 			}
 		}
+
+		public static void PatchForceXInput(Stream binary, Sen3ExecutablePatchState patchInfo) {
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom(patchInfo.IsJp ? 0x1406ada75 : 0x1406b9ed5);
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+		}
 	}
 }

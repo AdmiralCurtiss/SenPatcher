@@ -18,6 +18,7 @@ namespace SenLib.Sen2.FileFixes {
 		bool FixArtsSupport;
 		bool Force0Kerning;
 		bool FixBattleScopeCrash;
+		bool ForceXInput;
 
 		public ed8_2_exe(
 			Sen2Version version,
@@ -33,7 +34,8 @@ namespace SenLib.Sen2.FileFixes {
 			bool fixControllerMapping,
 			bool fixArtsSupport,
 			bool force0Kerning,
-			bool fixBattleScopeCrash
+			bool fixBattleScopeCrash,
+			bool forceXInput
 		) {
 			Version = version;
 			IsJp = jp;
@@ -49,6 +51,7 @@ namespace SenLib.Sen2.FileFixes {
 			FixArtsSupport = fixArtsSupport;
 			Force0Kerning = force0Kerning;
 			FixBattleScopeCrash = fixBattleScopeCrash;
+			ForceXInput = forceXInput;
 		}
 
 		public string GetDescription() {
@@ -127,6 +130,9 @@ namespace SenLib.Sen2.FileFixes {
 			}
 			if (FixBattleScopeCrash) {
 				Sen2ExecutablePatches.PatchAddNullCheckBattleScopeCrashMaybe(ms, state);
+			}
+			if (ForceXInput) {
+				Sen2ExecutablePatches.PatchForceXInput(ms, state);
 			}
 
 			// call CreateMutex without names so multiple instances of CS2 don't block eachother

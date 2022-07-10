@@ -39,5 +39,15 @@ namespace SenLib.Sen2 {
 			binary.WriteUInt16(0x31c0, EndianUtils.Endianness.BigEndian); // xor eax, eax
 			binary.WriteUInt8(0x90);                                      // nop
 		}
+
+		public static void PatchForceXInput(Stream binary, Sen2ExecutablePatchState patchInfo) {
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom(patchInfo.IsJp ? 0x7f9fe1 : 0x7fb0a1);
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+		}
 	}
 }

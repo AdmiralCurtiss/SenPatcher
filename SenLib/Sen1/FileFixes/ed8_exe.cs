@@ -19,6 +19,7 @@ namespace SenLib.Sen1.FileFixes {
 		bool DisablePauseOnFocusLoss;
 		bool FixArtsSupport;
 		bool Force0Kerning;
+		bool ForceXInput;
 
 		public ed8_exe(
 			bool jp,
@@ -31,7 +32,8 @@ namespace SenLib.Sen1.FileFixes {
 			bool showMouseCursor,
 			bool disablePauseOnFocusLoss,
 			bool fixArtsSupport,
-			bool force0Kerning
+			bool force0Kerning,
+			bool forceXInput
 		) {
 			IsJp = jp;
 			RemoveTurboSkip = removeTurboSkip;
@@ -44,6 +46,7 @@ namespace SenLib.Sen1.FileFixes {
 			DisablePauseOnFocusLoss = disablePauseOnFocusLoss;
 			FixArtsSupport = fixArtsSupport;
 			Force0Kerning = force0Kerning;
+			ForceXInput = forceXInput;
 		}
 
 		public string GetDescription() {
@@ -99,6 +102,9 @@ namespace SenLib.Sen1.FileFixes {
 			}
 			if (!IsJp && Force0Kerning) {
 				Sen1ExecutablePatches.PatchForce0Kerning(ms, PatchInfo);
+			}
+			if (ForceXInput) {
+				Sen1ExecutablePatches.PatchForceXInput(ms, PatchInfo);
 			}
 
 			if (IsJp) {

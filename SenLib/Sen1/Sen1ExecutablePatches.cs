@@ -75,6 +75,16 @@ namespace SenLib.Sen1 {
 			binary.WriteUInt8(0x90); // nop
 		}
 
+		public static void PatchForceXInput(Stream binary, Sen1ExecutablePatchState patchInfo) {
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom(patchInfo.IsJp ? 0x939766 : 0x93b036);
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+			binary.WriteUInt8(0x90); // nop
+		}
+
 		public static void PatchThorMasterQuartzString(Stream binary, Sen1ExecutablePatchState patchInfo) {
 			binary.Position = patchInfo.RomAddressThorMasterQuartzTextureIdTypo;
 			long p = binary.Position;
