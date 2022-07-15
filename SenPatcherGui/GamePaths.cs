@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SenPatcherGui {
 	internal static class GamePaths {
-		private static string? FindExistingPath(
+		private static string FindExistingPath(
 			string configuredPath,
 			string[] otherGamesConfiguredPaths,
 			string[] foldersToCheck,
@@ -26,7 +26,7 @@ namespace SenPatcherGui {
 			foreach (string p in otherGamesConfiguredPaths) {
 				try {
 					if (p != "") {
-						string? pp = Directory.GetParent(p)?.FullName;
+						string pp = Directory.GetParent(p)?.FullName;
 						if (pp != null) {
 							foreach (string f in foldersToCheck) {
 								try {
@@ -41,7 +41,8 @@ namespace SenPatcherGui {
 			}
 
 			// didn't find anything, check for plausible default paths
-			bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
+			//bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
+			bool isWindows = true;
 			if (isWindows) {
 				try {
 					foreach (var drive in DriveInfo.GetDrives()) {

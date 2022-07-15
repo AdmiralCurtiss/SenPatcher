@@ -171,17 +171,19 @@ namespace SenLib {
 
 		private DuplicatableStream Decompress() {
 			bool hasChecksum = (Flags & 2u) != 0;
-			using var stream = Data.Duplicate();
-			stream.ReStart();
-			uint checksum = hasChecksum ? stream.ReadUInt32(Endian) : 0;
-			if (hasChecksum) {
-				// verify checksum here? see 0x41ad40 in CS2, seems to be some kind of CRC
+			using (var stream = Data.Duplicate()) {
+				stream.ReStart();
+				uint checksum = hasChecksum ? stream.ReadUInt32(Endian) : 0;
+				if (hasChecksum) {
+					// verify checksum here? see 0x41ad40 in CS2, seems to be some kind of CRC
+				}
+				using (var decompressed = DecompressInternal(Flags & ~2u, stream, UncompressedSize, Endian)) {
+					if (decompressed.Length != UncompressedSize) {
+						Console.WriteLine("WARNING: Decompressed file is different filesize than expected. (header)");
+					}
+					return decompressed.Duplicate();
+				}
 			}
-			using var decompressed = DecompressInternal(Flags & ~2u, stream, UncompressedSize, Endian);
-			if (decompressed.Length != UncompressedSize) {
-				Console.WriteLine("WARNING: Decompressed file is different filesize than expected. (header)");
-			}
-			return decompressed.Duplicate();
 		}
 
 		public DuplicatableStream DataStream => Decompress();

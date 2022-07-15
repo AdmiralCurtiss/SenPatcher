@@ -1,10 +1,194 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>FileCompressor</RootNamespace>
+    <AssemblyName>FileCompressor</AssemblyName>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\DuplicatableStream.cs">
+      <Link>HyoutaPluginBase\DuplicatableStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\FileContainer\IContainer.cs">
+      <Link>HyoutaPluginBase\IContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\FileContainer\IFile.cs">
+      <Link>HyoutaPluginBase\IFile.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\FileContainer\INode.cs">
+      <Link>HyoutaPluginBase\INode.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\IDecompressor.cs">
+      <Link>HyoutaPluginBase\IDecompressor.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\IProgram.cs">
+      <Link>HyoutaPluginBase\IProgram.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaPluginBase\IRomMapper.cs">
+      <Link>HyoutaPluginBase\IRomMapper.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\ArrayUtils.cs">
+      <Link>HyoutaUtils\ArrayUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\BitUtils.cs">
+      <Link>HyoutaUtils\BitUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Bps\BpsPatcher.cs">
+      <Link>HyoutaUtils\BpsPatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Bps\BpsUtils.cs">
+      <Link>HyoutaUtils\BpsUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\ChecksumUtils.cs">
+      <Link>HyoutaUtils\ChecksumUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\CRC32.cs">
+      <Link>HyoutaUtils\CRC32.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\CRC32Algorithm.cs">
+      <Link>HyoutaUtils\CRC32Algorithm.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\MD5.cs">
+      <Link>HyoutaUtils\MD5.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Checksum\SHA1.cs">
+      <Link>HyoutaUtils\SHA1.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\EndianUtils.cs">
+      <Link>HyoutaUtils\EndianUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\ExternalProgramExecution.cs">
+      <Link>HyoutaUtils\ExternalProgramExecution.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\GenericRomMapper.cs">
+      <Link>HyoutaUtils\GenericRomMapper.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HexUtils.cs">
+      <Link>HyoutaUtils\HexUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\Compression\DeflateSharpCompressionInfo.cs">
+      <Link>HyoutaUtils\DeflateSharpCompressionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\Compression\IHyoutaArchiveCompressionInfo.cs">
+      <Link>HyoutaUtils\IHyoutaArchiveCompressionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveBps.cs">
+      <Link>HyoutaUtils\HyoutaArchiveBps.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveBpsPatchInfo.cs">
+      <Link>HyoutaUtils\HyoutaArchiveBpsPatchInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveChunk.cs">
+      <Link>HyoutaUtils\HyoutaArchiveChunk.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveChunkInfo.cs">
+      <Link>HyoutaUtils\HyoutaArchiveChunkInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveCompression.cs">
+      <Link>HyoutaUtils\HyoutaArchiveCompression.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveContainer.cs">
+      <Link>HyoutaUtils\HyoutaArchiveContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\HyoutaArchive\HyoutaArchiveFileInfo.cs">
+      <Link>HyoutaUtils\HyoutaArchiveFileInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\NumberUtils.cs">
+      <Link>HyoutaUtils\NumberUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\RomMapperUtils.cs">
+      <Link>HyoutaUtils\RomMapperUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\ConcatenatedStream.cs">
+      <Link>HyoutaUtils\ConcatenatedStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\ConstantStream.cs">
+      <Link>HyoutaUtils\ConstantStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\DuplicatableByteArrayStream.cs">
+      <Link>HyoutaUtils\DuplicatableByteArrayStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\DuplicatableFileStream.cs">
+      <Link>HyoutaUtils\DuplicatableFileStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\EmptyStream.cs">
+      <Link>HyoutaUtils\EmptyStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\MemoryStream64.cs">
+      <Link>HyoutaUtils\MemoryStream64.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\Streams\PartialStream.cs">
+      <Link>HyoutaUtils\PartialStream.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\StreamUtils.cs">
+      <Link>HyoutaUtils\StreamUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\TextUtils.cs">
+      <Link>HyoutaUtils\TextUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\HyoutaUtils\HyoutaUtils\TimeUtils.cs">
+      <Link>HyoutaUtils\TimeUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\lz4-sharp\lz4-sharp\lz4.cs">
+      <Link>lz4-sharp\lz4.cs</Link>
+    </Compile>
+    <Compile Include="..\lz4-sharp\lz4-sharp\utils.cs">
+      <Link>lz4-sharp\utils.cs</Link>
+    </Compile>
+    <Compile Include="7zip\Common\CommandLineParser.cs" />
+    <Compile Include="7zip\Common\CRC.cs" />
+    <Compile Include="7zip\Common\InBuffer.cs" />
+    <Compile Include="7zip\Common\OutBuffer.cs" />
+    <Compile Include="7zip\Compress\LZMA\LzmaBase.cs" />
+    <Compile Include="7zip\Compress\LZMA\LzmaDecoder.cs" />
+    <Compile Include="7zip\Compress\LZMA\LzmaEncoder.cs" />
+    <Compile Include="7zip\Compress\LZ\IMatchFinder.cs" />
+    <Compile Include="7zip\Compress\LZ\LzBinTree.cs" />
+    <Compile Include="7zip\Compress\LZ\LzInWindow.cs" />
+    <Compile Include="7zip\Compress\LZ\LzOutWindow.cs" />
+    <Compile Include="7zip\Compress\RangeCoder\RangeCoder.cs" />
+    <Compile Include="7zip\Compress\RangeCoder\RangeCoderBit.cs" />
+    <Compile Include="7zip\Compress\RangeCoder\RangeCoderBitTree.cs" />
+    <Compile Include="7zip\ICoder.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\SenLib\DecompressHelper.cs">
       <Link>DecompressHelper.cs</Link>
     </Compile>
@@ -13,14 +197,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HyoutaUtils\HyoutaPluginBase\HyoutaPluginBase.csproj" />
-    <ProjectReference Include="..\HyoutaUtils\HyoutaUtils\HyoutaUtils.csproj" />
+    <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="7zip\Compress\LzmaAlone\LzmaAlone.cs" />
-    <Compile Remove="7zip\Compress\LzmaAlone\LzmaBench.cs" />
-    <Compile Remove="7zip\Compress\LzmaAlone\Properties\AssemblyInfo.cs" />
-    <Compile Remove="7zip\Compress\LzmaAlone\Properties\Resources.cs" />
-    <Compile Remove="7zip\Compress\LzmaAlone\Properties\Settings.cs" />
-  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

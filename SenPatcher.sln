@@ -5,17 +5,11 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenLib", "SenLib\SenLib.csproj", "{2ECD67B8-06F0-4D87-9E53-B4FD334CC541}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HyoutaPluginBase", "HyoutaUtils\HyoutaPluginBase\HyoutaPluginBase.csproj", "{6E153CE7-05B9-4EBA-8DE8-AD842214F60B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HyoutaUtils", "HyoutaUtils\HyoutaUtils\HyoutaUtils.csproj", "{771553C8-0C50-411F-AB7F-E47553C81587}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenPatcherCli", "SenPatcherCli\SenPatcherCli.csproj", "{E410E775-6F9A-48F2-B9E1-41BB2E4B1ECF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenPatcherGui", "SenPatcherGui\SenPatcherGui.csproj", "{1E458E0B-8F4B-4996-B26D-AE7949FA10FA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileCompressor", "FileCompressor\FileCompressor.csproj", "{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lz4-sharp", "lz4-sharp\lz4-sharp\lz4-sharp.csproj", "{C70B4F5B-3B12-42AA-A32F-8DD952091F44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,14 +21,6 @@ Global
 		{2ECD67B8-06F0-4D87-9E53-B4FD334CC541}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2ECD67B8-06F0-4D87-9E53-B4FD334CC541}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2ECD67B8-06F0-4D87-9E53-B4FD334CC541}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6E153CE7-05B9-4EBA-8DE8-AD842214F60B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6E153CE7-05B9-4EBA-8DE8-AD842214F60B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6E153CE7-05B9-4EBA-8DE8-AD842214F60B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6E153CE7-05B9-4EBA-8DE8-AD842214F60B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{771553C8-0C50-411F-AB7F-E47553C81587}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{771553C8-0C50-411F-AB7F-E47553C81587}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{771553C8-0C50-411F-AB7F-E47553C81587}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{771553C8-0C50-411F-AB7F-E47553C81587}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E410E775-6F9A-48F2-B9E1-41BB2E4B1ECF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E410E775-6F9A-48F2-B9E1-41BB2E4B1ECF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E410E775-6F9A-48F2-B9E1-41BB2E4B1ECF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -47,10 +33,6 @@ Global
 		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7031D7B6-BE22-4B7F-81D8-D292C5951E9A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C70B4F5B-3B12-42AA-A32F-8DD952091F44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C70B4F5B-3B12-42AA-A32F-8DD952091F44}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C70B4F5B-3B12-42AA-A32F-8DD952091F44}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C70B4F5B-3B12-42AA-A32F-8DD952091F44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
