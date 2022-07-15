@@ -41,7 +41,8 @@ namespace SenPatcherGui {
 			}
 
 			// didn't find anything, check for plausible default paths
-			if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)) {
+			bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
+			if (isWindows) {
 				try {
 					foreach (var drive in DriveInfo.GetDrives()) {
 						foreach (string f in foldersToCheck) {
@@ -66,44 +67,45 @@ namespace SenPatcherGui {
 						}
 					}
 				} catch (Exception) { }
-			} else {
-				try {
-					foreach (string f in foldersToCheck) {
-						try {
-							string path = Path.Combine("/home/deck/.local/share/Steam/steamapps/common", f);
-							if (File.Exists(Path.Combine(path, filenameToCheck))) {
-								return path;
-							}
-						} catch (Exception) { }
-						try {
-							string path = Path.Combine("/home/" + Environment.UserName + "/.local/share/Steam/steamapps/common", f);
-							if (File.Exists(Path.Combine(path, filenameToCheck))) {
-								return path;
-							}
-						} catch (Exception) { }
-						try {
-							string path = Path.Combine("/home/" + Environment.UserName + "/.steam/root/steamapps/common", f);
-							if (File.Exists(Path.Combine(path, filenameToCheck))) {
-								return path;
-							}
-						} catch (Exception) { }
-					}
-					foreach (string mountroot in new string[] { "/run/media", "/media", "/mnt" }) {
-						try {
-							foreach (string dir in Directory.EnumerateDirectories(mountroot)) {
-								foreach (string f in foldersToCheck) {
-									try {
-										string path = Path.Combine(dir, "steamapps/common", f);
-										if (File.Exists(Path.Combine(path, filenameToCheck))) {
-											return path;
-										}
-									} catch (Exception) { }
-								}
-							}
-						} catch (Exception) { }
-					}
-				} catch (Exception) { }
 			}
+
+			string prefix = isWindows ? "Z:" : "";
+			try {
+				foreach (string f in foldersToCheck) {
+					try {
+						string path = Path.Combine(prefix + "/home/deck/.local/share/Steam/steamapps/common", f);
+						if (File.Exists(Path.Combine(path, filenameToCheck))) {
+							return path;
+						}
+					} catch (Exception) { }
+					try {
+						string path = Path.Combine(prefix + "/home/" + Environment.UserName + "/.local/share/Steam/steamapps/common", f);
+						if (File.Exists(Path.Combine(path, filenameToCheck))) {
+							return path;
+						}
+					} catch (Exception) { }
+					try {
+						string path = Path.Combine(prefix + "/home/" + Environment.UserName + "/.steam/root/steamapps/common", f);
+						if (File.Exists(Path.Combine(path, filenameToCheck))) {
+							return path;
+						}
+					} catch (Exception) { }
+				}
+				foreach (string mountroot in new string[] { "/run/media", "/media", "/mnt" }) {
+					try {
+						foreach (string dir in Directory.EnumerateDirectories(prefix + mountroot)) {
+							foreach (string f in foldersToCheck) {
+								try {
+									string path = Path.Combine(dir, "steamapps/common", f);
+									if (File.Exists(Path.Combine(path, filenameToCheck))) {
+										return path;
+									}
+								} catch (Exception) { }
+							}
+						}
+					} catch (Exception) { }
+				}
+			} catch (Exception) { }
 
 			return null;
 		}
