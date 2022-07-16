@@ -9,40 +9,47 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SenPatcherCli {
-	public class t_voice_tbl {
-		public List<t_voice_tbl_entry> Entries;
-
-		public t_voice_tbl(Stream stream, EndianUtils.Endianness e = EndianUtils.Endianness.LittleEndian) {
-			Stream s = new DuplicatableByteArrayStream(stream.CopyToByteArray());
-			ushort count = s.ReadUInt16(e);
-
-			if (s.PeekUInt32(e) == 1) {
-				// CS2 has something odd I don't fully understand at the start of the file, try to skip past that
-				s.Position += 0xe;
-			}
-
-			Entries = new List<t_voice_tbl_entry>();
-			for (int i = 0; i < count; ++i) {
-				Entries.Add(new t_voice_tbl_entry(s, e));
-			}
-
-			return;
-		}
-
-		public static int CheckVoiceTable(string pathTVoice, string pathWavdir, string outputPath) {
+	public static class t_voice_tbl {
+		public static int CheckVoiceTable(string voicetablefilename, string pathWavdir, int sengame, string outputPath, EndianUtils.Endianness endian, TextUtils.GameTextEncoding encoding) {
 			List<ushort> knownMultipleMapped = new List<ushort>();
 			List<List<t_voice_tbl_entry>> sameIndexMappedMultipleTimes = new List<List<t_voice_tbl_entry>>();
 			List<t_voice_tbl_entry> regularMapped = new List<t_voice_tbl_entry>();
 			List<t_voice_tbl_entry> mappedToNonexistentFile = new List<t_voice_tbl_entry>();
+			List<t_voice_tbl_entry> tblEntries = new List<t_voice_tbl_entry>();
 
-			var tbl = new t_voice_tbl(new DuplicatableFileStream(pathTVoice));
+			if (sengame == 1) {
+				var tbl = new SenLib.Sen1.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+				foreach (var e in tbl.Entries) {
+					var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+					tblEntries.Add(new t_voice_tbl_entry(vd.Index, vd.Name));
+				}
+			} else if (sengame == 2) {
+				var tbl = new SenLib.Sen2.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+				foreach (var e in tbl.Entries) {
+					var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+					tblEntries.Add(new t_voice_tbl_entry(vd.Index, vd.Name));
+				}
+			} else if (sengame == 3) {
+				var tbl = new SenLib.Sen3.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+				foreach (var e in tbl.Entries) {
+					var vd = new VoiceDataCS3(e.Data, endian, encoding);
+					tblEntries.Add(new t_voice_tbl_entry(vd.Index, vd.Name));
+				}
+			} else if (sengame == 4) {
+				var tbl = new SenLib.Sen4.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+				foreach (var e in tbl.Entries) {
+					var vd = new VoiceDataCS4(e.Data, endian, encoding);
+					tblEntries.Add(new t_voice_tbl_entry(vd.Index, vd.Name));
+				}
+			}
+
 			Dictionary<ushort, t_voice_tbl_entry> byIndex = new Dictionary<ushort, t_voice_tbl_entry>();
-			foreach (var e in tbl.Entries) {
+			foreach (var e in tblEntries) {
 				if (byIndex.ContainsKey(e.Index)) {
 					if (!knownMultipleMapped.Contains(e.Index)) {
 						knownMultipleMapped.Add(e.Index);
 						List<t_voice_tbl_entry> tmp = new List<t_voice_tbl_entry>();
-						foreach (var dup in tbl.Entries.Where(x => x.Index == e.Index)) {
+						foreach (var dup in tblEntries.Where(x => x.Index == e.Index)) {
 							tmp.Add(dup);
 						}
 						sameIndexMappedMultipleTimes.Add(tmp);
@@ -111,30 +118,14 @@ namespace SenPatcherCli {
 	public class t_voice_tbl_entry {
 		public ushort Index;
 		public string Name;
-		public ulong Unknown1;
-		public ulong Unknown2;
 
-		public t_voice_tbl_entry(Stream s, EndianUtils.Endianness e) {
-			string magic = s.ReadAscii(6);
-			if (magic != "voice\0") {
-				throw new Exception("unexpected format");
-			}
-
-			ushort entrysize = s.ReadUInt16(e);
-			Index = s.ReadUInt16(e);
-			Name = s.ReadAscii(entrysize - 0x11);
-			Unknown1 = s.ReadUInt56(EndianUtils.Endianness.BigEndian);
-			Unknown2 = s.ReadUInt64(EndianUtils.Endianness.BigEndian);
-
-			//if (Unknown1 != 0 || Unknown2 != 0x1000000c842) {
-			//	throw new Exception("unexpected format");
-			//}
-
-			return;
+		public t_voice_tbl_entry(ushort index, string name) {
+			Index = index;
+			Name = name;
 		}
 
 		public override string ToString() {
-			return string.Format("{0}: {1} [{2:x14}{3:x16}]", Index, Name, Unknown1, Unknown2);
+			return string.Format("{0}: {1}", Index, Name);
 		}
 	}
 }

@@ -182,27 +182,14 @@ namespace SenPatcherCli {
 				return 0;
 			}
 
-			if (args.Length == 1 && args[0] == "__gen_voice_checks") {
-				t_voice_tbl.CheckVoiceTable(
-					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/text/dat_us/t_voice.tbl"),
-					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/voice/wav"),
-					Path.Combine(SenCommonPaths.Sen1SteamDir, "voice_check_english.txt")
-				);
-				t_voice_tbl.CheckVoiceTable(
-					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/text/dat/t_voice.tbl"),
-					Path.Combine(SenCommonPaths.Sen1SteamDir, "data/voice/wav_jp"),
-					Path.Combine(SenCommonPaths.Sen1SteamDir, "voice_check_japanese.txt")
-				);
-				t_voice_tbl.CheckVoiceTable(
-					Path.Combine(SenCommonPaths.Sen2SteamDir, "data/text/dat_us/t_voice.tbl"),
-					Path.Combine(SenCommonPaths.Sen2SteamDir, "data/voice/wav"),
-					Path.Combine(SenCommonPaths.Sen2SteamDir, "voice_check_english.txt")
-				);
-				t_voice_tbl.CheckVoiceTable(
-					Path.Combine(SenCommonPaths.Sen2SteamDir, "data/text/dat/t_voice.tbl"),
-					Path.Combine(SenCommonPaths.Sen2SteamDir, "data/voice_jp/wav"),
-					Path.Combine(SenCommonPaths.Sen2SteamDir, "voice_check_japanese.txt")
-				);
+			if (args.Length >= 1 && args[0] == "--check-voices") {
+				string voice_tbl_path = args[1];
+				string voice_file_path = args[2];
+				sengame = int.Parse(args[3]);
+				EndianUtils.Endianness endian = args[4] == "be" ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian;
+				TextUtils.GameTextEncoding encoding = args[5] == "sjis" ? TextUtils.GameTextEncoding.ShiftJIS : TextUtils.GameTextEncoding.UTF8;
+				string output_path = args[6];
+				t_voice_tbl.CheckVoiceTable(voice_tbl_path, voice_file_path, sengame, output_path, endian, encoding);
 				return 0;
 			}
 
