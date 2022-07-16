@@ -29,6 +29,17 @@ namespace SenLib.Sen1.FileFixes {
 			patcher.ExtendPartialCommand(0x155cd, 0x4e, 0x15618, new byte[] { 0x20, 0x65, 0x69, 0x74, 0x68, 0x65, 0x72 });
 			patcher.ReplacePartialCommand(0x168a9, 0x2f, 0x168b1, 0x24, new byte[] { 0x57, 0x6f, 0x6f, 0x20, 0x68, 0x6f, 0x6f });
 
+			// swap 1st and 2nd line from summer festival employee handing out stuff (PS4 does this and it makes more sense)
+			bin.Position = 0x7b87;
+			byte[] line1 = bin.ReadBytes(0x31);
+			bin.Position = 0x7bc1;
+			byte[] line2 = bin.ReadBytes(0x31);
+			bin.Position = 0x7b87;
+			bin.Write(line2);
+			bin.Position = 0x7bc1;
+			bin.Write(line1);
+
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/c0100.dat", bin) };
 		}
 
