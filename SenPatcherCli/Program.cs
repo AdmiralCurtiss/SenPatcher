@@ -96,8 +96,27 @@ namespace SenPatcherCli {
 						}
 					}
 
-					var funcs = ScriptParser.Parse(fs.CopyToByteArrayStreamAndDispose(), false, byIndex, endian, sengame);
+					var bytestream = fs.CopyToByteArrayStreamAndDispose();
+					var sha1 = ChecksumUtils.CalculateSHA1ForEntireStream(bytestream);
+					var funcs = ScriptParser.Parse(bytestream, false, byIndex, endian, sengame);
 					using (var outfs = new FileStream(outputfilename, FileMode.Create)) {
+						var sha1bytes = sha1.Value;
+						outfs.WriteUTF8("new KnownFile(new SHA1(0x");
+						for (int bidx = 0; bidx < 8; ++bidx) {
+							outfs.WriteUTF8(sha1bytes[bidx].ToString("x2"));
+						}
+						outfs.WriteUTF8("ul, 0x");
+						for (int bidx = 8; bidx < 16; ++bidx) {
+							outfs.WriteUTF8(sha1bytes[bidx].ToString("x2"));
+						}
+						outfs.WriteUTF8("ul, 0x");
+						for (int bidx = 16; bidx < 20; ++bidx) {
+							outfs.WriteUTF8(sha1bytes[bidx].ToString("x2"));
+						}
+						outfs.WriteUTF8("u), \"");
+						outfs.WriteUTF8(inputfilename.Replace('\\', '/'));
+						outfs.WriteUTF8("\"),");
+						outfs.WriteUTF8("\n");
 						foreach (var func in funcs) {
 							outfs.WriteUTF8(func.Name);
 							outfs.WriteUTF8("\n");

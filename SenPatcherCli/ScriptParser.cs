@@ -117,8 +117,15 @@ namespace SenPatcherCli {
 						ReadString(s, sb, contentbytes, e, voiceIds);
 						if (LooksLikeValidString(contentbytes)) {
 							string str = Encoding.UTF8.GetString(sb.ToArray());
+							bool printDetailed = true;
 							text.Add(str);
+							if (printDetailed) {
+								long commandStart = originalPosition - 1;
+								long commandEnd = s.Position;
+								PrintDetailedTextCommandForReplacement(text, s, commandStart, commandEnd);
+							}
 						}
+
 						s.Position = originalPosition;
 					} catch (Exception ex) {
 						s.Position = originalPosition;
@@ -126,6 +133,45 @@ namespace SenPatcherCli {
 				}
 			}
 			return text;
+		}
+
+		private static void PrintDetailedTextCommandForReplacement(List<string> text, Stream s, long commandStart, long commandEnd) {
+			long p = s.Position;
+			long startAddress = commandStart & ~0xfL;
+			long endAddress = HyoutaUtils.NumberUtils.Align(commandEnd, 0x10);
+			text.Add("");
+			text.Add(string.Format("patcher.ReplacePartialCommand(0x{0:x}, 0x{1:x}, _location_, _length_, _data_);", commandStart, commandEnd - commandStart));
+			text.Add("----------  *0 *1 *2 *3 *4 *5 *6 *7 *8 *9 *a *b *c *d *e *f");
+			long currentAddress = startAddress;
+			s.Position = commandStart;
+			while (currentAddress < endAddress) {
+				int[] row = new int[16];
+				for (int i = 0; i < 16; ++i) {
+					if (currentAddress + i == s.Position && currentAddress + i < commandEnd) {
+						row[i] = s.ReadByte();
+					} else {
+						row[i] = -1;
+					}
+				}
+
+				StringBuilder sb = new StringBuilder();
+				sb.AppendFormat("0x{0:x8} ", currentAddress);
+				for (int i = 0; i < 16; ++i) {
+					sb.Append(" ").Append(row[i] == -1 ? "  " : row[i].ToString("x2"));
+				}
+				sb.Append("  ");
+				for (int i = 0; i < 16; ++i) {
+					sb.Append(row[i] >= 0x20 && row[i] <= 0x7f ? (char)row[i] : ' ');
+				}
+
+				text.Add(sb.ToString());
+				currentAddress += 16;
+			}
+
+			text.Add("");
+			text.Add("");
+
+			s.Position = p;
 		}
 
 		private static bool LooksLikeValidString(List<byte> contentbytes) {
