@@ -21,6 +21,8 @@ Feature Set for Trails of Cold Steel
 * Option to keep the game running while in background.
 * Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
 * Option to fix a bug that displays the Arts Support cut-in incorrectly at resolutions other than 1280x720.
+* Option to use CS3 font spacing when using the high-res font from CS3.
+* Option to force XInput for controllers (this supposedly fixes newer Xbox controllers)
 * Option to edit the vestigial System Data button mapping from the PS3 version.
 
 Note: Compatible with version 1.6 of the game only.
@@ -37,6 +39,9 @@ Feature Set for Trails of Cold Steel II
 * Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
 * Option to fix a bug that applies complicated button mappings incorrectly, causing the actual button actions and the displayed button prompts to mismatch.
 * Option to fix a bug that displays the Arts Support cut-in incorrectly.
+* Option to use CS3 font spacing when using the high-res font from CS3.
+* Option to force XInput for controllers (this supposedly fixes newer Xbox controllers)
+* Experimental option to fix the occasional crash when analyzing enemies.
 * Option to edit the vestigial System Data button mapping from the PS3 version.
 
 Note: Compatible with versions 1.4, 1.4.1, and 1.4.2 of the game only.
@@ -50,6 +55,7 @@ Feature Set for Trails of Cold Steel III
 * Option to allow changing difficulty to Nightmare mid-playthrough.
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to fix a bug that applies complicated button mappings incorrectly, causing the actual button actions and the displayed button prompts to mismatch.
+* Option to force XInput for controllers (this supposedly fixes newer Xbox controllers)
 * Option to keep the game running while in background.
 
 Note: Compatible with version 1.05 of the game only.
