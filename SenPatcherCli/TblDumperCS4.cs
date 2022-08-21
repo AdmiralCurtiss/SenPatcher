@@ -178,6 +178,21 @@ namespace SenPatcherCli.Sen4 {
 			System.IO.File.WriteAllText(filenametxt, sb.ToString());
 		}
 
+		public static void FixSaveChecksum(Stream stream) {
+			if (!(stream.Length == 1184 || stream.Length == 1463976)) {
+				return;
+			}
+
+			stream.Position = 0x10;
+			uint crc32 = (uint)(stream.Length - 0x10);
+			crc32 = CRC32Algorithm.crc_update(crc32, stream, (ulong)(stream.Length - 0x10));
+
+			stream.Position = 0xc;
+			stream.WriteUInt32(crc32, EndianUtils.Endianness.LittleEndian);
+
+			return;
+		}
+
 		public static void InjectItemsIntoSaveFile(string savefilename, string itemtblfilename) {
 			var tbl = new TblDumper(new HyoutaUtils.Streams.DuplicatableFileStream(itemtblfilename), EndianUtils.Endianness.LittleEndian);
 			List<ushort> itemIds = new List<ushort>();
@@ -203,7 +218,8 @@ namespace SenPatcherCli.Sen4 {
 					}
 				}
 
-				// there's a save checksum in this game, it's checked at 0x1403e7077 in the english executable, just break there and make the cmp succeed to load...
+				// there's a save checksum in this game, it's checked at 0x1403e7077 in the english executable
+				FixSaveChecksum(fs);
 			}
 
 			return;

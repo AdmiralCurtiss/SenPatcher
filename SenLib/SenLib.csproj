@@ -181,6 +181,7 @@
     <Compile Include="BookTable.cs" />
     <Compile Include="BranchHelper1Byte.cs" />
     <Compile Include="BranchHelper4Byte.cs" />
+    <Compile Include="CRC32Algorithm.cs" />
     <Compile Include="DecompressHelper.cs" />
     <Compile Include="FileModExec.cs" />
     <Compile Include="FileModInvert.cs" />
