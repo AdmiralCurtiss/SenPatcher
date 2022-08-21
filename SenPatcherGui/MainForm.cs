@@ -508,5 +508,148 @@ namespace SenPatcherGui {
 				new Sen4Form(init.Path, init.Storage).ShowDialog();
 			}
 		}
+
+		private static string LastToolboxDirectory = null;
+		private static string InitialToolboxDirectory => LastToolboxDirectory ?? Directory.GetCurrentDirectory();
+
+		private void menuItemExtractPkg_Click(object sender, EventArgs e) {
+			string inpath;
+			string outpath;
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.Title = "Select PKG to unpack";
+				d.InitialDirectory = InitialToolboxDirectory;
+				d.Filter = "CS1/2/3/4 PKG file (*.pkg)|*.pkg|All files (*.*)|*.*";
+				if (d.ShowDialog() != DialogResult.OK) {
+					return;
+				}
+				inpath = d.FileName;
+			}
+			using (SaveFileDialog d = new SaveFileDialog()) {
+				d.Title = "Select target directory name (will be created)";
+				d.InitialDirectory = Path.GetDirectoryName(inpath);
+				d.FileName = Path.GetFileName(inpath + ".ex");
+				d.Filter = "Target Directory|new directory name";
+				if (d.ShowDialog() != DialogResult.OK) {
+					return;
+				}
+				outpath = d.FileName;
+			}
+
+			LastToolboxDirectory = Path.GetDirectoryName(inpath);
+			var progressForm = new ProgressForm();
+			var progress = progressForm.GetProgressReporter();
+			var thread = new System.Threading.Thread(() => {
+				try {
+					Directory.CreateDirectory(outpath);
+					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(inpath))
+					using (var pkg = new Pkg(fs)) {
+						for (int i = 0; i < pkg.Files.Count; ++i) {
+							PkgFile file = pkg.Files[i];
+							progress.Message("Extracting " + file.Filename + "...", i, pkg.Files.Count);
+							using (var s = file.DataStream)
+							using (var outfs = new FileStream(Path.Combine(outpath, file.Filename), FileMode.Create)) {
+								StreamUtils.CopyStream(s, outfs);
+							}
+							if (progressForm.IsAlreadyClosed) {
+								throw new Exception("Closed by user.");
+							}
+						}
+					}
+					progress.Finish(true);
+				} catch (Exception ex) {
+					progress.Error(ex.Message);
+					progress.Finish(false);
+				}
+			});
+			thread.Name = "ExtractPkg";
+			thread.Start();
+			progressForm.ShowDialog();
+			thread.Join();
+		}
+
+		private void menuItemExtractPka_Click(object sender, EventArgs e) {
+			string inpath;
+			string outpath;
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.Title = "Select PKA to unpack";
+				d.InitialDirectory = InitialToolboxDirectory;
+				d.Filter = "CS3/4 PKA file (*.pka)|*.pka|All files (*.*)|*.*";
+				if (d.ShowDialog() != DialogResult.OK) {
+					return;
+				}
+				inpath = d.FileName;
+			}
+			using (SaveFileDialog d = new SaveFileDialog()) {
+				d.Title = "Select target directory name (will be created)";
+				d.InitialDirectory = Path.GetDirectoryName(inpath);
+				d.FileName = Path.GetFileName(inpath + ".ex");
+				d.Filter = "Target Directory|new directory name";
+				if (d.ShowDialog() != DialogResult.OK) {
+					return;
+				}
+				outpath = d.FileName;
+			}
+
+			LastToolboxDirectory = Path.GetDirectoryName(inpath);
+			var progressForm = new ProgressForm();
+			var progress = progressForm.GetProgressReporter();
+			var thread = new System.Threading.Thread(() => {
+				try {
+					Directory.CreateDirectory(outpath);
+					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(inpath))
+					using (var pka = new Pka(fs)) {
+						for (int i = 0; i < pka.PkgCount; ++i) {
+							string pkgName = pka.GetPkgName(i);
+							progress.Message("Extracting " + pkgName + "...", i, pka.PkgCount);
+							using (var pkgStream = pka.BuildPkgToMemory(i))
+							using (var outfs = new FileStream(Path.Combine(outpath, pkgName), FileMode.Create)) {
+								StreamUtils.CopyStream(pkgStream, outfs);
+							}
+							if (progressForm.IsAlreadyClosed) {
+								throw new Exception("Closed by user.");
+							}
+						}
+					}
+					progress.Finish(true);
+				} catch (Exception ex) {
+					progress.Error(ex.Message);
+					progress.Finish(false);
+				}
+			});
+			thread.Name = "ExtractPka";
+			thread.Start();
+			progressForm.ShowDialog();
+			thread.Join();
+		}
+
+		private void menuItemFixSaveChecksumCS4_Click(object sender, EventArgs e) {
+			string inpath;
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.Title = "Select CS4 save file to recalculate checksum for";
+				d.InitialDirectory = Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4");
+				d.Filter = "CS4 save file (*.dat)|*.dat|All files (*.*)|*.*";
+				if (d.ShowDialog() != DialogResult.OK) {
+					return;
+				}
+				inpath = d.FileName;
+			}
+
+			using (var fs = new FileStream(inpath, FileMode.Open, FileAccess.ReadWrite)) {
+				var type = SenLib.Sen4.Save.IdentifySaveFile(fs);
+				if (type == null) {
+					MessageBox.Show("This does not appear to be a CS4 save file.");
+					return;
+				}
+				try {
+					if (SenLib.Sen4.Save.FixSaveChecksum(fs)) {
+						MessageBox.Show("Checksum updated.");
+					} else {
+						MessageBox.Show("Failed updating checksum.");
+					}
+				} catch (Exception ex) {
+					MessageBox.Show("Failed updating checksum: " + ex.Message);
+				}
+			}
+		}
 	}
 }

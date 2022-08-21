@@ -23,6 +23,7 @@
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
+			this.components = new System.ComponentModel.Container();
 			this.buttonCS1Patch = new System.Windows.Forms.Button();
 			this.labelVersion = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
@@ -34,6 +35,11 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.buttonCS4Patch = new System.Windows.Forms.Button();
 			this.label4 = new System.Windows.Forms.Label();
+			this.mainMenu1 = new System.Windows.Forms.MainMenu(this.components);
+			this.menuItem1 = new System.Windows.Forms.MenuItem();
+			this.menuItemExtractPkg = new System.Windows.Forms.MenuItem();
+			this.menuItemExtractPka = new System.Windows.Forms.MenuItem();
+			this.menuItemFixSaveChecksumCS4 = new System.Windows.Forms.MenuItem();
 			this.SuspendLayout();
 			// 
 			// buttonCS1Patch
@@ -155,6 +161,38 @@
 			this.label4.TabIndex = 9;
 			this.label4.Text = "Trails of Cold Steel IV: (NISA PC release version 1.2)";
 			// 
+			// mainMenu1
+			// 
+			this.mainMenu1.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.menuItem1});
+			// 
+			// menuItem1
+			// 
+			this.menuItem1.Index = 0;
+			this.menuItem1.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.menuItemExtractPkg,
+            this.menuItemExtractPka,
+            this.menuItemFixSaveChecksumCS4});
+			this.menuItem1.Text = "Toolbox";
+			// 
+			// menuItemExtractPkg
+			// 
+			this.menuItemExtractPkg.Index = 0;
+			this.menuItemExtractPkg.Text = "Extract PKG...";
+			this.menuItemExtractPkg.Click += new System.EventHandler(this.menuItemExtractPkg_Click);
+			// 
+			// menuItemExtractPka
+			// 
+			this.menuItemExtractPka.Index = 1;
+			this.menuItemExtractPka.Text = "Extract PKA...";
+			this.menuItemExtractPka.Click += new System.EventHandler(this.menuItemExtractPka_Click);
+			// 
+			// menuItemFixSaveChecksumCS4
+			// 
+			this.menuItemFixSaveChecksumCS4.Index = 2;
+			this.menuItemFixSaveChecksumCS4.Text = "Fix Checksum of CS4 save...";
+			this.menuItemFixSaveChecksumCS4.Click += new System.EventHandler(this.menuItemFixSaveChecksumCS4_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -171,6 +209,7 @@
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.labelVersion);
 			this.Controls.Add(this.buttonCS1Patch);
+			this.Menu = this.mainMenu1;
 			this.Name = "MainForm";
 			this.Text = "SenPatcher";
 			this.ResumeLayout(false);
@@ -190,6 +229,11 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Button buttonCS4Patch;
 		private System.Windows.Forms.Label label4;
+		private System.Windows.Forms.MainMenu mainMenu1;
+		private System.Windows.Forms.MenuItem menuItem1;
+		private System.Windows.Forms.MenuItem menuItemExtractPkg;
+		private System.Windows.Forms.MenuItem menuItemExtractPka;
+		private System.Windows.Forms.MenuItem menuItemFixSaveChecksumCS4;
 	}
 }
 

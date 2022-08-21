@@ -57,12 +57,14 @@ namespace SenPatcherGui {
 		private object ThreadSyncLock = new object();
 		private object GuiUpdateThreadLock = new object();
 		private bool ShouldTerminate = false;
-		private bool IsAlreadyClosed = false;
+		public bool IsAlreadyClosed { get; private set; }
 
 		public ProgressForm() {
+			IsAlreadyClosed = false;
 			InitializeComponent();
 			Progress = new ProgressFormReporter(this);
 			PopulationThread = new Thread(GuiThreadFunc);
+			PopulationThread.Name = "ProgressFormGuiThreadFunc";
 		}
 
 		private void ProgressForm_Shown(object sender, EventArgs e) {
