@@ -27,33 +27,33 @@ namespace SenLib.Sen2 {
 		// bitfield for the Memories section in the main menu
 		// note: if a character's Ending flag is set, the dorm event is also unlocked implicitly
 		// bit 0 = Memories menu, clear locked, set unlocked
-		// bit 1 = Alisa Ending, clear seen, set locked
-		// bit 2 = Alisa Dorm Event, clear seen, set locked
-		// bit 3 = Elliot Ending, clear seen, set locked
-		// bit 4 = Elliot Dorm Event, clear seen, set locked
-		// bit 5 = Laura Ending, clear seen, set locked
-		// bit 6 = Laura Dorm Event, clear seen, set locked
-		// bit 7 = Machias Ending, clear seen, set locked
-		// bit 8 = Machias Dorm Event, clear seen, set locked
-		// bit 9 = Emma Ending, clear seen, set locked
-		// bit 10 = Emma Dorm Event, clear seen, set locked
-		// bit 11 = Jusis Ending, clear seen, set locked
-		// bit 12 = Jusis Dorm Event, clear seen, set locked
-		// bit 13 = Fie Ending, clear seen, set locked
-		// bit 14 = Fie Dorm Event, clear seen, set locked
-		// bit 15 = Gaius Ending, clear seen, set locked
-		// bit 16 = Gaius Dorm Event, clear seen, set locked
-		// bit 17 = Millium Ending, clear seen, set locked
-		// bit 18 = Millium Dorm Event, clear seen, set locked
-		// bit 18 = Sara Ending, clear seen, set locked
-		// bit 20 = Sara Dorm Event, clear seen, set locked
-		// bit 21 = Towa Ending, clear seen, set locked
-		// bit 22 = Towa Dorm Event, clear seen, set locked
-		// bit 23 = Alfin Ending, clear seen, set locked
-		// bit 24 = Alfin Dorm Event, clear seen, set locked
-		// bit 25 = Toval Farewell, clear seen, set locked
-		// bit 26 = Claire Farewell, clear seen, set locked
-		// bit 27 = Sharon Farewell, clear seen, set locked
+		// bit 1 = Alisa Ending, clear locked, set unlocked
+		// bit 2 = Alisa Dorm Event, clear locked, set unlocked
+		// bit 3 = Elliot Ending, clear locked, set unlocked
+		// bit 4 = Elliot Dorm Event, clear locked, set unlocked
+		// bit 5 = Laura Ending, clear locked, set unlocked
+		// bit 6 = Laura Dorm Event, clear locked, set unlocked
+		// bit 7 = Machias Ending, clear locked, set unlocked
+		// bit 8 = Machias Dorm Event, clear locked, set unlocked
+		// bit 9 = Emma Ending, clear locked, set unlocked
+		// bit 10 = Emma Dorm Event, clear locked, set unlocked
+		// bit 11 = Jusis Ending, clear locked, set unlocked
+		// bit 12 = Jusis Dorm Event, clear locked, set unlocked
+		// bit 13 = Fie Ending, clear locked, set unlocked
+		// bit 14 = Fie Dorm Event, clear locked, set unlocked
+		// bit 15 = Gaius Ending, clear locked, set unlocked
+		// bit 16 = Gaius Dorm Event, clear locked, set unlocked
+		// bit 17 = Millium Ending, clear locked, set unlocked
+		// bit 18 = Millium Dorm Event, clear locked, set unlocked
+		// bit 18 = Sara Ending, clear locked, set unlocked
+		// bit 20 = Sara Dorm Event, clear locked, set unlocked
+		// bit 21 = Towa Ending, clear locked, set unlocked
+		// bit 22 = Towa Dorm Event, clear locked, set unlocked
+		// bit 23 = Alfin Ending, clear locked, set unlocked
+		// bit 24 = Alfin Dorm Event, clear locked, set unlocked
+		// bit 25 = Toval Farewell, clear locked, set unlocked
+		// bit 26 = Claire Farewell, clear locked, set unlocked
+		// bit 27 = Sharon Farewell, clear locked, set unlocked
 		// bits 28-31 seem unused
 		public uint MemoriesBitfield;
 
