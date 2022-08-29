@@ -50,12 +50,9 @@
     <Compile Include="Playground.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ScriptParser.cs" />
     <Compile Include="TblDumperCS2.cs" />
     <Compile Include="TblDumperCS1.cs" />
     <Compile Include="t_voice_tbl.cs" />
-    <Compile Include="VoiceDataCS3.cs" />
-    <Compile Include="VoiceDataCS4.cs" />
     <Compile Include="VoiceTable.cs" />
     <Compile Include="wav_samples.cs" />
   </ItemGroup>

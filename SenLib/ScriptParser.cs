@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenPatcherCli {
+namespace SenLib {
 	public class ScriptFunction {
 		public string Name;
 		public List<string> Ops;
@@ -373,5 +373,45 @@ namespace SenPatcherCli {
 			ops.Add(string.Format("command 0x05"));
 		}
 		*/
+
+		public static List<ScriptFunction> ParseFull(HyoutaPluginBase.DuplicatableStream bytestream, string voicetablefilename, int sengame, EndianUtils.Endianness endian, TextUtils.GameTextEncoding encoding) {
+			Dictionary<ushort, string> byIndex = new Dictionary<ushort, string>();
+			if (sengame == 1) {
+				var tbl = new SenLib.Sen1.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+				foreach (var e in tbl.Entries) {
+					var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+					if (!byIndex.ContainsKey(vd.Index)) {
+						byIndex.Add(vd.Index, vd.Name);
+					}
+				}
+			} else if (sengame == 2) {
+				var tbl = new SenLib.Sen2.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+				foreach (var e in tbl.Entries) {
+					// tbl header is different in CS2 but voice data payload is the same as CS1
+					var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+					if (!byIndex.ContainsKey(vd.Index)) {
+						byIndex.Add(vd.Index, vd.Name);
+					}
+				}
+			} else if (sengame == 3) {
+				var tbl = new SenLib.Sen3.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+				foreach (var e in tbl.Entries) {
+					var vd = new SenLib.Sen3.VoiceDataCS3(e.Data, endian, encoding);
+					if (!byIndex.ContainsKey(vd.Index)) {
+						byIndex.Add(vd.Index, vd.Name);
+					}
+				}
+			} else if (sengame == 4) {
+				var tbl = new SenLib.Sen4.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
+				foreach (var e in tbl.Entries) {
+					var vd = new SenLib.Sen4.VoiceDataCS4(e.Data, endian, encoding);
+					if (!byIndex.ContainsKey(vd.Index)) {
+						byIndex.Add(vd.Index, vd.Name);
+					}
+				}
+			}
+
+			return Parse(bytestream, false, byIndex, endian, sengame);
+		}
 	}
 }

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenPatcherCli {
+namespace SenLib.Sen4 {
 	public class VoiceDataCS4 {
 		public ushort Index;
 		public byte Unknown0a;

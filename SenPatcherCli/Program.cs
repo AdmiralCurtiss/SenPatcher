@@ -60,45 +60,9 @@ namespace SenPatcherCli {
 				EndianUtils.Endianness endian = args[4] == "be" ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian;
 				TextUtils.GameTextEncoding encoding = args[5] == "sjis" ? TextUtils.GameTextEncoding.ShiftJIS : TextUtils.GameTextEncoding.UTF8;
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(inputfilename)) {
-					Dictionary<ushort, string> byIndex = new Dictionary<ushort, string>();
-					if (sengame == 1) {
-						var tbl = new SenLib.Sen1.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
-						foreach (var e in tbl.Entries) {
-							var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
-							if (!byIndex.ContainsKey(vd.Index)) {
-								byIndex.Add(vd.Index, vd.Name);
-							}
-						}
-					} else if (sengame == 2) {
-						var tbl = new SenLib.Sen2.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
-						foreach (var e in tbl.Entries) {
-							// tbl header is different in CS2 but voice data payload is the same as CS1
-							var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
-							if (!byIndex.ContainsKey(vd.Index)) {
-								byIndex.Add(vd.Index, vd.Name);
-							}
-						}
-					} else if (sengame == 3) {
-						var tbl = new SenLib.Sen3.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
-						foreach (var e in tbl.Entries) {
-							var vd = new VoiceDataCS3(e.Data, endian, encoding);
-							if (!byIndex.ContainsKey(vd.Index)) {
-								byIndex.Add(vd.Index, vd.Name);
-							}
-						}
-					} else if (sengame == 4) {
-						var tbl = new SenLib.Sen4.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
-						foreach (var e in tbl.Entries) {
-							var vd = new VoiceDataCS4(e.Data, endian, encoding);
-							if (!byIndex.ContainsKey(vd.Index)) {
-								byIndex.Add(vd.Index, vd.Name);
-							}
-						}
-					}
-
 					var bytestream = fs.CopyToByteArrayStreamAndDispose();
 					var sha1 = ChecksumUtils.CalculateSHA1ForEntireStream(bytestream);
-					var funcs = ScriptParser.Parse(bytestream, false, byIndex, endian, sengame);
+					var funcs = ScriptParser.ParseFull(bytestream, voicetablefilename, sengame, endian, encoding);
 					using (var outfs = new FileStream(outputfilename, FileMode.Create)) {
 						var sha1bytes = sha1.Value;
 						outfs.WriteUTF8("new KnownFile(new SHA1(0x");

@@ -203,6 +203,7 @@
     </Compile>
     <Compile Include="RegionHelper64.cs" />
     <Compile Include="RegionHelper.cs" />
+    <Compile Include="ScriptParser.cs" />
     <Compile Include="Sen1\FileFixes\ed8_exe.cs" />
     <Compile Include="Sen1\FileFixes\scripts_book_dat_us_book00_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_book_dat_us_book01_dat.cs" />
@@ -317,6 +318,7 @@
     <Compile Include="Sen3\Sen3ExecutablePatches.InGameButtonMapping.cs" />
     <Compile Include="Sen3\Sen3KnownFiles.cs" />
     <Compile Include="Sen3\Sen3Mods.cs" />
+    <Compile Include="Sen3\VoiceDataCS3.cs" />
     <Compile Include="Sen4\FileFixes\ed8_4_exe.cs" />
     <Compile Include="Sen4\FileFixes\t_item.cs" />
     <Compile Include="Sen4\FileFixes\t_mstqrt.cs" />
@@ -331,6 +333,7 @@
     <Compile Include="Sen4\Sen4KnownFiles.cs" />
     <Compile Include="Sen4\Sen4Mods.cs" />
     <Compile Include="Sen4\Tbl.cs" />
+    <Compile Include="Sen4\VoiceDataCS4.cs" />
     <Compile Include="SenCommonPaths.cs" />
     <Compile Include="SenScriptPatcher.cs" />
     <Compile Include="SenUtils.cs" />

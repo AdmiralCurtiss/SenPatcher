@@ -32,13 +32,13 @@ namespace SenPatcherCli {
 			} else if (sengame == 3) {
 				var tbl = new SenLib.Sen3.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
 				foreach (var e in tbl.Entries) {
-					var vd = new VoiceDataCS3(e.Data, endian, encoding);
+					var vd = new SenLib.Sen3.VoiceDataCS3(e.Data, endian, encoding);
 					tblEntries.Add(new t_voice_tbl_entry(vd.Index, vd.Name));
 				}
 			} else if (sengame == 4) {
 				var tbl = new SenLib.Sen4.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
 				foreach (var e in tbl.Entries) {
-					var vd = new VoiceDataCS4(e.Data, endian, encoding);
+					var vd = new SenLib.Sen4.VoiceDataCS4(e.Data, endian, encoding);
 					tblEntries.Add(new t_voice_tbl_entry(vd.Index, vd.Name));
 				}
 			}
