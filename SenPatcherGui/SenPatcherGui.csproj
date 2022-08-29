@@ -46,6 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ScriptReplaceHelperForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ScriptReplaceHelperForm.Designer.cs">
+      <DependentUpon>ScriptReplaceHelperForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Sen2VersionSelectorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -125,6 +131,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="ScriptReplaceHelperForm.resx">
+      <DependentUpon>ScriptReplaceHelperForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Sen1Form.resx">
       <DependentUpon>Sen1Form.cs</DependentUpon>
     </EmbeddedResource>

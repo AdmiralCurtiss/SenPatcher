@@ -62,7 +62,7 @@ namespace SenPatcherCli {
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(inputfilename)) {
 					var bytestream = fs.CopyToByteArrayStreamAndDispose();
 					var sha1 = ChecksumUtils.CalculateSHA1ForEntireStream(bytestream);
-					var funcs = ScriptParser.ParseFull(bytestream, voicetablefilename, sengame, endian, encoding);
+					var funcs = ScriptParser.ParseFull(bytestream, voicetablefilename, sengame, endian, encoding, printDetailed: true);
 					using (var outfs = new FileStream(outputfilename, FileMode.Create)) {
 						var sha1bytes = sha1.Value;
 						outfs.WriteUTF8("new KnownFile(new SHA1(0x");
@@ -86,8 +86,12 @@ namespace SenPatcherCli {
 							outfs.WriteUTF8("\n");
 							outfs.WriteUTF8("\n");
 							foreach (var op in func.Ops) {
-								outfs.WriteUTF8(op);
+								outfs.WriteUTF8(op.StringRep);
 								outfs.WriteUTF8("\n");
+								if (op.DetailedString != null) {
+									outfs.WriteUTF8(op.DetailedString);
+									outfs.WriteUTF8("\n");
+								}
 							}
 							outfs.WriteUTF8("\n");
 							outfs.WriteUTF8("\n");
