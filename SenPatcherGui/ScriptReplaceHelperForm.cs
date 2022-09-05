@@ -1,4 +1,5 @@
 ﻿using HyoutaUtils;
+using HyoutaUtils.Checksum;
 using SenLib;
 using System;
 using System.Collections.Generic;
@@ -41,31 +42,135 @@ namespace SenPatcherGui {
 			int offset = StripCommonPrefix(search, replace);
 			StripCommonPostfix(search, replace);
 
+			if (search.Count == 0 && replace.Count == 0) {
+				textBoxOutput.Text = "[identical search/replace]";
+				return;
+			}
+
 			StringBuilder sb = new StringBuilder();
 			using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(inputfilename)) {
 				var bytestream = fs.CopyToByteArrayStreamAndDispose();
 				var sha1 = ChecksumUtils.CalculateSHA1ForEntireStream(bytestream);
 				var funcs = ScriptParser.ParseFull(bytestream, voicetablefilename, sengame, endian, encoding, printDetailed: false);
+
+				sb.AppendLine("using HyoutaUtils;");
+				sb.AppendLine("using HyoutaUtils.Streams;");
+				sb.AppendLine("using System;");
+				sb.AppendLine("using System.Collections.Generic;");
+				sb.AppendLine("using System.Linq;");
+				sb.AppendLine("using System.Text;");
+				sb.AppendLine("using System.Threading.Tasks;");
+				sb.AppendLine();
+				sb.AppendFormat("namespace SenLib.Sen{0}.FileFixes {1}", sengame, "{");
+				sb.AppendLine();
+				sb.AppendFormat("\tclass {0} : FileMod {1}", Path.GetFileName(inputfilename).Replace(".", "_"), "{");
+				sb.AppendLine();
+				sb.AppendLine("\t\tpublic string GetDescription() {");
+				sb.AppendLine("\t\t\t//return \"\";");
+				sb.AppendLine("\t\t}");
+				sb.AppendLine();
+				sb.AppendLine("\t\tpublic IEnumerable<FileModResult> TryApply(FileStorage storage) {");
+				sb.AppendFormat("\t\t\tvar file = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1({0}));", GetChecksumString(sha1));
+				sb.AppendLine();
+				sb.AppendLine("\t\t\tif (file == null) {");
+				sb.AppendLine("\t\t\t\treturn null;");
+				sb.AppendLine("\t\t\t}");
+				sb.AppendLine();
+				sb.AppendLine("\t\t\t// UNTESTED");
+				sb.AppendLine("\t\t\tvar bin = file.CopyToMemory();");
+				sb.AppendLine("\t\t\tvar patcher = new SenScriptPatcher(bin);");
+				sb.AppendLine();
+
 				foreach (var func in funcs) {
 					foreach (var op in func.Ops) {
 						for (int i = 0; i < op.Bytes.Length - rawsearch.Count - 1; ++i) {
 							if (op.Bytes[i] == rawsearch[0] && ArrayUtils.IsByteArrayPartEqual(op.Bytes, i, rawsearch, 0, rawsearch.Count)) {
-								sb.AppendLine(
-									string.Format(
-											"patcher.ReplacePartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, 0x{3:x}, {4});",
-											op.Position,
-											op.Bytes.Length,
-											op.Position + i + offset,
-											search.Count,
-											NewByteArrayString(replace)
-										)
+								if (search.Count == 0) {
+									sb.AppendFormat(
+										"\t\t\t//patcher.ExtendPartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, {3});",
+										op.Position,
+										op.Bytes.Length,
+										op.Position + i + offset,
+										NewByteArrayString(replace)
 									);
+									sb.AppendLine();
+								} else if (replace.Count == 0) {
+									sb.AppendFormat(
+										"\t\t\t//patcher.RemovePartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, 0x{3:x});",
+										op.Position,
+										op.Bytes.Length,
+										op.Position + i + offset,
+										search.Count
+									);
+									sb.AppendLine();
+								} else {
+									sb.AppendFormat(
+										"\t\t\t//patcher.ReplacePartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, 0x{3:x}, {4});",
+										op.Position,
+										op.Bytes.Length,
+										op.Position + i + offset,
+										search.Count,
+										NewByteArrayString(replace)
+									);
+									sb.AppendLine();
+								}
+								if (search.Count == replace.Count) {
+									sb.AppendFormat("\t\t\t//bin.Position = 0x{0:x};", op.Position + i + offset);
+									sb.AppendLine();
+									sb.AppendFormat("\t\t\t//bin.Write({0});", NewByteArrayString(replace));
+									sb.AppendLine();
+								}
 							}
 						}
 					}
 				}
+
+				sb.AppendLine();
+				sb.AppendFormat("\t\t\treturn new FileModResult[] {1} new FileModResult(\"{0}\", bin) {2};", GetRelativePath(inputfilename), "{", "}");
+				sb.AppendLine();
+				sb.AppendLine("\t\t}");
+				sb.AppendLine();
+				sb.AppendLine("\t\tpublic IEnumerable<FileModResult> TryRevert(FileStorage storage) {");
+				sb.AppendFormat("\t\t\tvar file = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1({0}));", GetChecksumString(sha1));
+				sb.AppendLine();
+				sb.AppendLine("\t\t\tif (file == null) {");
+				sb.AppendLine("\t\t\t\treturn null;");
+				sb.AppendLine("\t\t\t}");
+				sb.AppendFormat("\t\t\treturn new FileModResult[] {1} new FileModResult(\"{0}\", file) {2};", GetRelativePath(inputfilename), "{", "}");
+				sb.AppendLine();
+				sb.AppendLine("\t\t}");
+				sb.AppendLine("\t}");
+				sb.AppendLine("}");
 			}
 			textBoxOutput.Text = sb.ToString();
+		}
+
+		private object GetRelativePath(string inputfilename) {
+			string fw = inputfilename.Replace("\\", "/");
+			int dataidx = fw.LastIndexOf("/data/");
+			if (dataidx != -1) {
+				fw = fw.Substring(dataidx + 1);
+			}
+			return fw;
+		}
+
+		private object GetChecksumString(SHA1 sha1) {
+			var sha1bytes = sha1.Value;
+			StringBuilder sb = new StringBuilder();
+			sb.Append("0x");
+			for (int bidx = 0; bidx < 8; ++bidx) {
+				sb.Append(sha1bytes[bidx].ToString("x2"));
+			}
+			sb.Append("ul, 0x");
+			for (int bidx = 8; bidx < 16; ++bidx) {
+				sb.Append(sha1bytes[bidx].ToString("x2"));
+			}
+			sb.Append("ul, 0x");
+			for (int bidx = 16; bidx < 20; ++bidx) {
+				sb.Append(sha1bytes[bidx].ToString("x2"));
+			}
+			sb.Append("u");
+			return sb.ToString();
 		}
 
 		private string NewByteArrayString(List<byte> replace) {
