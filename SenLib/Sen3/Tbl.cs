@@ -51,6 +51,22 @@ namespace SenLib.Sen3 {
 					stream.Position = p;
 					return length;
 				}
+				case "NameTableData": {
+					// like above, some entries have wrong length
+					stream.DiscardBytes(2);
+					long p = stream.Position;
+					stream.DiscardBytes(2);
+					stream.ReadNulltermString(encoding);
+					stream.ReadNulltermString(encoding);
+					stream.ReadNulltermString(encoding);
+					stream.ReadNulltermString(encoding);
+					stream.ReadNulltermString(encoding);
+					stream.ReadNulltermString(encoding);
+					stream.DiscardBytes(19);
+					ushort length = (ushort)(stream.Position - p);
+					stream.Position = p;
+					return length;
+				}
 				default:
 					return stream.ReadUInt16(e);
 			}
