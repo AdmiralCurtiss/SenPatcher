@@ -257,6 +257,13 @@ namespace SenLib.Sen3.FileFixes {
 				tbl_en.Entries[idx].Data = m.ToBinary();
 			}
 
+			// Extra comma in Sandy-grown stuff
+			foreach (int idx in new int[] { 68, 69, 70 }) {
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				m.desc = m.desc.Replace(", ", " ");
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
 			// normalize newlines
 			for (int i = 0; i < tbl_en.Entries.Count; ++i) {
 				var e = tbl_en.Entries[i];
