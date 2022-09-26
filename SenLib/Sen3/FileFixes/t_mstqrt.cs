@@ -83,6 +83,23 @@ namespace SenLib.Sen3.FileFixes {
 				tbl_en.Entries[393].Data = m.ToBinary();
 			}
 
+			// Add leading fullwidth space to all MQ effect descriptions, CS4 does this and it looks much nicer.
+			for (int i = 0; i < tbl_en.Entries.Count; ++i) {
+				var e = tbl_en.Entries[i];
+				if (e.Name == "MasterQuartzMemo") {
+					var m = new MasterQuartzMemo(e.Data);
+					if (!m.str.StartsWith("\u2605")) {
+						m.str = m.str.Insert(m.str.StartsWith("$") ? 1 : 0, "\u3000");
+						if (i == 191) {
+							m.str = m.str.ReplaceSubstring(m.str.LastIndexOf("\n") + 1, 1, "\u3000", 0, 1);
+						} else if (i == 393) {
+							m.str = m.str.Insert(m.str.LastIndexOf("\n") + 1, "\u3000");
+						}
+					}
+					e.Data = m.ToBinary();
+				}
+			}
+
 			Stream result_en = new MemoryStream();
 			tbl_en.WriteToStream(result_en, EndianUtils.Endianness.LittleEndian);
 			Stream result_fr = new MemoryStream();
