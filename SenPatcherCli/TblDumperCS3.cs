@@ -36,6 +36,8 @@ namespace SenPatcherCli.Sen3 {
 		QSTitle,
 
 		NameTableData,
+
+		MapJumpData,
 	}
 
 	public class TblDumper {
@@ -396,6 +398,31 @@ namespace SenPatcherCli.Sen3 {
 						sb.AppendFormat("\n{0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
 						sb.AppendFormat("\n{0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
 						sb.AppendFormat("\n{0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.AppendFormat("\n{0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.AppendFormat("\n{0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.Append("\n");
+						while (true) {
+							int b = stream.ReadByte();
+							if (b == -1)
+								break;
+							sb.AppendFormat(" {0:x2}", b);
+						}
+						sb.Append("\n");
+						break;
+					case TblType.MapJumpData:
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.AppendFormat("\n{0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
 						sb.AppendFormat("\n{0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
 						sb.AppendFormat("\n{0}", stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
 						sb.Append("\n");
