@@ -89,6 +89,24 @@ namespace SenLib.Sen3.FileFixes {
 				}
 			}
 
+			// Radiant Wings seems to have its description incorrectly copied from CS2
+			// PS4 patch 1.03 changes it to "Stokes the fighting spirit, increasing one's strength.", use that
+			{
+				var m = new MagicData(tbl_en.Entries[89].Data);
+				string s = "";
+				s += new MagicData(tbl_en.Entries[109].Data).name.Substring(5, 3);
+				s += new MagicData(tbl_en.Entries[152].Data).desc.Substring(147, 8);
+				s += new MagicData(tbl_en.Entries[35].Data).desc.Substring(86, 15);
+				s += new MagicData(tbl_en.Entries[24].Data).desc.Substring(115, 4);
+				s += m.desc.Substring(85, 5);
+				s += new MagicData(tbl_en.Entries[168].Data).desc.Substring(37, 6);
+				s += new MagicData(tbl_en.Entries[231].Data).desc.Substring(30, 4);
+				s += m.desc.Substring(93, 8);
+				s += m.desc[m.desc.Length - 1];
+				m.desc = m.desc.ReplaceSubstring(83, 56, s, 0, s.Length);
+				tbl_en.Entries[89].Data = m.ToBinary();
+			}
+
 			// normalize newlines
 			for (int i = 0; i < tbl_en.Entries.Count; ++i) {
 				var e = tbl_en.Entries[i];
