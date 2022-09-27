@@ -56,6 +56,25 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.insa09());
 			f.Add(new FileFixes.t0260_dat());
 			f.Add(new FileFixes.f2000_dat());
+			f.Add(new FileFixes.a0417_dat());
+			f.Add(new FileFixes.c0200_dat());
+			f.Add(new FileFixes.c0430_dat());
+			f.Add(new FileFixes.c0830_dat());
+			f.Add(new FileFixes.f0010_dat());
+			f.Add(new FileFixes.m0600_dat());
+			f.Add(new FileFixes.t3000_dat());
+			f.Add(new FileFixes.t3200_dat());
+			f.Add(new FileFixes.t3220_dat());
+			f.Add(new FileFixes.m4004_dat());
+			f.Add(new FileFixes.c3610_dat());
+			f.Add(new FileFixes.r4290_dat());
+			f.Add(new FileFixes.r0210_dat());
+			f.Add(new FileFixes.m3000_dat());
+			f.Add(new FileFixes.m0000_dat());
+			f.Add(new FileFixes.m0100_dat());
+			f.Add(new FileFixes.m0300_dat());
+			f.Add(new FileFixes.t0410_dat());
+			f.Add(new FileFixes.v0050_dat());
 			return f;
 		}
 	}
