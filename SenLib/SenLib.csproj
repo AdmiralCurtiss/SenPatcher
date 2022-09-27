@@ -300,6 +300,7 @@
     <Compile Include="Sen3\FileFixes\insa08.cs" />
     <Compile Include="Sen3\FileFixes\insa09.cs" />
     <Compile Include="Sen3\FileFixes\t0260_dat.cs" />
+    <Compile Include="Sen3\FileFixes\t_vctiming_us.cs" />
     <Compile Include="Sen3\FileFixes\t_place.cs" />
     <Compile Include="Sen3\FileFixes\t_jump.cs" />
     <Compile Include="Sen3\FileFixes\t_name.cs" />
@@ -311,6 +312,7 @@
     <Compile Include="Sen3\FileFixes\I_JMP009_pkg.cs" />
     <Compile Include="Sen3\FileFixes\I_CVIS1008_pkg.cs" />
     <Compile Include="Sen3\FileFixes\I_CVIS0061_pkg.cs" />
+    <Compile Include="Sen3\FileFixes\voice_opus_ps4_103.cs" />
     <Compile Include="Sen3\FileFixes\voice_opus_v00s2728.cs" />
     <Compile Include="Sen3\FileFixes\voice_opus_v00e0441.cs" />
     <Compile Include="Sen3\Sen3ExecutablePatches.FixControllerMappings.cs" />
@@ -383,9 +385,31 @@
     <None Include="Sen3\FileFixes\insa_08.bin" />
     <None Include="Sen3\FileFixes\insa_09.bin" />
     <None Include="Sen3\FileFixes\jump009.bin" />
+    <None Include="Sen3\FileFixes\v00_e0427.bin" />
     <None Include="Sen3\FileFixes\v00_e0441.bin" />
+    <None Include="Sen3\FileFixes\v00_e1032.bin" />
+    <None Include="Sen3\FileFixes\v00_e1054.bin" />
     <None Include="Sen3\FileFixes\v00_s0027.bin" />
     <None Include="Sen3\FileFixes\v00_s0028.bin" />
+    <None Include="Sen3\FileFixes\v00_s0081.bin" />
+    <None Include="Sen3\FileFixes\v00_s0264.bin" />
+    <None Include="Sen3\FileFixes\v20_e0066.bin" />
+    <None Include="Sen3\FileFixes\v27_e0042.bin" />
+    <None Include="Sen3\FileFixes\v31_e0070.bin" />
+    <None Include="Sen3\FileFixes\v43_e0023.bin" />
+    <None Include="Sen3\FileFixes\v49_e0004.bin" />
+    <None Include="Sen3\FileFixes\v52_e0109.bin" />
+    <None Include="Sen3\FileFixes\v52_e0119.bin" />
+    <None Include="Sen3\FileFixes\v55_e0018.bin" />
+    <None Include="Sen3\FileFixes\v55_e0062.bin" />
+    <None Include="Sen3\FileFixes\v56_e0080.bin" />
+    <None Include="Sen3\FileFixes\v56_e0092.bin" />
+    <None Include="Sen3\FileFixes\v57_e0020.bin" />
+    <None Include="Sen3\FileFixes\v64_e0040.bin" />
+    <None Include="Sen3\FileFixes\v72_e0005.bin" />
+    <None Include="Sen3\FileFixes\v72_e0011.bin" />
+    <None Include="Sen3\FileFixes\v72_e0012.bin" />
+    <None Include="Sen3\FileFixes\v93_e0300.bin" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

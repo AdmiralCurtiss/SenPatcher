@@ -111,6 +111,7 @@ namespace SenLib.Sen3 {
 			new KnownFile(new SHA1(0xa2720e94f597640dul, 0xecd1d978b6b8f731ul, 0x147578a6u), "data/text/dat_en/t_text.tbl"),
 			new KnownFile(new SHA1(0xec2b652621dd2b31ul, 0x9beabce7c923f2e8ul, 0x67bd1abfu), "data/text/dat_fr/t_text.tbl"),
 			new KnownFile(new SHA1(0x82c78ea6050e0648ul, 0x69f7428b92788e8aul, 0xa22dbac1u), "data/text/dat_en/t_vctiming_us.tbl", "data/text/dat_fr/t_vctiming_us.tbl"),
+			new KnownFile(new SHA1(0x3f0b2757fd9c17abul, 0x1aeb6f38e323d6fbul, 0x4d6cdaadu), "data/text/dat_en/t_voice.tbl", "data/text/dat_fr/t_voice.tbl"),
 			new KnownFile(new SHA1(0x47177b904afb4c7ful, 0x6a7b3dcd71d9f336ul, 0xa510479au), "data/voice_us/opus/v00_e0427.opus"),
 			new KnownFile(new SHA1(0x07fb5a4afb6719fful, 0x611f4641e90ad652ul, 0x23d0fae3u), "data/voice_us/opus/v00_e0441.opus"),
 			new KnownFile(new SHA1(0x705db9fda94fcee7ul, 0x9ee44e1c7a81f8adul, 0xfbd9aaddu), "data/voice_us/opus/v00_e1032.opus"),

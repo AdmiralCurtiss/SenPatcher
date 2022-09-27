@@ -49,6 +49,8 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.t_notecook());
 			f.Add(new FileFixes.t_place());
 			f.Add(new FileFixes.t_text(allowSwitchToNightmare));
+			f.Add(new FileFixes.voice_opus_ps4_103());
+			f.Add(new FileFixes.t_vctiming_us());
 			f.Add(new FileFixes.insa05());
 			f.Add(new FileFixes.insa08());
 			f.Add(new FileFixes.insa09());

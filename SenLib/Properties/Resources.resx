@@ -190,14 +190,80 @@
   <data name="t1001_dat_to_tbl" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen2\FileFixes\t1001_dat_to_tbl.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="v00_e0427" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v00_e0427.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="v00_e0441" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen3\FileFixes\v00_e0441.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v00_e1032" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v00_e1032.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v00_e1054" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v00_e1054.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="v00_s0027" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen3\FileFixes\v00_s0027.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="v00_s0028" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen3\FileFixes\v00_s0028.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v00_s0081" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v00_s0081.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v00_s0264" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v00_s0264.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v20_e0066" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v20_e0066.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v27_e0042" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v27_e0042.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v31_e0070" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v31_e0070.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v43_e0023" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v43_e0023.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v49_e0004" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v49_e0004.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v52_e0109" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v52_e0109.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v52_e0119" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v52_e0119.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v55_e0018" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v55_e0018.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v55_e0062" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v55_e0062.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v56_e0080" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v56_e0080.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v56_e0092" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v56_e0092.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v57_e0020" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v57_e0020.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v64_e0040" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v64_e0040.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v72_e0005" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v72_e0005.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v72_e0011" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v72_e0011.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v72_e0012" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v72_e0012.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="v93_e0300" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\v93_e0300.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="vctiming_jp_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\vctiming_jp_3.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

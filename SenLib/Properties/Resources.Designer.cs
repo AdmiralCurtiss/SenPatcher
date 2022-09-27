@@ -19,7 +19,7 @@ namespace SenLib.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -303,9 +303,39 @@ namespace SenLib.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] v00_e0427 {
+            get {
+                object obj = ResourceManager.GetObject("v00_e0427", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] v00_e0441 {
             get {
                 object obj = ResourceManager.GetObject("v00_e0441", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v00_e1032 {
+            get {
+                object obj = ResourceManager.GetObject("v00_e1032", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v00_e1054 {
+            get {
+                object obj = ResourceManager.GetObject("v00_e1054", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -326,6 +356,196 @@ namespace SenLib.Properties {
         internal static byte[] v00_s0028 {
             get {
                 object obj = ResourceManager.GetObject("v00_s0028", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v00_s0081 {
+            get {
+                object obj = ResourceManager.GetObject("v00_s0081", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v00_s0264 {
+            get {
+                object obj = ResourceManager.GetObject("v00_s0264", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v20_e0066 {
+            get {
+                object obj = ResourceManager.GetObject("v20_e0066", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v27_e0042 {
+            get {
+                object obj = ResourceManager.GetObject("v27_e0042", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v31_e0070 {
+            get {
+                object obj = ResourceManager.GetObject("v31_e0070", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v43_e0023 {
+            get {
+                object obj = ResourceManager.GetObject("v43_e0023", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v49_e0004 {
+            get {
+                object obj = ResourceManager.GetObject("v49_e0004", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v52_e0109 {
+            get {
+                object obj = ResourceManager.GetObject("v52_e0109", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v52_e0119 {
+            get {
+                object obj = ResourceManager.GetObject("v52_e0119", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v55_e0018 {
+            get {
+                object obj = ResourceManager.GetObject("v55_e0018", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v55_e0062 {
+            get {
+                object obj = ResourceManager.GetObject("v55_e0062", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v56_e0080 {
+            get {
+                object obj = ResourceManager.GetObject("v56_e0080", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v56_e0092 {
+            get {
+                object obj = ResourceManager.GetObject("v56_e0092", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v57_e0020 {
+            get {
+                object obj = ResourceManager.GetObject("v57_e0020", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v64_e0040 {
+            get {
+                object obj = ResourceManager.GetObject("v64_e0040", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v72_e0005 {
+            get {
+                object obj = ResourceManager.GetObject("v72_e0005", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v72_e0011 {
+            get {
+                object obj = ResourceManager.GetObject("v72_e0011", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v72_e0012 {
+            get {
+                object obj = ResourceManager.GetObject("v72_e0012", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] v93_e0300 {
+            get {
+                object obj = ResourceManager.GetObject("v93_e0300", resourceCulture);
                 return ((byte[])(obj));
             }
         }

@@ -20,7 +20,7 @@ namespace SenLib.Sen3 {
 			for (uint i = 0; i < definitionCount; ++i) {
 				var d = new TblDefinition();
 				d.Name = stream.ReadNulltermString(encoding);
-				d.Unknown = stream.ReadUInt32(e);
+				d.NumberOfEntries = stream.ReadUInt32(e);
 				definitions.Add(d);
 			}
 
@@ -72,12 +72,23 @@ namespace SenLib.Sen3 {
 			}
 		}
 
+		public void RecalcNumberOfEntries() {
+			Dictionary<string, TblDefinition> lookup = new Dictionary<string, TblDefinition>();
+			foreach (TblDefinition def in Definitions) {
+				lookup.Add(def.Name, def);
+				def.NumberOfEntries = 0;
+			}
+			foreach (TblEntry entry in Entries) {
+				lookup[entry.Name].NumberOfEntries += 1;
+			}
+		}
+
 		public void WriteToStream(Stream s, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
 			s.WriteUInt16((ushort)Entries.Count, e);
 			s.WriteUInt32((uint)Definitions.Count, e);
 			foreach (TblDefinition def in Definitions) {
 				s.WriteNulltermString(def.Name, encoding);
-				s.WriteUInt32(def.Unknown, e);
+				s.WriteUInt32(def.NumberOfEntries, e);
 			}
 			foreach (TblEntry entry in Entries) {
 				s.WriteNulltermString(entry.Name, encoding);
@@ -89,7 +100,7 @@ namespace SenLib.Sen3 {
 
 	public class TblDefinition {
 		public string Name;
-		public uint Unknown;
+		public uint NumberOfEntries;
 
 		public override string ToString() {
 			return Name;

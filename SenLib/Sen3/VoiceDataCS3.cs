@@ -26,5 +26,17 @@ namespace SenLib.Sen3 {
 			Unknown2 = s.ReadUInt16(e);
 			Unknown3 = s.ReadUInt32(e);
 		}
+
+		public byte[] ToBinary(EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding = TextUtils.GameTextEncoding.UTF8) {
+			var s = new System.IO.MemoryStream();
+			s.WriteUInt16(Index, e);
+			s.WriteUInt8(Unknown0a);
+			s.WriteNulltermString(Name, encoding);
+			s.WriteUInt32(Unknown0b, e);
+			s.WriteUInt64(Unknown1, e);
+			s.WriteUInt16(Unknown2, e);
+			s.WriteUInt32(Unknown3, e);
+			return s.CopyToByteArrayAndDispose();
+		}
 	}
 }
