@@ -40,6 +40,7 @@
 			this.menuItemExtractPkg = new System.Windows.Forms.MenuItem();
 			this.menuItemExtractPka = new System.Windows.Forms.MenuItem();
 			this.menuItemFixSaveChecksumCS4 = new System.Windows.Forms.MenuItem();
+			this.menuItemDecompressType2LE = new System.Windows.Forms.MenuItem();
 			this.SuspendLayout();
 			// 
 			// buttonCS1Patch
@@ -172,7 +173,8 @@
 			this.menuItem1.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.menuItemExtractPkg,
             this.menuItemExtractPka,
-            this.menuItemFixSaveChecksumCS4});
+            this.menuItemFixSaveChecksumCS4,
+            this.menuItemDecompressType2LE});
 			this.menuItem1.Text = "Toolbox";
 			// 
 			// menuItemExtractPkg
@@ -192,6 +194,12 @@
 			this.menuItemFixSaveChecksumCS4.Index = 2;
 			this.menuItemFixSaveChecksumCS4.Text = "Fix Checksum of CS4 save...";
 			this.menuItemFixSaveChecksumCS4.Click += new System.EventHandler(this.menuItemFixSaveChecksumCS4_Click);
+			// 
+			// menuItemDecompressType2LE
+			// 
+			this.menuItemDecompressType2LE.Index = 3;
+			this.menuItemDecompressType2LE.Text = "Decompress PKG Type 1 (little endian)...";
+			this.menuItemDecompressType2LE.Click += new System.EventHandler(this.menuItemDecompressType1LE);
 			// 
 			// MainForm
 			// 
@@ -234,6 +242,7 @@
 		private System.Windows.Forms.MenuItem menuItemExtractPkg;
 		private System.Windows.Forms.MenuItem menuItemExtractPka;
 		private System.Windows.Forms.MenuItem menuItemFixSaveChecksumCS4;
+		private System.Windows.Forms.MenuItem menuItemDecompressType2LE;
 	}
 }
 

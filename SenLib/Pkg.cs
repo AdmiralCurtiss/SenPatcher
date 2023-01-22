@@ -109,6 +109,56 @@ namespace SenLib {
 			Data = new PartialStream(s, position, compressedSize);
 		}
 
+		public static byte[] DecompressType1(Stream stream, EndianUtils.Endianness e) {
+			// decompressed size not known, trust stream itself
+			return DecompressType1(stream, stream.ReadUInt32(e), e, true);
+		}
+
+		public static byte[] DecompressType1(Stream stream, long uncompressedSize, EndianUtils.Endianness e) {
+			return DecompressType1(stream, uncompressedSize, e, false);
+		}
+
+		public static byte[] DecompressType1(Stream stream, long uncompressedSize, EndianUtils.Endianness e, bool targetSizeAlreadyRead) {
+			// decompression algorithm derived from 0x41aa50 in CS2
+			// very simple, can only copy verbatim bytes or reference already written bytes
+			byte[] target = new byte[uncompressedSize];
+			uint targetSize = targetSizeAlreadyRead ? (uint)uncompressedSize : stream.ReadUInt32(e); // seems to be unused
+			uint sourceSize = stream.ReadUInt32(e);
+			int backrefByte = stream.ReadInt32(e); // this is in fact read and compared as a 32-bit int
+			uint targetPosition = 0;
+			uint sourcePosition = 12;
+			while (sourcePosition < sourceSize) {
+				byte sourceByte = stream.ReadUInt8();
+				++sourcePosition;
+				if (sourceByte == backrefByte) {
+					int backrefOffset = stream.ReadUInt8();
+					++sourcePosition;
+					if (backrefOffset == backrefByte) {
+						target[targetPosition] = (byte)backrefByte;
+						++targetPosition;
+					} else {
+						if (backrefByte < backrefOffset) {
+							--backrefOffset;
+						}
+						uint backrefLength = stream.ReadUInt8();
+						++sourcePosition;
+						for (uint i = 0; i < backrefLength; ++i) {
+							target[targetPosition + i] = target[targetPosition - backrefOffset + i];
+						}
+						targetPosition += backrefLength;
+					}
+				} else {
+					target[targetPosition] = sourceByte;
+					++targetPosition;
+				}
+			}
+			if (targetSize != targetPosition) {
+				Console.WriteLine("WARNING: Decompressed file is different filesize than expected. (type 1)");
+			}
+
+			return target;
+		}
+
 		private static DuplicatableStream DecompressInternal(uint type, DuplicatableStream stream, long uncompressedSize, EndianUtils.Endianness e) {
 			switch (type) {
 				case 0: {
@@ -116,42 +166,7 @@ namespace SenLib {
 					return stream.Position != 0 ? new PartialStream(stream, stream.Position, stream.Length - stream.Position) : stream;
 				}
 				case 1: {
-					// decompression algorithm derived from 0x41aa50 in CS2
-					// very simple, can only copy verbatim bytes or reference already written bytes
-					byte[] target = new byte[uncompressedSize];
-					uint targetSize = stream.ReadUInt32(e); // seems to be unused
-					uint sourceSize = stream.ReadUInt32(e);
-					int backrefByte = stream.ReadInt32(e); // this is in fact read and compared as a 32-bit int
-					uint targetPosition = 0;
-					uint sourcePosition = 12;
-					while (sourcePosition < sourceSize) {
-						byte sourceByte = stream.ReadUInt8();
-						++sourcePosition;
-						if (sourceByte == backrefByte) {
-							int backrefOffset = stream.ReadUInt8();
-							++sourcePosition;
-							if (backrefOffset == backrefByte) {
-								target[targetPosition] = (byte)backrefByte;
-								++targetPosition;
-							} else {
-								if (backrefByte < backrefOffset) {
-									--backrefOffset;
-								}
-								uint backrefLength = stream.ReadUInt8();
-								++sourcePosition;
-								for (uint i = 0; i < backrefLength; ++i) {
-									target[targetPosition + i] = target[targetPosition - backrefOffset + i];
-								}
-								targetPosition += backrefLength;
-							}
-						} else {
-							target[targetPosition] = sourceByte;
-							++targetPosition;
-						}
-					}
-					if (targetSize != targetPosition) {
-						Console.WriteLine("WARNING: Decompressed file is different filesize than expected. (type 1)");
-					}
+					byte[] target = DecompressType1(stream, uncompressedSize, e);
 					return new DuplicatableByteArrayStream(target);
 				}
 				case 4: {

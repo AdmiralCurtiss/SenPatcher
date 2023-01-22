@@ -651,5 +651,40 @@ namespace SenPatcherGui {
 				}
 			}
 		}
+
+		private void menuItemDecompressType1LE(object sender, EventArgs e) {
+			string inpath;
+			string outpath;
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.Title = "Select Type 1 compressed file";
+				d.InitialDirectory = InitialToolboxDirectory;
+				d.Filter = "All files (*.*)|*.*";
+				if (d.ShowDialog() != DialogResult.OK) {
+					return;
+				}
+				inpath = d.FileName;
+			}
+			using (SaveFileDialog d = new SaveFileDialog()) {
+				d.Title = "Select target file";
+				d.InitialDirectory = Path.GetDirectoryName(inpath);
+				d.FileName = Path.GetFileName(inpath + ".dec");
+				d.Filter = "All files (*.*)|*.*";
+				if (d.ShowDialog() != DialogResult.OK) {
+					return;
+				}
+				outpath = d.FileName;
+			}
+
+			LastToolboxDirectory = Path.GetDirectoryName(inpath);
+			using (var fs = new FileStream(inpath, FileMode.Open, FileAccess.ReadWrite)) {
+				try {
+					var output = SenLib.PkgFile.DecompressType1(fs, EndianUtils.Endianness.LittleEndian);
+					System.IO.File.WriteAllBytes(outpath, output);
+					MessageBox.Show("Wrote " + output.Length + " bytes.");
+				} catch (Exception ex) {
+					MessageBox.Show("Decompression failed: " + ex.Message);
+				}
+			}
+		}
 	}
 }
