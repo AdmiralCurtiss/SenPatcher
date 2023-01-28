@@ -323,6 +323,129 @@ namespace SenPatcherCli {
 			//}
 			//SenPatcherCli.Sen2.TblDumper.Dump(@"c:\__ed8\__script-compare_cs2\ps3\text\t_voice.tbl.txt", @"c:\__ed8\__script-compare_cs2\ps3\text\t_voice.tbl", EndianUtils.Endianness.BigEndian, TextUtils.GameTextEncoding.UTF8);
 
+			// sort saves by playtime
+			//var sdslot = new DuplicatableFileStream(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\sdslot.dat")).CopyToMemoryAndDispose();
+			//var list = new List<(int index, long playtime, byte[] sd, byte[] save, byte[] thumb)>();
+			//for (int idx = 0; idx < 54; ++idx) {
+			//	sdslot.Position = idx * 0x2d0;
+			//	var sd = sdslot.ReadBytes(0x2d0);
+			//	sdslot.Position = idx * 0x2d0 + 0xc0;
+			//	string[] playtimeStrings = sdslot.ReadUTF8Nullterm().Split('\n').Where(x => x.StartsWith("Play Time")).First().Split(' ').Last().Split(':');
+			//	long playtime = long.Parse(playtimeStrings[0], System.Globalization.NumberStyles.Integer) * 60 * 60 + long.Parse(playtimeStrings[1], System.Globalization.NumberStyles.Integer) * 60 + long.Parse(playtimeStrings[2], System.Globalization.NumberStyles.Integer);
+			//	var save = File.ReadAllBytes(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\save" + idx.ToString("D3") + ".dat"));
+			//	var thumb = File.ReadAllBytes(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\thumb" + idx.ToString("D3") + ".bmp"));
+			//	list.Add((idx, playtime, sd, save, thumb));
+			//}
+			//var sorted = list.OrderBy(x => x.playtime).ToArray();
+			//for (int idx = 0; idx < 54; ++idx) {
+			//	var item = sorted[idx];
+			//	if (idx != item.index) {
+			//		sdslot.Position = idx * 0x2d0;
+			//		sdslot.Write(item.sd);
+			//		File.WriteAllBytes(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\save" + idx.ToString("D3") + ".dat"), item.save);
+			//		File.WriteAllBytes(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\thumb" + idx.ToString("D3") + ".bmp"), item.thumb);
+			//	}
+			//}
+			//System.IO.File.WriteAllBytes(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\sdslot.dat"), sdslot.CopyToByteArray());
+
+			// rewrite save timestamps
+			//var sdslot = new DuplicatableFileStream(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\sdslot.dat")).CopyToMemoryAndDispose();
+			//var list = new List<(int index, long playtime, byte[] sd, byte[] save, byte[] thumb)>();
+			//for (int idx = 0; idx < 54; ++idx) {
+			//	sdslot.Position = idx * 0x2d0;
+			//	string s1 = sdslot.ReadUTF8Nullterm();
+			//	sdslot.Position = idx * 0x2d0 + 0x40;
+			//	string s2 = sdslot.ReadUTF8Nullterm();
+			//	sdslot.Position = idx * 0x2d0 + 0xc0;
+			//	string s3 = sdslot.ReadUTF8Nullterm();
+			//
+			//	Console.WriteLine(s1);
+			//	Console.WriteLine("-----------------");
+			//	Console.WriteLine(s2);
+			//	Console.WriteLine("-----------------");
+			//	Console.WriteLine(s3);
+			//	Console.WriteLine("-----------------");
+			//
+			//	Console.Write("Year: 2020");
+			//	int year = 2020;
+			//	Console.Write("Month: ");
+			//	int month = ReadInt();
+			//	Console.Write("Day: ");
+			//	int day = ReadInt();
+			//	Console.Write("Hour: ");
+			//	int hour = ReadInt();
+			//	Console.Write("Minute: ");
+			//	int minute = ReadInt();
+			//
+			//	int dow = 0;
+			//	switch (new DateTime(year, month, day, hour, minute, 0).DayOfWeek) {
+			//		case DayOfWeek.Sunday: dow = 0; break;
+			//		case DayOfWeek.Monday: dow = 1; break;
+			//		case DayOfWeek.Tuesday: dow = 2; break;
+			//		case DayOfWeek.Wednesday: dow = 3; break;
+			//		case DayOfWeek.Thursday: dow = 4; break;
+			//		case DayOfWeek.Friday: dow = 5; break;
+			//		case DayOfWeek.Saturday: dow = 6; break;
+			//	}
+			//
+			//	sdslot.Position = idx * 0x2d0 + 0x2c0;
+			//
+			//	sdslot.WriteUInt16((ushort)year);
+			//	sdslot.WriteUInt16((ushort)month);
+			//	sdslot.WriteUInt16((ushort)dow);
+			//	sdslot.WriteUInt16((ushort)day);
+			//	sdslot.WriteUInt16((ushort)hour);
+			//	sdslot.WriteUInt16((ushort)minute);
+			//	sdslot.WriteUInt16((ushort)0); // sec
+			//	sdslot.WriteUInt16((ushort)0); // ms
+			//
+			//	Console.WriteLine("=================");
+			//}
+			//System.IO.File.WriteAllBytes(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\sdslot.dat"), sdslot.CopyToByteArray());
+
+			// import param.sfo into sdslot
+			//for (int idx = 0; idx < 55; ++idx) {
+			//	string patha = @"c:\__ps4\save" + idx.ToString("D3");
+			//	string f = Path.Combine(patha, "savedata0", "sce_sys", "param.sfo");
+			//	if (File.Exists(f)) {
+			//		var s = new DuplicatableFileStream(f);
+			//		s.Position = 0x16c;
+			//		string s1 = s.ReadUTF8Nullterm();
+			//		s.Position = 0x570;
+			//		string s2 = s.ReadUTF8Nullterm();
+			//		s.Position = 0xa1c;
+			//		string s3 = s.ReadUTF8Nullterm();
+			//
+			//		Console.WriteLine(s1);
+			//		Console.WriteLine("-----------------");
+			//		Console.WriteLine(s2);
+			//		Console.WriteLine("-----------------");
+			//		Console.WriteLine(s3);
+			//		Console.WriteLine("=================");
+			//
+			//		sdslot.Position = idx * 0x2d0;
+			//		sdslot.WriteUTF8(s2, 0x40, true);
+			//		sdslot.Position = idx * 0x2d0 + 0x40;
+			//		sdslot.WriteUTF8(s3, 0x80, true);
+			//		sdslot.Position = idx * 0x2d0 + 0xc0;
+			//		sdslot.WriteUTF8(s1, 0x200, true);
+			//	}
+			//}
+			//System.IO.File.WriteAllBytes(Path.Combine(SenCommonPaths.SavedGamesFolder, @"FALCOM\ed8_psv4\sdslot.dat"), sdslot.CopyToByteArray());
+
+			// convert saves
+			//for (int idx = 0; idx < 55; ++idx) {
+			//	using (var fs = new FileStream(@"c:\__ps4\save" + idx.ToString("D3") + @"\savedata0\user.dat", FileMode.Open, FileAccess.ReadWrite)) {
+			//		try {
+			//			var decomp = SenLib.PkgFile.DecompressType1(fs, EndianUtils.Endianness.LittleEndian);
+			//			System.IO.File.WriteAllBytes(@"c:\__ps4\save" + idx.ToString("D3") + @"\savedata0\user.dat.dec", decomp);
+			//			var output = SenLib.Sen4.Save.ConvertPs4ToPc(new HyoutaUtils.Streams.DuplicatableByteArrayStream(decomp)).CopyToByteArrayAndDispose();
+			//			System.IO.File.WriteAllBytes(@"c:\__ps4\save" + idx.ToString("D3") + @"\savedata0\save" + idx.ToString("D3") + ".dat", output);
+			//		} catch (Exception ex) {
+			//		}
+			//	}
+			//}
+
 			return;
 		}
 
