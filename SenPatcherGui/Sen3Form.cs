@@ -27,6 +27,8 @@ namespace SenPatcherGui {
 
 			int assetPatchCount = Sen3Mods.GetAssetMods().Count;
 			checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
+
+			ReadFromIni();
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
@@ -59,9 +61,46 @@ namespace SenPatcherGui {
 				}
 
 				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
+
+				WriteToIni();
 			} catch (Exception ex) {
 				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
+		}
+
+		private void ReadFromIni() {
+			try {
+				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
+				IniFile ini = new IniFile(inipath);
+				checkBoxAssetPatches.Checked = ini.GetBool("CS3", "AssetFixes", true);
+				checkBoxFixButtonRemapping.Checked = ini.GetBool("CS3", "FixInGameButtonRemapping", true);
+				checkBoxAllowNightmare.Checked = ini.GetBool("CS3", "AllowSwitchToNightmare", true);
+				checkBoxControllerMapping.Checked = ini.GetBool("CS3", "FixControllerMapping", true);
+				checkBoxDisableMouseCam.Checked = ini.GetBool("CS3", "DisableMouseCapture", false);
+				checkBoxShowMouseCursor.Checked = ini.GetBool("CS3", "ShowMouseCursor", false);
+				checkBoxDisablePauseOnFocusLoss.Checked = ini.GetBool("CS3", "DisablePauseOnFocusLoss", false);
+				checkBoxForceXInput.Checked = ini.GetBool("CS3", "ForceXInput", false);
+			} catch (Exception) { }
+		}
+		private void WriteToIni() {
+			try {
+				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
+				IniFile ini;
+				try {
+					ini = new IniFile(inipath);
+				} catch (Exception) {
+					ini = new IniFile();
+				}
+				ini.SetBool("CS3", "AssetFixes", checkBoxAssetPatches.Checked);
+				ini.SetBool("CS3", "FixInGameButtonRemapping", checkBoxFixButtonRemapping.Checked);
+				ini.SetBool("CS3", "AllowSwitchToNightmare", checkBoxAllowNightmare.Checked);
+				ini.SetBool("CS3", "FixControllerMapping", checkBoxControllerMapping.Checked);
+				ini.SetBool("CS3", "DisableMouseCapture", checkBoxDisableMouseCam.Checked);
+				ini.SetBool("CS3", "ShowMouseCursor", checkBoxShowMouseCursor.Checked);
+				ini.SetBool("CS3", "DisablePauseOnFocusLoss", checkBoxDisablePauseOnFocusLoss.Checked);
+				ini.SetBool("CS3", "ForceXInput", checkBoxForceXInput.Checked);
+				ini.WriteToFile(inipath);
+			} catch (Exception) { }
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {

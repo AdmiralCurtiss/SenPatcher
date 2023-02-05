@@ -46,6 +46,8 @@ namespace SenPatcherGui {
 			comboBoxTurboModeKey.Items.Add("D-Pad Down");
 			comboBoxTurboModeKey.Items.Add("D-Pad Left");
 			comboBoxTurboModeKey.SelectedIndex = 7;
+
+			ReadFromIni();
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
@@ -83,9 +85,57 @@ namespace SenPatcherGui {
 				}
 
 				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
+
+				WriteToIni();
 			} catch (Exception ex) {
 				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
+		}
+
+		private void ReadFromIni() {
+			try {
+				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
+				IniFile ini = new IniFile(inipath);
+				checkBoxAssetPatches.Checked = ini.GetBool("CS1", "AssetFixes", true);
+				checkBoxBattleAutoSkip.Checked = ini.GetBool("CS1", "RemoveTurboSkip", true);
+				checkBoxFixHdTextureId.Checked = ini.GetBool("CS1", "FixTextureIds", true);
+				checkBoxFixVoiceFileLang.Checked = ini.GetBool("CS1", "CorrectLanguageVoiceTables", true);
+				checkBoxArtsSupport.Checked = ini.GetBool("CS1", "FixArtsSupportCutin", true);
+				checkBoxForce0Kerning.Checked = ini.GetBool("CS1", "Force0Kerning", false);
+				checkBoxDisableMouseCam.Checked = ini.GetBool("CS1", "DisableMouseCapture", false);
+				checkBoxShowMouseCursor.Checked = ini.GetBool("CS1", "ShowMouseCursor", false);
+				checkBoxDisablePauseOnFocusLoss.Checked = ini.GetBool("CS1", "DisablePauseOnFocusLoss", false);
+				checkBoxForceXInput.Checked = ini.GetBool("CS1", "ForceXInput", false);
+				checkBoxAllowR2InTurboMode.Checked = ini.GetBool("CS1", "AlwaysUseNotebookR2", false);
+				int turboIndex = ini.GetInt("CS1", "TurboModeButton", 7);
+				if (turboIndex >= 0 && turboIndex <= comboBoxTurboModeKey.Items.Count) {
+					comboBoxTurboModeKey.SelectedIndex = turboIndex;
+				}
+			} catch (Exception) { }
+		}
+		private void WriteToIni() {
+			try {
+				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
+				IniFile ini;
+				try {
+					ini = new IniFile(inipath);
+				} catch (Exception) {
+					ini = new IniFile();
+				}
+				ini.SetBool("CS1", "AssetFixes", checkBoxAssetPatches.Checked);
+				ini.SetBool("CS1", "RemoveTurboSkip", checkBoxBattleAutoSkip.Checked);
+				ini.SetBool("CS1", "FixTextureIds", checkBoxFixHdTextureId.Checked);
+				ini.SetBool("CS1", "CorrectLanguageVoiceTables", checkBoxFixVoiceFileLang.Checked);
+				ini.SetBool("CS1", "FixArtsSupportCutin", checkBoxArtsSupport.Checked);
+				ini.SetBool("CS1", "Force0Kerning", checkBoxForce0Kerning.Checked);
+				ini.SetBool("CS1", "DisableMouseCapture", checkBoxDisableMouseCam.Checked);
+				ini.SetBool("CS1", "ShowMouseCursor", checkBoxShowMouseCursor.Checked);
+				ini.SetBool("CS1", "DisablePauseOnFocusLoss", checkBoxDisablePauseOnFocusLoss.Checked);
+				ini.SetBool("CS1", "ForceXInput", checkBoxForceXInput.Checked);
+				ini.SetBool("CS1", "AlwaysUseNotebookR2", checkBoxAllowR2InTurboMode.Checked);
+				ini.SetInt("CS1", "TurboModeButton", comboBoxTurboModeKey.SelectedIndex);
+				ini.WriteToFile(inipath);
+			} catch (Exception) { }
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {

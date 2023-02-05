@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IniFile.cs" />
     <Compile Include="ScriptReplaceHelperForm.cs">
       <SubType>Form</SubType>
     </Compile>

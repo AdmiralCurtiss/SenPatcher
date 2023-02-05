@@ -33,6 +33,8 @@ namespace SenPatcherGui {
 			comboBoxButtonLayout.Items.Add("Nintendo or Japanese PlayStation Style (Confirm on right, Cancel on bottom)");
 			comboBoxButtonLayout.SelectedIndex = 1;
 			comboBoxButtonLayout.Enabled = checkBoxButtonLayout.Checked;
+
+			ReadFromIni();
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
@@ -63,9 +65,45 @@ namespace SenPatcherGui {
 				}
 
 				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
+
+				WriteToIni();
 			} catch (Exception ex) {
 				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
+		}
+
+		private void ReadFromIni() {
+			try {
+				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
+				IniFile ini = new IniFile(inipath);
+				checkBoxAssetPatches.Checked = ini.GetBool("CS4", "AssetFixes", true);
+				checkBoxAllowNightmare.Checked = ini.GetBool("CS4", "AllowSwitchToNightmare", true);
+				checkBoxButtonLayout.Checked = ini.GetBool("CS4", "ForceConfirmCancel", false);
+				bool forceJp = ini.GetBool("CS4", "ForceConfirmJp", true);
+				comboBoxButtonLayout.SelectedIndex = forceJp ? 1 : 0;
+				checkBoxDisableMouseCam.Checked = ini.GetBool("CS4", "DisableMouseCapture", false);
+				checkBoxShowMouseCursor.Checked = ini.GetBool("CS4", "ShowMouseCursor", false);
+				checkBoxDisablePauseOnFocusLoss.Checked = ini.GetBool("CS4", "DisablePauseOnFocusLoss", false);
+			} catch (Exception) { }
+		}
+		private void WriteToIni() {
+			try {
+				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
+				IniFile ini;
+				try {
+					ini = new IniFile(inipath);
+				} catch (Exception) {
+					ini = new IniFile();
+				}
+				ini.SetBool("CS4", "AssetFixes", checkBoxAssetPatches.Checked);
+				ini.SetBool("CS4", "AllowSwitchToNightmare", checkBoxAllowNightmare.Checked);
+				ini.SetBool("CS4", "ForceConfirmCancel", checkBoxButtonLayout.Checked);
+				ini.SetBool("CS4", "ForceConfirmJp", comboBoxButtonLayout.SelectedIndex == 1);
+				ini.SetBool("CS4", "DisableMouseCapture", checkBoxDisableMouseCam.Checked);
+				ini.SetBool("CS4", "ShowMouseCursor", checkBoxShowMouseCursor.Checked);
+				ini.SetBool("CS4", "DisablePauseOnFocusLoss", checkBoxDisablePauseOnFocusLoss.Checked);
+				ini.WriteToFile(inipath);
+			} catch (Exception) { }
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {

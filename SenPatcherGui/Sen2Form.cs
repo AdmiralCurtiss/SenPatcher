@@ -27,6 +27,8 @@ namespace SenPatcherGui {
 
 			int assetPatchCount = Sen2Mods.GetAssetMods(Sen2Version.v142).Count;
 			checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
+
+			ReadFromIni();
 		}
 
 		private void buttonPatch_Click(object sender, EventArgs e) {
@@ -69,9 +71,56 @@ namespace SenPatcherGui {
 				}
 
 				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
+
+				WriteToIni();
 			} catch (Exception ex) {
 				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
+		}
+
+		private void ReadFromIni() {
+			try {
+				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
+				IniFile ini = new IniFile(inipath);
+				checkBoxAssetPatches.Checked = ini.GetBool("CS2", "AssetFixes", true);
+				checkBoxBattleAutoSkip.Checked = ini.GetBool("CS2", "RemoveTurboSkip", true);
+				checkBoxFixVoiceFileLang.Checked = ini.GetBool("CS2", "CorrectLanguageVoiceTables", true);
+				checkBoxBgmEnqueueingLogic.Checked = ini.GetBool("CS2", "FixBgmEnqueue", true);
+				checkBoxPatchAudioThread.Checked = ini.GetBool("CS2", "ReplaceAudioTimingThread", true);
+				checkBoxControllerMapping.Checked = ini.GetBool("CS2", "FixControllerMapping", true);
+				checkBoxArtsSupport.Checked = ini.GetBool("CS2", "FixArtsSupportCutin", true);
+				checkBoxForce0Kerning.Checked = ini.GetBool("CS2", "Force0Kerning", false);
+				checkBoxDisableMouseCam.Checked = ini.GetBool("CS2", "DisableMouseCapture", false);
+				checkBoxShowMouseCursor.Checked = ini.GetBool("CS2", "ShowMouseCursor", false);
+				checkBoxDisablePauseOnFocusLoss.Checked = ini.GetBool("CS2", "DisablePauseOnFocusLoss", false);
+				checkBoxForceXInput.Checked = ini.GetBool("CS2", "ForceXInput", false);
+				checkBoxFixBattleScopeCrash.Checked = ini.GetBool("CS2", "FixBattleScopeCrash", true);
+			} catch (Exception) { }
+		}
+		private void WriteToIni() {
+			try {
+				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
+				IniFile ini;
+				try {
+					ini = new IniFile(inipath);
+				} catch (Exception) {
+					ini = new IniFile();
+				}
+				ini.SetBool("CS2", "AssetFixes", checkBoxAssetPatches.Checked);
+				ini.SetBool("CS2", "RemoveTurboSkip", checkBoxBattleAutoSkip.Checked);
+				ini.SetBool("CS2", "CorrectLanguageVoiceTables", checkBoxFixVoiceFileLang.Checked);
+				ini.SetBool("CS2", "FixBgmEnqueue", checkBoxBgmEnqueueingLogic.Checked);
+				ini.SetBool("CS2", "ReplaceAudioTimingThread", checkBoxPatchAudioThread.Checked);
+				ini.SetBool("CS2", "FixControllerMapping", checkBoxControllerMapping.Checked);
+				ini.SetBool("CS2", "FixArtsSupportCutin", checkBoxArtsSupport.Checked);
+				ini.SetBool("CS2", "Force0Kerning", checkBoxForce0Kerning.Checked);
+				ini.SetBool("CS2", "DisableMouseCapture", checkBoxDisableMouseCam.Checked);
+				ini.SetBool("CS2", "ShowMouseCursor", checkBoxShowMouseCursor.Checked);
+				ini.SetBool("CS2", "DisablePauseOnFocusLoss", checkBoxDisablePauseOnFocusLoss.Checked);
+				ini.SetBool("CS2", "ForceXInput", checkBoxForceXInput.Checked);
+				ini.SetBool("CS2", "FixBattleScopeCrash", checkBoxFixBattleScopeCrash.Checked);
+				ini.WriteToFile(inipath);
+			} catch (Exception) { }
 		}
 
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
