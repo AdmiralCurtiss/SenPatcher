@@ -67,6 +67,7 @@ namespace SenLib.Sen2 {
 			f.Add(new FileFixes.scripts_scena_asm_t1001_tbl(version));
 			f.Add(new FileFixes.scripts_scena_dat_t1001_dat(version));
 			f.Add(new FileFixes.scripts_scena_dat_us_t1001_dat(version));
+			f.Add(new FileFixes.scripts_scena_dat_us_t3060_dat());
 			return f;
 		}
 
