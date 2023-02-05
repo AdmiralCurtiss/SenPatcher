@@ -35,7 +35,7 @@ namespace SenLib.Sen3.FileFixes {
 			// this description is gibberish because someone assumed %s is the MQ name instead of the character name, rewrite it so it makes sense
 			for (int i = 0; i < 2; ++i) {
 				var m = new TextTableData(tbl_en.Entries[127 + i].Data);
-				m.str = string.Format("#1C%s has this master quartz equipped in their #3C{0}#1C slot.\nExchange?", i == 0 ? "main" : "sub");
+				m.str = string.Format("#1C%s has this master quartz equipped in the #3C{0}#1C slot.\nExchange?", i == 0 ? "main" : "sub");
 				tbl_en.Entries[127 + i].Data = m.ToBinary();
 			}
 
