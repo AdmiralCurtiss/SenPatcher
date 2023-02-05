@@ -65,6 +65,18 @@ namespace SenLib.Sen4.FileFixes {
 				tbl_en.Entries[144 + i].Data = m.ToBinary();
 			}
 
+			// S-Break setting lines, these make no sense and were probably not noticed because CS3 doesn't have settable S-Breaks (but still has these lines)
+			{
+				var m = new TextTableData(tbl_en.Entries[123].Data);
+				m.str = " will be set as S-Break.";
+				tbl_en.Entries[123].Data = m.ToBinary();
+			}
+			{
+				var m = new TextTableData(tbl_en.Entries[124].Data);
+				m.str = " is already set as S-Break.";
+				tbl_en.Entries[124].Data = m.ToBinary();
+			}
+
 			Stream result_en = new MemoryStream();
 			tbl_en.WriteToStream(result_en, EndianUtils.Endianness.LittleEndian);
 			DuplicatableByteArrayStream result_en_b = result_en.CopyToByteArrayStream();

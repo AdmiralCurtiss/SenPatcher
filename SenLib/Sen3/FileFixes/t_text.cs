@@ -26,6 +26,11 @@ namespace SenLib.Sen3.FileFixes {
 			}
 			var tbl_en = new Tbl(file_en, EndianUtils.Endianness.LittleEndian);
 
+			//List<TextTableData> tmp = new List<TextTableData>();
+			//for (int i = 0; i < tbl_en.Entries.Count; ++i) {
+			//	tmp.Add(new TextTableData(tbl_en.Entries[i].Data));
+			//}
+
 			if (AllowSwitchToNightmare) {
 				var m = new TextTableData(tbl_en.Entries[99].Data);
 				m.str = m.str.Split('\n')[0];
@@ -37,6 +42,18 @@ namespace SenLib.Sen3.FileFixes {
 				var m = new TextTableData(tbl_en.Entries[127 + i].Data);
 				m.str = string.Format("#1C%s has this master quartz equipped in the #3C{0}#1C slot.\nExchange?", i == 0 ? "main" : "sub");
 				tbl_en.Entries[127 + i].Data = m.ToBinary();
+			}
+
+			// S-Break setting lines, these make no sense and were probably not noticed because CS3 doesn't have settable S-Breaks (but still has these lines)
+			{
+				var m = new TextTableData(tbl_en.Entries[110].Data);
+				m.str = " will be set as S-Break.";
+				tbl_en.Entries[110].Data = m.ToBinary();
+			}
+			{
+				var m = new TextTableData(tbl_en.Entries[111].Data);
+				m.str = " is already set as S-Break.";
+				tbl_en.Entries[111].Data = m.ToBinary();
 			}
 
 			Stream result_en = new MemoryStream();
