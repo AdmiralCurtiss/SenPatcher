@@ -49,6 +49,7 @@ namespace SenLib.Sen2 {
 			new KnownFile(new SHA1(0x18c7ad19818f25d7ul, 0xa2ad61c3f7c711bful, 0x16cff933u), "data/scripts/scena/dat_us/t4080.dat"),
 			new KnownFile(new SHA1(0xdf089163a734c202ul, 0xebb8e05491ff6537ul, 0xfb1dbff7u), "data/scripts/scena/dat_us/t5501.dat"),
 			new KnownFile(new SHA1(0xa7bff27d9558648cul, 0xb36dde4ab7cf4e9bul, 0x1ca120c2u), "data/scripts/scena/dat_us/t6500.dat"),
+			new KnownFile(new SHA1(0x73f84be48f549fb7ul, 0x1ac265a5d7519f3dul, 0x8ca16f1du), "data/scripts/talk/dat_us/tk_beryl.dat"),
 			new KnownFile(new SHA1(0xea737c88d0648621ul, 0xc297ed0c139348aaul, 0x6213a40du), "data/scripts/talk/dat_us/tk_rosine.dat"),
 
 			// v1.4
