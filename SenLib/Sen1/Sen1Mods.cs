@@ -76,6 +76,7 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_edel_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_heinrich_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_laura_dat());
+			f.Add(new FileFixes.scripts_talk_dat_us_tk_thomas_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_vandyck_dat());
 			f.Add(new FileFixes.text_dat_t_voice_tbl());
 			f.Add(new FileFixes.text_dat_us_t_voice_tbl());

@@ -73,6 +73,7 @@ namespace SenLib.Sen1 {
 			new KnownFile(new SHA1(0xdc5deaa30247aafaul, 0xf2a369da2268d408ul, 0x2ba310c5u), "data/scripts/talk/dat_us/tk_edel.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_edel.dat"),
 			new KnownFile(new SHA1(0x491c365d592bb900ul, 0x29e7543d893d47bdul, 0x5e66139du), "data/scripts/talk/dat_us/tk_heinrich.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_heinrich.dat"),
 			new KnownFile(new SHA1(0xf423fb1dfddde29dul, 0x3e26a40ceed87982ul, 0xb899cdcau), "data/scripts/talk/dat_us/tk_laura.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_laura.dat"),
+			new KnownFile(new SHA1(0x465873e53df8cb85ul, 0xe26d302a171eb4ccul, 0x1ff2d6bbu), "data/scripts/talk/dat_us/tk_thomas.dat"),
 			new KnownFile(new SHA1(0xb838141d25f707a7ul, 0xc95191db2f8c324aul, 0x3e0a34c0u), "data/scripts/talk/dat_us/tk_vandyck.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_vandyck.dat"),
 			new KnownFile(new SHA1(0x684cc74b0837ff14ul, 0x08124f8b8a05cfd9ul, 0xc9a09195u), "data/se/wav/ed8" + '\uff4d' + "2123.wav", "data/se/wav/ed8m2123.wav", "senpatcher_bkp/data_se_wav_ed8m2123.wav"),
 			new KnownFile(new SHA1(0x8a735f256c69b0b2ul, 0xcd2b663820953fb4ul, 0x9523723eu), "data/text/dat/t_item.tbl"),

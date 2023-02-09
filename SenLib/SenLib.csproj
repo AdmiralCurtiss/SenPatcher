@@ -238,6 +238,7 @@
     <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_beryl_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_edel_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_heinrich_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_thomas_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_laura_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_vandyck_dat.cs" />
     <Compile Include="Sen1\FileFixes\se_wav_ed8m2123_wav.cs" />
