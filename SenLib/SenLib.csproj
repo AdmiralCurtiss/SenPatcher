@@ -276,6 +276,7 @@
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t3740_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t4080_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7101_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_system_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t6500_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_talk_dat_us_tk_emily_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_talk_dat_us_tk_beryl_dat.cs" />

@@ -73,6 +73,7 @@ namespace SenLib.Sen2 {
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_emily_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t3740_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t6500_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_system_dat());
 			return f;
 		}
 
