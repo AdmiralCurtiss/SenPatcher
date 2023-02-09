@@ -270,6 +270,7 @@
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book04_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_asm_t1001_tbl.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_t1001_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7050_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_r0920_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t3060_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t1001_dat.cs" />
