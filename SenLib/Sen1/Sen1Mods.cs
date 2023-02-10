@@ -51,6 +51,7 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_scena_dat_us_c0110_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_m0040_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_m2130_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_m3008_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_r0600_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_r0601_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_r0610_dat());
