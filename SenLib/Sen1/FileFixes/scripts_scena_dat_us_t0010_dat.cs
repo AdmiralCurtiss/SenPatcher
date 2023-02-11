@@ -40,6 +40,9 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x2bdc6, 0x2bdcb);
 			bin.SwapBytes(0x2c02e, 0x2c032);
 
+			// missing 'to' in Rufus line (voice match, also makes more sense) (Chapter 6 intro)
+			patcher.ExtendPartialCommand(0x2585e, 0x48, 0x25883, new byte[] { 0x20, 0x74, 0x6f });
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0010.dat", bin) };
 		}
 

@@ -14,6 +14,7 @@ namespace SenLib.Sen1.FileFixes {
 				return null;
 			}
 			MemoryStream bin = s.CopyToMemoryAndDispose();
+			var patcher = new SenScriptPatcher(bin);
 
 			// formatting issues in Gaius Chapter 2 Day bonding event
 			bin.SwapBytes(0x58760, 0x58764);
@@ -67,6 +68,18 @@ namespace SenLib.Sen1.FileFixes {
 			bin.SwapBytes(0x5aaa0, 0x5aaa6);
 			bin.SwapBytes(0x5aac6, 0x5aad1);
 			bin.SwapBytes(0x5ac44, 0x5ac48);
+
+			// add comma in Alisa line (voice match) (Final Chapter, scene in classroom after Garellia is destroyed)
+			patcher.ExtendPartialCommand(0x49633, 0x19, 0x49642, new byte[] { 0x2c });
+
+			// NPC line change from 'sounds good to me' to 'this looks pretty good to me'.
+			// this is taken from PS4 and makes more sense, since the guy is looking at the
+			// art class exhibits while saying this. (on 10/24, festival after final dungeon)
+			bin.Position = 0x58681;
+			byte[] line = bin.ReadBytes(0x11);
+			bin.Position = 0x58658;
+			line[0] = bin.ReadUInt8();
+			patcher.ReplacePartialCommand(0x12d23, 0x17, 0x12d26, 0x6, line);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0020.dat", bin) };
 		}

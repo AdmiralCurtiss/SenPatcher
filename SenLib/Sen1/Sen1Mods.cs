@@ -64,7 +64,9 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_scena_dat_us_t0032_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t0050_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t0060_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t0070_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t0080_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t0090_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t1000_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t1010_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t1020_dat());
@@ -74,6 +76,9 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_scena_dat_us_t1110_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t1500_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t3500_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t4610_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t5660_dat());
+			f.Add(new FileFixes.scripts_talk_dat_us_tk_angelica_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_beryl_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_edel_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_heinrich_dat());
