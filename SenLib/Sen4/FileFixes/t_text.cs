@@ -77,6 +77,13 @@ namespace SenLib.Sen4.FileFixes {
 				tbl_en.Entries[124].Data = m.ToBinary();
 			}
 
+			// This line is incorrectly a duplicate 'can now be used.' when it's supposed to be the 'newly learned S-Craft is now set as S-Break' message.
+			{
+				var m = new TextTableData(tbl_en.Entries[709].Data);
+				m.str = " was registered as S-Break.";
+				tbl_en.Entries[709].Data = m.ToBinary();
+			}
+
 			Stream result_en = new MemoryStream();
 			tbl_en.WriteToStream(result_en, EndianUtils.Endianness.LittleEndian);
 			DuplicatableByteArrayStream result_en_b = result_en.CopyToByteArrayStream();
