@@ -43,7 +43,7 @@ namespace SenLib.Sen4.FileFixes {
 
 	class t_item : FileMod {
 		public string GetDescription() {
-			return "Fix one incorrect item description.";
+			return "Fix incorrect item descriptions and inconsistent formatting.";
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -67,7 +67,86 @@ namespace SenLib.Sen4.FileFixes {
 			{
 				int idx = 1468;
 				var m = new ItemData(tbl_en.Entries[idx].Data);
-				m.desc = m.desc.ReplaceSubstring(39, 2, "15", 0, 2);
+				m.desc = m.desc.ReplaceSubstring(39, 2, "15", 0, 2); // 2000 HP -> 1500 HP
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Seraph
+			{
+				int idx = 1211;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				// inconsistent formatting
+				m.desc = m.desc.Remove(61, 1);
+				m.desc = m.desc.Remove(82, 1);
+				m.desc = m.desc.ReplaceSubstring(112, 2, "/", 0, 1);
+				m.desc = m.desc.Remove(127, 1);
+				m.desc = m.desc.Insert(131, " ");
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Luck
+			{
+				int idx = 1198;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				// inconsistent formatting
+				m.desc = m.desc.Remove(59, 1);
+				m.desc = m.desc.Insert(63, " ");
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Hyoushou Gem
+			{
+				int idx = 1042;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				m.desc = m.desc.Remove(73, 1); // double space
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Bluster
+			{
+				int idx = 1118;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				m.desc = m.desc.Remove(97, 1); // 1 more turns -> 1 more turn
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Aeolus Gem
+			{
+				int idx = 1134;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				m.desc = m.desc.Remove(125, 1); // 1 more turns -> 1 more turn
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Cast 1
+			{
+				int idx = 1144;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				m.desc = m.desc.Remove(m.desc.Length - 1, 1); // stray ] at the end of the description
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Cast 2
+			{
+				int idx = 1154;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				m.desc = m.desc.Remove(m.desc.Length - 1, 1); // stray ] at the end of the description
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Cast 3
+			{
+				int idx = 1167;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				m.desc = m.desc.Remove(m.desc.Length - 1, 1); // stray ] at the end of the description
+				tbl_en.Entries[idx].Data = m.ToBinary();
+			}
+
+			// Iron Winged Lion Medal
+			{
+				int idx = 677;
+				var m = new ItemData(tbl_en.Entries[idx].Data);
+				m.desc = m.desc.Insert(25, " "); // missing space before parens
 				tbl_en.Entries[idx].Data = m.ToBinary();
 			}
 

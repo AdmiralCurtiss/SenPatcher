@@ -28,7 +28,7 @@ namespace SenLib.Sen4 {
 			for (int i = 0; i < entryCount; ++i) {
 				var d = new TblEntry();
 				d.Name = stream.ReadNulltermString(encoding);
-				ushort count = GetLength(d.Name, stream, e);
+				ushort count = GetLength(d.Name, stream, e, encoding);
 				d.Data = stream.ReadBytes(count);
 				entries.Add(d);
 			}
@@ -37,8 +37,20 @@ namespace SenLib.Sen4 {
 			Entries = entries;
 		}
 
-		private ushort GetLength(string name, DuplicatableStream stream, EndianUtils.Endianness e) {
+		private ushort GetLength(string name, DuplicatableStream stream, EndianUtils.Endianness e, TextUtils.GameTextEncoding encoding) {
 			switch (name) {
+				case "QSTitle": {
+					// some of these have incorrect length fields in the official files on PS4, manually determine length here...
+					stream.DiscardBytes(2);
+					long p = stream.Position;
+					stream.DiscardBytes(3);
+					stream.ReadNulltermString(encoding);
+					stream.ReadNulltermString(encoding);
+					stream.DiscardBytes(13);
+					ushort length = (ushort)(stream.Position - p);
+					stream.Position = p;
+					return length;
+				}
 				default:
 					return stream.ReadUInt16(e);
 			}
