@@ -42,6 +42,8 @@ namespace SenPatcherCli.Sen3 {
 		VoiceTiming,
 
 		voice,
+
+		status, // t_mons.tbl
 	}
 
 	public class TblDumper {
@@ -478,6 +480,94 @@ namespace SenPatcherCli.Sen3 {
 						foreach (string s in postprint) {
 							sb.AppendFormat(" {0}", s);
 						}
+						sb.Append("\n");
+						break;
+					}
+					case TblType.status: {
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						List<string> postprint = new List<string>();
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.Append("\n");
+						sb.AppendFormat(" {0}", stream.ReadUInt32().UIntToFloat());
+						sb.AppendFormat(" {0}", stream.ReadUInt32().UIntToFloat());
+						sb.AppendFormat(" {0}", stream.ReadUInt32().UIntToFloat());
+						sb.AppendFormat(" {0}", stream.ReadUInt32().UIntToFloat());
+						sb.AppendFormat(" {0}", stream.ReadUInt32().UIntToFloat());
+						sb.AppendFormat(" {0}", stream.ReadUInt32().UIntToFloat());
+						sb.AppendFormat(" {0}", stream.ReadUInt32().UIntToFloat());
+						sb.Append("\n");
+						// below is probably not correct in terms of types/sizes
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x8}", stream.ReadUInt32());
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.Append("\n");
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						while (true) {
+							int b = stream.ReadByte();
+							if (b == -1)
+								break;
+							sb.AppendFormat(" {0:x2}", b);
+						}
+						foreach (string s in postprint) {
+							sb.AppendFormat("\n{0}", s);
+						}
+						sb.Append("\n");
 						sb.Append("\n");
 						break;
 					}
