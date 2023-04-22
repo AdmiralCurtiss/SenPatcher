@@ -39,6 +39,7 @@ namespace SenLib.Sen4 {
 			f.Add(new FileFixes.t_text(allowSwitchToNightmare));
 			f.Add(new FileFixes.t3600_dat());
 			f.Add(new FileFixes.m9031_dat());
+			f.Add(new FileFixes.f4200_dat());
 			return f;
 		}
 	}
