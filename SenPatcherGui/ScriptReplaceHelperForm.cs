@@ -8,12 +8,15 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SenPatcherGui {
 	public partial class ScriptReplaceHelperForm : Form {
+		private List<ScriptFile> Files = new List<ScriptFile>();
+
 		public ScriptReplaceHelperForm() {
 			InitializeComponent();
 
@@ -30,11 +33,19 @@ namespace SenPatcherGui {
 			comboBoxEndian.SelectedIndex = 0;
 		}
 
+		private void SearchIn(List<SearchMatch> matches, List<ScriptFunction> funcs, List<byte> rawsearch, List<byte> search, List<byte> replace, int offset) {
+			foreach (var func in funcs) {
+				foreach (var op in func.Ops) {
+					for (int i = 0; i < op.Bytes.Length - rawsearch.Count - 1; ++i) {
+						if (op.Bytes[i] == rawsearch[0] && ArrayUtils.IsByteArrayPartEqual(op.Bytes, i, rawsearch, 0, rawsearch.Count)) {
+							matches.Add(new SearchMatch() { Op = op, Offset = offset + i });
+						}
+					}
+				}
+			}
+		}
+
 		private void buttonGo_Click(object sender, EventArgs e) {
-			string inputfilename = textBoxFile.Text;
-			string voicetablefilename = null;
-			int sengame = comboBoxGame.SelectedIndex + 1;
-			EndianUtils.Endianness endian = comboBoxEndian.SelectedIndex != 0 ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian;
 			TextUtils.GameTextEncoding encoding = comboBoxEndian.SelectedIndex != 0 ? TextUtils.GameTextEncoding.ShiftJIS : TextUtils.GameTextEncoding.UTF8;
 			List<byte> rawsearch = Encode(textBoxSearch.Text, encoding);
 			List<byte> search = Encode(textBoxSearch.Text, encoding);
@@ -47,11 +58,28 @@ namespace SenPatcherGui {
 				return;
 			}
 
+			if (Files.Count == 0) {
+				string inputfilename = textBoxFile.Text;
+				RunSearch(new List<ScriptFile>() { GetScriptFile(inputfilename) }, encoding, rawsearch, search, replace, offset);
+			} else {
+				RunSearch(Files, encoding, rawsearch, search, replace, offset);
+			}
+		}
+
+		private void RunSearch(List<ScriptFile> scriptFiles, TextUtils.GameTextEncoding encoding, List<byte> rawsearch, List<byte> search, List<byte> replace, int offset) {
+			int sengame = comboBoxGame.SelectedIndex + 1;
 			StringBuilder sb = new StringBuilder();
-			using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(inputfilename)) {
-				var bytestream = fs.CopyToByteArrayStreamAndDispose();
-				var sha1 = ChecksumUtils.CalculateSHA1ForEntireStream(bytestream);
-				var funcs = ScriptParser.ParseFull(bytestream, voicetablefilename, sengame, endian, encoding, printDetailed: false);
+			List<SearchMatch> matches = new List<SearchMatch>();
+			foreach (ScriptFile scriptFile in scriptFiles) {
+				var inputfilename = scriptFile.Filename;
+				var sha1 = scriptFile.Hash;
+				var funcs = scriptFile.Functions;
+
+				matches.Clear();
+				SearchIn(matches, funcs, rawsearch, search, replace, offset);
+				if (matches.Count == 0) {
+					continue;
+				}
 
 				sb.AppendLine("using HyoutaUtils;");
 				sb.AppendLine("using HyoutaUtils.Streams;");
@@ -81,47 +109,42 @@ namespace SenPatcherGui {
 				sb.AppendLine("\t\t\tvar patcher = new SenScriptPatcher(bin);");
 				sb.AppendLine();
 
-				foreach (var func in funcs) {
-					foreach (var op in func.Ops) {
-						for (int i = 0; i < op.Bytes.Length - rawsearch.Count - 1; ++i) {
-							if (op.Bytes[i] == rawsearch[0] && ArrayUtils.IsByteArrayPartEqual(op.Bytes, i, rawsearch, 0, rawsearch.Count)) {
-								if (search.Count == 0) {
-									sb.AppendFormat(
-										"\t\t\t//patcher.ExtendPartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, {3});",
-										op.Position,
-										op.Bytes.Length,
-										op.Position + i + offset,
-										NewByteArrayString(replace)
-									);
-									sb.AppendLine();
-								} else if (replace.Count == 0) {
-									sb.AppendFormat(
-										"\t\t\t//patcher.RemovePartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, 0x{3:x});",
-										op.Position,
-										op.Bytes.Length,
-										op.Position + i + offset,
-										search.Count
-									);
-									sb.AppendLine();
-								} else {
-									sb.AppendFormat(
-										"\t\t\t//patcher.ReplacePartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, 0x{3:x}, {4});",
-										op.Position,
-										op.Bytes.Length,
-										op.Position + i + offset,
-										search.Count,
-										NewByteArrayString(replace)
-									);
-									sb.AppendLine();
-								}
-								if (search.Count == replace.Count) {
-									sb.AppendFormat("\t\t\t//bin.Position = 0x{0:x};", op.Position + i + offset);
-									sb.AppendLine();
-									sb.AppendFormat("\t\t\t//bin.Write({0});", NewByteArrayString(replace));
-									sb.AppendLine();
-								}
-							}
-						}
+				foreach (var match in matches) {
+					var op = match.Op;
+					if (search.Count == 0) {
+						sb.AppendFormat(
+							"\t\t\t//patcher.ExtendPartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, {3});",
+							op.Position,
+							op.Bytes.Length,
+							op.Position + match.Offset,
+							NewByteArrayString(replace)
+						);
+						sb.AppendLine();
+					} else if (replace.Count == 0) {
+						sb.AppendFormat(
+							"\t\t\t//patcher.RemovePartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, 0x{3:x});",
+							op.Position,
+							op.Bytes.Length,
+							op.Position + match.Offset,
+							search.Count
+						);
+						sb.AppendLine();
+					} else {
+						sb.AppendFormat(
+							"\t\t\t//patcher.ReplacePartialCommand(0x{0:x}, 0x{1:x}, 0x{2:x}, 0x{3:x}, {4});",
+							op.Position,
+							op.Bytes.Length,
+							op.Position + match.Offset,
+							search.Count,
+							NewByteArrayString(replace)
+						);
+						sb.AppendLine();
+					}
+					if (search.Count == replace.Count) {
+						sb.AppendFormat("\t\t\t//bin.Position = 0x{0:x};", op.Position + match.Offset);
+						sb.AppendLine();
+						sb.AppendFormat("\t\t\t//bin.Write({0});", NewByteArrayString(replace));
+						sb.AppendLine();
 					}
 				}
 
@@ -141,6 +164,10 @@ namespace SenPatcherGui {
 				sb.AppendLine("\t\t}");
 				sb.AppendLine("\t}");
 				sb.AppendLine("}");
+				sb.AppendLine();
+				sb.AppendLine();
+				sb.AppendLine();
+				sb.AppendLine("====================================================");
 			}
 			textBoxOutput.Text = sb.ToString();
 		}
@@ -154,7 +181,7 @@ namespace SenPatcherGui {
 			return fw;
 		}
 
-		private object GetChecksumString(SHA1 sha1) {
+		private object GetChecksumString(HyoutaUtils.Checksum.SHA1 sha1) {
 			var sha1bytes = sha1.Value;
 			StringBuilder sb = new StringBuilder();
 			sb.Append("0x");
@@ -230,5 +257,65 @@ namespace SenPatcherGui {
 			}
 			return bytes;
 		}
+
+		private void buttonLoadFiles_Click(object sender, EventArgs e) {
+			Files.Clear();
+
+			int sengame = comboBoxGame.SelectedIndex + 1;
+			string folder = textBoxFile.Text;
+			if (folder == "") {
+				switch (sengame) {
+					case 1:
+						folder = GamePaths.GetDefaultPathCS1();
+						break;
+					case 2:
+						folder = GamePaths.GetDefaultPathCS2();
+						break;
+					case 3:
+						folder = GamePaths.GetDefaultPathCS3();
+						break;
+					case 4:
+						folder = GamePaths.GetDefaultPathCS4();
+						break;
+					default:
+						return;
+				}
+			}
+			LoadFolder(Path.Combine(folder, @"data\scripts\scena\dat_en"));
+			LoadFolder(Path.Combine(folder, @"data\scripts\talk\dat_en"));
+		}
+
+		private void LoadFolder(string folder) {
+			try {
+				foreach (string inputfilename in Directory.GetFiles(folder)) {
+					Files.Add(GetScriptFile(inputfilename));
+				}
+			} catch (Exception ex) { }
+		}
+
+		private ScriptFile GetScriptFile(string inputfilename) {
+			string voicetablefilename = null;
+			int sengame = comboBoxGame.SelectedIndex + 1;
+			EndianUtils.Endianness endian = comboBoxEndian.SelectedIndex != 0 ? EndianUtils.Endianness.BigEndian : EndianUtils.Endianness.LittleEndian;
+			TextUtils.GameTextEncoding encoding = comboBoxEndian.SelectedIndex != 0 ? TextUtils.GameTextEncoding.ShiftJIS : TextUtils.GameTextEncoding.UTF8;
+			using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(inputfilename)) {
+				var bytestream = fs.CopyToByteArrayStreamAndDispose();
+				var sha1 = ChecksumUtils.CalculateSHA1ForEntireStream(bytestream);
+				var funcs = ScriptParser.ParseFull(bytestream, voicetablefilename, sengame, endian, encoding, printDetailed: false);
+				return new ScriptFile() { Filename = inputfilename, Hash = sha1, Functions = funcs };
+			}
+		}
 	}
+
+	public struct SearchMatch {
+		public ScriptOp Op;
+		public int Offset;
+	}
+
+	public class ScriptFile {
+		public string Filename;
+		public HyoutaUtils.Checksum.SHA1 Hash;
+		public List<ScriptFunction> Functions;
+	}
+
 }

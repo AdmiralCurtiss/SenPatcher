@@ -34,6 +34,7 @@
 			this.comboBoxGame = new System.Windows.Forms.ComboBox();
 			this.comboBoxEncoding = new System.Windows.Forms.ComboBox();
 			this.comboBoxEndian = new System.Windows.Forms.ComboBox();
+			this.buttonLoadFiles = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -96,8 +97,10 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.textBoxOutput.Location = new System.Drawing.Point(12, 119);
+			this.textBoxOutput.MaxLength = 2000000000;
 			this.textBoxOutput.Multiline = true;
 			this.textBoxOutput.Name = "textBoxOutput";
+			this.textBoxOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
 			this.textBoxOutput.Size = new System.Drawing.Size(699, 387);
 			this.textBoxOutput.TabIndex = 6;
 			// 
@@ -138,11 +141,22 @@
 			this.comboBoxEndian.Size = new System.Drawing.Size(92, 21);
 			this.comboBoxEndian.TabIndex = 10;
 			// 
+			// buttonLoadFiles
+			// 
+			this.buttonLoadFiles.Location = new System.Drawing.Point(447, 90);
+			this.buttonLoadFiles.Name = "buttonLoadFiles";
+			this.buttonLoadFiles.Size = new System.Drawing.Size(75, 23);
+			this.buttonLoadFiles.TabIndex = 11;
+			this.buttonLoadFiles.Text = "Load Files";
+			this.buttonLoadFiles.UseVisualStyleBackColor = true;
+			this.buttonLoadFiles.Click += new System.EventHandler(this.buttonLoadFiles_Click);
+			// 
 			// ScriptReplaceHelperForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(723, 518);
+			this.Controls.Add(this.buttonLoadFiles);
 			this.Controls.Add(this.comboBoxEndian);
 			this.Controls.Add(this.comboBoxEncoding);
 			this.Controls.Add(this.comboBoxGame);
@@ -174,5 +188,6 @@
 		private System.Windows.Forms.ComboBox comboBoxGame;
 		private System.Windows.Forms.ComboBox comboBoxEncoding;
 		private System.Windows.Forms.ComboBox comboBoxEndian;
+		private System.Windows.Forms.Button buttonLoadFiles;
 	}
 }
