@@ -368,6 +368,7 @@
     <Compile Include="Sen3\Sen3KnownFiles.cs" />
     <Compile Include="Sen3\Sen3Mods.cs" />
     <Compile Include="Sen3\VoiceDataCS3.cs" />
+    <Compile Include="Sen4\FileFixes\m9031_dat.cs" />
     <Compile Include="Sen4\FileFixes\t3600_dat.cs" />
     <Compile Include="Sen4\FileFixes\ed8_4_exe.cs" />
     <Compile Include="Sen4\FileFixes\t_item.cs" />

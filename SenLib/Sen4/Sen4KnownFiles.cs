@@ -25,6 +25,7 @@ namespace SenLib.Sen4 {
 			Logging.Log("Initializing CS4 file data.");
 			return new KnownFile[] {
 				new KnownFile(new SHA1(0x21ac0c6c99dcf57cul, 0x0f75b00d44d42d8dul, 0xae99fe3fu), "data/scripts/scena/dat_en/t3600.dat"),
+				new KnownFile(new SHA1(0xcdc0b7a54ba0420aul, 0x0c7c314d2a021f69ul, 0x49f5cb2eu), "data/scripts/scena/dat_en/m9031.dat"),
 				new KnownFile(new SHA1(0xe16749c32d8a877cul, 0x4a6181337f7f20b3ul, 0x0e40f379u), "data/text/dat_en/t_item_en.tbl"),
 				new KnownFile(new SHA1(0xa6a6031210ad60feul, 0xe7cf1949e4c31be2ul, 0xdb4fc413u), "data/text/dat_en/t_itemhelp.tbl"),
 				new KnownFile(new SHA1(0xd7acccb681c5456aul, 0xb53a4217c3496185ul, 0xb67cc718u), "data/text/dat_en/t_magic.tbl"),
