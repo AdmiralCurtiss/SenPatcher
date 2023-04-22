@@ -87,6 +87,7 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.c0420_dat());
 			f.Add(new FileFixes.c0820_dat());
 			f.Add(new FileFixes.c3210_dat());
+			f.Add(new FileFixes.c3010_dat());
 			return f;
 		}
 	}

@@ -321,6 +321,7 @@
     <Compile Include="Sen3\FileFixes\c0430_dat.cs" />
     <Compile Include="Sen3\FileFixes\c0820_dat.cs" />
     <Compile Include="Sen3\FileFixes\c0830_dat.cs" />
+    <Compile Include="Sen3\FileFixes\c3010_dat.cs" />
     <Compile Include="Sen3\FileFixes\c3210_dat.cs" />
     <Compile Include="Sen3\FileFixes\c3610_dat.cs" />
     <Compile Include="Sen3\FileFixes\ed8_3_exe.cs" />
