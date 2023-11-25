@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="cs1_vctiming_generator.cs" />
     <Compile Include="FuzzyTextParse.cs" />
+    <Compile Include="TblDumperReverie.cs" />
     <Compile Include="TblDumperCS4.cs" />
     <Compile Include="TblDumperCS3.cs" />
     <Compile Include="Playground.cs" />
