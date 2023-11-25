@@ -135,9 +135,14 @@ namespace SenLib {
 							SenLib.Logging.Log(string.Format("Trying acquisition from file at {0}...", path));
 							if (System.IO.File.Exists(path)) {
 								using (var stream = new HyoutaUtils.Streams.DuplicatableFileStream(path)) {
-									if (ChecksumUtils.CalculateSHA1ForEntireStream(stream) == knownFile.Hash) {
+									DuplicatableStream usedStream = stream;
+									if (usedStream.Length <= 100 * 1024 * 1024) {
+										usedStream = usedStream.CopyToByteArrayStreamAndDispose();
+									}
+									SHA1 filesha = ChecksumUtils.CalculateSHA1ForEntireStream(usedStream);
+									if (filesha == knownFile.Hash) {
 										SenLib.Logging.Log(string.Format("Acquired {0} from file!", knownFile.Hash.ToString()));
-										storage.Add(knownFile.Hash, stream.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
+										storage.Add(knownFile.Hash, usedStream.CopyToByteArrayStreamAndDispose(), method.WriteToBackup);
 										success = true;
 										if (method.WriteToBackup) {
 											SenLib.Logging.Log("Marking file to write to backup.");
@@ -145,7 +150,7 @@ namespace SenLib {
 										}
 										break;
 									} else {
-										string error = string.Format("File {0} does not match expected hash.", filename);
+										string error = string.Format("File {0} does not match expected hash (should be {1} but is {2}).", filename, knownFile.Hash.ToString(), filesha.ToString());
 										localErrors.Add(error);
 										SenLib.Logging.Log(error);
 										continue;
