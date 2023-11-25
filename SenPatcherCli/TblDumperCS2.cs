@@ -19,6 +19,7 @@ namespace SenPatcherCli.Sen2 {
 		QSCook,
 		QSCoolVoice,
 		voice,
+		VoiceTiming,
 	}
 
 	public class TblDumper {
@@ -272,6 +273,21 @@ namespace SenPatcherCli.Sen2 {
 							}
 							foreach (string s in postprint) {
 								sb.AppendFormat(" {0}", s);
+							}
+							sb.Append("\n");
+							break;
+						}
+					case TblType.VoiceTiming: {
+							sb.Append("[").Append(i).Append("] ");
+							sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+							stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+							sb.AppendFormat(" Idx {0}", stream.ReadUInt16(e));
+							sb.AppendFormat(" Length {0}", stream.ReadUInt8());
+							sb.Append(" Data");
+							while (true) {
+								int b = stream.ReadByte();
+								if (b == -1) break;
+								sb.AppendFormat(" {0:x2}", b);
 							}
 							sb.Append("\n");
 							break;
