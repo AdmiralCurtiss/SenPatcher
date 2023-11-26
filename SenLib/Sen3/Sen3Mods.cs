@@ -101,6 +101,10 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.t0080_dat());
 			f.Add(new FileFixes.r3000_dat());
 			f.Add(new FileFixes.r3200_dat());
+			f.Add(new FileFixes.tk_ada_dat());
+			f.Add(new FileFixes.tk_linde_dat());
+			f.Add(new FileFixes.tk_stark_dat());
+			f.Add(new FileFixes.tk_tovar_dat());
 			return f;
 		}
 	}

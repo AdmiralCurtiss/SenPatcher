@@ -360,7 +360,11 @@
     <Compile Include="Sen3\FileFixes\t3400_dat.cs" />
     <Compile Include="Sen3\FileFixes\t3510_dat.cs" />
     <Compile Include="Sen3\FileFixes\t3600_dat.cs" />
+    <Compile Include="Sen3\FileFixes\tk_ada_dat.cs" />
+    <Compile Include="Sen3\FileFixes\tk_linde_dat.cs" />
     <Compile Include="Sen3\FileFixes\tk_patrick_dat.cs" />
+    <Compile Include="Sen3\FileFixes\tk_stark_dat.cs" />
+    <Compile Include="Sen3\FileFixes\tk_tovar_dat.cs" />
     <Compile Include="Sen3\FileFixes\t_vctiming_us.cs" />
     <Compile Include="Sen3\FileFixes\t_place.cs" />
     <Compile Include="Sen3\FileFixes\t_jump.cs" />
