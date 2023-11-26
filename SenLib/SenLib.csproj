@@ -312,6 +312,7 @@
     <Compile Include="Sen2\Sen2Mods.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="Sen2\Tbl.cs" />
+    <Compile Include="Sen3\FileFixes\alchr022_dat.cs" />
     <Compile Include="Sen3\FileFixes\c0200_dat.cs" />
     <Compile Include="Sen3\FileFixes\a0417_dat.cs" />
     <Compile Include="Sen3\FileFixes\book07_dat.cs" />
