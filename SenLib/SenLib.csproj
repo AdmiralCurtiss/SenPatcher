@@ -348,6 +348,9 @@
     <Compile Include="Sen3\FileFixes\t3000_dat.cs" />
     <Compile Include="Sen3\FileFixes\t3200_dat.cs" />
     <Compile Include="Sen3\FileFixes\t3220_dat.cs" />
+    <Compile Include="Sen3\FileFixes\t3400_dat.cs" />
+    <Compile Include="Sen3\FileFixes\t3510_dat.cs" />
+    <Compile Include="Sen3\FileFixes\t3600_dat.cs" />
     <Compile Include="Sen3\FileFixes\tk_patrick_dat.cs" />
     <Compile Include="Sen3\FileFixes\t_vctiming_us.cs" />
     <Compile Include="Sen3\FileFixes\t_place.cs" />
