@@ -106,6 +106,7 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.tk_stark_dat());
 			f.Add(new FileFixes.tk_tovar_dat());
 			f.Add(new FileFixes.r3430_dat());
+			f.Add(new FileFixes.t0010_dat());
 			return f;
 		}
 	}
