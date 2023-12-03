@@ -187,6 +187,9 @@
   <data name="pc8v10286_15" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen1\FileFixes\pc8v10286_15.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="t0250_dat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sen3\FileFixes\t0250_dat.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="t1001_dat_to_tbl" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sen2\FileFixes\t1001_dat_to_tbl.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>

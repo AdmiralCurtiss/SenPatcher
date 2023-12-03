@@ -293,6 +293,16 @@ namespace SenLib.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] t0250_dat {
+            get {
+                object obj = ResourceManager.GetObject("t0250_dat", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] t1001_dat_to_tbl {
             get {
                 object obj = ResourceManager.GetObject("t1001_dat_to_tbl", resourceCulture);
