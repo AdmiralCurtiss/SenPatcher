@@ -355,6 +355,7 @@
     <Compile Include="Sen3\FileFixes\t0080_dat.cs" />
     <Compile Include="Sen3\FileFixes\t0100_dat.cs" />
     <Compile Include="Sen3\FileFixes\t0200_dat.cs" />
+    <Compile Include="Sen3\FileFixes\t0210_dat.cs" />
     <Compile Include="Sen3\FileFixes\t0260_dat.cs" />
     <Compile Include="Sen3\FileFixes\t0410_dat.cs" />
     <Compile Include="Sen3\FileFixes\t3000_dat.cs" />

@@ -1,6 +1,7 @@
 ﻿using HyoutaUtils;
 using SenLib;
 using SenLib.Sen3;
+using SenLib.Sen3.FileFixes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -108,6 +109,7 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.r3430_dat());
 			f.Add(new FileFixes.t0010_dat());
 			f.Add(new FileFixes.r4200_dat());
+			f.Add(new FileFixes.t0210_dat());
 			return f;
 		}
 	}
