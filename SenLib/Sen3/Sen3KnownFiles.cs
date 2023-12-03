@@ -77,6 +77,7 @@ namespace SenLib.Sen3 {
 			new KnownFile(new SHA1(0xc45eb8312b11f6a8ul, 0x7476165fe69d6467ul, 0x89d5e48bu), "data/scripts/scena/dat_en/t0210.dat"),
 			new KnownFile(new SHA1(0x1ba8784695ed8630ul, 0x9b72a3104c7b0b81ul, 0xb67b503bu), "data/scripts/scena/dat_en/t0250.dat"),
 			new KnownFile(new SHA1(0xf00fc1a818c84469ul, 0xfd34cfb593d03ad4ul, 0x24393aceu), "data/scripts/scena/dat_en/t0260.dat"),
+			new KnownFile(new SHA1(0x05ebfadeed23981bul, 0x39da835f2eb17987ul, 0x7003492au), "data/scripts/scena/dat_en/t0400.dat"),
 			new KnownFile(new SHA1(0x4d0f1d1d3b57eb70ul, 0xde562a52f4367495ul, 0x426d1896u), "data/scripts/scena/dat_en/t0410.dat"),
 			new KnownFile(new SHA1(0xd0fd8367295246abul, 0x1eafede393303d34ul, 0xf7f5bcc5u), "data/scripts/scena/dat_en/t3000.dat"),
 			new KnownFile(new SHA1(0x11f838467868bad6ul, 0x1623e965fbc3c060ul, 0x7d2a3356u), "data/scripts/scena/dat_en/t3200.dat"),
