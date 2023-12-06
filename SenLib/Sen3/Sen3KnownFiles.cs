@@ -102,6 +102,7 @@ namespace SenLib.Sen3 {
 			new KnownFile(new SHA1(0xf575ce0fc4798812ul, 0x2ec8107110238ad3ul, 0xc902529eu), "data/text/dat/t_magic.tbl"),
 			new KnownFile(new SHA1(0xc0b07b04d56268a7ul, 0xc42471d6671dc5cbul, 0x6243286fu), "data/text/dat_en/t_magic.tbl"),
 			new KnownFile(new SHA1(0xf0460f7c90178135ul, 0xeae01a737c98f614ul, 0xa2227b38u), "data/text/dat_fr/t_magic.tbl"),
+			new KnownFile(new SHA1(0xe1f521da8d1a98a4ul, 0xe9945859287da9cful, 0x2b0cdd38u), "data/text/dat_en/t_mons.tbl"),
 			new KnownFile(new SHA1(0x86c4d62ac6efc4abul, 0x5dbfdc7f5bf36c4eul, 0xaef64c3bu), "data/text/dat/t_mstqrt.tbl"),
 			new KnownFile(new SHA1(0x494b68fcbc463581ul, 0xf79f7dd1f6444df9ul, 0xc4ad6204u), "data/text/dat_en/t_mstqrt.tbl"),
 			new KnownFile(new SHA1(0xb8022803ece579b5ul, 0x342e5143dc91ae47ul, 0x06fd7f7cu), "data/text/dat_fr/t_mstqrt.tbl"),
