@@ -370,6 +370,7 @@
     <Compile Include="Sen3\FileFixes\tk_linde_dat.cs" />
     <Compile Include="Sen3\FileFixes\tk_patrick_dat.cs" />
     <Compile Include="Sen3\FileFixes\tk_stark_dat.cs" />
+    <Compile Include="Sen3\FileFixes\tk_zessica_dat.cs" />
     <Compile Include="Sen3\FileFixes\tk_tovar_dat.cs" />
     <Compile Include="Sen3\FileFixes\t_mons.cs" />
     <Compile Include="Sen3\FileFixes\t_vctiming_us.cs" />

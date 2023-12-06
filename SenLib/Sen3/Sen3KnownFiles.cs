@@ -92,6 +92,7 @@ namespace SenLib.Sen3 {
 			new KnownFile(new SHA1(0x6ed1ba8558121db3ul, 0x18927df877171223ul, 0x3f41fcceu), "data/scripts/talk/dat_en/tk_patrick.dat"),
 			new KnownFile(new SHA1(0x095615a115f3653bul, 0x2ecb59a16a756f8cul, 0x3f12b68du), "data/scripts/talk/dat_en/tk_stark.dat"),
 			new KnownFile(new SHA1(0x5f392e50537f7ef7ul, 0x79cb276c8d04c4ebul, 0x7b7198d4u), "data/scripts/talk/dat_en/tk_tovar.dat"),
+			new KnownFile(new SHA1(0x8a9a5ca2e438e36eul, 0xa47c147124623407ul, 0xae9b6b5bu), "data/scripts/talk/dat_en/tk_zessica.dat"),
 			new KnownFile(new SHA1(0x660380324204ba12ul, 0xb6b100333cff246ful, 0xe6e18674u), "data/text/dat/t_item.tbl"),
 			new KnownFile(new SHA1(0x5deee9b833b2bb93ul, 0xb0a326f586943f3dul, 0x2e2424b9u), "data/text/dat_en/t_item_en.tbl", "data/text/dat_fr/t_item_en.tbl"),
 			new KnownFile(new SHA1(0x78602fdfed633bb3ul, 0xe41303f135d93674ul, 0x40c25c38u), "data/text/dat_en/t_item_fr.tbl", "data/text/dat_fr/t_item_fr.tbl"),

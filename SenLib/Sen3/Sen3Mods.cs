@@ -113,6 +113,7 @@ namespace SenLib.Sen3 {
 			f.Add(new FileFixes.t0250_dat());
 			f.Add(new FileFixes.t0400_dat());
 			f.Add(new FileFixes.t_mons());
+			f.Add(new FileFixes.tk_zessica_dat());
 			return f;
 		}
 	}
