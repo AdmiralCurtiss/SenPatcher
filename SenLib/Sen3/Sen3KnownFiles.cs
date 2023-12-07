@@ -33,6 +33,8 @@ namespace SenLib.Sen3 {
 			new KnownFile(new SHA1(0x6c33cf8b1cf93950ul, 0xd802f5ac9de1b213ul, 0xc0b45033u), "data/movie_us/webm/insa_05.webm"),
 			new KnownFile(new SHA1(0x97b37cb0d324014dul, 0x8db6b2965f1836eful, 0xfdb1ce01u), "data/movie_us/webm/insa_08.webm", "data/movie_us/webm/insa_09.webm"),
 			new KnownFile(new SHA1(0x2c6088c4f1e8847eul, 0x49f5f5f48b410fe2ul, 0xaec3ef54u), "data/scripts/battle/dat_en/alchr022.dat"),
+			new KnownFile(new SHA1(0xb2b35b9d531658a4ul, 0x5ed2a53477757d5aul, 0x72c066abu), "data/scripts/book/dat_en/book05.dat"),
+			new KnownFile(new SHA1(0xfa7e69755a3592cdul, 0xb5196cd45ac86167ul, 0x1798384cu), "data/scripts/book/dat_en/book06.dat"),
 			new KnownFile(new SHA1(0x4531fd2f226f5c64ul, 0x1e09fc35e118d1c1ul, 0xbb2a4144u), "data/scripts/book/dat_en/book07.dat"),
 			new KnownFile(new SHA1(0x2b0b345b51b705b7ul, 0x1ddc5f7989836dc3ul, 0x139f62f5u), "data/scripts/scena/dat_en/a0417.dat"),
 			new KnownFile(new SHA1(0x8a6e007a75ff9d1bul, 0x06cc96f67d383ff7ul, 0xde6d2eb6u), "data/scripts/scena/dat_en/c0200.dat"),
