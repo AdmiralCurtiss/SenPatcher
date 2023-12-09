@@ -278,6 +278,15 @@
     <Compile Include="Sen2\FileFixes\scripts_book_dat_us_book04_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_asm_t1001_tbl.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_t1001_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t0001_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t0010_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t1010_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t3500_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t4000_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_t5501_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_talk_dat_us_tk_rosine_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_r1010_dat.cs" />
+    <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7110_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7090_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7060_dat.cs" />
     <Compile Include="Sen2\FileFixes\scripts_scena_dat_us_e7050_dat.cs" />

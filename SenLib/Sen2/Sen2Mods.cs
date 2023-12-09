@@ -79,6 +79,15 @@ namespace SenLib.Sen2 {
 			f.Add(new FileFixes.scripts_scena_dat_us_e7090_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_monica_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_heinrich_dat());
+			f.Add(new FileFixes.scripts_talk_dat_us_tk_rosine_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_e7110_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_r1010_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t0001_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t0010_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t1010_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t3500_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t4000_dat());
+			f.Add(new FileFixes.scripts_scena_dat_us_t5501_dat());
 			return f;
 		}
 
