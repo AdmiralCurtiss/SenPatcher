@@ -22,6 +22,7 @@ namespace SenLib.Sen2.FileFixes {
 			var patcher = new SenScriptPatcher(bin);
 
 			// during the our days in the army -> during our days in the army
+			// This is during the very first chance you get to walk around in the Finale, in Vandyck's office.
 			patcher.RemovePartialCommand(0x4201, 0x11b, 0x42dc, 0x4);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0010.dat", bin) };

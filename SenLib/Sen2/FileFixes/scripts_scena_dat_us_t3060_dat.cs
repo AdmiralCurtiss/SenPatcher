@@ -25,6 +25,7 @@ namespace SenLib.Sen2.FileFixes {
 			patcher.RemovePartialCommand(0x3f00, 0x119, 0x3faa, 0x4);
 
 			// add voice clip
+			// this is in act 1 part 3, the scene with Aurelia and Wallace
 			patcher.ExtendPartialCommand(0x67c0, 0xd, 0x67c8, new byte[] { 0x11, 0x4e, 0xff, 0x00, 0x00 });
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t3060.dat", bin) };

@@ -23,6 +23,7 @@ namespace SenLib.Sen2.FileFixes {
 			var patcher = new SenScriptPatcher(bin);
 
 			// extra comma
+			// NPC in Act 1 Part 1, before departing for Celdic.
 			patcher.RemovePartialCommand(0x1215f, 0x99, 0x121a1, 0x1);
 
 			// PS4 changed two 'someday' to 'some day' but as far as I can tell the former is fine for an unspecified time point?
@@ -37,6 +38,7 @@ namespace SenLib.Sen2.FileFixes {
 			//}
 
 			// I know this is a lot of ask -> I know this is a lot to ask
+			// Patiry/Kargo sidequest in Act 2 Part 1
 			bin.Position = 0x43206;
 			bin.Write(new byte[] { 0x74, 0x6f });
 

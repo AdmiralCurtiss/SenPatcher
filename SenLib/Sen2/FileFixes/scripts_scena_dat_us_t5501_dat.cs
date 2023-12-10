@@ -22,6 +22,7 @@ namespace SenLib.Sen2.FileFixes {
 			var patcher = new SenScriptPatcher(bin);
 
 			// add voice clips
+			// Both of these are in the scenes at the end of Act 1 Part 1, with the Xeno/Leo fight.
 			patcher.ExtendPartialCommand(0x7941, 0x10, 0x794c, new byte[] { 0x11, 0x2d, 0xff, 0x00, 0x00 });
 			patcher.ExtendPartialCommand(0xa8a5, 0x1a, 0xa8b1, new byte[] { 0x11, 0x5d, 0xff, 0x00, 0x00 });
 

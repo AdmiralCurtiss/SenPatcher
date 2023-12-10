@@ -21,6 +21,7 @@ namespace SenLib.Sen2.FileFixes {
 			var bin = file.CopyToMemory();
 
 			// Huh? -> Hmm?
+			// This is in Act 2, early into the Roer section, right before reuniting with Angelica.
 			bin.Position = 0x17e54;
 			bin.Write(new byte[] {0x6d, 0x6d});
 
