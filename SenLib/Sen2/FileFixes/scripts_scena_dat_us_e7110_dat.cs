@@ -50,6 +50,10 @@ namespace SenLib.Sen2.FileFixes {
 			bin.Position = 0x182d1;
 			bin.Write(new byte[] { 0x4a, 0xff }); // pc28v01959 -> pc28v01968
 
+			// "..." -> "I..." to match voice clip.
+			patcher.ExtendPartialCommand(0x1d784, 0x19, 0x1d798, new byte[] { 0x49 });
+
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/e7110.dat", bin) };
 		}
 
