@@ -132,6 +132,13 @@ namespace SenLib.Sen2.FileFixes {
 			bin.Position = 0x4b173;
 			bin.Write(new byte[] { 0x0a, 0xff });
 
+			// alfin (final bonding event), 'Oooh...' -> 'Ohhh...'
+			// inconsistent between game and memories menu, match memories to game
+			bin.Position = 0x4fe0c;
+			bin.Write(new byte[] { 0x68, 0x68 });
+
+			// gaius (epilogue evening), remove extra space in one line that exists in memories only
+			patcher.RemovePartialCommand(0x5ce12, 0x15b, 0x5cebd, 0x1);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t1010.dat", bin) };
 		}
