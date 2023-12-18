@@ -37,6 +37,10 @@ namespace SenLib.Sen2.FileFixes {
 			bin.Position = 0x39ace;
 			bin.Write(new byte[] { 0xfb, 0xfe });
 
+			// fie (final bonding event), one line has two voice clips assigned to it, remove one of them
+			patcher.RemovePartialCommand(0xf815, 0x15, 0xf81d, 0x5);
+			patcher.RemovePartialCommand(0x42bc9, 0x15, 0x42bd1, 0x5);
+
 			// towa (final bonding event), pc28v01138 -> pc28v01325
 			bin.Position = 0x15633;
 			bin.Write(new byte[] { 0x44, 0xff });
