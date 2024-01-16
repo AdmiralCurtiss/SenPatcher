@@ -224,6 +224,7 @@
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0010_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0031_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t0032_dat.cs" />
+    <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_becky_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_talk_dat_us_tk_angelica_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t5660_dat.cs" />
     <Compile Include="Sen1\FileFixes\scripts_scena_dat_us_t4610_dat.cs" />

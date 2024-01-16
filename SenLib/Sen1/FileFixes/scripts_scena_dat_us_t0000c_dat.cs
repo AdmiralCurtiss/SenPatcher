@@ -26,6 +26,10 @@ namespace SenLib.Sen1.FileFixes {
 			// extra word in voice but not text
 			patcher.ExtendPartialCommand(0x1f46b, 0x10, 0x1f476, new byte[] { 0x4d, 0x6d, 0x2d, 0x68, 0x6d });
 
+			// 'Ditto my dad.' -> 'Ditto my father.' to match voice clip
+			bin.SwapBytes(0x20a2f, 0x20a34);
+			patcher.ReplacePartialCommand(0x20a03, 0x58, 0x20a14, 0x3, new byte[] { 0x66, 0x61, 0x74, 0x68, 0x65, 0x72 });
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0000c.dat", bin) };
 		}
 

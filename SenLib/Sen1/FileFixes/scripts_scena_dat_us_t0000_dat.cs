@@ -87,6 +87,23 @@ namespace SenLib.Sen1.FileFixes {
 			bin.Position = 0xa3ebc;
 			bin.WriteByte(0x54);
 
+			// course rock salt -> coarse rock salt
+			bin.Position = 0xa25d2;
+			bin.WriteByte(0x61);
+
+			// 'or really good guy' -> 'or a really good guy' plus textbox formatting
+			using (MemoryStream ms = new MemoryStream()) {
+				bin.Position = 0x21b9b;
+				byte[] data = bin.ReadBytes(0x78);
+				ms.Write(data, 0, 0x4f);
+				ms.Write(data, 0x50, 0x4);
+				ms.WriteByte(0x01);
+				ms.Write(data, 0x55, 0xd);
+				ms.WriteByte(0x61);
+				ms.Write(data, 0x61, 0x17);
+				patcher.ReplaceCommand(0x21b9b, 0x78, ms.CopyToByteArrayAndDispose());
+			}
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0000.dat", bin) };
 		}
 

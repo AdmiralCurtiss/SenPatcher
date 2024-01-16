@@ -81,6 +81,10 @@ namespace SenLib.Sen1.FileFixes {
 			line[0] = bin.ReadUInt8();
 			patcher.ReplacePartialCommand(0x12d23, 0x17, 0x12d26, 0x6, line);
 
+			// fix typo 'as you made your way around' -> 'as you make your way around'
+			bin.Position = 0x10b05;
+			bin.WriteUInt8(0x6b);
+
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0020.dat", bin) };
 		}
 

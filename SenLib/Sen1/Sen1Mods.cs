@@ -79,6 +79,7 @@ namespace SenLib.Sen1 {
 			f.Add(new FileFixes.scripts_scena_dat_us_t4610_dat());
 			f.Add(new FileFixes.scripts_scena_dat_us_t5660_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_angelica_dat());
+			f.Add(new FileFixes.scripts_talk_dat_us_tk_becky_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_beryl_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_edel_dat());
 			f.Add(new FileFixes.scripts_talk_dat_us_tk_heinrich_dat());

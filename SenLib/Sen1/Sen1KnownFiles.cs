@@ -70,6 +70,7 @@ namespace SenLib.Sen1 {
 			new KnownFile(new SHA1(0x78aa964124be90f4ul, 0xb9c5da90418a724cul, 0x0b46cbc3u), "data/scripts/scena/dat_us/t5660.dat"),
 			new KnownFile(new SHA1(0xe5f61f3108f8e1d4ul, 0x3ca539b93bac91cful, 0xe37b709au), "data/scripts/talk/dat_us/tk_angelica.dat"),
 			new KnownFile(new SHA1(0xaf8f356c80083c02ul, 0x8824fd41332b003ful, 0xec834cb1u), "data/scripts/talk/dat_us/tk_beryl.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_beryl.dat"),
+			new KnownFile(new SHA1(0x3eb462def36cc151ul, 0x03e48657aa18b6b0ul, 0x2abcd830u), "data/scripts/talk/dat_us/tk_becky.dat"),
 			new KnownFile(new SHA1(0xdc5deaa30247aafaul, 0xf2a369da2268d408ul, 0x2ba310c5u), "data/scripts/talk/dat_us/tk_edel.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_edel.dat"),
 			new KnownFile(new SHA1(0x491c365d592bb900ul, 0x29e7543d893d47bdul, 0x5e66139du), "data/scripts/talk/dat_us/tk_heinrich.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_heinrich.dat"),
 			new KnownFile(new SHA1(0xf423fb1dfddde29dul, 0x3e26a40ceed87982ul, 0xb899cdcau), "data/scripts/talk/dat_us/tk_laura.dat", "senpatcher_bkp/data_scripts_talk_dat_us_tk_laura.dat"),

@@ -13,7 +13,9 @@ namespace SenLib.Sen1.FileFixes {
 			if (s == null) {
 				return null;
 			}
+
 			MemoryStream bin = s.CopyToMemoryAndDispose();
+			var patcher = new SenScriptPatcher(bin);
 
 			bin.Position = 0x2360;
 			bin.WriteUInt24(0x2e2e2e);
@@ -23,6 +25,9 @@ namespace SenLib.Sen1.FileFixes {
 			bin.WriteUInt24(0x2e2e2e);
 			bin.Position = 0x137db;
 			bin.WriteUInt24(0x2e2e2e);
+
+			// 'no way I can to quit now' -> 'no way I can quit now'
+			patcher.RemovePartialCommand(0x1622b, 0xa5, 0x162c2, 0x3);
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_us/t0032.dat", bin) };
 		}
