@@ -13,7 +13,7 @@ namespace SenLib.Sen4.FileFixes {
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
-			var file = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x64a9b5e395a29f2bul, 0x62c6000ee60a8239ul, 0x0a369101u));
+			var file = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xd1cd26a05828553bul, 0xb7bf03e370717226ul, 0xf28353a0u));
 			if (file == null) {
 				return null;
 			}
@@ -22,14 +22,14 @@ namespace SenLib.Sen4.FileFixes {
 			// var patcher = new SenScriptPatcher(bin);
 
 			// astrology -> astronomy in cocktail with Towa
-			bin.Position = 0x39b64;
+			bin.Position = 0x39b68;
 			bin.Write(new byte[] {0x6e, 0x6f, 0x6d});
 
 			return new FileModResult[] { new FileModResult("data/scripts/scena/dat_en/f4200.dat", bin) };
 		}
 
 		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
-			var file = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x64a9b5e395a29f2bul, 0x62c6000ee60a8239ul, 0x0a369101u));
+			var file = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xd1cd26a05828553bul, 0xb7bf03e370717226ul, 0xf28353a0u));
 			if (file == null) {
 				return null;
 			}

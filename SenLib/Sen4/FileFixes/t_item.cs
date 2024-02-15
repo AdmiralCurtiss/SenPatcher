@@ -47,7 +47,7 @@ namespace SenLib.Sen4.FileFixes {
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
-			var file_en = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xe16749c32d8a877cul, 0x4a6181337f7f20b3ul, 0x0e40f379u));
+			var file_en = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x4e83e0152b272f6eul, 0x7739c89a07c1b0c5ul, 0xe2499e8au));
 			if (file_en == null) {
 				return null;
 			}
@@ -77,10 +77,8 @@ namespace SenLib.Sen4.FileFixes {
 				var m = new ItemData(tbl_en.Entries[idx].Data);
 				// inconsistent formatting
 				m.desc = m.desc.Remove(61, 1);
-				m.desc = m.desc.Remove(82, 1);
 				m.desc = m.desc.ReplaceSubstring(112, 2, "/", 0, 1);
 				m.desc = m.desc.Remove(127, 1);
-				m.desc = m.desc.Insert(131, " ");
 				tbl_en.Entries[idx].Data = m.ToBinary();
 			}
 
@@ -90,15 +88,6 @@ namespace SenLib.Sen4.FileFixes {
 				var m = new ItemData(tbl_en.Entries[idx].Data);
 				// inconsistent formatting
 				m.desc = m.desc.Remove(59, 1);
-				m.desc = m.desc.Insert(63, " ");
-				tbl_en.Entries[idx].Data = m.ToBinary();
-			}
-
-			// Hyoushou Gem
-			{
-				int idx = 1042;
-				var m = new ItemData(tbl_en.Entries[idx].Data);
-				m.desc = m.desc.Remove(73, 1); // double space
 				tbl_en.Entries[idx].Data = m.ToBinary();
 			}
 
@@ -118,30 +107,6 @@ namespace SenLib.Sen4.FileFixes {
 				tbl_en.Entries[idx].Data = m.ToBinary();
 			}
 
-			// Cast 1
-			{
-				int idx = 1144;
-				var m = new ItemData(tbl_en.Entries[idx].Data);
-				m.desc = m.desc.Remove(m.desc.Length - 1, 1); // stray ] at the end of the description
-				tbl_en.Entries[idx].Data = m.ToBinary();
-			}
-
-			// Cast 2
-			{
-				int idx = 1154;
-				var m = new ItemData(tbl_en.Entries[idx].Data);
-				m.desc = m.desc.Remove(m.desc.Length - 1, 1); // stray ] at the end of the description
-				tbl_en.Entries[idx].Data = m.ToBinary();
-			}
-
-			// Cast 3
-			{
-				int idx = 1167;
-				var m = new ItemData(tbl_en.Entries[idx].Data);
-				m.desc = m.desc.Remove(m.desc.Length - 1, 1); // stray ] at the end of the description
-				tbl_en.Entries[idx].Data = m.ToBinary();
-			}
-
 			// Iron Winged Lion Medal
 			{
 				int idx = 677;
@@ -157,7 +122,7 @@ namespace SenLib.Sen4.FileFixes {
 		}
 
 		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
-			var file_en = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xe16749c32d8a877cul, 0x4a6181337f7f20b3ul, 0x0e40f379u));
+			var file_en = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0x4e83e0152b272f6eul, 0x7739c89a07c1b0c5ul, 0xe2499e8au));
 			if (file_en == null) {
 				return null;
 			}

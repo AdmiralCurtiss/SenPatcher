@@ -41,7 +41,7 @@ namespace SenLib.Sen4.FileFixes {
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
-			var file_en = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xb80489ae03c9c909ul, 0x53e7285b920df660ul, 0x148768efu));
+			var file_en = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xed242395ee9b5aa1ul, 0x5f11bf83138b161bul, 0xb116d20au));
 			if (file_en == null) {
 				return null;
 			}
@@ -93,7 +93,7 @@ namespace SenLib.Sen4.FileFixes {
 		}
 
 		public IEnumerable<FileModResult> TryRevert(FileStorage storage) {
-			var file_en = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xb80489ae03c9c909ul, 0x53e7285b920df660ul, 0x148768efu));
+			var file_en = storage.TryGetDuplicate(new HyoutaUtils.Checksum.SHA1(0xed242395ee9b5aa1ul, 0x5f11bf83138b161bul, 0xb116d20au));
 			if (file_en == null) {
 				return null;
 			}
