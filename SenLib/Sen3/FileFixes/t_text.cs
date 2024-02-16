@@ -37,6 +37,13 @@ namespace SenLib.Sen3.FileFixes {
 				tbl_en.Entries[99].Data = m.ToBinary();
 			}
 
+			// HorseSettings -> Horse Settings, BikeSettings -> Bike Settings
+			{
+				var m = new TextTableData(tbl_en.Entries[3].Data);
+				m.str = " " + m.str;
+				tbl_en.Entries[3].Data = m.ToBinary();
+			}
+
 			// this description is gibberish because someone assumed %s is the MQ name instead of the character name, rewrite it so it makes sense
 			for (int i = 0; i < 2; ++i) {
 				var m = new TextTableData(tbl_en.Entries[127 + i].Data);
