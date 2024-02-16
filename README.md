@@ -58,7 +58,7 @@ Feature Set for Trails of Cold Steel III
 * Option to force XInput for controllers (this supposedly fixes newer Xbox controllers)
 * Option to keep the game running while in background.
 
-Note: Compatible with version 1.05 of the game only.
+Note: Compatible with version 1.06 of the game only.
 
 Feature Set for Trails of Cold Steel IV
 =======================================
@@ -68,4 +68,4 @@ Feature Set for Trails of Cold Steel IV
 * Option to keep the game running while in background.
 * Option to force the controller button Confirm/Cancel layout to English/Xbox or Japanese/Nintendo style.
 
-Note: Compatible with version 1.2 of the game only.
+Note: Compatible with version 1.2.1 of the game only.

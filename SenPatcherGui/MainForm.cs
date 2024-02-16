@@ -341,7 +341,7 @@ namespace SenPatcherGui {
 					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(Sen3LauncherPath)) {
 						SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
 						if (hash != new SHA1(0x21de3b088a5ddad7ul, 0xed1fdb8e40061497ul, 0xc248ca65u)) {
-							Progress.Error("Selected file does not appear to be Sen3Launcher.exe of version 1.05.");
+							Progress.Error("Selected file does not appear to be Sen3Launcher.exe of version 1.06.");
 							Progress.Finish(false);
 							return;
 						}
@@ -378,7 +378,7 @@ namespace SenPatcherGui {
 							  "Encountered problems while initializing CS3 data. "
 							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
 							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
-							+ "Please also ensure you're trying to patch a compatible version of the game. (NISA release version 1.05; other game versions are not compatible, though if you own the EGS version I'd appreciate a report about file differences, if any!)"
+							+ "Please also ensure you're trying to patch a compatible version of the game. (NISA release version 1.06; other game versions are not compatible, though if you own the EGS version I'd appreciate a report about file differences, if any!)"
 						);
 					} else {
 						Progress.Error(
@@ -444,7 +444,7 @@ namespace SenPatcherGui {
 					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(Sen4LauncherPath)) {
 						SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
 						if (hash != new SHA1(0x5f480136aa4c3b53ul, 0xadd422bf75b63350ul, 0xfa58d202u)) {
-							Progress.Error("Selected file does not appear to be Sen4Launcher.exe of version 1.2.");
+							Progress.Error("Selected file does not appear to be Sen4Launcher.exe of version 1.2.1.");
 							Progress.Finish(false);
 							return;
 						}
@@ -481,7 +481,7 @@ namespace SenPatcherGui {
 							  "Encountered problems while initializing CS4 data. "
 							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
 							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
-							+ "Please also ensure you're trying to patch a compatible version of the game. (NISA release version 1.2; other game versions are not compatible, though if you own the EGS version I'd appreciate a report about file differences, if any!)"
+							+ "Please also ensure you're trying to patch a compatible version of the game. (NISA release version 1.2.1; other game versions are not compatible, though if you own the EGS version I'd appreciate a report about file differences, if any!)"
 						);
 					} else {
 						Progress.Error(
