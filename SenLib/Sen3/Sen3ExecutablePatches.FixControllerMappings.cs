@@ -12,12 +12,23 @@ namespace SenLib.Sen3 {
 			bool jp = state.IsJp;
 			var be = EndianUtils.Endianness.BigEndian;
 
-			long addressStructMemAlloc = (jp ? 0x14012dd59 : 0x1401312d9) + 2;
-			long addressInjectPos = jp ? 0x14012d85c : 0x140130dde;
-			long addressMapLookupCode = jp ? 0x14012e056 : 0x1401315f2;
+			// 1.05
+			//long addressStructMemAlloc = (jp ? 0x14012dd59 : 0x1401312d9) + 2;
+			//long addressInjectPos = jp ? 0x14012d85c : 0x140130dde;
+			//long addressMapLookupCode = jp ? 0x14012e056 : 0x1401315f2;
+			//long lengthMapLookupCodeForDelete = jp ? 0x45 : 0x3f;
+			//long addressMapLookupSuccessForDelete = jp ? 0x14012e0a8 : 0x14013163e;
+			//long lengthMapLookupSuccessForDelete = jp ? 4 : 3;
+			//long jpSwapActions45 = jp ? 0x14012d75d : 0; // only in JP build
+
+			// 1.06
+			long addressStructMemAlloc = (jp ? 0x14012dd89 : 0x140131309) + 2;
+			long addressInjectPos = jp ? 0x14012d88c : 0x140130e0e;
+			long addressMapLookupCode = jp ? 0x14012e086 : 0x140131622;
 			long lengthMapLookupCodeForDelete = jp ? 0x45 : 0x3f;
-			long addressMapLookupSuccessForDelete = jp ? 0x14012e0a8 : 0x14013163e;
+			long addressMapLookupSuccessForDelete = jp ? 0x14012e0d8 : 0x14013166e;
 			long lengthMapLookupSuccessForDelete = jp ? 4 : 3;
+			long jpSwapActions45 = jp ? 0x14012d78d : -1; // only in JP build
 
 			// increase struct allocation by 0x20 bytes
 			bin.Position = state.Mapper.MapRamToRom(addressStructMemAlloc);
@@ -148,7 +159,7 @@ namespace SenLib.Sen3 {
 				using (var check5 = new BranchHelper1Byte(bin, state.Mapper))
 				using (var checkdone = new BranchHelper1Byte(bin, state.Mapper))
 				using (var jumpBack = new BranchHelper4Byte(bin, state.Mapper)) {
-					long addr = 0x14012d75d;
+					long addr = jpSwapActions45;
 					bin.Position = state.Mapper.MapRamToRom(addr + 1);
 					long calladdr = bin.ReadInt32() + addr + 5;
 					replacedCall.SetTarget((ulong)calladdr);

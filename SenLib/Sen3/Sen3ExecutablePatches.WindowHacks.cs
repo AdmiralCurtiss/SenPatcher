@@ -11,23 +11,37 @@ namespace SenLib.Sen3 {
 		public static void PatchDisableMouseCapture(Stream bin, Sen3ExecutablePatchState state) {
 			bool jp = state.IsJp;
 
+			// 1.05
+			//long captureMouseCursorPos1 = jp ? 0x140320b38 : 0x14032a048;
+			//long captureMouseCursorPos2 = jp ? 0x140320d05 : 0x14032a215;
+			//long cameraMouseFuncPos1 = jp ? 0x1400f7be8 : 0x1400f8268;
+			//long cameraMouseFuncPos2 = jp ? 0x1400f7d61 : 0x1400f83e1;
+			//long processMouseFuncPos = jp ? 0x1400f88bd : 0x1400f8f3d;
+
+			// 1.06
+			long captureMouseCursorPos1 = jp ? 0x140320db8 : 0x14032a2c8;
+			long captureMouseCursorPos2 = jp ? 0x140320f85 : 0x14032a495;
+			long cameraMouseFuncPos1 = jp ? 0x1400f7be8 : 0x1400f8268;
+			long cameraMouseFuncPos2 = jp ? 0x1400f7d61 : 0x1400f83e1;
+			long processMouseFuncPos = jp ? 0x1400f88bd : 0x1400f8f3d;
+
 			// change functions that capture the mouse cursor to not do that
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x140320b38 : 0x14032a048);
+			bin.Position = state.Mapper.MapRamToRom(captureMouseCursorPos1);
 			bin.WriteUInt8(0xeb); // jz -> jmp
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x140320d05 : 0x14032a215);
+			bin.Position = state.Mapper.MapRamToRom(captureMouseCursorPos2);
 			bin.WriteUInt8(0xeb); // jz -> jmp
 
 			// change function that handles camera movement to not react to mouse movement
 			// and not to fall back to WASD camera movement either (legacy code...?)
 			using (var branch = new BranchHelper4Byte(bin, state.Mapper)) {
-				bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400f7be8 : 0x1400f8268);
+				bin.Position = state.Mapper.MapRamToRom(cameraMouseFuncPos1);
 				branch.WriteJump5Byte(0xe9);
 				bin.WriteUInt8(0x90); // nop
-				branch.SetTarget(jp ? 0x1400f7d61u : 0x1400f83e1u);
+				branch.SetTarget((ulong)cameraMouseFuncPos2);
 			}
 
 			// skip mouse movement processing function or something like that?
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400f88bd : 0x1400f8f3d);
+			bin.Position = state.Mapper.MapRamToRom(processMouseFuncPos);
 			bin.WriteUInt8(0x90); // nop
 			bin.WriteUInt8(0x90); // nop
 			bin.WriteUInt8(0x90); // nop
@@ -38,8 +52,14 @@ namespace SenLib.Sen3 {
 		public static void PatchShowMouseCursor(Stream bin, Sen3ExecutablePatchState state) {
 			bool jp = state.IsJp;
 
+			// 1.05
+			//long showCursorPos = jp ? 0x140599444 : 0x1405a5804;
+
+			// 1.06
+			long showCursorPos = jp ? 0x140599734 : 0x1405a5ae4;
+
 			// remove call to ShowCursor(0)
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x140599444 : 0x1405a5804);
+			bin.Position = state.Mapper.MapRamToRom(showCursorPos);
 			for (int i = 0; i < 8; ++i) {
 				bin.WriteUInt8(0x90); // nop
 			}
@@ -48,19 +68,32 @@ namespace SenLib.Sen3 {
 		public static void PatchDisablePauseOnFocusLoss(Stream bin, Sen3ExecutablePatchState state) {
 			bool jp = state.IsJp;
 
+			// 1.05
 			// 0x1400f6820 -> game active setter
 			// 0x1400f7b10 -> game active getter
 			// 0x1400f76a4 -> game loop skip when inactive
+			//long silenceAudioIfUnfocusedPos1 = jp ? 0x1400f943b : 0x1400f9abb;
+			//long silenceAudioIfUnfocusedPos2 = jp ? 0x1400f9474 : 0x1400f9af4;
+			//long runMainGameLoopIfUnfocusedPos = jp ? 0x1400f7024 : 0x1400f76a4;
+			//long skipMouseButtonsIfUnfocusedPos1 = jp ? 0x14012dfa2 : 0x140131522;
+			//long skipMouseButtonsIfUnfocusedPos2 = jp ? 0x141d43ea0 : 0x141d5a040;
+
+			// 1.06
+			long silenceAudioIfUnfocusedPos1 = jp ? 0x1400f943b : 0x1400f9abb;
+			long silenceAudioIfUnfocusedPos2 = jp ? 0x1400f9474 : 0x1400f9af4;
+			long runMainGameLoopIfUnfocusedPos = jp ? 0x1400f7024 : 0x1400f76a4;
+			long skipMouseButtonsIfUnfocusedPos1 = jp ? 0x14012dfd2 : 0x140131552;
+			long skipMouseButtonsIfUnfocusedPos2 = jp ? 0x141d43de0 : 0x141d59f80;
 
 			// don't silence audio output when unfocused
 			using (var branch = new BranchHelper1Byte(bin, state.Mapper)) {
-				bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400f943b : 0x1400f9abb);
+				bin.Position = state.Mapper.MapRamToRom(silenceAudioIfUnfocusedPos1);
 				branch.WriteJump(0xeb);
-				branch.SetTarget(jp ? 0x1400f9474u : 0x1400f9af4u);
+				branch.SetTarget((ulong)silenceAudioIfUnfocusedPos2);
 			}
 
 			// still run main game loop when unfocused
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400f7024 : 0x1400f76a4);
+			bin.Position = state.Mapper.MapRamToRom(runMainGameLoopIfUnfocusedPos);
 			bin.WriteUInt8(0x90); // nop
 			bin.WriteUInt8(0x90); // nop
 			bin.WriteUInt8(0x90); // nop
@@ -71,8 +104,8 @@ namespace SenLib.Sen3 {
 			// avoid processing mouse clicks when unfocused
 			// (this previously happened only implicitly because the game didn't run...)
 			// carve out some now-unused code space
-			long codespaceStart = (jp ? 0x1400f943b : 0x1400f9abb) + 2;
-			long codespaceEnd = jp ? 0x1400f9474 : 0x1400f9af4;
+			long codespaceStart = (silenceAudioIfUnfocusedPos1) + 2;
+			long codespaceEnd = silenceAudioIfUnfocusedPos2;
 			var codespace = new RegionHelper64(codespaceStart, (uint)(codespaceEnd - codespaceStart), "Pause on Focus Loss: Codespace Region");
 			bin.Position = state.Mapper.MapRamToRom(codespace.Address);
 			for (uint i = 0; i < codespace.Remaining; ++i) {
@@ -87,12 +120,12 @@ namespace SenLib.Sen3 {
 				var le = EndianUtils.Endianness.LittleEndian;
 				var be = EndianUtils.Endianness.BigEndian;
 
-				back_to_function.SetTarget((jp ? 0x14012dfa2u : 0x140131522u) + 6);
-				bin.Position = state.Mapper.MapRamToRom((jp ? 0x14012dfa2 : 0x140131522) + 2);
-				long GetKeyStateAddress = bin.ReadUInt32(le) + ((jp ? 0x14012dfa2 : 0x140131522) + 6);
-				long GameStateAddress = jp ? 0x141d43ea0 : 0x141d5a040;
+				back_to_function.SetTarget((ulong)(skipMouseButtonsIfUnfocusedPos1 + 6));
+				bin.Position = state.Mapper.MapRamToRom(skipMouseButtonsIfUnfocusedPos1 + 2);
+				long GetKeyStateAddress = bin.ReadUInt32(le) + (skipMouseButtonsIfUnfocusedPos1 + 6);
+				long GameStateAddress = skipMouseButtonsIfUnfocusedPos2;
 
-				bin.Position = state.Mapper.MapRamToRom(jp ? 0x14012dfa2 : 0x140131522);
+				bin.Position = state.Mapper.MapRamToRom(skipMouseButtonsIfUnfocusedPos1);
 				jump_to_codespace.WriteJump5Byte(0xe9);    // jmp jump_to_codespace
 				bin.WriteUInt8(0x90);                      // nop
 

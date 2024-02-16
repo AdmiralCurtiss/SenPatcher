@@ -10,15 +10,22 @@ namespace SenLib.Sen3 {
 	public static partial class Sen3ExecutablePatches {
 		public static void AllowSwitchToNightmare(Stream bin, Sen3ExecutablePatchState state) {
 			bool jp = state.IsJp;
-			EndianUtils.Endianness be = EndianUtils.Endianness.BigEndian;
 			EndianUtils.Endianness le = EndianUtils.Endianness.LittleEndian;
 
+			// 1.05
+			//long setMaxDifficultyIndexPos = jp ? 0x14042a398 : 0x140436088;
+			//long switchFromNightmareWarning = jp ? 0x1402360e9 : 0x14023c62e;
+
+			// 1.06
+			long setMaxDifficultyIndexPos = (jp ? 0x14042a667 : 0x140436347) + 1;
+			long switchFromNightmareWarning = (jp ? 0x140236118 : 0x14023c65d) + 1;
+
 			// allow nightmare to be selected when difficulty is currently not nightmare
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x14042a398 : 0x140436088);
+			bin.Position = state.Mapper.MapRamToRom(setMaxDifficultyIndexPos);
 			bin.WriteUInt32(5, le);
 
 			// don't show warning when trying to switch away from nightmare
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x1402360e9 : 0x14023c62e);
+			bin.Position = state.Mapper.MapRamToRom(switchFromNightmareWarning);
 			bin.WriteUInt32(0x1e4, le);
 		}
 
@@ -42,12 +49,21 @@ namespace SenLib.Sen3 {
 
 			// stack from rsp+31h to rsp+37h looks unused, so stash our sentinel check flag in there... rsp+34h looks good
 
+			// 1.05
+			//long initSentinelCheckPos = 0x14027fce4;
+			//long checkSentinelPos = 0x1402800ed;
+			//long fixParametersPos = 0x1402801aa;
+
+			// 1.06
+			long initSentinelCheckPos = 0x14027fd54;
+			long checkSentinelPos = 0x14028015d;
+			long fixParametersPos = 0x14028021a;
 
 			// first initialize sentinel check flag on stack near start of function
 			using (var jump_to_inject = new BranchHelper4Byte(bin, state.Mapper))
 			using (var return_to_function = new BranchHelper4Byte(bin, state.Mapper))
 			using (var replaced_call = new BranchHelper4Byte(bin, state.Mapper)) {
-				bin.Position = state.Mapper.MapRamToRom(0x14027fce4);
+				bin.Position = state.Mapper.MapRamToRom(initSentinelCheckPos);
 				var call = SenUtils.ReadJump5Byte_x64(bin, state.Mapper);
 				replaced_call.SetTarget((ulong)call.address);
 				return_to_function.SetTarget((ulong)state.Mapper.MapRomToRam(bin.Position));
@@ -69,7 +85,7 @@ namespace SenLib.Sen3 {
 			using (var jump_to_inject = new BranchHelper4Byte(bin, state.Mapper))
 			using (var return_to_function = new BranchHelper4Byte(bin, state.Mapper))
 			using (var return_to_function_short = new BranchHelper1Byte(bin, state.Mapper)) {
-				bin.Position = state.Mapper.MapRamToRom(0x1402800ed);
+				bin.Position = state.Mapper.MapRamToRom(checkSentinelPos);
 				ulong instr1 = bin.ReadUInt48(be);
 				ulong instr2 = bin.ReadUInt40(be);
 				bin.Position -= 6;
@@ -99,7 +115,7 @@ namespace SenLib.Sen3 {
 			using (var jump_to_inject = new BranchHelper4Byte(bin, state.Mapper))
 			using (var return_to_function = new BranchHelper4Byte(bin, state.Mapper))
 			using (var exit_without_swap = new BranchHelper1Byte(bin, state.Mapper)) {
-				bin.Position = state.Mapper.MapRamToRom(0x1402801aa);
+				bin.Position = state.Mapper.MapRamToRom(fixParametersPos);
 				ulong overwrittenInstruction = bin.PeekUInt40(be);
 				jump_to_inject.WriteJump5Byte(0xe9);
 				return_to_function.SetTarget((ulong)state.Mapper.MapRomToRam(bin.Position));
@@ -123,7 +139,13 @@ namespace SenLib.Sen3 {
 		}
 
 		public static void PatchForceXInput(Stream binary, Sen3ExecutablePatchState patchInfo) {
-			binary.Position = (long)patchInfo.Mapper.MapRamToRom(patchInfo.IsJp ? 0x1406ada75 : 0x1406b9ed5);
+			// 1.05
+			//long xinputCheckPos = patchInfo.IsJp ? 0x1406ada75 : 0x1406b9ed5;
+
+			// 1.06
+			long xinputCheckPos = patchInfo.IsJp ? 0x1406add65 : 0x1406ba1b5;
+
+			binary.Position = (long)patchInfo.Mapper.MapRamToRom(xinputCheckPos);
 			binary.WriteUInt8(0x90); // nop
 			binary.WriteUInt8(0x90); // nop
 			binary.WriteUInt8(0x90); // nop

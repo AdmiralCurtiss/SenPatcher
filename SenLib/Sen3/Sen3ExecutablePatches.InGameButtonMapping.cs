@@ -13,7 +13,15 @@ namespace SenLib.Sen3 {
 			EndianUtils.Endianness be = EndianUtils.Endianness.BigEndian;
 			EndianUtils.Endianness le = EndianUtils.Endianness.LittleEndian;
 
-			var region = new RegionHelper64(jp ? 0x140447157 : 0x140452f97, 0x44, "In-game Button Mapping Validity");
+			// 1.05
+			//long buttonMappingValidityPos = jp ? 0x140447157 : 0x140452f97;
+			//uint buttonMappingValidityLen = 0x44;
+
+			// 1.06
+			long buttonMappingValidityPos = jp ? 0x140447427 : 0x140453257;
+			uint buttonMappingValidityLen = 0x44;
+
+			var region = new RegionHelper64(buttonMappingValidityPos, buttonMappingValidityLen, "In-game Button Mapping Validity");
 			bin.Position = state.Mapper.MapRamToRom(region.Address);
 			for (uint i = 0; i < region.Remaining; ++i) {
 				bin.WriteUInt8(0xcc); // int 3

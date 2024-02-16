@@ -147,8 +147,8 @@ namespace SenLib.Sen3 {
 			new KnownFile(new SHA1(0xe9cdc46863bfe152ul, 0xcd70a0f096ef3eaeul, 0x3d93287eu), "data/voice_us/opus/v72_e0011.opus"),
 			new KnownFile(new SHA1(0xef803a8f30d4185cul, 0xbe4eb1f9e837246aul, 0xe53d5d79u), "data/voice_us/opus/v72_e0012.opus"),
 			new KnownFile(new SHA1(0x4090e1aa67d9b5f3ul, 0xf8d610f6e7eaa066ul, 0xcc82698bu), "data/voice_us/opus/v93_e0300.opus"),
-			new KnownFile(new SHA1(0x72920fa16072f4b7ul, 0x51e6a5be3fb4df50ul, 0xb21da506u), "bin/x64/ed8_3_PC.exe"),
-			new KnownFile(new SHA1(0x2e9da161efc30b9aul, 0xf020903e99cfa9a2ul, 0x287ff1a2u), "bin/x64/ed8_3_PC_JP.exe"),
+			new KnownFile(new SHA1(0xa48022b2504c430ful, 0x2f017ab580aa6516ul, 0x638ed104u), "bin/x64/ed8_3_PC.exe"),
+			new KnownFile(new SHA1(0x14af222cbeee7c43ul, 0x4169c6a5bf2d21f6ul, 0x88000a26u), "bin/x64/ed8_3_PC_JP.exe"),
 			new KnownFile(new SHA1(0x21de3b088a5ddad7ul, 0xed1fdb8e40061497ul, 0xc248ca65u), "Sen3Launcher.exe"),
 			};
 		}
