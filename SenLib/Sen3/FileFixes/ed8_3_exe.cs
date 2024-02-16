@@ -120,8 +120,10 @@ namespace SenLib.Sen3.FileFixes {
 				regionStrings.TakeToAddress(state.Mapper.MapRomToRam(ms.Position), "SenPatcher version string");
 				ms.Position = state.Mapper.MapRamToRom(loadAddrTitleScreenVersionString);
 				ms.WriteUInt32((uint)(addressNewVersionString - loadAddrTitleScreenVersionStringOffset), EndianUtils.Endianness.LittleEndian);
-				ms.Position = state.Mapper.MapRamToRom(loadAddrCrashRptVersionString);
-				ms.WriteUInt32((uint)(addressNewVersionString - loadAddrCrashRptVersionStringOffset) + (uint)(versionString.Length - 4), EndianUtils.Endianness.LittleEndian);
+
+				// this is using mbstowcs with a fixed length into a stack buffer, this needs more adjustments to be safe
+				//ms.Position = state.Mapper.MapRamToRom(loadAddrCrashRptVersionString);
+				//ms.WriteUInt32((uint)(addressNewVersionString - loadAddrCrashRptVersionStringOffset) + (uint)(versionString.Length - 4), EndianUtils.Endianness.LittleEndian);
 			}
 
 			if (FixControllerMapping) {
