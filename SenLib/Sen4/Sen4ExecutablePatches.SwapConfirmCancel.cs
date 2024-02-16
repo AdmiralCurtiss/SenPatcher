@@ -13,8 +13,13 @@ namespace SenLib.Sen4 {
 			var be = EndianUtils.Endianness.BigEndian;
 
 			// inject at a call to the ParseBoolean function
-			long injectpos = state.Mapper.MapRamToRom(jp ? 0x1405fa0cb : 0x1405fc65b);
-			long isSwitchButtonFuncPos = state.Mapper.MapRamToRom(jp ? 0x1405fa3d0 : 0x1405fc960);
+			// 1.2.0
+			//long injectpos = state.Mapper.MapRamToRom(jp ? 0x1405fa0cb : 0x1405fc65b);
+			//long isSwitchButtonFuncPos = state.Mapper.MapRamToRom(jp ? 0x1405fa3d0 : 0x1405fc960);
+
+			// 1.2.1
+			long injectpos = state.Mapper.MapRamToRom(jp ? 0x1405fa4ab : 0x1405fca2b);
+			long isSwitchButtonFuncPos = state.Mapper.MapRamToRom(jp ? 0x1405fa7b0 : 0x1405fcd30);
 
 			bin.Position = injectpos + 1;
 			long parseBooleanRelative = bin.ReadInt32();

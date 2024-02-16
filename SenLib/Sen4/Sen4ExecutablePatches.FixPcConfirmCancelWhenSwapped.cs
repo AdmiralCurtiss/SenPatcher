@@ -14,10 +14,17 @@ namespace SenLib.Sen4 {
 
 			// inject right after the 'id' value is read and stored from the XML
 
-			long injectpos = state.Mapper.MapRamToRom(jp ? 0x1400e913e : 0x1400eb1fe);
-			long isSwitchButtonFuncPos = jp ? 0x1405fa3d0 : 0x1405fc960;
-			long isDynamicPromptsFuncPos = jp ? 0x1405fa430 : 0x1405fc9c0;
-			long getPcSettingsFuncPos = jp ? 0x1405fa290 : 0x1405fc820;
+			// 1.2.0
+			//long injectpos = state.Mapper.MapRamToRom(jp ? 0x1400e913e : 0x1400eb1fe);
+			//long isSwitchButtonFuncPos = jp ? 0x1405fa3d0 : 0x1405fc960;
+			//long isDynamicPromptsFuncPos = jp ? 0x1405fa430 : 0x1405fc9c0;
+			//long getPcSettingsFuncPos = jp ? 0x1405fa290 : 0x1405fc820;
+
+			// 1.2.1
+			long injectpos = state.Mapper.MapRamToRom(jp ? 0x1400e914e : 0x1400eb20e);
+			long isSwitchButtonFuncPos = jp ? 0x1405fa7b0 : 0x1405fcd30;
+			long isDynamicPromptsFuncPos = jp ? 0x1405fa810 : 0x1405fcd90;
+			long getPcSettingsFuncPos = jp ? 0x1405fa670 : 0x1405fcbf0;
 
 			bin.Position = injectpos;
 			uint overwrittenInstruction = bin.ReadUInt24(be);

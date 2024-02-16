@@ -11,21 +11,33 @@ namespace SenLib.Sen4 {
 		public static void PatchDisableMouseCapture(Stream bin, Sen4ExecutablePatchState state) {
 			bool jp = state.IsJp;
 
+			// 1.2.0
+			//long captureMouseCursorPos = jp ? 0x14030a8ef : 0x14030d3bf;
+			//long cameraMouseFuncPos1 = jp ? 0x1400b1e78 : 0x1400b1e98;
+			//long cameraMouseFuncPos2 = jp ? 0x1400b2034 : 0x1400b2054;
+			//long processMouseFuncPos = jp ? 0x1400b2cd1 : 0x1400b2cf1;
+
+			// 1.2.1
+			long captureMouseCursorPos = jp ? 0x14030ab6f : 0x14030d62f;
+			long cameraMouseFuncPos1 = jp ? 0x1400b1e78 : 0x1400b1e98;
+			long cameraMouseFuncPos2 = jp ? 0x1400b2034 : 0x1400b2054;
+			long processMouseFuncPos = jp ? 0x1400b2cd1 : 0x1400b2cf1;
+
 			// change function that captured the mouse cursor to not do that
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x14030a8ef : 0x14030d3bf);
+			bin.Position = state.Mapper.MapRamToRom(captureMouseCursorPos);
 			bin.WriteUInt8(0xeb); // jz -> jmp
 
 			// change function that handles camera movement to not react to mouse movement
 			// and not to fall back to WASD camera movement either (legacy code...?)
 			using (var branch = new BranchHelper4Byte(bin, state.Mapper)) {
-				bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400b1e78 : 0x1400b1e98);
+				bin.Position = state.Mapper.MapRamToRom(cameraMouseFuncPos1);
 				branch.WriteJump5Byte(0xe9);
 				bin.WriteUInt8(0x90); // nop
-				branch.SetTarget(jp ? 0x1400b2034u : 0x1400b2054u);
+				branch.SetTarget((ulong)cameraMouseFuncPos2);
 			}
 
 			// skip mouse movement processing function or something like that?
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400b2cd1 : 0x1400b2cf1);
+			bin.Position = state.Mapper.MapRamToRom(processMouseFuncPos);
 			for (int i = 0; i < 5; ++i) {
 				bin.WriteUInt8(0x90); // nop
 			}
@@ -34,8 +46,14 @@ namespace SenLib.Sen4 {
 		public static void PatchShowMouseCursor(Stream bin, Sen4ExecutablePatchState state) {
 			bool jp = state.IsJp;
 
+			// 1.2.0
+			//long showCursorPos = jp ? 0x1405fa9e4 : 0x1405fcf74;
+
+			// 1.2.1
+			long showCursorPos = jp ? 0x1405fadc4 : 0x1405fd344;
+
 			// remove call to ShowCursor(0)
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x1405fa9e4 : 0x1405fcf74);
+			bin.Position = state.Mapper.MapRamToRom(showCursorPos);
 			for (int i = 0; i < 7; ++i) {
 				bin.WriteUInt8(0x90); // nop
 			}
@@ -45,17 +63,30 @@ namespace SenLib.Sen4 {
 		public static void PatchDisablePauseOnFocusLoss(Stream bin, Sen4ExecutablePatchState state) {
 			bool jp = state.IsJp;
 
+			// 1.2.0
 			// 0x1400b1740 -> game active getter
+			//long silenceAudioIfUnfocusedPos1 = jp ? 0x1400b3461 : 0x1400b3481;
+			//long silenceAudioIfUnfocusedPos2 = jp ? 0x1400b34a4 : 0x1400b34c4;
+			//long runMainGameLoopIfUnfocusedPos = jp ? 0x1400b12f4 : 0x1400b1314;
+			//long skipMouseButtonsIfUnfocusedPos1 = jp ? 0x1400e9e3c : 0x1400ebefc;
+			//long skipMouseButtonsIfUnfocusedPos2 = jp ? 0x143784650 : 0x1437867d0;
+
+			// 1.2.1
+			long silenceAudioIfUnfocusedPos1 = jp ? 0x1400b3461 : 0x1400b3481;
+			long silenceAudioIfUnfocusedPos2 = jp ? 0x1400b34a4 : 0x1400b34c4;
+			long runMainGameLoopIfUnfocusedPos = jp ? 0x1400b12f4 : 0x1400b1314;
+			long skipMouseButtonsIfUnfocusedPos1 = jp ? 0x1400e9e4c : 0x1400ebf0c;
+			long skipMouseButtonsIfUnfocusedPos2 = jp ? 0x143784650 : 0x1437877d0;
 
 			// don't silence audio output when unfocused
 			using (var branch = new BranchHelper1Byte(bin, state.Mapper)) {
-				bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400b3461 : 0x1400b3481);
+				bin.Position = state.Mapper.MapRamToRom(silenceAudioIfUnfocusedPos1);
 				branch.WriteJump(0xeb);
-				branch.SetTarget(jp ? 0x1400b34a4u : 0x1400b34c4u);
+				branch.SetTarget((ulong)silenceAudioIfUnfocusedPos2);
 			}
 
 			// still run main game loop when unfocused
-			bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400b12f4 : 0x1400b1314);
+			bin.Position = state.Mapper.MapRamToRom(runMainGameLoopIfUnfocusedPos);
 			for (int i = 0; i < 6; ++i) {
 				bin.WriteUInt8(0x90); // nop
 			}
@@ -63,8 +94,8 @@ namespace SenLib.Sen4 {
 			// avoid processing mouse clicks when unfocused
 			// (this previously happened only implicitly because the game didn't run...)
 			// carve out some now-unused code space
-			long codespaceStart = (jp ? 0x1400b3461 : 0x1400b3481) + 2;
-			long codespaceEnd = jp ? 0x1400b34a4 : 0x1400b34c4;
+			long codespaceStart = silenceAudioIfUnfocusedPos1 + 2;
+			long codespaceEnd = silenceAudioIfUnfocusedPos2;
 			var codespace = new RegionHelper64(codespaceStart, (uint)(codespaceEnd - codespaceStart), "Pause on Focus Loss: Codespace Region");
 			bin.Position = state.Mapper.MapRamToRom(codespace.Address);
 			for (uint i = 0; i < codespace.Remaining; ++i) {
@@ -79,12 +110,12 @@ namespace SenLib.Sen4 {
 				var le = EndianUtils.Endianness.LittleEndian;
 				var be = EndianUtils.Endianness.BigEndian;
 
-				back_to_function.SetTarget((jp ? 0x1400e9e3cu : 0x1400ebefcu) + 6);
-				bin.Position = state.Mapper.MapRamToRom((jp ? 0x1400e9e3c : 0x1400ebefc) + 2);
-				long GetKeyStateAddress = bin.ReadUInt32(le) + ((jp ? 0x1400e9e3c : 0x1400ebefc) + 6);
-				long GameStateAddress = jp ? 0x143784650 : 0x1437867d0;
+				back_to_function.SetTarget((ulong)(skipMouseButtonsIfUnfocusedPos1 + 6));
+				bin.Position = state.Mapper.MapRamToRom(skipMouseButtonsIfUnfocusedPos1 + 2);
+				long GetKeyStateAddress = bin.ReadUInt32(le) + (skipMouseButtonsIfUnfocusedPos1 + 6);
+				long GameStateAddress = skipMouseButtonsIfUnfocusedPos2;
 
-				bin.Position = state.Mapper.MapRamToRom(jp ? 0x1400e9e3c : 0x1400ebefc);
+				bin.Position = state.Mapper.MapRamToRom(skipMouseButtonsIfUnfocusedPos1);
 				jump_to_codespace.WriteJump5Byte(0xe9);    // jmp jump_to_codespace
 				bin.WriteUInt8(0x90);                      // nop
 

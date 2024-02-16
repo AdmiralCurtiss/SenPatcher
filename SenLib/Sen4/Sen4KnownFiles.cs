@@ -33,8 +33,8 @@ namespace SenLib.Sen4 {
 				new KnownFile(new SHA1(0x40ae4f525021b550ul, 0xb77e045a00841a42ul, 0xbc460a77u), "data/text/dat_en/t_mstqrt.tbl"),
 				new KnownFile(new SHA1(0xc755b53e8ba8618eul, 0x9e55d4e7c83cccb7ul, 0xe7298fbbu), "data/text/dat_en/t_notecook.tbl"),
 				new KnownFile(new SHA1(0xed242395ee9b5aa1ul, 0x5f11bf83138b161bul, 0xb116d20au), "data/text/dat_en/t_text.tbl"),
-				new KnownFile(new SHA1(0xc8669cb40e015c16ul, 0xec16776bd9a30945ul, 0xb5545a72u), "bin/Win64/ed8_4_PC.exe"),
-				new KnownFile(new SHA1(0xf3952664b8da2607ul, 0x23677c91980ef9bcul, 0xf5c3113au), "bin/Win64/ed8_4_PC_JP.exe"),
+				new KnownFile(new SHA1(0x0d424434330d4368ul, 0xc1ae187cae83e4dbul, 0xa296ccf1u), "bin/Win64/ed8_4_PC.exe"),
+				new KnownFile(new SHA1(0x79e81f7a977e9180ul, 0x41b66fb27dc8805dul, 0x035e83ffu), "bin/Win64/ed8_4_PC_JP.exe"),
 				new KnownFile(new SHA1(0x5f480136aa4c3b53ul, 0xadd422bf75b63350ul, 0xfa58d202u), "Sen4Launcher.exe"),
 			};
 		}

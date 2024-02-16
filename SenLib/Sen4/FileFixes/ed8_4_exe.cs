@@ -38,7 +38,7 @@ namespace SenLib.Sen4.FileFixes {
 		}
 
 		private HyoutaUtils.Checksum.SHA1 GetExecutableHash() {
-			return IsJp ? new HyoutaUtils.Checksum.SHA1(0xf3952664b8da2607ul, 0x23677c91980ef9bcul, 0xf5c3113au) : new HyoutaUtils.Checksum.SHA1(0xc8669cb40e015c16ul, 0xec16776bd9a30945ul, 0xb5545a72u);
+			return IsJp ? new HyoutaUtils.Checksum.SHA1(0x79e81f7a977e9180ul, 0x41b66fb27dc8805dul, 0x035e83ffu) : new HyoutaUtils.Checksum.SHA1(0x0d424434330d4368ul, 0xc1ae187cae83e4dbul, 0xa296ccf1u);
 		}
 
 		public IEnumerable<FileModResult> TryApply(FileStorage storage) {
@@ -66,17 +66,30 @@ namespace SenLib.Sen4.FileFixes {
 			}
 
 			// call CreateMutex without names so multiple instances of CS don't block eachother
-			ms.Position = PatchInfo.Mapper.MapRamToRom(IsJp ? 0x1405adea9 : 0x1405b0439);
+			// 1.2.0
+			//long createMutexString1 = IsJp ? 0x1405adea9 : 0x1405b0439;
+			//long createMutexString2 = IsJp ? 0x1400d6041 : 0x1400d60c1;
+
+			// 1.2.1
+			long createMutexString1 = IsJp ? 0x1405ae269 : 0x1405b07e9;
+			long createMutexString2 = IsJp ? 0x1400d6051 : 0x1400d60d1;
+
+			ms.Position = PatchInfo.Mapper.MapRamToRom(createMutexString1);
 			ms.WriteUInt24(0x4d31c0, EndianUtils.Endianness.BigEndian); // xor r8,r8
-			ms.Position = PatchInfo.Mapper.MapRamToRom(IsJp ? 0x1400d6041 : 0x1400d60c1);
+			ms.Position = PatchInfo.Mapper.MapRamToRom(createMutexString2);
 			ms.WriteUInt56(0x49c7c000000000, EndianUtils.Endianness.BigEndian); // mov r8,0
 
 			// add indicator to the title screen that we're running a modified executable
 			{
-				var state = PatchInfo;
-				long loadAddrTitleScreenVersionString = (IsJp ? 0x14047b07a : 0x14047d1bd) + 3;
-				long loadAddrCrashRptVersionString = (IsJp ? 0x140580a26 : 0x140582fb6) + 3;
+				// 1.2.0
+				//long loadAddrTitleScreenVersionString = (IsJp ? 0x14047b07a : 0x14047d1bd) + 3;
+				//long loadAddrCrashRptVersionString = (IsJp ? 0x140580a26 : 0x140582fb6) + 3;
 
+				// 1.2.1
+				long loadAddrTitleScreenVersionString = (IsJp ? 0x14047b43a : 0x14047d56d) + 3;
+				long loadAddrCrashRptVersionString = (IsJp ? 0x140580de6 : 0x140583366) + 3;
+
+				var state = PatchInfo;
 				long loadAddrTitleScreenVersionStringOffset = loadAddrTitleScreenVersionString + 4;
 				long loadAddrCrashRptVersionStringOffset = loadAddrCrashRptVersionString + 4;
 				ms.Position = state.Mapper.MapRamToRom(loadAddrTitleScreenVersionString);
