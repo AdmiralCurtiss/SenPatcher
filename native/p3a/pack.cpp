@@ -1,0 +1,363 @@
+#include "pack.h"
+
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
+#include "../lz4/lz4.h"
+#include "../lz4/lz4hc.h"
+
+#include "../zstd/common/xxhash.h"
+#include "../zstd/zstd.h"
+
+#include "structs.h"
+
+#include "../align.h"
+#include "../file.h"
+
+namespace SenPatcher {
+namespace {
+struct TargetFileInfo {
+    std::filesystem::path Path;
+    std::array<char8_t, 0x100> Filename{};
+    std::optional<uint64_t> DesiredCompressionType;
+};
+
+struct ZSTD_CDict_Deleter {
+    void operator()(ZSTD_CDict* ptr) {
+        if (ptr) {
+            ZSTD_freeCDict(ptr);
+        }
+    }
+};
+using ZSTD_CDict_UniquePtr = std::unique_ptr<ZSTD_CDict, ZSTD_CDict_Deleter>;
+
+struct ZSTD_CCtx_Deleter {
+    void operator()(ZSTD_CCtx* ptr) {
+        if (ptr) {
+            ZSTD_freeCCtx(ptr);
+        }
+    }
+};
+using ZSTD_CCtx_UniquePtr = std::unique_ptr<ZSTD_CCtx, ZSTD_CCtx_Deleter>;
+} // namespace
+
+static bool CollectEntries(std::vector<TargetFileInfo>& fileinfos,
+                           const std::filesystem::path& rootDir,
+                           const std::filesystem::path& currentDir,
+                           std::error_code& ec) {
+    std::filesystem::directory_iterator iterator(currentDir, ec);
+    if (ec) {
+        return false;
+    }
+    for (auto const& entry : iterator) {
+        if (entry.is_directory()) {
+            if (!CollectEntries(fileinfos, rootDir, entry.path(), ec)) {
+                return false;
+            }
+            continue;
+        }
+
+        const auto relativePath = std::filesystem::relative(entry.path(), rootDir, ec);
+        if (relativePath.empty()) {
+            return false;
+        }
+        const auto filename = relativePath.u8string();
+        const char8_t* filenameC = filename.c_str();
+
+        auto& fileinfo = fileinfos.emplace_back(TargetFileInfo{entry.path()});
+        for (size_t i = 0; i < fileinfo.Filename.size(); ++i) {
+            const char8_t c = filenameC[i];
+            if (c == char8_t(0)) {
+                break;
+            }
+            fileinfo.Filename[i] = (c == char8_t('\\') ? char8_t('/') : c);
+        }
+    }
+    return true;
+}
+
+bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
+                          const std::filesystem::path& archivePath,
+                          P3ACompressionType desiredCompressionType,
+                          const std::filesystem::path& dictPath) {
+    std::error_code ec;
+    const uint64_t alignment = 0x40;
+    std::vector<TargetFileInfo> fileinfos;
+    if (!CollectEntries(fileinfos, directoryPath, directoryPath, ec)) {
+        return false;
+    }
+
+    std::unique_ptr<uint8_t[]> dict;
+    uint64_t dictLength = 0;
+    ZSTD_CDict_UniquePtr cdict = nullptr;
+    if (!dictPath.empty()) {
+        IO::File dictfile(dictPath, IO::OpenMode::Read);
+        if (!dictfile.IsOpen()) {
+            return false;
+        }
+        const auto fileLength = dictfile.GetLength();
+        if (!fileLength) {
+            return false;
+        }
+        dictLength = *fileLength;
+        dict = std::make_unique<uint8_t[]>(dictLength);
+        if (!dict) {
+            return false;
+        }
+        if (dictfile.Read(dict.get(), dictLength) != dictLength) {
+            return false;
+        }
+        cdict = ZSTD_CDict_UniquePtr(ZSTD_createCDict(dict.get(), dictLength, 22));
+        if (!cdict) {
+            return false;
+        }
+    }
+
+    // probably not needed but makes the packing order reproduceable
+    std::stable_sort(
+        fileinfos.begin(),
+        fileinfos.end(),
+        [](const TargetFileInfo& lhs, const TargetFileInfo& rhs) {
+            return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size()) < 0;
+        });
+
+    uint64_t position = 0;
+    IO::File file(archivePath, IO::OpenMode::Write);
+    if (!file.IsOpen()) {
+        return false;
+    }
+    {
+        P3AHeader header{};
+        header.Magic = {'P', 'H', '3', 'A', 'R', 'C', 'V', '\0'};
+        header.Flags = 0;
+        if (dict) {
+            header.Flags |= P3AHeaderFlag_HasZstdDict;
+        }
+        header.Version = 1100;
+        header.FileCount = fileinfos.size();
+        header.Hash = XXH64(&header, sizeof(P3AHeader) - 8, 0);
+        if (file.Write(&header, sizeof(P3AHeader)) != sizeof(P3AHeader)) {
+            return false;
+        }
+        position += sizeof(P3AHeader);
+    }
+    {
+        // we'll fill in the actual data later
+        P3AFileInfo tmp{};
+        for (const auto& fileinfo : fileinfos) {
+            if (file.Write(&tmp, sizeof(P3AFileInfo)) != sizeof(P3AFileInfo)) {
+                return false;
+            }
+            position += sizeof(P3AFileInfo);
+        }
+    }
+    if (dict) {
+        P3ADictHeader dictHeader{};
+        dictHeader.Magic = {'P', '3', 'A', 'D', 'I', 'C', 'T', '\0'};
+        dictHeader.Length = dictLength;
+        if (file.Write(&dictHeader, sizeof(P3ADictHeader)) != sizeof(P3ADictHeader)) {
+            return false;
+        }
+        position += sizeof(P3ADictHeader);
+        if (file.Write(dict.get(), dictLength) != dictLength) {
+            return false;
+        }
+        position += dictLength;
+    }
+
+    for (size_t i = 0; i < fileinfos.size(); ++i) {
+        const auto& fileinfo = fileinfos[i];
+        if (!AlignFile(file, position, alignment)) {
+            return false;
+        }
+
+        IO::File inputfile(fileinfo.Path, IO::OpenMode::Read);
+        if (!inputfile.IsOpen()) {
+            return false;
+        }
+        const auto maybeFilesize = inputfile.GetLength();
+        if (!maybeFilesize) {
+            return false;
+        }
+        const uint64_t filesize = *maybeFilesize;
+
+        auto filedata = std::make_unique_for_overwrite<char[]>(filesize);
+        if (!filedata) {
+            return false;
+        }
+        if (inputfile.Read(filedata.get(), filesize) != filesize) {
+            return false;
+        }
+
+        P3ACompressionType compressionType = desiredCompressionType;
+        uint64_t compressedSize = filesize;
+        uint64_t uncompressedSize = filesize;
+        uint64_t hash = 0;
+
+        const auto write_uncompressed = [&]() -> bool {
+            compressionType = P3ACompressionType::None;
+            compressedSize = filesize;
+            uncompressedSize = filesize;
+            hash = XXH64(filedata.get(), filesize, 0);
+            if (file.Write(filedata.get(), filesize) != filesize) {
+                return false;
+            }
+            return true;
+        };
+
+        switch (desiredCompressionType) {
+            case P3ACompressionType::LZ4: {
+                if (filesize > LZ4_MAX_INPUT_SIZE) {
+                    if (!write_uncompressed()) {
+                        return false;
+                    }
+                } else {
+                    const int signedSize = static_cast<int>(filesize);
+                    const int bound = LZ4_compressBound(signedSize);
+                    if (bound <= 0) {
+                        if (!write_uncompressed()) {
+                            return false;
+                        }
+                    } else {
+                        auto compressedData = std::make_unique_for_overwrite<char[]>(
+                            static_cast<unsigned int>(bound));
+                        if (!compressedData) {
+                            return false;
+                        }
+                        const int lz4return = LZ4_compress_HC(filedata.get(),
+                                                              compressedData.get(),
+                                                              signedSize,
+                                                              bound,
+                                                              LZ4HC_CLEVEL_MAX);
+                        if (lz4return <= 0 || static_cast<unsigned int>(lz4return) >= filesize) {
+                            // compression failed or pointless, write uncompressed instead
+                            if (!write_uncompressed()) {
+                                return false;
+                            }
+                        } else {
+                            compressionType = P3ACompressionType::LZ4;
+                            compressedSize = static_cast<unsigned int>(lz4return);
+                            uncompressedSize = filesize;
+                            hash = XXH64(compressedData.get(), compressedSize, 0);
+                            if (file.Write(compressedData.get(), compressedSize)
+                                != compressedSize) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case P3ACompressionType::ZSTD: {
+                size_t bound = ZSTD_compressBound(filesize);
+                if (ZSTD_isError(bound)) {
+                    if (!write_uncompressed()) {
+                        return false;
+                    }
+                } else {
+                    auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
+                    if (!compressedData) {
+                        return false;
+                    }
+                    const size_t zstdReturn =
+                        ZSTD_compress(compressedData.get(), bound, filedata.get(), filesize, 22);
+                    if (ZSTD_isError(zstdReturn)) {
+                        if (!write_uncompressed()) {
+                            return false;
+                        }
+                    } else {
+                        compressionType = P3ACompressionType::ZSTD;
+                        compressedSize = zstdReturn;
+                        uncompressedSize = filesize;
+                        hash = XXH64(compressedData.get(), compressedSize, 0);
+                        if (file.Write(compressedData.get(), compressedSize) != compressedSize) {
+                            return false;
+                        }
+                    }
+                }
+                break;
+            }
+            case P3ACompressionType::ZSTD_DICT: {
+                if (!cdict) {
+                    return false;
+                }
+
+                size_t bound = ZSTD_compressBound(filesize);
+                if (ZSTD_isError(bound)) {
+                    if (!write_uncompressed()) {
+                        return false;
+                    }
+                } else {
+                    auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
+                    if (!compressedData) {
+                        return false;
+                    }
+                    size_t zstdReturn;
+                    {
+                        ZSTD_CCtx_UniquePtr cctx = ZSTD_CCtx_UniquePtr(ZSTD_createCCtx());
+                        if (!cctx) {
+                            return false;
+                        }
+                        zstdReturn = ZSTD_compress_usingCDict(cctx.get(),
+                                                              compressedData.get(),
+                                                              bound,
+                                                              filedata.get(),
+                                                              filesize,
+                                                              cdict.get());
+                    }
+                    if (ZSTD_isError(zstdReturn)) {
+                        if (!write_uncompressed()) {
+                            return false;
+                        }
+                    } else {
+                        compressionType = P3ACompressionType::ZSTD_DICT;
+                        compressedSize = zstdReturn;
+                        uncompressedSize = filesize;
+                        hash = XXH64(compressedData.get(), compressedSize, 0);
+                        if (file.Write(compressedData.get(), compressedSize) != compressedSize) {
+                            return false;
+                        }
+                    }
+                }
+                break;
+            }
+            default: {
+                if (!write_uncompressed()) {
+                    return false;
+                }
+                break;
+            }
+        }
+
+
+        // fill in header
+        P3AFileInfo tmp{};
+        tmp.Filename = fileinfo.Filename;
+        tmp.CompressionType = compressionType;
+        tmp.CompressedSize = compressedSize;
+        tmp.UncompressedSize = uncompressedSize;
+        tmp.Offset = position;
+        tmp.Hash = hash;
+
+        if (!file.SetPosition(sizeof(P3AHeader) + sizeof(P3AFileInfo) * i)) {
+            return false;
+        }
+        if (file.Write(&tmp, sizeof(P3AFileInfo)) != sizeof(P3AFileInfo)) {
+            return false;
+        }
+
+        position += compressedSize;
+        if (!file.SetPosition(position)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+} // namespace SenPatcher

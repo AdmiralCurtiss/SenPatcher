@@ -3,3 +3,5 @@ bin
 obj
 *.csproj.user
 packages
+/native/.vs
+/native/out
