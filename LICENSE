@@ -45,3 +45,13 @@ Licensed under a BSD 2-Clause license
 LZ4 Copyright (c) 2011-2016, Yann Collet
 lz4-sharp (c) 2021 Admiral H. Curtiss
 See the lz4-sharp LICENSE file for details.
+
+== native/lz4 ==
+Licensed under a BSD 2-Clause license
+Copyright (c) 2011-2020, Yann Collet
+See the native/lz4/LICENSE file for details.
+
+== native/zstd ==
+Licensed under a BSD 3-Clause license
+Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
+See the native/zstd/LICENSE file for details.
