@@ -101,5 +101,14 @@ target_sources(p3a_archiver PRIVATE
 	zstd/dictBuilder/zdict.c
 	zstd/dictBuilder/cover.h
 	zstd/dictBuilder/divsufsort.h
+  )
+
+add_library(cs3hook SHARED)
+target_sources(cs3hook PRIVATE
+	main_cs3.cpp
+	crc32.c
+	crc32.h
+
+	dinput8.def
  )
 
