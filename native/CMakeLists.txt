@@ -108,6 +108,8 @@ target_sources(cs3hook PRIVATE
 	main_cs3.cpp
 	crc32.c
 	crc32.h
+	file.h
+	file.cpp
 
 	dinput8.def
  )

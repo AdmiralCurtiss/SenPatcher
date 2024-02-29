@@ -122,4 +122,11 @@ size_t File::Write(const void* data, size_t length) {
     }
     return totalWritten;
 }
+
+void* File::ReleaseHandle() noexcept {
+    void* h = Filehandle;
+    Filehandle = INVALID_HANDLE_VALUE;
+    return h;
+}
+
 } // namespace SenPatcher::IO

@@ -6,8 +6,11 @@
 #include <cinttypes>
 #include <cstdint>
 #include <cstdio>
+#include <filesystem>
 
 #include "crc32.h"
+
+#include "file.h"
 
 namespace {
 enum class GameVersion {
@@ -235,12 +238,31 @@ struct FFile {
     uint32_t MemoryPosition;
 };
 
-static int64_t __fastcall CheckForModFile(void* ffile,
+static int64_t __fastcall CheckForModFile(FFile* ffile,
                                           const char* path,
                                           int unknownThirdParameter) {
     OutputDebugStringA("CheckForModFile called with path: ");
     OutputDebugStringA(path);
     OutputDebugStringA("\n");
+
+    std::u8string tmp = u8"dev/";
+    tmp += (char8_t*)path;
+
+    SenPatcher::IO::File file(std::filesystem::path(tmp), SenPatcher::IO::OpenMode::Read);
+    if (file.IsOpen()) {
+        auto length = file.GetLength();
+        if (length && *length < 0x8000'0000) {
+            ffile->NativeFileHandle = file.ReleaseHandle();
+            ffile->Filesize = static_cast<uint32_t>(*length);
+
+            OutputDebugStringA("  --> rerouted to ");
+            OutputDebugStringA((char*)tmp.c_str());
+            OutputDebugStringA("\n");
+
+            return 1;
+        }
+    }
+
     return 0;
 }
 
@@ -254,7 +276,7 @@ static void InjectAtFFileOpen(Logger& logger,
                                                                  : (0x1400f58f0 - 0x140001000));
     char* const exitPoint = textRegion
                             + (version == GameVersion::Japanese ? (0x1400f538d - 0x140001000)
-                                                                : (0x1400f59fb - 0x140001000));
+                                                                : (0x1400f5a0d - 0x140001000));
 
 
     char* codespaceBegin = codespace;

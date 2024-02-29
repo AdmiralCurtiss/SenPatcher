@@ -26,6 +26,8 @@ public:
     size_t Read(void* data, size_t length);
     size_t Write(const void* data, size_t length);
 
+    void* ReleaseHandle() noexcept;
+
 private:
     void* Filehandle;
 };
