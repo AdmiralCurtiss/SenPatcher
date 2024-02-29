@@ -110,7 +110,57 @@ target_sources(cs3hook PRIVATE
 	crc32.h
 	file.h
 	file.cpp
-
+	p3a/structs.h
+	p3a/p3a.cpp
+	p3a/p3a.h
 	dinput8.def
+
+	lz4/lz4.c
+	lz4/lz4file.c
+	lz4/lz4frame.c
+	lz4/lz4hc.c
+	lz4/xxhash.c
+	lz4/lz4.h
+	lz4/lz4file.h
+	lz4/lz4frame.h
+	lz4/lz4frame_static.h
+	lz4/lz4hc.h
+	lz4/xxhash.h
+
+	zstd/zdict.h
+	zstd/zstd.h
+	zstd/zstd_errors.h
+	zstd/common/debug.c
+	zstd/common/entropy_common.c
+	zstd/common/error_private.c
+	zstd/common/fse_decompress.c
+	zstd/common/pool.c
+	zstd/common/threading.c
+	zstd/common/xxhash.c
+	zstd/common/zstd_common.c
+	zstd/common/allocations.h
+	zstd/common/bits.h
+	zstd/common/bitstream.h
+	zstd/common/compiler.h
+	zstd/common/cpu.h
+	zstd/common/debug.h
+	zstd/common/error_private.h
+	zstd/common/fse.h
+	zstd/common/huf.h
+	zstd/common/mem.h
+	zstd/common/pool.h
+	zstd/common/portability_macros.h
+	zstd/common/threading.h
+	zstd/common/xxhash.h
+	zstd/common/zstd_deps.h
+	zstd/common/zstd_internal.h
+	zstd/common/zstd_trace.h
+	zstd/decompress/huf_decompress.c
+	zstd/decompress/zstd_ddict.c
+	zstd/decompress/zstd_decompress.c
+	zstd/decompress/zstd_decompress_block.c
+	zstd/decompress/zstd_ddict.h
+	zstd/decompress/zstd_decompress_block.h
+	zstd/decompress/zstd_decompress_internal.h
  )
 

@@ -8,28 +8,11 @@
 #include <Windows.h>
 
 namespace SenPatcher::IO {
-File::File(const std::filesystem::path& p, OpenMode mode) noexcept {
-    switch (mode) {
-        case OpenMode::Read:
-            Filehandle = CreateFileW(p.c_str(),
-                                     GENERIC_READ,
-                                     FILE_SHARE_READ,
-                                     nullptr,
-                                     OPEN_EXISTING,
-                                     FILE_ATTRIBUTE_NORMAL,
-                                     nullptr);
-            break;
-        case OpenMode::Write:
-            Filehandle = CreateFileW(p.c_str(),
-                                     GENERIC_WRITE,
-                                     FILE_SHARE_DELETE,
-                                     nullptr,
-                                     CREATE_ALWAYS,
-                                     FILE_ATTRIBUTE_NORMAL,
-                                     nullptr);
-            break;
-        default: Filehandle = INVALID_HANDLE_VALUE; break;
-    }
+File::File() noexcept : Filehandle(INVALID_HANDLE_VALUE) {}
+
+File::File(const std::filesystem::path& p, OpenMode mode) noexcept
+  : Filehandle(INVALID_HANDLE_VALUE) {
+    Open(p, mode);
 }
 
 File::File(File&& other) noexcept : Filehandle(other.Filehandle) {
@@ -45,6 +28,31 @@ File& File::operator=(File&& other) noexcept {
 
 File::~File() noexcept {
     Close();
+}
+
+bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
+    Close();
+    switch (mode) {
+        case OpenMode::Read:
+            Filehandle = CreateFileW(p.c_str(),
+                                     GENERIC_READ,
+                                     FILE_SHARE_READ,
+                                     nullptr,
+                                     OPEN_EXISTING,
+                                     FILE_ATTRIBUTE_NORMAL,
+                                     nullptr);
+            return Filehandle != INVALID_HANDLE_VALUE;
+        case OpenMode::Write:
+            Filehandle = CreateFileW(p.c_str(),
+                                     GENERIC_WRITE,
+                                     FILE_SHARE_DELETE,
+                                     nullptr,
+                                     CREATE_ALWAYS,
+                                     FILE_ATTRIBUTE_NORMAL,
+                                     nullptr);
+            return Filehandle != INVALID_HANDLE_VALUE;
+        default: Filehandle = INVALID_HANDLE_VALUE; return false;
+    }
 }
 
 bool File::IsOpen() const noexcept {
@@ -77,7 +85,7 @@ std::optional<uint64_t> File::GetLength() noexcept {
     return std::nullopt;
 }
 
-size_t File::Read(void* data, size_t length) {
+size_t File::Read(void* data, size_t length) noexcept {
     assert(IsOpen());
 
     char* buffer = static_cast<char*>(data);
@@ -100,7 +108,7 @@ size_t File::Read(void* data, size_t length) {
     return totalRead;
 }
 
-size_t File::Write(const void* data, size_t length) {
+size_t File::Write(const void* data, size_t length) noexcept {
     assert(IsOpen());
 
     const char* buffer = static_cast<const char*>(data);

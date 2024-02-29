@@ -12,6 +12,7 @@ enum class OpenMode {
 
 struct File {
 public:
+    File() noexcept;
     File(const std::filesystem::path& p, OpenMode mode) noexcept;
     File(const File& other) = delete;
     File(File&& other) noexcept;
@@ -19,12 +20,13 @@ public:
     File& operator=(File&& other) noexcept;
     ~File() noexcept;
 
+    bool Open(const std::filesystem::path& p, OpenMode mode) noexcept;
     bool IsOpen() const noexcept;
     void Close() noexcept;
     bool SetPosition(uint64_t position) noexcept;
     std::optional<uint64_t> GetLength() noexcept;
-    size_t Read(void* data, size_t length);
-    size_t Write(const void* data, size_t length);
+    size_t Read(void* data, size_t length) noexcept;
+    size_t Write(const void* data, size_t length) noexcept;
 
     void* ReleaseHandle() noexcept;
 
