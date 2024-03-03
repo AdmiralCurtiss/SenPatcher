@@ -9,6 +9,11 @@ enum class OpenMode {
     Read,
     Write,
 };
+enum class SetPositionMode {
+    Begin = 0,
+    Current = 1,
+    End = 2,
+};
 
 struct File {
 public:
@@ -23,7 +28,8 @@ public:
     bool Open(const std::filesystem::path& p, OpenMode mode) noexcept;
     bool IsOpen() const noexcept;
     void Close() noexcept;
-    bool SetPosition(uint64_t position) noexcept;
+    std::optional<uint64_t> GetPosition() noexcept;
+    bool SetPosition(uint64_t position, SetPositionMode mode = SetPositionMode::Begin) noexcept;
     std::optional<uint64_t> GetLength() noexcept;
     size_t Read(void* data, size_t length) noexcept;
     size_t Write(const void* data, size_t length) noexcept;

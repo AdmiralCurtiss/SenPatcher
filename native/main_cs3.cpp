@@ -275,7 +275,7 @@ struct P3AFileRef {
 
 static PTrackedMalloc s_TrackedMalloc = nullptr;
 static PTrackedFree s_TrackedFree = nullptr;
-static bool s_CheckDevFolderForAssets = false;
+static bool s_CheckDevFolderForAssets = true;
 static std::unique_ptr<SenPatcher::P3A[]> s_P3As;
 static size_t s_CombinedFileInfoCount = 0;
 static std::unique_ptr<P3AFileRef[]> s_CombinedFileInfos;
@@ -741,6 +741,65 @@ static int64_t __fastcall FreestandingGetFilesizeForwarder(const char* path,
     return 0;
 }
 
+struct FSoundFile {
+    void* FRead;
+    void* FSeek;
+    void* FTell;
+    void* FClose;
+};
+
+static int32_t __fastcall FSoundFileRead(SenPatcher::IO::File* file, void* memory, int32_t length) {
+    if (length < 1) {
+        return 0;
+    }
+
+    size_t bytesRead = file->Read(memory, static_cast<size_t>(length));
+    if (bytesRead == 0) {
+        return -128; // indicates end of file, I think?
+    }
+    return static_cast<int32_t>(bytesRead);
+}
+
+static int32_t __fastcall FSoundFileSeek(SenPatcher::IO::File* file, int64_t position, int mode) {
+    if (mode >= 0 && mode <= 2) {
+        if (file->SetPosition(position, static_cast<SenPatcher::IO::SetPositionMode>(mode))) {
+            return 0;
+        }
+    }
+    return -1;
+}
+
+static int64_t __fastcall FSoundFileTell(SenPatcher::IO::File* file) {
+    auto position = file->GetPosition();
+    if (position) {
+        return *position;
+    }
+    return -1;
+}
+
+static void __fastcall FSoundFileClose(SenPatcher::IO::File* file) {
+    std::unique_ptr<SenPatcher::IO::File> tmp(file);
+    tmp.reset();
+}
+
+static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* path) {
+    std::u8string tmp = u8"dev/";
+    tmp += (char8_t*)path;
+
+    auto file = std::make_unique<SenPatcher::IO::File>(std::filesystem::path(tmp),
+                                                       SenPatcher::IO::OpenMode::Read);
+    if (file && file->IsOpen()) {
+        void* handle = file.release();
+        soundFile->FRead = &FSoundFileRead;
+        soundFile->FSeek = &FSoundFileSeek;
+        soundFile->FTell = &FSoundFileTell;
+        soundFile->FClose = &FSoundFileClose;
+        return handle;
+    }
+
+    return nullptr;
+}
+
 static void InjectAtFFileOpen(Logger& logger,
                               char* textRegion,
                               GameVersion version,
@@ -943,6 +1002,68 @@ static void InjectAtFreestandingGetFilesize(Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
+static void InjectAtOpenFSoundFile(Logger& logger,
+                                   char* textRegion,
+                                   GameVersion version,
+                                   char*& codespace,
+                                   char* codespaceEnd) {
+    using namespace SenPatcher::x64;
+
+    char* const entryPoint = textRegion
+                             + (version == GameVersion::Japanese ? (0x140086900 - 0x140001000)
+                                                                 : (0x140086900 - 0x140001000));
+
+
+    char* codespaceBegin = codespace;
+    char* inject = entryPoint;
+    std::array<char, 15> overwrittenInstructions;
+
+    {
+        PageUnprotect page(logger, inject, overwrittenInstructions.size());
+        std::memcpy(overwrittenInstructions.data(), inject, overwrittenInstructions.size());
+
+        Emit_MOV_R64_IMM64(inject, R64::RAX, std::bit_cast<uint64_t>(codespaceBegin), true);
+        Emit_JMP_R64(inject, R64::RAX);
+        *inject++ = 0xcc;
+        *inject++ = 0xcc;
+        *inject++ = 0xcc;
+    }
+
+    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+    codespace += overwrittenInstructions.size();
+
+    Emit_PUSH_R64(codespace, R64::RCX);
+    Emit_PUSH_R64(codespace, R64::RDX);
+    Emit_PUSH_R64(codespace, R64::R8);
+    Emit_PUSH_R64(codespace, R64::R9);
+    Emit_PUSH_R64(codespace, R64::R10);
+    Emit_PUSH_R64(codespace, R64::R11);
+    Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x20);
+
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(&FSoundOpenForwarder));
+    Emit_CALL_R64(codespace, R64::RAX);
+
+    Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
+    Emit_POP_R64(codespace, R64::R11);
+    Emit_POP_R64(codespace, R64::R10);
+    Emit_POP_R64(codespace, R64::R9);
+    Emit_POP_R64(codespace, R64::R8);
+    Emit_POP_R64(codespace, R64::RDX);
+    Emit_POP_R64(codespace, R64::RCX);
+
+    Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
+    BranchHelper1Byte success;
+    success.WriteJump(codespace, JumpCondition::JNZ);
+
+    // on failure go back to function
+    Emit_MOV_R64_IMM64(codespace, R64::R9, std::bit_cast<uint64_t>(inject));
+    Emit_JMP_R64(codespace, R64::R9);
+
+    // on success just return from the function, RAX already has the correct return value
+    success.SetTarget(codespace);
+    Emit_RET(codespace);
+}
+
 static PDirectInput8Create addr_PDirectInput8Create = 0;
 static void* SetupHacks() {
     Logger logger("senpatcher_inject_cs3.log");
@@ -983,6 +1104,7 @@ static void* SetupHacks() {
     InjectAtFFileGetFilesize(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     InjectAtFreestandingGetFilesize(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    InjectAtOpenFSoundFile(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
 
     // mark newly allocated page as executable
     {

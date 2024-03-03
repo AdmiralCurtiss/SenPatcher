@@ -66,11 +66,22 @@ void File::Close() noexcept {
     }
 }
 
-bool File::SetPosition(uint64_t position) noexcept {
+std::optional<uint64_t> File::GetPosition() noexcept {
+    assert(IsOpen());
+    LARGE_INTEGER offset;
+    offset.QuadPart = static_cast<LONGLONG>(0);
+    LARGE_INTEGER position;
+    if (SetFilePointerEx(Filehandle, offset, &position, FILE_CURRENT) != 0) {
+        return static_cast<uint64_t>(position.QuadPart);
+    }
+    return std::nullopt;
+}
+
+bool File::SetPosition(uint64_t position, SetPositionMode mode) noexcept {
     assert(IsOpen());
     LARGE_INTEGER offset;
     offset.QuadPart = static_cast<LONGLONG>(position);
-    if (SetFilePointerEx(Filehandle, offset, nullptr, FILE_BEGIN) != 0) {
+    if (SetFilePointerEx(Filehandle, offset, nullptr, static_cast<DWORD>(mode)) != 0) {
         return true;
     }
     return false;
