@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "lz4/lz4.h"
@@ -439,36 +440,7 @@ static void LoadModP3As() {
     return;
 }
 
-static int64_t __fastcall CheckForModFile(FFile* ffile,
-                                          const char* path,
-                                          int unknownThirdParameter) {
-    std::array<char8_t, 0x100> filteredPath;
-    FilterGamePath(filteredPath.data(), path, filteredPath.size());
-
-    OutputDebugStringA("CheckForModFile called with path: ");
-    OutputDebugStringA((const char*)filteredPath.data());
-    OutputDebugStringA("\n");
-
-    if (s_CheckDevFolderForAssets) {
-        std::u8string tmp = u8"dev/";
-        tmp += (char8_t*)path;
-
-        SenPatcher::IO::File file(std::filesystem::path(tmp), SenPatcher::IO::OpenMode::Read);
-        if (file.IsOpen()) {
-            auto length = file.GetLength();
-            if (length && *length < 0x8000'0000) {
-                ffile->NativeFileHandle = file.ReleaseHandle();
-                ffile->Filesize = static_cast<uint32_t>(*length);
-
-                OutputDebugStringA("  --> rerouted to ");
-                OutputDebugStringA((char*)tmp.c_str());
-                OutputDebugStringA("\n");
-
-                return 1;
-            }
-        }
-    }
-
+static const P3AFileRef* FindP3AFileRef(const std::array<char8_t, 0x100>& filteredPath) {
     const size_t count = s_CombinedFileInfoCount;
     const P3AFileRef* const infos = s_CombinedFileInfos.get();
     auto bound = std::lower_bound(infos,
@@ -486,26 +458,64 @@ static int64_t __fastcall CheckForModFile(FFile* ffile,
                    (const char*)filteredPath.data(),
                    filteredPath.size())
                == 0) {
-        const P3AFileRef& ref = *bound;
+        return bound;
+    }
+
+    return nullptr;
+}
+
+static bool OpenModFile(FFile* ffile, const char* path) {
+    std::array<char8_t, 0x100> filteredPath;
+    if (!FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
+        return false;
+    }
+
+    OutputDebugStringA("OpenModFile called with path: ");
+    OutputDebugStringA(path);
+    OutputDebugStringA("\n");
+
+    if (s_CheckDevFolderForAssets) {
+        std::u8string tmp = u8"dev/";
+        tmp += (char8_t*)path;
+
+        SenPatcher::IO::File file(std::filesystem::path(tmp), SenPatcher::IO::OpenMode::Read);
+        if (file.IsOpen()) {
+            auto length = file.GetLength();
+            if (length && *length < 0x8000'0000) {
+                ffile->NativeFileHandle = file.ReleaseHandle();
+                ffile->Filesize = static_cast<uint32_t>(*length);
+
+                OutputDebugStringA("  --> rerouted to ");
+                OutputDebugStringA((char*)tmp.c_str());
+                OutputDebugStringA("\n");
+
+                return true;
+            }
+        }
+    }
+
+    const P3AFileRef* refptr = FindP3AFileRef(filteredPath);
+    if (refptr != nullptr) {
+        const P3AFileRef& ref = *refptr;
         const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
         if (fi.UncompressedSize >= 0x8000'0000) {
-            return 0;
+            return false;
         }
 
         switch (fi.CompressionType) {
             case SenPatcher::P3ACompressionType::None: {
                 auto& file = ref.Archive->FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
-                    return 0;
+                    return false;
                 }
 
                 void* memory = s_TrackedMalloc(fi.UncompressedSize, 8, nullptr, 0, 0);
                 if (!memory) {
-                    return 0;
+                    return false;
                 }
                 if (file.Read(memory, fi.UncompressedSize) != fi.UncompressedSize) {
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 // TODO: check hash
                 ffile->Filesize = static_cast<uint32_t>(fi.UncompressedSize);
@@ -515,27 +525,27 @@ static int64_t __fastcall CheckForModFile(FFile* ffile,
 
                 OutputDebugStringA("  --> rerouted to P3A (uncompressed)\n");
 
-                return 1;
+                return true;
             }
             case SenPatcher::P3ACompressionType::LZ4: {
                 auto& file = ref.Archive->FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
-                    return 0;
+                    return false;
                 }
 
                 void* memory = s_TrackedMalloc(fi.UncompressedSize, 8, nullptr, 0, 0);
                 if (!memory) {
-                    return 0;
+                    return false;
                 }
                 auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
                 if (!compressedMemory) {
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
                     compressedMemory.reset();
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 // TODO: check hash
                 if (LZ4_decompress_safe(compressedMemory.get(),
@@ -545,7 +555,7 @@ static int64_t __fastcall CheckForModFile(FFile* ffile,
                     != fi.UncompressedSize) {
                     compressedMemory.reset();
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 compressedMemory.reset();
 
@@ -556,27 +566,27 @@ static int64_t __fastcall CheckForModFile(FFile* ffile,
 
                 OutputDebugStringA("  --> rerouted to P3A (lz4)\n");
 
-                return 1;
+                return true;
             }
             case SenPatcher::P3ACompressionType::ZSTD: {
                 auto& file = ref.Archive->FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
-                    return 0;
+                    return false;
                 }
 
                 void* memory = s_TrackedMalloc(fi.UncompressedSize, 8, nullptr, 0, 0);
                 if (!memory) {
-                    return 0;
+                    return false;
                 }
                 auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
                 if (!compressedMemory) {
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
                     compressedMemory.reset();
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 // TODO: check hash
                 if (ZSTD_decompress(static_cast<char*>(memory),
@@ -586,7 +596,7 @@ static int64_t __fastcall CheckForModFile(FFile* ffile,
                     != fi.UncompressedSize) {
                     compressedMemory.reset();
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 compressedMemory.reset();
 
@@ -597,36 +607,36 @@ static int64_t __fastcall CheckForModFile(FFile* ffile,
 
                 OutputDebugStringA("  --> rerouted to P3A (zstd)\n");
 
-                return 1;
+                return true;
             }
             case SenPatcher::P3ACompressionType::ZSTD_DICT: {
                 if (!ref.Archive->Dict) {
-                    return 0;
+                    return false;
                 }
                 auto& file = ref.Archive->FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
-                    return 0;
+                    return false;
                 }
 
                 void* memory = s_TrackedMalloc(fi.UncompressedSize, 8, nullptr, 0, 0);
                 if (!memory) {
-                    return 0;
+                    return false;
                 }
                 auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
                 if (!compressedMemory) {
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
                 if (!dctx) {
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
                     dctx.reset();
                     compressedMemory.reset();
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 // TODO: check hash
                 if (ZSTD_decompress_usingDDict(dctx.get(),
@@ -639,7 +649,7 @@ static int64_t __fastcall CheckForModFile(FFile* ffile,
                     dctx.reset();
                     compressedMemory.reset();
                     s_TrackedFree(memory);
-                    return 0;
+                    return false;
                 }
                 dctx.reset();
                 compressedMemory.reset();
@@ -651,12 +661,83 @@ static int64_t __fastcall CheckForModFile(FFile* ffile,
 
                 OutputDebugStringA("  --> rerouted to P3A (zstd dict)\n");
 
-                return 1;
+                return true;
             }
-            default: return 0;
+            default: return false;
         }
     }
 
+    return false;
+}
+
+static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
+    std::array<char8_t, 0x100> filteredPath;
+    if (!FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
+        return std::nullopt;
+    }
+
+    OutputDebugStringA("GetFilesizeOfModFile called with path: ");
+    OutputDebugStringA(path);
+    OutputDebugStringA("\n");
+
+    if (s_CheckDevFolderForAssets) {
+        std::u8string tmp = u8"dev/";
+        tmp += (char8_t*)path;
+
+        SenPatcher::IO::File file(std::filesystem::path(tmp), SenPatcher::IO::OpenMode::Read);
+        if (file.IsOpen()) {
+            auto length = file.GetLength();
+            if (length && *length < 0x8000'0000) {
+                return length;
+            }
+        }
+    }
+
+    const P3AFileRef* refptr = FindP3AFileRef(filteredPath);
+    if (refptr != nullptr) {
+        const P3AFileRef& ref = *refptr;
+        const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
+        if (fi.UncompressedSize < 0x8000'0000) {
+            return fi.UncompressedSize;
+        }
+    }
+
+    return std::nullopt;
+}
+
+static int64_t __fastcall FFileOpenForwarder(FFile* ffile,
+                                             const char* path,
+                                             int unknownThirdParameter) {
+    if (OpenModFile(ffile, path)) {
+        return 1;
+    }
+    return 0;
+}
+
+static int64_t __fastcall FFileGetFilesizeForwarder(FFile* ffile,
+                                                    const char* path,
+                                                    int unknownThirdParameter,
+                                                    uint32_t* out_filesize) {
+    auto result = GetFilesizeOfModFile(path);
+    if (result) {
+        if (out_filesize) {
+            *out_filesize = static_cast<uint32_t>(*result);
+        }
+        return 1;
+    }
+    return 0;
+}
+
+static int64_t __fastcall FreestandingGetFilesizeForwarder(const char* path,
+                                                           int unknownThirdParameter,
+                                                           uint32_t* out_filesize) {
+    auto result = GetFilesizeOfModFile(path);
+    if (result) {
+        if (out_filesize) {
+            *out_filesize = static_cast<uint32_t>(*result);
+        }
+        return 1;
+    }
     return 0;
 }
 
@@ -699,7 +780,7 @@ static void InjectAtFFileOpen(Logger& logger,
     // function's parameters in x64???
     Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x20);
 
-    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(&CheckForModFile));
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(&FFileOpenForwarder));
     Emit_CALL_R64(codespace, R64::RAX);
 
     Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
@@ -727,6 +808,140 @@ static void InjectAtFFileOpen(Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
+static void InjectAtFFileGetFilesize(Logger& logger,
+                                     char* textRegion,
+                                     GameVersion version,
+                                     char*& codespace,
+                                     char* codespaceEnd) {
+    using namespace SenPatcher::x64;
+
+    char* const entryPoint = textRegion
+                             + (version == GameVersion::Japanese ? (0x1400f5120 - 0x140001000)
+                                                                 : (0x1400f57a0 - 0x140001000));
+    char* const exitPoint = textRegion
+                            + (version == GameVersion::Japanese ? (0x1400f5224 - 0x140001000)
+                                                                : (0x1400f58a4 - 0x140001000));
+
+
+    char* codespaceBegin = codespace;
+    char* inject = entryPoint;
+    std::array<char, 12> overwrittenInstructions;
+
+    {
+        PageUnprotect page(logger, inject, overwrittenInstructions.size());
+        std::memcpy(overwrittenInstructions.data(), inject, overwrittenInstructions.size());
+
+        Emit_MOV_R64_IMM64(inject, R64::RAX, std::bit_cast<uint64_t>(codespaceBegin), true);
+        Emit_JMP_R64(inject, R64::RAX);
+    }
+
+    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+    codespace += overwrittenInstructions.size();
+
+    Emit_PUSH_R64(codespace, R64::RCX);
+    Emit_PUSH_R64(codespace, R64::RDX);
+    Emit_PUSH_R64(codespace, R64::R8);
+    Emit_PUSH_R64(codespace, R64::R9);
+    Emit_PUSH_R64(codespace, R64::R10);
+    Emit_PUSH_R64(codespace, R64::R11);
+    Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x20);
+
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(&FFileGetFilesizeForwarder));
+    Emit_CALL_R64(codespace, R64::RAX);
+
+    Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
+    Emit_POP_R64(codespace, R64::R11);
+    Emit_POP_R64(codespace, R64::R10);
+    Emit_POP_R64(codespace, R64::R9);
+    Emit_POP_R64(codespace, R64::R8);
+    Emit_POP_R64(codespace, R64::RDX);
+    Emit_POP_R64(codespace, R64::RCX);
+
+    // check for success
+    Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
+    BranchHelper1Byte success;
+    success.WriteJump(codespace, JumpCondition::JNZ);
+
+    // on fail, go back to function and pretend nothing happened
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(inject));
+    Emit_JMP_R64(codespace, R64::RAX);
+
+    // on success, return that we succeeded
+    success.SetTarget(codespace);
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, 1);
+
+    // jump to exit point
+    Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPoint));
+    Emit_JMP_R64(codespace, R64::RCX);
+}
+
+static void InjectAtFreestandingGetFilesize(Logger& logger,
+                                            char* textRegion,
+                                            GameVersion version,
+                                            char*& codespace,
+                                            char* codespaceEnd) {
+    using namespace SenPatcher::x64;
+
+    char* const entryPoint = textRegion
+                             + (version == GameVersion::Japanese ? (0x1400f4905 - 0x140001000)
+                                                                 : (0x1400f4ea5 - 0x140001000));
+    char* const exitPoint = textRegion
+                            + (version == GameVersion::Japanese ? (0x1400f4a2e - 0x140001000)
+                                                                : (0x1400f4fce - 0x140001000));
+
+
+    char* codespaceBegin = codespace;
+    char* inject = entryPoint;
+    std::array<char, 12> overwrittenInstructions;
+
+    {
+        PageUnprotect page(logger, inject, overwrittenInstructions.size());
+        std::memcpy(overwrittenInstructions.data(), inject, overwrittenInstructions.size());
+
+        Emit_MOV_R64_IMM64(inject, R64::RAX, std::bit_cast<uint64_t>(codespaceBegin), true);
+        Emit_JMP_R64(inject, R64::RAX);
+    }
+
+    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+    codespace += overwrittenInstructions.size();
+
+    Emit_PUSH_R64(codespace, R64::RCX);
+    Emit_PUSH_R64(codespace, R64::RDX);
+    Emit_PUSH_R64(codespace, R64::R8);
+    Emit_PUSH_R64(codespace, R64::R9);
+    Emit_PUSH_R64(codespace, R64::R10);
+    Emit_PUSH_R64(codespace, R64::R11);
+    Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x20);
+
+    Emit_MOV_R64_IMM64(
+        codespace, R64::RAX, std::bit_cast<uint64_t>(&FreestandingGetFilesizeForwarder));
+    Emit_CALL_R64(codespace, R64::RAX);
+
+    Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
+    Emit_POP_R64(codespace, R64::R11);
+    Emit_POP_R64(codespace, R64::R10);
+    Emit_POP_R64(codespace, R64::R9);
+    Emit_POP_R64(codespace, R64::R8);
+    Emit_POP_R64(codespace, R64::RDX);
+    Emit_POP_R64(codespace, R64::RCX);
+
+    // if successful, skip the following jmp r9
+    Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
+    BranchHelper1Byte success;
+    success.WriteJump(codespace, JumpCondition::JNZ);
+
+    // go back to function and pretend nothing happened
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(inject));
+    Emit_JMP_R64(codespace, R64::RAX);
+
+    // return that we succeeded
+    success.SetTarget(codespace);
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, 1);
+
+    // jump to exit point
+    Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPoint));
+    Emit_JMP_R64(codespace, R64::RCX);
+}
 
 static PDirectInput8Create addr_PDirectInput8Create = 0;
 static void* SetupHacks() {
@@ -765,6 +980,9 @@ static void* SetupHacks() {
     LoadModP3As();
 
     InjectAtFFileOpen(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    InjectAtFFileGetFilesize(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    InjectAtFreestandingGetFilesize(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
 
     // mark newly allocated page as executable
     {
