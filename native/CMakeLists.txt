@@ -113,6 +113,8 @@ target_sources(cs3hook PRIVATE
 	p3a/structs.h
 	p3a/p3a.cpp
 	p3a/p3a.h
+	x64/emitter.cpp
+	x64/emitter.h
 	dinput8.def
 
 	lz4/lz4.c

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cinttypes>
 #include <cstdint>
 #include <cstdio>
@@ -21,6 +22,8 @@
 
 #include "p3a/p3a.h"
 #include "p3a/structs.h"
+
+#include "x64/emitter.h"
 
 namespace {
 struct ZSTD_DCtx_Deleter {
@@ -662,6 +665,8 @@ static void InjectAtFFileOpen(Logger& logger,
                               GameVersion version,
                               char*& codespace,
                               char* codespaceEnd) {
+    using namespace SenPatcher::x64;
+
     char* const entryPoint = textRegion
                              + (version == GameVersion::Japanese ? (0x1400f5270 - 0x140001000)
                                                                  : (0x1400f58f0 - 0x140001000));
@@ -678,98 +683,48 @@ static void InjectAtFFileOpen(Logger& logger,
         PageUnprotect page(logger, inject, overwrittenInstructions.size());
         std::memcpy(overwrittenInstructions.data(), inject, overwrittenInstructions.size());
 
-        // mov rax,codespaceBegin
-        *inject++ = 0x48;
-        *inject++ = 0xb8;
-        std::memcpy(inject, &codespaceBegin, 8);
-        inject += 8;
-        // jmp rax
-        *inject++ = 0xff;
-        *inject++ = 0xe0;
+        Emit_MOV_R64_IMM64(inject, R64::RAX, std::bit_cast<uint64_t>(codespaceBegin), true);
+        Emit_JMP_R64(inject, R64::RAX);
     }
 
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
-    // push rax
-    *codespace++ = 0x50;
-    // push rcx
-    *codespace++ = 0x51;
-    // push rdx
-    *codespace++ = 0x52;
-    // push r8
-    *codespace++ = 0x41;
-    *codespace++ = 0x50;
+
+    Emit_PUSH_R64(codespace, R64::RAX);
+    Emit_PUSH_R64(codespace, R64::RCX);
+    Emit_PUSH_R64(codespace, R64::RDX);
+    Emit_PUSH_R64(codespace, R64::R8);
 
     // for some reason I cannot figure out, the caller has to reserve stack space for the called
-    // function's parameters in x64??? sub rsp,0x20
-    *codespace++ = 0x48;
-    *codespace++ = 0x83;
-    *codespace++ = 0xec;
-    *codespace++ = 0x20;
+    // function's parameters in x64???
+    Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x20);
 
-    // mov rax,CheckForModFile
-    *codespace++ = 0x48;
-    *codespace++ = 0xb8;
-    void* addr = &CheckForModFile;
-    std::memcpy(codespace, &addr, 8);
-    codespace += 8;
-    // call rax
-    *codespace++ = 0xff;
-    *codespace++ = 0xd0;
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(&CheckForModFile));
+    Emit_CALL_R64(codespace, R64::RAX);
 
-    // add rsp,0x20
-    *codespace++ = 0x48;
-    *codespace++ = 0x83;
-    *codespace++ = 0xc4;
-    *codespace++ = 0x20;
+    Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
 
-    // test rax,rax
-    *codespace++ = 0x48;
-    *codespace++ = 0x85;
-    *codespace++ = 0xc0;
-    // pop r8
-    *codespace++ = 0x41;
-    *codespace++ = 0x58;
-    // pop rdx
-    *codespace++ = 0x5a;
-    // pop rcx
-    *codespace++ = 0x59;
-    // pop rax
-    *codespace++ = 0x58;
+    Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
+    Emit_POP_R64(codespace, R64::R8);
+    Emit_POP_R64(codespace, R64::RDX);
+    Emit_POP_R64(codespace, R64::RCX);
+    Emit_POP_R64(codespace, R64::RAX);
 
     // if successful, skip the following jmp r9
-    // jnz +13
-    *codespace++ = 0x75;
-    *codespace++ = 0x0d;
+    BranchHelper1Byte success;
+    success.WriteJump(codespace, JumpCondition::JNZ);
 
     // go back to function and pretend nothing happened
-    // mov r9,injectEnd
-    *codespace++ = 0x49;
-    *codespace++ = 0xb9;
-    std::memcpy(codespace, &inject, 8);
-    codespace += 8;
-    // jmp r9
-    *codespace++ = 0x41;
-    *codespace++ = 0xff;
-    *codespace++ = 0xe1;
+    Emit_MOV_R64_IMM64(codespace, R64::R9, std::bit_cast<uint64_t>(inject));
+    Emit_JMP_R64(codespace, R64::R9);
 
     // return that we succeeded
-    // mov eax,1
-    *codespace++ = 0xb8;
-    *codespace++ = 0x01;
-    *codespace++ = 0x00;
-    *codespace++ = 0x00;
-    *codespace++ = 0x00;
+    success.SetTarget(codespace);
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, 1);
 
     // jump to exit point
-    // mov rcx,exitPoint
-    *codespace++ = 0x48;
-    *codespace++ = 0xb9;
-    std::memcpy(codespace, &exitPoint, 8);
-    codespace += 8;
-    // jmp rcx
-    *codespace++ = 0xff;
-    *codespace++ = 0xe1;
+    Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPoint));
+    Emit_JMP_R64(codespace, R64::RCX);
 }
 
 
@@ -797,11 +752,13 @@ static void* SetupHacks() {
 
     // allocate extra page for code
     size_t newPageLength = 0x1000;
-    char* newPage = static_cast<char*>(VirtualAlloc(nullptr, 0x1000, MEM_COMMIT, PAGE_READWRITE));
+    char* newPage =
+        static_cast<char*>(VirtualAlloc(nullptr, newPageLength, MEM_COMMIT, PAGE_READWRITE));
     if (!newPage) {
         logger.Log("VirtualAlloc failed, skipping remaining patches.\n");
         return nullptr;
     }
+    std::memset(newPage, 0xcc, newPageLength);
     char* newPageStart = newPage;
     char* newPageEnd = newPage + newPageLength;
 
