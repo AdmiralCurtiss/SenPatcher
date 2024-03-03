@@ -285,7 +285,7 @@ struct P3AFileRef {
 
 static PTrackedMalloc s_TrackedMalloc = nullptr;
 static PTrackedFree s_TrackedFree = nullptr;
-static bool s_CheckDevFolderForAssets = true;
+static bool s_CheckDevFolderForAssets = false;
 static std::unique_ptr<P3AData[]> s_P3As;
 static size_t s_CombinedFileInfoCount = 0;
 static std::unique_ptr<P3AFileRef[]> s_CombinedFileInfos;
@@ -354,6 +354,13 @@ static bool FilterGamePath(char8_t* out_path, const char* in_path, size_t length
     return in_path[in] == '\0';
 }
 
+// ignore any path that doesn't begin with the 'data' directory
+static bool IsValidReroutablePath(const char* path) {
+    return (path[0] == 'D' || path[0] == 'd') && (path[1] == 'A' || path[1] == 'a')
+           && (path[2] == 'T' || path[2] == 't') && (path[3] == 'A' || path[3] == 'a')
+           && (path[4] == '/' || path[4] == '\\');
+}
+
 static void LoadModP3As() {
     s_CombinedFileInfoCount = 0;
     s_CombinedFileInfos.reset();
@@ -364,9 +371,14 @@ static void LoadModP3As() {
     {
         std::vector<SenPatcher::P3A> p3avector;
         std::error_code ec;
-        std::filesystem::directory_iterator iterator(L"../../mods", ec);
+        s_CheckDevFolderForAssets = std::filesystem::is_directory(L"dev", ec)
+                                    || std::filesystem::is_directory(L"../../dev", ec);
+        std::filesystem::directory_iterator iterator(L"mods", ec);
         if (ec) {
-            return;
+            iterator = std::filesystem::directory_iterator(L"../../mods", ec);
+            if (ec) {
+                return;
+            }
         }
         for (auto const& entry : iterator) {
             if (entry.is_directory()) {
@@ -677,6 +689,10 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
 }
 
 static bool OpenModFile(FFile* ffile, const char* path) {
+    if (!IsValidReroutablePath(path)) {
+        return false;
+    }
+
     if (s_CheckDevFolderForAssets) {
         std::u8string tmp = u8"dev/";
         tmp += (char8_t*)path;
@@ -720,6 +736,10 @@ static bool OpenModFile(FFile* ffile, const char* path) {
 }
 
 static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
+    if (!IsValidReroutablePath(path)) {
+        return std::nullopt;
+    }
+
     if (s_CheckDevFolderForAssets) {
         std::u8string tmp = u8"dev/";
         tmp += (char8_t*)path;
@@ -889,6 +909,10 @@ static void __fastcall MemoryFile_FSoundFileClose(MemoryFile* file) {
 }
 
 static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* path) {
+    if (!IsValidReroutablePath(path)) {
+        return nullptr;
+    }
+
     if (s_CheckDevFolderForAssets) {
         std::u8string tmp = u8"dev/";
         tmp += (char8_t*)path;
@@ -1223,7 +1247,7 @@ static void* SetupHacks() {
                                                           : (0x1405e0320 - 0x140001000)));
 
     // allocate extra page for code
-    size_t newPageLength = 0x1000;
+    const size_t newPageLength = 0x1000;
     char* newPage =
         static_cast<char*>(VirtualAlloc(nullptr, newPageLength, MEM_COMMIT, PAGE_READWRITE));
     if (!newPage) {
@@ -1245,8 +1269,8 @@ static void* SetupHacks() {
     // mark newly allocated page as executable
     {
         DWORD tmpdword;
-        VirtualProtect(newPageStart, 0x1000, PAGE_EXECUTE_READ, &tmpdword);
-        FlushInstructionCache(GetCurrentProcess(), newPageStart, 0x1000);
+        VirtualProtect(newPageStart, newPageLength, PAGE_EXECUTE_READ, &tmpdword);
+        FlushInstructionCache(GetCurrentProcess(), newPageStart, newPageLength);
     }
 
     return newPageStart;
