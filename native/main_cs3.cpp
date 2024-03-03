@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "lz4/lz4.h"
+#include "zstd/common/xxhash.h"
 #include "zstd/zdict.h"
 #include "zstd/zstd.h"
 
@@ -505,7 +506,10 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 }
             }
 
-            // TODO: check hash
+            if (fi.Hash != XXH64(memory, fi.UncompressedSize, 0)) {
+                free_func(memory);
+                return false;
+            }
 
             out_memory = memory;
             out_filesize = fi.UncompressedSize;
@@ -538,7 +542,11 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 }
             }
 
-            // TODO: check hash
+            if (fi.Hash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
 
             if (LZ4_decompress_safe(compressedMemory.get(),
                                     static_cast<char*>(memory),
@@ -582,7 +590,11 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 }
             }
 
-            // TODO: check hash
+            if (fi.Hash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
 
             if (ZSTD_decompress(static_cast<char*>(memory),
                                 fi.UncompressedSize,
@@ -629,7 +641,11 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 }
             }
 
-            // TODO: check hash
+            if (fi.Hash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
 
             ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
             if (!dctx) {
