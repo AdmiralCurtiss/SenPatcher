@@ -268,6 +268,9 @@ using PTrackedMalloc = void*(__fastcall*)(uint64_t size,
                                           uint64_t unknown);
 using PTrackedFree = void(__fastcall*)(void* memory);
 
+using PMalloc = void* (*)(uint64_t size);
+using PFree = void (*)(void* memory);
+
 struct P3AFileRef {
     SenPatcher::P3A* Archive;
     SenPatcher::P3AFileInfo* FileInfo;
@@ -464,16 +467,164 @@ static const P3AFileRef* FindP3AFileRef(const std::array<char8_t, 0x100>& filter
     return nullptr;
 }
 
-static bool OpenModFile(FFile* ffile, const char* path) {
-    std::array<char8_t, 0x100> filteredPath;
-    if (!FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
+static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
+                                   uint64_t filesizeLimit,
+                                   void*& out_memory,
+                                   uint64_t& out_filesize,
+                                   PMalloc malloc_func,
+                                   PFree free_func) {
+    const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
+    if (fi.UncompressedSize >= filesizeLimit) {
         return false;
     }
 
-    OutputDebugStringA("OpenModFile called with path: ");
-    OutputDebugStringA(path);
-    OutputDebugStringA("\n");
+    switch (fi.CompressionType) {
+        case SenPatcher::P3ACompressionType::None: {
+            auto& file = ref.Archive->FileHandle;
+            if (!file.SetPosition(fi.Offset)) {
+                return false;
+            }
 
+            void* memory = malloc_func(fi.UncompressedSize);
+            if (!memory) {
+                return false;
+            }
+            if (file.Read(memory, fi.UncompressedSize) != fi.UncompressedSize) {
+                free_func(memory);
+                return false;
+            }
+            // TODO: check hash
+
+            out_memory = memory;
+            out_filesize = fi.UncompressedSize;
+            return true;
+        }
+        case SenPatcher::P3ACompressionType::LZ4: {
+            auto& file = ref.Archive->FileHandle;
+            if (!file.SetPosition(fi.Offset)) {
+                return false;
+            }
+
+            void* memory = malloc_func(fi.UncompressedSize);
+            if (!memory) {
+                return false;
+            }
+            auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
+            if (!compressedMemory) {
+                free_func(memory);
+                return false;
+            }
+            if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
+            // TODO: check hash
+            if (LZ4_decompress_safe(compressedMemory.get(),
+                                    static_cast<char*>(memory),
+                                    fi.CompressedSize,
+                                    fi.UncompressedSize)
+                != fi.UncompressedSize) {
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
+            compressedMemory.reset();
+
+            out_memory = memory;
+            out_filesize = fi.UncompressedSize;
+            return true;
+        }
+        case SenPatcher::P3ACompressionType::ZSTD: {
+            auto& file = ref.Archive->FileHandle;
+            if (!file.SetPosition(fi.Offset)) {
+                return false;
+            }
+
+            void* memory = malloc_func(fi.UncompressedSize);
+            if (!memory) {
+                return false;
+            }
+            auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
+            if (!compressedMemory) {
+                free_func(memory);
+                return false;
+            }
+            if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
+            // TODO: check hash
+            if (ZSTD_decompress(static_cast<char*>(memory),
+                                fi.UncompressedSize,
+                                compressedMemory.get(),
+                                fi.CompressedSize)
+                != fi.UncompressedSize) {
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
+            compressedMemory.reset();
+
+            out_memory = memory;
+            out_filesize = fi.UncompressedSize;
+            return true;
+        }
+        case SenPatcher::P3ACompressionType::ZSTD_DICT: {
+            if (!ref.Archive->Dict) {
+                return false;
+            }
+            auto& file = ref.Archive->FileHandle;
+            if (!file.SetPosition(fi.Offset)) {
+                return false;
+            }
+
+            void* memory = malloc_func(fi.UncompressedSize);
+            if (!memory) {
+                return false;
+            }
+            auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
+            if (!compressedMemory) {
+                free_func(memory);
+                return false;
+            }
+            ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
+            if (!dctx) {
+                free_func(memory);
+                return false;
+            }
+            if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
+                dctx.reset();
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
+            // TODO: check hash
+            if (ZSTD_decompress_usingDDict(dctx.get(),
+                                           static_cast<char*>(memory),
+                                           fi.UncompressedSize,
+                                           compressedMemory.get(),
+                                           fi.CompressedSize,
+                                           ref.Archive->Dict)
+                != fi.UncompressedSize) {
+                dctx.reset();
+                compressedMemory.reset();
+                free_func(memory);
+                return false;
+            }
+            dctx.reset();
+            compressedMemory.reset();
+
+            out_memory = memory;
+            out_filesize = fi.UncompressedSize;
+            return true;
+        }
+        default: return false;
+    }
+}
+
+static bool OpenModFile(FFile* ffile, const char* path) {
     if (s_CheckDevFolderForAssets) {
         std::u8string tmp = u8"dev/";
         tmp += (char8_t*)path;
@@ -484,186 +635,32 @@ static bool OpenModFile(FFile* ffile, const char* path) {
             if (length && *length < 0x8000'0000) {
                 ffile->NativeFileHandle = file.ReleaseHandle();
                 ffile->Filesize = static_cast<uint32_t>(*length);
-
-                OutputDebugStringA("  --> rerouted to ");
-                OutputDebugStringA((char*)tmp.c_str());
-                OutputDebugStringA("\n");
-
                 return true;
             }
         }
     }
 
+    std::array<char8_t, 0x100> filteredPath;
+    if (!FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
+        return false;
+    }
+
     const P3AFileRef* refptr = FindP3AFileRef(filteredPath);
     if (refptr != nullptr) {
-        const P3AFileRef& ref = *refptr;
-        const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
-        if (fi.UncompressedSize >= 0x8000'0000) {
-            return false;
-        }
-
-        switch (fi.CompressionType) {
-            case SenPatcher::P3ACompressionType::None: {
-                auto& file = ref.Archive->FileHandle;
-                if (!file.SetPosition(fi.Offset)) {
-                    return false;
-                }
-
-                void* memory = s_TrackedMalloc(fi.UncompressedSize, 8, nullptr, 0, 0);
-                if (!memory) {
-                    return false;
-                }
-                if (file.Read(memory, fi.UncompressedSize) != fi.UncompressedSize) {
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                // TODO: check hash
-                ffile->Filesize = static_cast<uint32_t>(fi.UncompressedSize);
-                ffile->MemoryPointer = memory;
-                ffile->MemoryPointerForFreeing = memory;
-                ffile->MemoryPosition = 0;
-
-                OutputDebugStringA("  --> rerouted to P3A (uncompressed)\n");
-
-                return true;
-            }
-            case SenPatcher::P3ACompressionType::LZ4: {
-                auto& file = ref.Archive->FileHandle;
-                if (!file.SetPosition(fi.Offset)) {
-                    return false;
-                }
-
-                void* memory = s_TrackedMalloc(fi.UncompressedSize, 8, nullptr, 0, 0);
-                if (!memory) {
-                    return false;
-                }
-                auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
-                if (!compressedMemory) {
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
-                    compressedMemory.reset();
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                // TODO: check hash
-                if (LZ4_decompress_safe(compressedMemory.get(),
-                                        static_cast<char*>(memory),
-                                        fi.CompressedSize,
-                                        fi.UncompressedSize)
-                    != fi.UncompressedSize) {
-                    compressedMemory.reset();
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                compressedMemory.reset();
-
-                ffile->Filesize = static_cast<uint32_t>(fi.UncompressedSize);
-                ffile->MemoryPointer = memory;
-                ffile->MemoryPointerForFreeing = memory;
-                ffile->MemoryPosition = 0;
-
-                OutputDebugStringA("  --> rerouted to P3A (lz4)\n");
-
-                return true;
-            }
-            case SenPatcher::P3ACompressionType::ZSTD: {
-                auto& file = ref.Archive->FileHandle;
-                if (!file.SetPosition(fi.Offset)) {
-                    return false;
-                }
-
-                void* memory = s_TrackedMalloc(fi.UncompressedSize, 8, nullptr, 0, 0);
-                if (!memory) {
-                    return false;
-                }
-                auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
-                if (!compressedMemory) {
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
-                    compressedMemory.reset();
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                // TODO: check hash
-                if (ZSTD_decompress(static_cast<char*>(memory),
-                                    fi.UncompressedSize,
-                                    compressedMemory.get(),
-                                    fi.CompressedSize)
-                    != fi.UncompressedSize) {
-                    compressedMemory.reset();
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                compressedMemory.reset();
-
-                ffile->Filesize = static_cast<uint32_t>(fi.UncompressedSize);
-                ffile->MemoryPointer = memory;
-                ffile->MemoryPointerForFreeing = memory;
-                ffile->MemoryPosition = 0;
-
-                OutputDebugStringA("  --> rerouted to P3A (zstd)\n");
-
-                return true;
-            }
-            case SenPatcher::P3ACompressionType::ZSTD_DICT: {
-                if (!ref.Archive->Dict) {
-                    return false;
-                }
-                auto& file = ref.Archive->FileHandle;
-                if (!file.SetPosition(fi.Offset)) {
-                    return false;
-                }
-
-                void* memory = s_TrackedMalloc(fi.UncompressedSize, 8, nullptr, 0, 0);
-                if (!memory) {
-                    return false;
-                }
-                auto compressedMemory = std::make_unique_for_overwrite<char[]>(fi.CompressedSize);
-                if (!compressedMemory) {
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
-                if (!dctx) {
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
-                    dctx.reset();
-                    compressedMemory.reset();
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                // TODO: check hash
-                if (ZSTD_decompress_usingDDict(dctx.get(),
-                                               static_cast<char*>(memory),
-                                               fi.UncompressedSize,
-                                               compressedMemory.get(),
-                                               fi.CompressedSize,
-                                               ref.Archive->Dict)
-                    != fi.UncompressedSize) {
-                    dctx.reset();
-                    compressedMemory.reset();
-                    s_TrackedFree(memory);
-                    return false;
-                }
-                dctx.reset();
-                compressedMemory.reset();
-
-                ffile->Filesize = static_cast<uint32_t>(fi.UncompressedSize);
-                ffile->MemoryPointer = memory;
-                ffile->MemoryPointerForFreeing = memory;
-                ffile->MemoryPosition = 0;
-
-                OutputDebugStringA("  --> rerouted to P3A (zstd dict)\n");
-
-                return true;
-            }
-            default: return false;
+        void* memory = nullptr;
+        uint64_t filesize = 0;
+        if (ExtractP3AFileToMemory(
+                *refptr,
+                0x8000'0000,
+                memory,
+                filesize,
+                [](size_t length) { return s_TrackedMalloc(length, 8, nullptr, 0, 0); },
+                [](void* memory) { s_TrackedFree(memory); })) {
+            ffile->Filesize = static_cast<uint32_t>(filesize);
+            ffile->MemoryPointer = memory;
+            ffile->MemoryPointerForFreeing = memory;
+            ffile->MemoryPosition = 0;
+            return true;
         }
     }
 
@@ -671,15 +668,6 @@ static bool OpenModFile(FFile* ffile, const char* path) {
 }
 
 static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
-    std::array<char8_t, 0x100> filteredPath;
-    if (!FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
-        return std::nullopt;
-    }
-
-    OutputDebugStringA("GetFilesizeOfModFile called with path: ");
-    OutputDebugStringA(path);
-    OutputDebugStringA("\n");
-
     if (s_CheckDevFolderForAssets) {
         std::u8string tmp = u8"dev/";
         tmp += (char8_t*)path;
@@ -691,6 +679,11 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
                 return length;
             }
         }
+    }
+
+    std::array<char8_t, 0x100> filteredPath;
+    if (!FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
+        return std::nullopt;
     }
 
     const P3AFileRef* refptr = FindP3AFileRef(filteredPath);
@@ -748,7 +741,9 @@ struct FSoundFile {
     void* FClose;
 };
 
-static int32_t __fastcall FSoundFileRead(SenPatcher::IO::File* file, void* memory, int32_t length) {
+static int32_t __fastcall SenPatcherFile_FSoundFileRead(SenPatcher::IO::File* file,
+                                                        void* memory,
+                                                        int32_t length) {
     if (length < 1) {
         return 0;
     }
@@ -760,7 +755,9 @@ static int32_t __fastcall FSoundFileRead(SenPatcher::IO::File* file, void* memor
     return static_cast<int32_t>(bytesRead);
 }
 
-static int32_t __fastcall FSoundFileSeek(SenPatcher::IO::File* file, int64_t position, int mode) {
+static int32_t __fastcall SenPatcherFile_FSoundFileSeek(SenPatcher::IO::File* file,
+                                                        int64_t position,
+                                                        int mode) {
     if (mode >= 0 && mode <= 2) {
         if (file->SetPosition(position, static_cast<SenPatcher::IO::SetPositionMode>(mode))) {
             return 0;
@@ -769,7 +766,7 @@ static int32_t __fastcall FSoundFileSeek(SenPatcher::IO::File* file, int64_t pos
     return -1;
 }
 
-static int64_t __fastcall FSoundFileTell(SenPatcher::IO::File* file) {
+static int64_t __fastcall SenPatcherFile_FSoundFileTell(SenPatcher::IO::File* file) {
     auto position = file->GetPosition();
     if (position) {
         return *position;
@@ -777,24 +774,111 @@ static int64_t __fastcall FSoundFileTell(SenPatcher::IO::File* file) {
     return -1;
 }
 
-static void __fastcall FSoundFileClose(SenPatcher::IO::File* file) {
+static void __fastcall SenPatcherFile_FSoundFileClose(SenPatcher::IO::File* file) {
     std::unique_ptr<SenPatcher::IO::File> tmp(file);
     tmp.reset();
 }
 
-static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* path) {
-    std::u8string tmp = u8"dev/";
-    tmp += (char8_t*)path;
+struct MemoryFile {
+    char* Memory;
+    size_t Length;
+    size_t Position;
+};
 
-    auto file = std::make_unique<SenPatcher::IO::File>(std::filesystem::path(tmp),
-                                                       SenPatcher::IO::OpenMode::Read);
-    if (file && file->IsOpen()) {
-        void* handle = file.release();
-        soundFile->FRead = &FSoundFileRead;
-        soundFile->FSeek = &FSoundFileSeek;
-        soundFile->FTell = &FSoundFileTell;
-        soundFile->FClose = &FSoundFileClose;
-        return handle;
+static int32_t __fastcall MemoryFile_FSoundFileRead(MemoryFile* file,
+                                                    void* memory,
+                                                    int32_t length) {
+    if (length < 1) {
+        return 0;
+    }
+
+    char* current = file->Memory + file->Position;
+    char* end = file->Memory + file->Length;
+    size_t toRead = end - current;
+    if (static_cast<size_t>(length) < toRead) {
+        toRead = static_cast<size_t>(length);
+    }
+    if (toRead == 0) {
+        return -128; // indicates end of file, I think?
+    }
+
+    std::memcpy(memory, current, toRead);
+    file->Position += toRead;
+    return static_cast<int32_t>(toRead);
+}
+
+static int32_t __fastcall MemoryFile_FSoundFileSeek(MemoryFile* file, int64_t position, int mode) {
+    int64_t targetPosition;
+    if (mode == 0) {
+        targetPosition = position;
+    } else if (mode == 1) {
+        targetPosition = static_cast<int64_t>(file->Position) + position;
+    } else if (mode == 2) {
+        targetPosition = static_cast<int64_t>(file->Length) + position;
+    } else {
+        return -1;
+    }
+
+    if (targetPosition < 0 || static_cast<uint64_t>(targetPosition) > file->Length) {
+        return -1;
+    }
+
+    file->Position = targetPosition;
+    return 0;
+}
+
+static int64_t __fastcall MemoryFile_FSoundFileTell(MemoryFile* file) {
+    return file->Position;
+}
+
+static void __fastcall MemoryFile_FSoundFileClose(MemoryFile* file) {
+    free(file->Memory);
+    delete file;
+}
+
+static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* path) {
+    if (s_CheckDevFolderForAssets) {
+        std::u8string tmp = u8"dev/";
+        tmp += (char8_t*)path;
+
+        auto file = std::make_unique<SenPatcher::IO::File>(std::filesystem::path(tmp),
+                                                           SenPatcher::IO::OpenMode::Read);
+        if (file && file->IsOpen()) {
+            void* handle = file.release();
+            soundFile->FRead = &SenPatcherFile_FSoundFileRead;
+            soundFile->FSeek = &SenPatcherFile_FSoundFileSeek;
+            soundFile->FTell = &SenPatcherFile_FSoundFileTell;
+            soundFile->FClose = &SenPatcherFile_FSoundFileClose;
+            return handle;
+        }
+    }
+
+    std::array<char8_t, 0x100> filteredPath;
+    if (!FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
+        return nullptr;
+    }
+
+    const P3AFileRef* refptr = FindP3AFileRef(filteredPath);
+    if (refptr != nullptr) {
+        void* memory = nullptr;
+        uint64_t filesize = 0;
+        if (ExtractP3AFileToMemory(
+                *refptr,
+                0x8000'0000,
+                memory,
+                filesize,
+                [](size_t length) { return malloc(length); },
+                [](void* memory) { free(memory); })) {
+            MemoryFile* handle = new MemoryFile();
+            handle->Memory = static_cast<char*>(memory);
+            handle->Length = filesize;
+            handle->Position = 0;
+            soundFile->FRead = &MemoryFile_FSoundFileRead;
+            soundFile->FSeek = &MemoryFile_FSoundFileSeek;
+            soundFile->FTell = &MemoryFile_FSoundFileTell;
+            soundFile->FClose = &MemoryFile_FSoundFileClose;
+            return handle;
+        }
     }
 
     return nullptr;
