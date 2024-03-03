@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <vector>
 
@@ -271,15 +272,20 @@ using PTrackedFree = void(__fastcall*)(void* memory);
 using PMalloc = void* (*)(uint64_t size);
 using PFree = void (*)(void* memory);
 
+struct P3AData {
+    SenPatcher::P3A Archive;
+    std::recursive_mutex Mutex;
+};
+
 struct P3AFileRef {
-    SenPatcher::P3A* Archive;
+    P3AData* ArchiveData;
     SenPatcher::P3AFileInfo* FileInfo;
 };
 
 static PTrackedMalloc s_TrackedMalloc = nullptr;
 static PTrackedFree s_TrackedFree = nullptr;
 static bool s_CheckDevFolderForAssets = true;
-static std::unique_ptr<SenPatcher::P3A[]> s_P3As;
+static std::unique_ptr<P3AData[]> s_P3As;
 static size_t s_CombinedFileInfoCount = 0;
 static std::unique_ptr<P3AFileRef[]> s_CombinedFileInfos;
 
@@ -353,7 +359,7 @@ static void LoadModP3As() {
     s_P3As.reset();
 
     size_t p3acount = 0;
-    std::unique_ptr<SenPatcher::P3A[]> p3as;
+    std::unique_ptr<P3AData[]> p3as;
     {
         std::vector<SenPatcher::P3A> p3avector;
         std::error_code ec;
@@ -373,15 +379,15 @@ static void LoadModP3As() {
         }
 
         p3acount = p3avector.size();
-        p3as = std::make_unique<SenPatcher::P3A[]>(p3acount);
+        p3as = std::make_unique<P3AData[]>(p3acount);
         for (size_t i = 0; i < p3acount; ++i) {
-            p3as[i] = std::move(p3avector[i]);
+            p3as[i].Archive = std::move(p3avector[i]);
         }
     }
 
     size_t totalFileInfoCount = 0;
     for (size_t i = 0; i < p3acount; ++i) {
-        totalFileInfoCount += p3as[i].FileCount;
+        totalFileInfoCount += p3as[i].Archive.FileCount;
     }
 
     // now to make a binary tree from all files from all archives
@@ -392,10 +398,10 @@ static void LoadModP3As() {
         size_t index = 0;
         for (size_t i = 0; i < p3acount; ++i) {
             auto& p3a = p3as[i];
-            const size_t localFileInfoCount = p3a.FileCount;
+            const size_t localFileInfoCount = p3a.Archive.FileCount;
             for (size_t j = 0; j < localFileInfoCount; ++j) {
-                auto& fileinfo = p3a.FileInfo[j];
-                combinedFileInfos[index].Archive = &p3a;
+                auto& fileinfo = p3a.Archive.FileInfo[j];
+                combinedFileInfos[index].ArchiveData = &p3a;
                 combinedFileInfos[index].FileInfo = &fileinfo;
                 FilterP3APath(fileinfo.Filename.data(), fileinfo.Filename.size());
                 ++index;
@@ -480,19 +486,25 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
 
     switch (fi.CompressionType) {
         case SenPatcher::P3ACompressionType::None: {
-            auto& file = ref.Archive->FileHandle;
-            if (!file.SetPosition(fi.Offset)) {
-                return false;
-            }
-
+            auto& archiveData = *ref.ArchiveData;
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
                 return false;
             }
-            if (file.Read(memory, fi.UncompressedSize) != fi.UncompressedSize) {
-                free_func(memory);
-                return false;
+
+            {
+                std::lock_guard guard(archiveData.Mutex);
+                auto& file = archiveData.Archive.FileHandle;
+                if (!file.SetPosition(fi.Offset)) {
+                    free_func(memory);
+                    return false;
+                }
+                if (file.Read(memory, fi.UncompressedSize) != fi.UncompressedSize) {
+                    free_func(memory);
+                    return false;
+                }
             }
+
             // TODO: check hash
 
             out_memory = memory;
@@ -500,11 +512,7 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             return true;
         }
         case SenPatcher::P3ACompressionType::LZ4: {
-            auto& file = ref.Archive->FileHandle;
-            if (!file.SetPosition(fi.Offset)) {
-                return false;
-            }
-
+            auto& archiveData = *ref.ArchiveData;
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
                 return false;
@@ -514,12 +522,24 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 free_func(memory);
                 return false;
             }
-            if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
-                compressedMemory.reset();
-                free_func(memory);
-                return false;
+
+            {
+                std::lock_guard guard(archiveData.Mutex);
+                auto& file = archiveData.Archive.FileHandle;
+                if (!file.SetPosition(fi.Offset)) {
+                    compressedMemory.reset();
+                    free_func(memory);
+                    return false;
+                }
+                if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
+                    compressedMemory.reset();
+                    free_func(memory);
+                    return false;
+                }
             }
+
             // TODO: check hash
+
             if (LZ4_decompress_safe(compressedMemory.get(),
                                     static_cast<char*>(memory),
                                     fi.CompressedSize,
@@ -536,11 +556,7 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             return true;
         }
         case SenPatcher::P3ACompressionType::ZSTD: {
-            auto& file = ref.Archive->FileHandle;
-            if (!file.SetPosition(fi.Offset)) {
-                return false;
-            }
-
+            auto& archiveData = *ref.ArchiveData;
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
                 return false;
@@ -550,12 +566,24 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 free_func(memory);
                 return false;
             }
-            if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
-                compressedMemory.reset();
-                free_func(memory);
-                return false;
+
+            {
+                std::lock_guard guard(archiveData.Mutex);
+                auto& file = archiveData.Archive.FileHandle;
+                if (!file.SetPosition(fi.Offset)) {
+                    compressedMemory.reset();
+                    free_func(memory);
+                    return false;
+                }
+                if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
+                    compressedMemory.reset();
+                    free_func(memory);
+                    return false;
+                }
             }
+
             // TODO: check hash
+
             if (ZSTD_decompress(static_cast<char*>(memory),
                                 fi.UncompressedSize,
                                 compressedMemory.get(),
@@ -572,14 +600,10 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             return true;
         }
         case SenPatcher::P3ACompressionType::ZSTD_DICT: {
-            if (!ref.Archive->Dict) {
+            auto& archiveData = *ref.ArchiveData;
+            if (!archiveData.Archive.Dict) {
                 return false;
             }
-            auto& file = ref.Archive->FileHandle;
-            if (!file.SetPosition(fi.Offset)) {
-                return false;
-            }
-
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
                 return false;
@@ -589,24 +613,36 @@ static bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 free_func(memory);
                 return false;
             }
+
+            {
+                std::lock_guard guard(archiveData.Mutex);
+                auto& file = archiveData.Archive.FileHandle;
+                if (!file.SetPosition(fi.Offset)) {
+                    compressedMemory.reset();
+                    free_func(memory);
+                    return false;
+                }
+                if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
+                    compressedMemory.reset();
+                    free_func(memory);
+                    return false;
+                }
+            }
+
+            // TODO: check hash
+
             ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
             if (!dctx) {
-                free_func(memory);
-                return false;
-            }
-            if (file.Read(compressedMemory.get(), fi.CompressedSize) != fi.CompressedSize) {
-                dctx.reset();
                 compressedMemory.reset();
                 free_func(memory);
                 return false;
             }
-            // TODO: check hash
             if (ZSTD_decompress_usingDDict(dctx.get(),
                                            static_cast<char*>(memory),
                                            fi.UncompressedSize,
                                            compressedMemory.get(),
                                            fi.CompressedSize,
-                                           ref.Archive->Dict)
+                                           archiveData.Archive.Dict)
                 != fi.UncompressedSize) {
                 dctx.reset();
                 compressedMemory.reset();
