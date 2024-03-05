@@ -9,6 +9,9 @@
 #include "../zstd/common/xxhash.h"
 #include "../zstd/zstd.h"
 
+#include "../rapidjson/prettywriter.h"
+#include "../rapidjson/stringbuffer.h"
+
 #include "structs.h"
 
 #include "../file.h"
@@ -44,11 +47,19 @@ struct ZSTD_DCtx_Deleter {
 using ZSTD_DCtx_UniquePtr = std::unique_ptr<ZSTD_DCtx, ZSTD_DCtx_Deleter>;
 } // namespace
 
-bool UnpackP3A(const std::filesystem::path& archivePath,
-               const std::filesystem::path& extractPath,
-               const std::filesystem::path& extractPathZstdDict) {
+bool UnpackP3A(const std::filesystem::path& archivePath, const std::filesystem::path& extractPath) {
+    rapidjson::StringBuffer jsonbuffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> json(jsonbuffer);
+    json.StartObject();
+
     IO::File f(archivePath, IO::OpenMode::Read);
     if (!f.IsOpen()) {
+        return false;
+    }
+
+    std::error_code ec;
+    std::filesystem::create_directories(extractPath, ec);
+    if (ec) {
         return false;
     }
 
@@ -60,6 +71,12 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
     if (headerHash != header.Hash) {
         return false;
     }
+
+    json.Key("Version");
+    json.Uint(header.Version);
+
+    json.Key("Alignment");
+    json.Uint(0);
 
     auto fileinfos = std::make_unique_for_overwrite<P3AFileInfo[]>(header.FileCount);
     if (!fileinfos) {
@@ -88,23 +105,24 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             return false;
         }
 
-        if (!extractPathZstdDict.empty()) {
-            std::error_code ec;
-            std::filesystem::create_directories(extractPathZstdDict.parent_path(), ec);
-            if (ec) {
-                return false;
-            }
-            IO::File f2(extractPathZstdDict, IO::OpenMode::Write);
-            if (!f2.IsOpen()) {
-                return false;
-            }
-            if (f2.Write(dict.get(), dictHeader.Length) != dictHeader.Length) {
-                return false;
-            }
+        IO::File f2(extractPath / L"__zstd_dictionary.bin", IO::OpenMode::Write);
+        if (!f2.IsOpen()) {
+            return false;
         }
+        if (f2.Write(dict.get(), dictHeader.Length) != dictHeader.Length) {
+            return false;
+        }
+
+        json.Key("ZStdDictionaryPath");
+        json.String("__zstd_dictionary.bin");
     }
 
+    json.Key("Files");
+    json.StartArray();
+
     for (size_t i = 0; i < header.FileCount; ++i) {
+        json.StartObject();
+
         const auto& fileinfo = fileinfos[i];
         auto filename = StripTrailingNull(
             std::basic_string_view<char8_t>(fileinfo.Filename.begin(), fileinfo.Filename.end()));
@@ -113,8 +131,16 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             return false; // there's probably a better way to handle this case...
         }
 
+        {
+            json.Key("NameInArchive");
+            json.String((const char*)filename.data(), filename.size());
+
+            auto relPathStr = relativePath.u8string();
+            json.Key("PathOnDisk");
+            json.String((const char*)relPathStr.data(), relPathStr.size());
+        }
+
         std::filesystem::path fullPath = extractPath / relativePath;
-        std::error_code ec;
         std::filesystem::create_directories(fullPath.parent_path(), ec);
         if (ec) {
             return false;
@@ -136,7 +162,13 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             return false;
         }
 
+        if (fileinfo.Hash != XXH64(filedata.get(), fileinfo.CompressedSize, 0)) {
+            return false;
+        }
+
+        json.Key("Compression");
         if (fileinfo.CompressionType == P3ACompressionType::LZ4) {
+            json.String("lz4");
             auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
             if (!decomp) {
                 return false;
@@ -150,6 +182,7 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             }
             decomp.swap(filedata);
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD) {
+            json.String("zStd");
             auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
             if (!decomp) {
                 return false;
@@ -163,6 +196,7 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             }
             decomp.swap(filedata);
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD_DICT) {
+            json.String("zStdDict");
             if (!ddict) {
                 return false;
             }
@@ -187,12 +221,31 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
 
             decomp.swap(filedata);
         } else {
+            json.String("none");
             if (fileinfo.CompressedSize != fileinfo.UncompressedSize) {
                 return false;
             }
         }
 
         if (f2.Write(filedata.get(), fileinfo.UncompressedSize) != fileinfo.UncompressedSize) {
+            return false;
+        }
+
+        json.EndObject();
+    }
+
+    json.EndArray();
+    json.EndObject();
+
+    {
+        IO::File f2(extractPath / L"__p3a.json", IO::OpenMode::Write);
+        if (!f2.IsOpen()) {
+            return false;
+        }
+
+        const char* jsonstring = jsonbuffer.GetString();
+        const size_t jsonstringsize = jsonbuffer.GetSize();
+        if (f2.Write(jsonstring, jsonstringsize) != jsonstringsize) {
             return false;
         }
     }

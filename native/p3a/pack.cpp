@@ -22,12 +22,6 @@
 
 namespace SenPatcher {
 namespace {
-struct TargetFileInfo {
-    std::filesystem::path Path;
-    std::array<char8_t, 0x100> Filename{};
-    std::optional<uint64_t> DesiredCompressionType;
-};
-
 struct ZSTD_CDict_Deleter {
     void operator()(ZSTD_CDict* ptr) {
         if (ptr) {
@@ -47,7 +41,7 @@ struct ZSTD_CCtx_Deleter {
 using ZSTD_CCtx_UniquePtr = std::unique_ptr<ZSTD_CCtx, ZSTD_CCtx_Deleter>;
 } // namespace
 
-static bool CollectEntries(std::vector<TargetFileInfo>& fileinfos,
+static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
                            const std::filesystem::path& rootDir,
                            const std::filesystem::path& currentDir,
                            std::error_code& ec) {
@@ -70,7 +64,7 @@ static bool CollectEntries(std::vector<TargetFileInfo>& fileinfos,
         const auto filename = relativePath.u8string();
         const char8_t* filenameC = filename.c_str();
 
-        auto& fileinfo = fileinfos.emplace_back(TargetFileInfo{entry.path()});
+        auto& fileinfo = fileinfos.emplace_back(P3APackFile{entry.path()});
         for (size_t i = 0; i < fileinfo.Filename.size(); ++i) {
             const char8_t c = filenameC[i];
             if (c == char8_t(0)) {
@@ -86,18 +80,39 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                           const std::filesystem::path& archivePath,
                           P3ACompressionType desiredCompressionType,
                           const std::filesystem::path& dictPath) {
+    P3APackData packData;
+    packData.Alignment = 0x40;
     std::error_code ec;
-    const uint64_t alignment = 0x40;
-    std::vector<TargetFileInfo> fileinfos;
-    if (!CollectEntries(fileinfos, directoryPath, directoryPath, ec)) {
+    if (!CollectEntries(packData.Files, directoryPath, directoryPath, ec)) {
         return false;
     }
 
+    // probably not needed but makes the packing order reproduceable
+    std::stable_sort(
+        packData.Files.begin(),
+        packData.Files.end(),
+        [](const P3APackFile& lhs, const P3APackFile& rhs) {
+            return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size()) < 0;
+        });
+
+    for (auto& packFile : packData.Files) {
+        packFile.DesiredCompressionType = desiredCompressionType;
+    }
+
+    if (!dictPath.empty()) {
+        packData.ZStdDictionary = dictPath;
+    }
+
+    return PackP3A(archivePath, packData);
+}
+
+bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packData) {
     std::unique_ptr<uint8_t[]> dict;
     uint64_t dictLength = 0;
     ZSTD_CDict_UniquePtr cdict = nullptr;
-    if (!dictPath.empty()) {
-        IO::File dictfile(dictPath, IO::OpenMode::Read);
+    if (std::holds_alternative<std::filesystem::path>(packData.ZStdDictionary)) {
+        IO::File dictfile(std::get<std::filesystem::path>(packData.ZStdDictionary),
+                          IO::OpenMode::Read);
         if (!dictfile.IsOpen()) {
             return false;
         }
@@ -117,15 +132,16 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
         if (!cdict) {
             return false;
         }
+    } else if (std::holds_alternative<std::vector<char>>(packData.ZStdDictionary)) {
+        const auto& vec = std::get<std::vector<char>>(packData.ZStdDictionary);
+        cdict = ZSTD_CDict_UniquePtr(ZSTD_createCDict(vec.data(), vec.size(), 22));
+        if (!cdict) {
+            return false;
+        }
     }
 
-    // probably not needed but makes the packing order reproduceable
-    std::stable_sort(
-        fileinfos.begin(),
-        fileinfos.end(),
-        [](const TargetFileInfo& lhs, const TargetFileInfo& rhs) {
-            return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size()) < 0;
-        });
+    const uint64_t alignment = packData.Alignment == 0 ? 0x40 : packData.Alignment;
+    const auto& fileinfos = packData.Files;
 
     uint64_t position = 0;
     IO::File file(archivePath, IO::OpenMode::Write);
@@ -177,25 +193,36 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
             return false;
         }
 
-        IO::File inputfile(fileinfo.Path, IO::OpenMode::Read);
-        if (!inputfile.IsOpen()) {
+        uint64_t filesize;
+        const char* filedata;
+        std::unique_ptr<char[]> filedataHolder;
+        if (std::holds_alternative<std::filesystem::path>(fileinfo.Data)) {
+            IO::File inputfile(std::get<std::filesystem::path>(fileinfo.Data), IO::OpenMode::Read);
+            if (!inputfile.IsOpen()) {
+                return false;
+            }
+            const auto maybeFilesize = inputfile.GetLength();
+            if (!maybeFilesize) {
+                return false;
+            }
+            filesize = *maybeFilesize;
+            filedataHolder = std::make_unique_for_overwrite<char[]>(filesize);
+            if (!filedataHolder) {
+                return false;
+            }
+            if (inputfile.Read(filedataHolder.get(), filesize) != filesize) {
+                return false;
+            }
+            filedata = filedataHolder.get();
+        } else if (std::holds_alternative<std::vector<char>>(fileinfo.Data)) {
+            const auto& vec = std::get<std::vector<char>>(fileinfo.Data);
+            filesize = vec.size();
+            filedata = vec.data();
+        } else {
             return false;
         }
-        const auto maybeFilesize = inputfile.GetLength();
-        if (!maybeFilesize) {
-            return false;
-        }
-        const uint64_t filesize = *maybeFilesize;
 
-        auto filedata = std::make_unique_for_overwrite<char[]>(filesize);
-        if (!filedata) {
-            return false;
-        }
-        if (inputfile.Read(filedata.get(), filesize) != filesize) {
-            return false;
-        }
-
-        P3ACompressionType compressionType = desiredCompressionType;
+        P3ACompressionType compressionType = fileinfo.DesiredCompressionType;
         uint64_t compressedSize = filesize;
         uint64_t uncompressedSize = filesize;
         uint64_t hash = 0;
@@ -204,14 +231,14 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
             compressionType = P3ACompressionType::None;
             compressedSize = filesize;
             uncompressedSize = filesize;
-            hash = XXH64(filedata.get(), filesize, 0);
-            if (file.Write(filedata.get(), filesize) != filesize) {
+            hash = XXH64(filedata, filesize, 0);
+            if (file.Write(filedata, filesize) != filesize) {
                 return false;
             }
             return true;
         };
 
-        switch (desiredCompressionType) {
+        switch (fileinfo.DesiredCompressionType) {
             case P3ACompressionType::LZ4: {
                 if (filesize > LZ4_MAX_INPUT_SIZE) {
                     if (!write_uncompressed()) {
@@ -230,11 +257,8 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                         if (!compressedData) {
                             return false;
                         }
-                        const int lz4return = LZ4_compress_HC(filedata.get(),
-                                                              compressedData.get(),
-                                                              signedSize,
-                                                              bound,
-                                                              LZ4HC_CLEVEL_MAX);
+                        const int lz4return = LZ4_compress_HC(
+                            filedata, compressedData.get(), signedSize, bound, LZ4HC_CLEVEL_MAX);
                         if (lz4return <= 0 || static_cast<unsigned int>(lz4return) >= filesize) {
                             // compression failed or pointless, write uncompressed instead
                             if (!write_uncompressed()) {
@@ -266,7 +290,7 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                         return false;
                     }
                     const size_t zstdReturn =
-                        ZSTD_compress(compressedData.get(), bound, filedata.get(), filesize, 22);
+                        ZSTD_compress(compressedData.get(), bound, filedata, filesize, 22);
                     if (ZSTD_isError(zstdReturn)) {
                         if (!write_uncompressed()) {
                             return false;
@@ -307,7 +331,7 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                         zstdReturn = ZSTD_compress_usingCDict(cctx.get(),
                                                               compressedData.get(),
                                                               bound,
-                                                              filedata.get(),
+                                                              filedata,
                                                               filesize,
                                                               cdict.get());
                     }

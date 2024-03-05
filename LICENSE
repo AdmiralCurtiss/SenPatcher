@@ -55,3 +55,9 @@ See the native/lz4/LICENSE file for details.
 Licensed under a BSD 3-Clause license
 Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
 See the native/zstd/LICENSE file for details.
+
+== native/rapidjson ==
+Licensed under the MIT License
+Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
+All rights reserved.
+See the native/rapidjson/license.txt file for details.
