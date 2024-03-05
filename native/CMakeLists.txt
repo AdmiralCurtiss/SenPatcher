@@ -207,3 +207,12 @@ target_sources(cs3hook PRIVATE
 	zstd/decompress/zstd_decompress_internal.h
  )
 
+add_executable(sha1_test)
+target_sources(sha1_test PRIVATE
+	main_sha1_test.cpp
+	sha1.cpp
+	sha1.h
+	file.cpp
+	file.h
+)
+
