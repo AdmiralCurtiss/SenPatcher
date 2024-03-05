@@ -22,6 +22,9 @@
 #include "crc32.h"
 
 #include "file.h"
+#include "logger.h"
+
+#include "sen3/file_fixes.h"
 
 #include "p3a/p3a.h"
 #include "p3a/structs.h"
@@ -44,75 +47,13 @@ enum class GameVersion {
     Japanese,
 };
 
-struct Logger {
-    FILE* f;
-
-    Logger(const char* filename) {
-        f = fopen(filename, "w");
-    }
-
-    ~Logger() {
-        if (f) {
-            fclose(f);
-        }
-    }
-
-    Logger& Log(const char* text) {
-        if (f) {
-            fwrite(text, strlen(text), 1, f);
-            fflush(f);
-        }
-        return *this;
-    }
-
-    Logger& LogPtr(const void* ptr) {
-        if (f) {
-            char buffer[32];
-            int len = sprintf(buffer, "0x%016" PRIxPTR, reinterpret_cast<uintptr_t>(ptr));
-            fwrite(buffer, len, 1, f);
-            fflush(f);
-        }
-        return *this;
-    }
-
-    Logger& LogInt(int v) {
-        if (f) {
-            char buffer[32];
-            int len = sprintf(buffer, "%d", v);
-            fwrite(buffer, len, 1, f);
-            fflush(f);
-        }
-        return *this;
-    }
-
-    Logger& LogHex(unsigned long long v) {
-        if (f) {
-            char buffer[32];
-            int len = sprintf(buffer, "0x%llx", v);
-            fwrite(buffer, len, 1, f);
-            fflush(f);
-        }
-        return *this;
-    }
-
-    Logger& LogFloat(float v) {
-        if (f) {
-            char buffer[32];
-            int len = sprintf(buffer, "%g", v);
-            fwrite(buffer, len, 1, f);
-            fflush(f);
-        }
-        return *this;
-    }
-};
-
 struct PageUnprotect {
-    Logger& Log;
+    SenPatcher::Logger& Log;
     void* Address;
     size_t Length;
     DWORD Attributes;
 
-    PageUnprotect(Logger& logger, void* addr, size_t length) : Log(logger) {
+    PageUnprotect(SenPatcher::Logger& logger, void* addr, size_t length) : Log(logger) {
         // FIXME: check length/alignment, this might span multiple pages!
         Length = 0x1000;
         Address = reinterpret_cast<void*>(reinterpret_cast<uint64_t>(addr) & (~(Length - 1)));
@@ -147,7 +88,7 @@ static int SelectOffset(GameVersion version, int en, int jp) {
 
 using PDirectInput8Create =
     HRESULT (*)(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, void* punkOuter);
-static PDirectInput8Create LoadForwarderAddress(Logger& logger) {
+static PDirectInput8Create LoadForwarderAddress(SenPatcher::Logger& logger) {
     constexpr int total = 5000;
     WCHAR tmp[total];
     UINT count = GetSystemDirectoryW(tmp, sizeof(tmp) / sizeof(WCHAR));
@@ -171,25 +112,25 @@ static PDirectInput8Create LoadForwarderAddress(Logger& logger) {
     return (PDirectInput8Create)addr;
 }
 
-static void WriteFloat(Logger& logger, void* addr, float value) {
+static void WriteFloat(SenPatcher::Logger& logger, void* addr, float value) {
     logger.Log("Writing float ").LogFloat(value).Log(" to ").LogPtr(addr).Log(".\n");
     PageUnprotect unprotect(logger, addr, 4);
     memcpy(addr, &value, 4);
 }
 
-static void WriteInt(Logger& logger, void* addr, int value) {
+static void WriteInt(SenPatcher::Logger& logger, void* addr, int value) {
     logger.Log("Writing int ").LogInt(value).Log(" to ").LogPtr(addr).Log(".\n");
     PageUnprotect unprotect(logger, addr, 4);
     memcpy(addr, &value, 4);
 }
 
-static void WriteByte(Logger& logger, void* addr, char value) {
+static void WriteByte(SenPatcher::Logger& logger, void* addr, char value) {
     logger.Log("Writing byte ").LogHex(value).Log(" to ").LogPtr(addr).Log(".\n");
     PageUnprotect unprotect(logger, addr, 1);
     memcpy(addr, &value, 1);
 }
 
-static char* Align16CodePage(Logger& logger, void* new_page) {
+static char* Align16CodePage(SenPatcher::Logger& logger, void* new_page) {
     logger.Log("Aligning ").LogPtr(new_page).Log(" to 16 bytes.\n");
     char* p = reinterpret_cast<char*>(new_page);
     *p++ = 0xcc;
@@ -199,7 +140,7 @@ static char* Align16CodePage(Logger& logger, void* new_page) {
     return p;
 }
 
-static GameVersion FindImageBase(Logger& logger, void** code) {
+static GameVersion FindImageBase(SenPatcher::Logger& logger, void** code) {
     GameVersion gameVersion = GameVersion::Unknown;
     MEMORY_BASIC_INFORMATION info;
     memset(&info, 0, sizeof(info));
@@ -361,7 +302,7 @@ static bool IsValidReroutablePath(const char* path) {
            && (path[4] == '/' || path[4] == '\\');
 }
 
-static void LoadModP3As() {
+static void LoadModP3As(SenPatcher::Logger& logger, const std::filesystem::path& baseDir) {
     s_CombinedFileInfoCount = 0;
     s_CombinedFileInfos.reset();
     s_P3As.reset();
@@ -371,14 +312,10 @@ static void LoadModP3As() {
     {
         std::vector<SenPatcher::P3A> p3avector;
         std::error_code ec;
-        s_CheckDevFolderForAssets = std::filesystem::is_directory(L"dev", ec)
-                                    || std::filesystem::is_directory(L"../../dev", ec);
-        std::filesystem::directory_iterator iterator(L"mods", ec);
+        s_CheckDevFolderForAssets = std::filesystem::is_directory(baseDir / L"dev", ec);
+        std::filesystem::directory_iterator iterator(baseDir / L"mods", ec);
         if (ec) {
-            iterator = std::filesystem::directory_iterator(L"../../mods", ec);
-            if (ec) {
-                return;
-            }
+            return;
         }
         for (auto const& entry : iterator) {
             if (entry.is_directory()) {
@@ -960,7 +897,7 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
     return nullptr;
 }
 
-static void InjectAtFFileOpen(Logger& logger,
+static void InjectAtFFileOpen(SenPatcher::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
@@ -1027,7 +964,7 @@ static void InjectAtFFileOpen(Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
-static void InjectAtFFileGetFilesize(Logger& logger,
+static void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
                                      char* textRegion,
                                      GameVersion version,
                                      char*& codespace,
@@ -1094,7 +1031,7 @@ static void InjectAtFFileGetFilesize(Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
-static void InjectAtFreestandingGetFilesize(Logger& logger,
+static void InjectAtFreestandingGetFilesize(SenPatcher::Logger& logger,
                                             char* textRegion,
                                             GameVersion version,
                                             char*& codespace,
@@ -1162,7 +1099,7 @@ static void InjectAtFreestandingGetFilesize(Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
-static void InjectAtOpenFSoundFile(Logger& logger,
+static void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
                                    char* textRegion,
                                    GameVersion version,
                                    char*& codespace,
@@ -1226,7 +1163,7 @@ static void InjectAtOpenFSoundFile(Logger& logger,
 
 static PDirectInput8Create addr_PDirectInput8Create = 0;
 static void* SetupHacks() {
-    Logger logger("senpatcher_inject_cs3.log");
+    SenPatcher::Logger logger("senpatcher_inject_cs3.log");
 
     addr_PDirectInput8Create = LoadForwarderAddress(logger);
 
@@ -1258,7 +1195,20 @@ static void* SetupHacks() {
     char* newPageStart = newPage;
     char* newPageEnd = newPage + newPageLength;
 
-    LoadModP3As();
+    // figure out whether we're running in the root game directory or in the bin/x64 subdirectory
+    // and get a relative path to the root game directory
+    std::filesystem::path baseDir;
+    if (std::filesystem::exists(L"Sen3Launcher.exe")) {
+        baseDir = L"./";
+    } else if (std::filesystem::exists(L"../../Sen3Launcher.exe")) {
+        baseDir = L"../../";
+    } else {
+        logger.Log("Failed finding root game directory.\n");
+        return nullptr;
+    }
+
+    SenLib::Sen3::CreateAssetPatchIfNeeded(logger, baseDir);
+    LoadModP3As(logger, baseDir);
 
     InjectAtFFileOpen(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     InjectAtFFileGetFilesize(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);

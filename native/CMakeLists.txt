@@ -147,16 +147,30 @@ target_sources(p3a_archiver PRIVATE
 add_library(cs3hook SHARED)
 target_sources(cs3hook PRIVATE
 	main_cs3.cpp
+	align.h
+	align.cpp
 	crc32.c
 	crc32.h
 	file.h
 	file.cpp
+	file_getter.h
+	logger.cpp
+	logger.h
+	sha1.cpp
+	sha1.h
 	p3a/structs.h
 	p3a/p3a.cpp
 	p3a/p3a.h
 	x64/emitter.cpp
 	x64/emitter.h
 	dinput8.def
+
+	p3a/pack.cpp
+	p3a/pack.h
+
+	sen3/FileFixes/a0417_dat.cpp
+	sen3/file_fixes.cpp
+	sen3/file_fixes.h
 
 	lz4/lz4.c
 	lz4/lz4file.c
@@ -205,6 +219,34 @@ target_sources(cs3hook PRIVATE
 	zstd/decompress/zstd_ddict.h
 	zstd/decompress/zstd_decompress_block.h
 	zstd/decompress/zstd_decompress_internal.h
+
+	zstd/compress/fse_compress.c
+	zstd/compress/hist.c
+	zstd/compress/huf_compress.c
+	zstd/compress/zstd_compress.c
+	zstd/compress/zstd_compress_literals.c
+	zstd/compress/zstd_compress_sequences.c
+	zstd/compress/zstd_compress_superblock.c
+	zstd/compress/zstd_double_fast.c
+	zstd/compress/zstd_fast.c
+	zstd/compress/zstd_lazy.c
+	zstd/compress/zstd_ldm.c
+	zstd/compress/zstd_opt.c
+	zstd/compress/zstdmt_compress.c
+	zstd/compress/clevels.h
+	zstd/compress/hist.h
+	zstd/compress/zstd_compress_internal.h
+	zstd/compress/zstd_compress_literals.h
+	zstd/compress/zstd_compress_sequences.h
+	zstd/compress/zstd_compress_superblock.h
+	zstd/compress/zstd_cwksp.h
+	zstd/compress/zstd_double_fast.h
+	zstd/compress/zstd_fast.h
+	zstd/compress/zstd_lazy.h
+	zstd/compress/zstd_ldm.h
+	zstd/compress/zstd_ldm_geartab.h
+	zstd/compress/zstd_opt.h
+	zstd/compress/zstdmt_compress.h
  )
 
 add_executable(sha1_test)
