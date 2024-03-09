@@ -26,10 +26,10 @@ void Emit_MOV_R64_R64(char*& address, R64 dst, R64 src) {
     Emit_Instr3Byte_R64_R64(address, dst, src, 0x8b);
 }
 
-void Emit_MOV_R64_IMM64(char*& address, R64 dst, uint64_t imm, bool force10byteEncoding) {
-    if (!force10byteEncoding && imm == 0) {
+void Emit_MOV_R64_IMM64(char*& address, R64 dst, uint64_t imm, size_t desiredEncodingLength) {
+    if (desiredEncodingLength == 0 && imm == 0) {
         Emit_XOR_R64_R64(address, dst, dst);
-    } else if (!force10byteEncoding && imm < 0x1'0000'0000) {
+    } else if (desiredEncodingLength == 0 && imm < 0x1'0000'0000) {
         char op = 0xb8;
         op |= (static_cast<int>(dst) & 0x7);
 
@@ -40,7 +40,8 @@ void Emit_MOV_R64_IMM64(char*& address, R64 dst, uint64_t imm, bool force10byteE
         uint32_t imm32 = static_cast<uint32_t>(imm);
         std::memcpy(address, &imm32, 4);
         address += 4;
-    } else if (!force10byteEncoding && imm >= 0xffff'ffff'8000'0000) {
+    } else if ((desiredEncodingLength == 0 || desiredEncodingLength == 7)
+               && (imm < 0x8000'0000 || imm >= 0xffff'ffff'8000'0000)) {
         char prefix = 0x48;
         if (dst >= R64::R8) {
             prefix |= 0x01;

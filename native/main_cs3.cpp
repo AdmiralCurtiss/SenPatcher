@@ -31,6 +31,8 @@
 
 #include "x64/emitter.h"
 
+#include "senpatcher_version.h"
+
 namespace {
 struct ZSTD_DCtx_Deleter {
     void operator()(ZSTD_DCtx* ptr) {
@@ -897,6 +899,48 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
     return nullptr;
 }
 
+namespace {
+template<size_t length>
+struct InjectJumpIntoCodeResult {
+    char* JumpBackAddress;
+    std::array<char, length> OverwrittenInstructions;
+};
+} // namespace
+
+template<size_t length>
+static InjectJumpIntoCodeResult<length> InjectJumpIntoCode(SenPatcher::Logger& logger,
+                                                           char* injectAt,
+                                                           SenPatcher::x64::R64 reg,
+                                                           char* jumpTarget) {
+    static_assert(length >= 12);
+
+    InjectJumpIntoCodeResult<length> rv;
+    char* inject = injectAt;
+    {
+        PageUnprotect page(logger, inject, rv.OverwrittenInstructions.size());
+        std::memcpy(rv.OverwrittenInstructions.data(), inject, rv.OverwrittenInstructions.size());
+
+        Emit_MOV_R64_IMM64(inject, reg, std::bit_cast<uint64_t>(jumpTarget), 10);
+        Emit_JMP_R64(inject, reg);
+        if constexpr (length > 12) {
+            for (size_t i = 12; i < length; ++i) {
+                *inject++ = 0xcc;
+            }
+        }
+    }
+    rv.JumpBackAddress = inject;
+    return rv;
+}
+
+static char* GetCodeAddressJpEn(GameVersion version,
+                                char* textRegion,
+                                uint64_t addressJp,
+                                uint64_t addressEn) {
+    return textRegion
+           + (version == GameVersion::Japanese ? (addressJp - 0x140001000u)
+                                               : (addressEn - 0x140001000u));
+}
+
 static void InjectAtFFileOpen(SenPatcher::Logger& logger,
                               char* textRegion,
                               GameVersion version,
@@ -913,16 +957,9 @@ static void InjectAtFFileOpen(SenPatcher::Logger& logger,
 
 
     char* codespaceBegin = codespace;
-    char* inject = entryPoint;
-    std::array<char, 12> overwrittenInstructions;
-
-    {
-        PageUnprotect page(logger, inject, overwrittenInstructions.size());
-        std::memcpy(overwrittenInstructions.data(), inject, overwrittenInstructions.size());
-
-        Emit_MOV_R64_IMM64(inject, R64::RAX, std::bit_cast<uint64_t>(codespaceBegin), true);
-        Emit_JMP_R64(inject, R64::RAX);
-    }
+    auto injectResult = InjectJumpIntoCode<12>(logger, entryPoint, R64::RAX, codespaceBegin);
+    char* inject = injectResult.JumpBackAddress;
+    const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
 
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
@@ -980,16 +1017,9 @@ static void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
 
 
     char* codespaceBegin = codespace;
-    char* inject = entryPoint;
-    std::array<char, 12> overwrittenInstructions;
-
-    {
-        PageUnprotect page(logger, inject, overwrittenInstructions.size());
-        std::memcpy(overwrittenInstructions.data(), inject, overwrittenInstructions.size());
-
-        Emit_MOV_R64_IMM64(inject, R64::RAX, std::bit_cast<uint64_t>(codespaceBegin), true);
-        Emit_JMP_R64(inject, R64::RAX);
-    }
+    auto injectResult = InjectJumpIntoCode<12>(logger, entryPoint, R64::RAX, codespaceBegin);
+    char* inject = injectResult.JumpBackAddress;
+    const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
 
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
@@ -1047,16 +1077,9 @@ static void InjectAtFreestandingGetFilesize(SenPatcher::Logger& logger,
 
 
     char* codespaceBegin = codespace;
-    char* inject = entryPoint;
-    std::array<char, 12> overwrittenInstructions;
-
-    {
-        PageUnprotect page(logger, inject, overwrittenInstructions.size());
-        std::memcpy(overwrittenInstructions.data(), inject, overwrittenInstructions.size());
-
-        Emit_MOV_R64_IMM64(inject, R64::RAX, std::bit_cast<uint64_t>(codespaceBegin), true);
-        Emit_JMP_R64(inject, R64::RAX);
-    }
+    auto injectResult = InjectJumpIntoCode<12>(logger, entryPoint, R64::RAX, codespaceBegin);
+    char* inject = injectResult.JumpBackAddress;
+    const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
 
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
@@ -1112,19 +1135,9 @@ static void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
 
 
     char* codespaceBegin = codespace;
-    char* inject = entryPoint;
-    std::array<char, 15> overwrittenInstructions;
-
-    {
-        PageUnprotect page(logger, inject, overwrittenInstructions.size());
-        std::memcpy(overwrittenInstructions.data(), inject, overwrittenInstructions.size());
-
-        Emit_MOV_R64_IMM64(inject, R64::RAX, std::bit_cast<uint64_t>(codespaceBegin), true);
-        Emit_JMP_R64(inject, R64::RAX);
-        *inject++ = 0xcc;
-        *inject++ = 0xcc;
-        *inject++ = 0xcc;
-    }
+    auto injectResult = InjectJumpIntoCode<15>(logger, entryPoint, R64::RAX, codespaceBegin);
+    char* inject = injectResult.JumpBackAddress;
+    const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
 
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
@@ -1160,6 +1173,123 @@ static void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
     success.SetTarget(codespace);
     Emit_RET(codespace);
 }
+
+static void DeglobalizeMutexes(SenPatcher::Logger& logger,
+                               char* textRegion,
+                               GameVersion version,
+                               char*& codespace,
+                               char* codespaceEnd) {
+    using namespace SenPatcher::x64;
+    char* createMutexString1 = GetCodeAddressJpEn(version, textRegion, 0x14054fb09, 0x14055bc99);
+    char* createMutexString2 = GetCodeAddressJpEn(version, textRegion, 0x14011c611, 0x14011cb11);
+    {
+        PageUnprotect page(logger, createMutexString1, 3);
+        Emit_XOR_R64_R64(createMutexString1, R64::R8, R64::R8);
+    }
+    {
+        PageUnprotect page(logger, createMutexString2, 7);
+        Emit_MOV_R64_IMM64(createMutexString2, R64::R8, 0, 7);
+    }
+}
+
+static void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
+                                        char* textRegion,
+                                        GameVersion version,
+                                        char*& codespace,
+                                        char* codespaceEnd) {
+    using namespace SenPatcher::x64;
+    char* entryPoint = GetCodeAddressJpEn(version, textRegion, 0x140421caf, 0x14042d2a2);
+    char* rdxLoad = GetCodeAddressJpEn(version, textRegion, 0x140421cc6, 0x14042d2b9);
+    char* codespaceBegin = codespace;
+
+    // safe to clobber: RCX, RDX (needs to hold string result), R9
+
+    // get the current title screen string
+    uint32_t offset;
+    std::memcpy(&offset, rdxLoad + 3, 4);
+    const char* originalTitleString = rdxLoad + 7 + offset;
+
+    // copy the title screen string into our codespace and expand with senpatcher version
+    {
+        const char* tmp = originalTitleString;
+        while (*tmp != 0) {
+            *codespace = *tmp;
+            ++codespace;
+            ++tmp;
+        }
+    }
+    constexpr char senpatcherVersionString[] = "  SenPatcher " SENPATCHER_VERSION;
+    std::strcpy(codespace, senpatcherVersionString);
+    codespace += sizeof(senpatcherVersionString);
+
+    // inject a jump to codespace
+    auto injectResult = InjectJumpIntoCode<12>(logger, entryPoint, R64::RDX, codespace);
+    char* inject = injectResult.JumpBackAddress;
+    const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+    codespace += overwrittenInstructions.size();
+
+    // load the title screen string into RDX
+    Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(codespaceBegin));
+
+    // go back
+    Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(inject));
+    Emit_JMP_R64(codespace, R64::RCX);
+
+    // remove the old load of rdx
+    {
+        char* tmp = rdxLoad;
+        PageUnprotect page(logger, rdxLoad, 7);
+        for (size_t i = 0; i < 7; ++i) {
+            *tmp++ = 0x90; // nop
+        }
+    }
+}
+
+static void FixInGameButtonMappingValidity(SenPatcher::Logger& logger,
+                                           char* textRegion,
+                                           GameVersion version,
+                                           char*& codespace,
+                                           char* codespaceEnd) {}
+static void AllowSwitchToNightmare(SenPatcher::Logger& logger,
+                                   char* textRegion,
+                                   GameVersion version,
+                                   char*& codespace,
+                                   char* codespaceEnd) {}
+static void SwapBrokenMasterQuartzValuesForDisplay(SenPatcher::Logger& logger,
+                                                   char* textRegion,
+                                                   GameVersion version,
+                                                   char*& codespace,
+                                                   char* codespaceEnd) {
+    if (version != GameVersion::English) {
+        return; // bug only exists in the english version
+    }
+}
+static void PatchDisableMouseCapture(SenPatcher::Logger& logger,
+                                     char* textRegion,
+                                     GameVersion version,
+                                     char*& codespace,
+                                     char* codespaceEnd) {}
+static void PatchShowMouseCursor(SenPatcher::Logger& logger,
+                                 char* textRegion,
+                                 GameVersion version,
+                                 char*& codespace,
+                                 char* codespaceEnd) {}
+static void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
+                                         char* textRegion,
+                                         GameVersion version,
+                                         char*& codespace,
+                                         char* codespaceEnd) {}
+static void PatchForceXInput(SenPatcher::Logger& logger,
+                             char* textRegion,
+                             GameVersion version,
+                             char*& codespace,
+                             char* codespaceEnd) {}
+static void PatchFixControllerMappings(SenPatcher::Logger& logger,
+                                       char* textRegion,
+                                       GameVersion version,
+                                       char*& codespace,
+                                       char* codespaceEnd) {}
 
 static PDirectInput8Create addr_PDirectInput8Create = 0;
 static void* SetupHacks() {
@@ -1215,6 +1345,49 @@ static void* SetupHacks() {
     InjectAtFreestandingGetFilesize(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     InjectAtOpenFSoundFile(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+
+    DeglobalizeMutexes(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    AddSenPatcherVersionToTitle(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+
+    bool fixInGameButtonMappingValidity = true;
+    bool allowSwitchToNightmare = true;
+    bool swapBrokenMasterQuartzValuesForDisplay = true;
+    bool disableMouseCapture = true;
+    bool showMouseCursor = true;
+    bool disablePauseOnFocusLoss = true;
+    bool forceXInput = true;
+    bool fixControllerMapping = true;
+
+    if (fixInGameButtonMappingValidity) {
+        FixInGameButtonMappingValidity(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    }
+    if (allowSwitchToNightmare) {
+        AllowSwitchToNightmare(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    }
+    if (swapBrokenMasterQuartzValuesForDisplay) {
+        SwapBrokenMasterQuartzValuesForDisplay(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    }
+    if (disableMouseCapture) {
+        PatchDisableMouseCapture(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    }
+    if (showMouseCursor) {
+        PatchShowMouseCursor(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    }
+    if (disablePauseOnFocusLoss) {
+        PatchDisablePauseOnFocusLoss(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    }
+    if (forceXInput) {
+        PatchForceXInput(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    }
+    if (fixControllerMapping) {
+        PatchFixControllerMappings(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    }
+
 
     // mark newly allocated page as executable
     {

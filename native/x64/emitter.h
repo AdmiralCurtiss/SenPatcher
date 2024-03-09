@@ -109,7 +109,7 @@ enum class JumpCondition {
 };
 
 void Emit_MOV_R64_R64(char*& address, R64 dst, R64 src);
-void Emit_MOV_R64_IMM64(char*& address, R64 dst, uint64_t imm, bool force10byteEncoding = false);
+void Emit_MOV_R64_IMM64(char*& address, R64 dst, uint64_t imm, size_t desiredEncodingLength = 0);
 void Emit_JMP_R64(char*& address, R64 target);
 void Emit_CALL_R64(char*& address, R64 target);
 void Emit_RET(char*& address);
