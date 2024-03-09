@@ -153,6 +153,8 @@ target_sources(cs3hook PRIVATE
 	bps.cpp
 	crc32.c
 	crc32.h
+	decompress_helper.cpp
+	decompress_helper.h
 	file.h
 	file.cpp
 	file_getter.h
@@ -258,6 +260,12 @@ target_sources(cs3hook PRIVATE
 	zstd/compress/zstd_ldm_geartab.h
 	zstd/compress/zstd_opt.h
 	zstd/compress/zstdmt_compress.h
+
+	lzma2301/7zTypes.h
+	lzma2301/Compiler.h
+	lzma2301/LzmaDec.c
+	lzma2301/LzmaDec.h
+	lzma2301/Precomp.h
  )
 
 add_executable(sha1_test)
