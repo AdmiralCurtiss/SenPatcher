@@ -21,6 +21,9 @@
 #include "../file.h"
 
 namespace SenPatcher {
+P3APackFile::~P3APackFile() = default;
+P3APackData::~P3APackData() = default;
+
 namespace {
 struct ZSTD_CDict_Deleter {
     void operator()(ZSTD_CDict* ptr) {
@@ -240,7 +243,7 @@ bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packDa
 
         switch (fileinfo.DesiredCompressionType) {
             case P3ACompressionType::LZ4: {
-                if (filesize > LZ4_MAX_INPUT_SIZE) {
+                if (filesize == 0 || filesize > LZ4_MAX_INPUT_SIZE) {
                     if (!write_uncompressed()) {
                         return false;
                     }
@@ -280,7 +283,7 @@ bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packDa
             }
             case P3ACompressionType::ZSTD: {
                 size_t bound = ZSTD_compressBound(filesize);
-                if (ZSTD_isError(bound)) {
+                if (filesize == 0 || ZSTD_isError(bound)) {
                     if (!write_uncompressed()) {
                         return false;
                     }
@@ -313,7 +316,7 @@ bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packDa
                 }
 
                 size_t bound = ZSTD_compressBound(filesize);
-                if (ZSTD_isError(bound)) {
+                if (filesize == 0 || ZSTD_isError(bound)) {
                     if (!write_uncompressed()) {
                         return false;
                     }

@@ -14,6 +14,8 @@ struct P3APackFile {
     std::variant<std::vector<char>, std::filesystem::path> Data = std::vector<char>();
     std::array<char8_t, 0x100> Filename{};
     P3ACompressionType DesiredCompressionType{};
+
+    ~P3APackFile();
 };
 
 struct P3APackData {
@@ -21,6 +23,8 @@ struct P3APackData {
     std::variant<std::monostate, std::vector<char>, std::filesystem::path> ZStdDictionary =
         std::monostate();
     std::vector<P3APackFile> Files;
+
+    ~P3APackData();
 };
 
 bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
