@@ -149,6 +149,8 @@ target_sources(cs3hook PRIVATE
 	main_cs3.cpp
 	align.h
 	align.cpp
+	bps.h
+	bps.cpp
 	crc32.c
 	crc32.h
 	file.h
