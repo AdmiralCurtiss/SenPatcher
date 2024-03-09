@@ -165,8 +165,17 @@ target_sources(cs3hook PRIVATE
 	x64/emitter.h
 	dinput8.def
 
+	util/endian.h
+	util/stream.cpp
+	util/stream.h
+	util/text.cpp
+	util/text.h
+	util/vector.h
+
 	p3a/pack.cpp
 	p3a/pack.h
+	p3a/util.cpp
+	p3a/util.h
 
 	sen3/FileFixes/a0417_dat.cpp
 	sen3/file_fixes.cpp
