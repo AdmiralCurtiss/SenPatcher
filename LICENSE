@@ -66,3 +66,7 @@ See the native/rapidjson/license.txt file for details.
 The SHA1 hashing code is extracted and modified from the cryptopp source code.
 cryptopp commit 782057f5f18fbdad2bd2b291fb1ec558a8ab8225, sha.cpp
 Public domain
+
+== native/lzma2301 ==
+The LZMA SDK is public domain
+https://www.7-zip.org/sdk.html
