@@ -7,7 +7,11 @@
 
 namespace SenPatcher {
 Logger::Logger(const char* filename) {
-    f = fopen(filename, "w");
+    if (filename) {
+        f = fopen(filename, "w");
+    } else {
+        f = nullptr;
+    }
 }
 
 Logger::~Logger() {

@@ -8,7 +8,7 @@ private:
     FILE* f; // TODO: change this to SenPatcher::File
 
 public:
-    Logger(const char* filename);
+    explicit Logger(const char* filename);
     Logger(const Logger& other) = delete;
     Logger(Logger&& other) = delete;
     Logger& operator=(const Logger& other) = delete;
