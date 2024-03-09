@@ -1,0 +1,43 @@
+﻿#include <filesystem>
+#include <string_view>
+#include <vector>
+
+#include "../file_fixes.h"
+
+#include "../../p3a/pack.h"
+#include "../../p3a/structs.h"
+#include "../../sen/sen_script_patcher.h"
+#include "../../sha1.h"
+
+namespace SenLib::Sen3::FileFixes::m0300_dat {
+std::string_view GetDescription() {
+    return "Terminology fixes in Einhel Lv3.";
+}
+
+bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
+              std::vector<SenPatcher::P3APackFile>& result) {
+    try {
+        auto file = getCheckedFile(
+            "data/scripts/scena/dat_en/m0300.dat",
+            29665,
+            SenPatcher::SHA1FromHexString("7103fd901920a78637b5abe65b071220d0962783"));
+        if (!file) {
+            return false;
+        }
+
+        auto& bin = file->Data;
+
+        SenScriptPatcher patcher(bin);
+
+        // synch -> sync
+        patcher.RemovePartialCommand(0x5118, 0x98, 0x516f, 0x1);
+
+        result.emplace_back(SenPatcher::P3APackFile{
+            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+} // namespace SenLib::Sen3::FileFixes::m0300_dat

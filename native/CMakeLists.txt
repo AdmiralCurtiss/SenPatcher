@@ -5,23 +5,108 @@ project(SenPatcher LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_executable(p3a_archiver)
-target_sources(p3a_archiver PRIVATE
-	main_p3a_archiver.cpp
+function(senpatcher_generate_embeddable_file SOURCE_PATH TARGET_NAME)
+	file(READ "${SOURCE_PATH}" TMP_SENPATCHER_FILE HEX)
+	string(REGEX REPLACE "([0-9A-Fa-f][0-9A-Fa-f])" ",(char)0x\\1" TMP_SENPATCHER_FILE "${TMP_SENPATCHER_FILE}")
+	string(SUBSTRING "${TMP_SENPATCHER_FILE}" 1 -1 TMP_SENPATCHER_FILE)
+	file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/senpatcher_embeds/${TARGET_NAME}" CONTENT "${TMP_SENPATCHER_FILE}")
+endfunction()
 
-	align.h
-	align.cpp
-	file.h
-	file.cpp
-
-	p3a/pack.cpp
-	p3a/pack.h
-	p3a/packjson.cpp
-	p3a/packjson.h
-	p3a/structs.h
-	p3a/unpack.cpp
-	p3a/unpack.h
-
+set(SOURCES_LZ4
+	lz4/lz4.c
+	lz4/lz4file.c
+	lz4/lz4frame.c
+	lz4/lz4hc.c
+	lz4/xxhash.c
+	lz4/lz4.h
+	lz4/lz4file.h
+	lz4/lz4frame.h
+	lz4/lz4frame_static.h
+	lz4/lz4hc.h
+	lz4/xxhash.h
+)
+set(SOURCES_ZSTD_BASE
+	zstd/zdict.h
+	zstd/zstd.h
+	zstd/zstd_errors.h
+	zstd/common/debug.c
+	zstd/common/entropy_common.c
+	zstd/common/error_private.c
+	zstd/common/fse_decompress.c
+	zstd/common/pool.c
+	zstd/common/threading.c
+	zstd/common/xxhash.c
+	zstd/common/zstd_common.c
+	zstd/common/allocations.h
+	zstd/common/bits.h
+	zstd/common/bitstream.h
+	zstd/common/compiler.h
+	zstd/common/cpu.h
+	zstd/common/debug.h
+	zstd/common/error_private.h
+	zstd/common/fse.h
+	zstd/common/huf.h
+	zstd/common/mem.h
+	zstd/common/pool.h
+	zstd/common/portability_macros.h
+	zstd/common/threading.h
+	zstd/common/xxhash.h
+	zstd/common/zstd_deps.h
+	zstd/common/zstd_internal.h
+	zstd/common/zstd_trace.h
+	zstd/decompress/huf_decompress.c
+	zstd/decompress/zstd_ddict.c
+	zstd/decompress/zstd_decompress.c
+	zstd/decompress/zstd_decompress_block.c
+	zstd/decompress/zstd_ddict.h
+	zstd/decompress/zstd_decompress_block.h
+	zstd/decompress/zstd_decompress_internal.h
+)
+set(SOURCES_ZSTD_COMPRESSION
+	zstd/compress/fse_compress.c
+	zstd/compress/hist.c
+	zstd/compress/huf_compress.c
+	zstd/compress/zstd_compress.c
+	zstd/compress/zstd_compress_literals.c
+	zstd/compress/zstd_compress_sequences.c
+	zstd/compress/zstd_compress_superblock.c
+	zstd/compress/zstd_double_fast.c
+	zstd/compress/zstd_fast.c
+	zstd/compress/zstd_lazy.c
+	zstd/compress/zstd_ldm.c
+	zstd/compress/zstd_opt.c
+	zstd/compress/zstdmt_compress.c
+	zstd/compress/clevels.h
+	zstd/compress/hist.h
+	zstd/compress/zstd_compress_internal.h
+	zstd/compress/zstd_compress_literals.h
+	zstd/compress/zstd_compress_sequences.h
+	zstd/compress/zstd_compress_superblock.h
+	zstd/compress/zstd_cwksp.h
+	zstd/compress/zstd_double_fast.h
+	zstd/compress/zstd_fast.h
+	zstd/compress/zstd_lazy.h
+	zstd/compress/zstd_ldm.h
+	zstd/compress/zstd_ldm_geartab.h
+	zstd/compress/zstd_opt.h
+	zstd/compress/zstdmt_compress.h
+)
+set(SOURCES_ZSTD_DICTBUILDER
+	zstd/dictBuilder/cover.c
+	zstd/dictBuilder/divsufsort.c
+	zstd/dictBuilder/fastcover.c
+	zstd/dictBuilder/zdict.c
+	zstd/dictBuilder/cover.h
+	zstd/dictBuilder/divsufsort.h
+)
+set(SOURCES_LZMA
+	lzma2301/7zTypes.h
+	lzma2301/Compiler.h
+	lzma2301/LzmaDec.c
+	lzma2301/LzmaDec.h
+	lzma2301/Precomp.h
+)
+set(SOURCES_RAPIDJSON
 	rapidjson/allocators.h
 	rapidjson/cursorstreamwrapper.h
 	rapidjson/document.h
@@ -60,93 +145,179 @@ target_sources(p3a_archiver PRIVATE
 	rapidjson/internal/swap.h
 	rapidjson/msinttypes/inttypes.h
 	rapidjson/msinttypes/stdint.h
+)
 
-	lz4/lz4.c
-	lz4/lz4file.c
-	lz4/lz4frame.c
-	lz4/lz4hc.c
-	lz4/xxhash.c
-	lz4/lz4.h
-	lz4/lz4file.h
-	lz4/lz4frame.h
-	lz4/lz4frame_static.h
-	lz4/lz4hc.h
-	lz4/xxhash.h
+add_executable(p3a_archiver)
+target_sources(p3a_archiver PRIVATE
+	main_p3a_archiver.cpp
 
-	zstd/zdict.h
-	zstd/zstd.h
-	zstd/zstd_errors.h
-	zstd/common/debug.c
-	zstd/common/entropy_common.c
-	zstd/common/error_private.c
-	zstd/common/fse_decompress.c
-	zstd/common/pool.c
-	zstd/common/threading.c
-	zstd/common/xxhash.c
-	zstd/common/zstd_common.c
-	zstd/common/allocations.h
-	zstd/common/bits.h
-	zstd/common/bitstream.h
-	zstd/common/compiler.h
-	zstd/common/cpu.h
-	zstd/common/debug.h
-	zstd/common/error_private.h
-	zstd/common/fse.h
-	zstd/common/huf.h
-	zstd/common/mem.h
-	zstd/common/pool.h
-	zstd/common/portability_macros.h
-	zstd/common/threading.h
-	zstd/common/xxhash.h
-	zstd/common/zstd_deps.h
-	zstd/common/zstd_internal.h
-	zstd/common/zstd_trace.h
-	zstd/decompress/huf_decompress.c
-	zstd/decompress/zstd_ddict.c
-	zstd/decompress/zstd_decompress.c
-	zstd/decompress/zstd_decompress_block.c
-	zstd/decompress/zstd_ddict.h
-	zstd/decompress/zstd_decompress_block.h
-	zstd/decompress/zstd_decompress_internal.h
+	align.h
+	align.cpp
+	file.h
+	file.cpp
 
-	zstd/compress/fse_compress.c
-	zstd/compress/hist.c
-	zstd/compress/huf_compress.c
-	zstd/compress/zstd_compress.c
-	zstd/compress/zstd_compress_literals.c
-	zstd/compress/zstd_compress_sequences.c
-	zstd/compress/zstd_compress_superblock.c
-	zstd/compress/zstd_double_fast.c
-	zstd/compress/zstd_fast.c
-	zstd/compress/zstd_lazy.c
-	zstd/compress/zstd_ldm.c
-	zstd/compress/zstd_opt.c
-	zstd/compress/zstdmt_compress.c
-	zstd/compress/clevels.h
-	zstd/compress/hist.h
-	zstd/compress/zstd_compress_internal.h
-	zstd/compress/zstd_compress_literals.h
-	zstd/compress/zstd_compress_sequences.h
-	zstd/compress/zstd_compress_superblock.h
-	zstd/compress/zstd_cwksp.h
-	zstd/compress/zstd_double_fast.h
-	zstd/compress/zstd_fast.h
-	zstd/compress/zstd_lazy.h
-	zstd/compress/zstd_ldm.h
-	zstd/compress/zstd_ldm_geartab.h
-	zstd/compress/zstd_opt.h
-	zstd/compress/zstdmt_compress.h
-	zstd/dictBuilder/cover.c
-	zstd/dictBuilder/divsufsort.c
-	zstd/dictBuilder/fastcover.c
-	zstd/dictBuilder/zdict.c
-	zstd/dictBuilder/cover.h
-	zstd/dictBuilder/divsufsort.h
-  )
+	p3a/pack.cpp
+	p3a/pack.h
+	p3a/packjson.cpp
+	p3a/packjson.h
+	p3a/structs.h
+	p3a/unpack.cpp
+	p3a/unpack.h
 
-add_library(cs3hook SHARED)
-target_sources(cs3hook PRIVATE
-	main_cs3.cpp
+	${SOURCES_LZ4}
+	${SOURCES_ZSTD_BASE}
+	${SOURCES_ZSTD_COMPRESSION}
+	${SOURCES_ZSTD_DICTBUILDER}
+	${SOURCES_RAPIDJSON}
+)
+target_include_directories(p3a_archiver
+	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m2150.bin" "embed_sen1_ed8m2150.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m4097.bin" "embed_sen1_ed8m4097.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m4217.bin" "embed_sen1_ed8m4217.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/pc8v02551_4.bin" "embed_sen1_pc8v02551_4.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/pc8v10286_15.bin" "embed_sen1_pc8v10286_15.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_jp_3.bin" "embed_sen1_vctiming_jp_3.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_jp_4.bin" "embed_sen1_vctiming_jp_4.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_us_3.bin" "embed_sen1_vctiming_us_3.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_us_4.bin" "embed_sen1_vctiming_us_4.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_data.bin" "embed_sen2_ed82_j140_to_j142_data.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_header.bin" "embed_sen2_ed82_j140_to_j142_header.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_rdata.bin" "embed_sen2_ed82_j140_to_j142_rdata.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_rsrc.bin" "embed_sen2_ed82_j140_to_j142_rsrc.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_text.bin" "embed_sen2_ed82_j140_to_j142_text.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_data.bin" "embed_sen2_ed82_j142_to_u142_data.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_header.bin" "embed_sen2_ed82_j142_to_u142_header.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_rsrc.bin" "embed_sen2_ed82_j142_to_u142_rsrc.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_text.bin" "embed_sen2_ed82_j142_to_u142_text.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_u140j142_to_u142_rdata.bin" "embed_sen2_ed82_u140j142_to_u142_rdata.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82j142.bin" "embed_sen2_ed82j142.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82u142j.bin" "embed_sen2_ed82u142j.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/t1001_dat_to_tbl.bin" "embed_sen2_t1001_dat_to_tbl.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis0061.bin" "embed_sen3_cvis0061.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis1008.bin" "embed_sen3_cvis1008.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_05.bin" "embed_sen3_insa_05.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_08.bin" "embed_sen3_insa_08.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_09.bin" "embed_sen3_insa_09.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/jump009.bin" "embed_sen3_jump009.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/t0250_dat.bin" "embed_sen3_t0250_dat.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0427.bin" "embed_sen3_v00_e0427.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0441.bin" "embed_sen3_v00_e0441.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e1032.bin" "embed_sen3_v00_e1032.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e1054.bin" "embed_sen3_v00_e1054.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0027.bin" "embed_sen3_v00_s0027.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0028.bin" "embed_sen3_v00_s0028.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0081.bin" "embed_sen3_v00_s0081.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0264.bin" "embed_sen3_v00_s0264.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v20_e0066.bin" "embed_sen3_v20_e0066.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v27_e0042.bin" "embed_sen3_v27_e0042.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v31_e0070.bin" "embed_sen3_v31_e0070.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v43_e0023.bin" "embed_sen3_v43_e0023.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v49_e0004.bin" "embed_sen3_v49_e0004.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v52_e0109.bin" "embed_sen3_v52_e0109.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v52_e0119.bin" "embed_sen3_v52_e0119.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v55_e0018.bin" "embed_sen3_v55_e0018.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v55_e0062.bin" "embed_sen3_v55_e0062.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v56_e0080.bin" "embed_sen3_v56_e0080.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v56_e0092.bin" "embed_sen3_v56_e0092.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v57_e0020.bin" "embed_sen3_v57_e0020.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v64_e0040.bin" "embed_sen3_v64_e0040.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0005.bin" "embed_sen3_v72_e0005.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0011.bin" "embed_sen3_v72_e0011.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0012.bin" "embed_sen3_v72_e0012.h")
+senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v93_e0300.bin" "embed_sen3_v93_e0300.h")
+
+set(SOURCES_CS3_FIXES
+	sen3/FileFixes/alchr022_dat.cpp
+	sen3/FileFixes/a0417_dat.cpp
+	sen3/FileFixes/book05_dat.cpp
+	sen3/FileFixes/book06_dat.cpp
+	sen3/FileFixes/book07_dat.cpp
+	sen3/FileFixes/c0200_dat.cpp
+	sen3/FileFixes/c0250_dat.cpp
+	sen3/FileFixes/c0400_dat.cpp
+	sen3/FileFixes/c0420_dat.cpp
+	sen3/FileFixes/c0430_dat.cpp
+	sen3/FileFixes/c0820_dat.cpp
+	sen3/FileFixes/c0830_dat.cpp
+	sen3/FileFixes/c2430_dat.cpp
+	sen3/FileFixes/c2440_dat.cpp
+	sen3/FileFixes/c2610_dat.cpp
+	sen3/FileFixes/c3000_dat.cpp
+	sen3/FileFixes/c3010_dat.cpp
+	sen3/FileFixes/c3210_dat.cpp
+	sen3/FileFixes/c3610_dat.cpp
+	sen3/FileFixes/f0010_dat.cpp
+	sen3/FileFixes/f2000_dat.cpp
+	sen3/FileFixes/I_CVIS0061_pkg.cpp
+	sen3/FileFixes/I_CVIS1008_pkg.cpp
+	sen3/FileFixes/I_JMP009_pkg.cpp
+	sen3/FileFixes/insa05.cpp
+	sen3/FileFixes/insa08.cpp
+	sen3/FileFixes/insa09.cpp
+	sen3/FileFixes/m0000_dat.cpp
+	sen3/FileFixes/m0100_dat.cpp
+	sen3/FileFixes/m0300_dat.cpp
+	sen3/FileFixes/m0600_dat.cpp
+	sen3/FileFixes/m3000_dat.cpp
+	sen3/FileFixes/m3420_dat.cpp
+	sen3/FileFixes/m3430_dat.cpp
+	sen3/FileFixes/m4004_dat.cpp
+	sen3/FileFixes/r0210_dat.cpp
+	sen3/FileFixes/r2290_dat.cpp
+	sen3/FileFixes/r3000_dat.cpp
+	sen3/FileFixes/r3200_dat.cpp
+	sen3/FileFixes/r3430_dat.cpp
+	sen3/FileFixes/r4200_dat.cpp
+	sen3/FileFixes/r4290_dat.cpp
+	sen3/FileFixes/t_item.cpp
+	sen3/FileFixes/t_jump.cpp
+	sen3/FileFixes/t_magic.cpp
+	sen3/FileFixes/t_mons.cpp
+	sen3/FileFixes/t_mstqrt.cpp
+	sen3/FileFixes/t_name.cpp
+	sen3/FileFixes/t_notecook.cpp
+	sen3/FileFixes/t_place.cpp
+	sen3/FileFixes/t_text.cpp
+	sen3/FileFixes/t_vctiming_us.cpp
+	sen3/FileFixes/t0000_dat.cpp
+	sen3/FileFixes/t0010_dat.cpp
+	sen3/FileFixes/t0080_dat.cpp
+	sen3/FileFixes/t0100_dat.cpp
+	sen3/FileFixes/t0200_dat.cpp
+	sen3/FileFixes/t0210_dat.cpp
+	sen3/FileFixes/t0250_dat.cpp
+	sen3/FileFixes/t0260_dat.cpp
+	sen3/FileFixes/t0400_dat.cpp
+	sen3/FileFixes/t0410_dat.cpp
+	sen3/FileFixes/t3000_dat.cpp
+	sen3/FileFixes/t3200_dat.cpp
+	sen3/FileFixes/t3220_dat.cpp
+	sen3/FileFixes/t3400_dat.cpp
+	sen3/FileFixes/t3510_dat.cpp
+	sen3/FileFixes/t3600_dat.cpp
+	sen3/FileFixes/tk_ada_dat.cpp
+	sen3/FileFixes/tk_linde_dat.cpp
+	sen3/FileFixes/tk_patrick_dat.cpp
+	sen3/FileFixes/tk_stark_dat.cpp
+	sen3/FileFixes/tk_tovar_dat.cpp
+	sen3/FileFixes/tk_zessica_dat.cpp
+	sen3/FileFixes/v0010_dat.cpp
+	sen3/FileFixes/v0050_dat.cpp
+	sen3/FileFixes/voice_opus_ps4_103.cpp
+	sen3/FileFixes/voice_opus_v00e0441.cpp
+	sen3/FileFixes/voice_opus_v00s2728.cpp
+	sen3/file_fixes.cpp
+	sen3/file_fixes.h
+	sen3/patch_pkg.cpp
+	sen3/patch_pkg.h
+	sen3/tbl.cpp
+	sen3/tbl.h
+)
+
+set(SOURCES_BASE_FIXES
 	align.h
 	align.cpp
 	bps.h
@@ -162,12 +333,6 @@ target_sources(cs3hook PRIVATE
 	logger.h
 	sha1.cpp
 	sha1.h
-	p3a/structs.h
-	p3a/p3a.cpp
-	p3a/p3a.h
-	x64/emitter.cpp
-	x64/emitter.h
-	dinput8.def
 
 	util/endian.h
 	util/stream.cpp
@@ -181,92 +346,53 @@ target_sources(cs3hook PRIVATE
 	p3a/util.cpp
 	p3a/util.h
 
-	sen3/FileFixes/a0417_dat.cpp
-	sen3/file_fixes.cpp
-	sen3/file_fixes.h
+	sen/book_table.cpp
+	sen/book_table.h
+	sen/pkg.cpp
+	sen/pkg.h
+	sen/sen_script_patcher.cpp
+	sen/sen_script_patcher.h
 
-	lz4/lz4.c
-	lz4/lz4file.c
-	lz4/lz4frame.c
-	lz4/lz4hc.c
-	lz4/xxhash.c
-	lz4/lz4.h
-	lz4/lz4file.h
-	lz4/lz4frame.h
-	lz4/lz4frame_static.h
-	lz4/lz4hc.h
-	lz4/xxhash.h
+	${SOURCES_LZMA}
+)
 
-	zstd/zdict.h
-	zstd/zstd.h
-	zstd/zstd_errors.h
-	zstd/common/debug.c
-	zstd/common/entropy_common.c
-	zstd/common/error_private.c
-	zstd/common/fse_decompress.c
-	zstd/common/pool.c
-	zstd/common/threading.c
-	zstd/common/xxhash.c
-	zstd/common/zstd_common.c
-	zstd/common/allocations.h
-	zstd/common/bits.h
-	zstd/common/bitstream.h
-	zstd/common/compiler.h
-	zstd/common/cpu.h
-	zstd/common/debug.h
-	zstd/common/error_private.h
-	zstd/common/fse.h
-	zstd/common/huf.h
-	zstd/common/mem.h
-	zstd/common/pool.h
-	zstd/common/portability_macros.h
-	zstd/common/threading.h
-	zstd/common/xxhash.h
-	zstd/common/zstd_deps.h
-	zstd/common/zstd_internal.h
-	zstd/common/zstd_trace.h
-	zstd/decompress/huf_decompress.c
-	zstd/decompress/zstd_ddict.c
-	zstd/decompress/zstd_decompress.c
-	zstd/decompress/zstd_decompress_block.c
-	zstd/decompress/zstd_ddict.h
-	zstd/decompress/zstd_decompress_block.h
-	zstd/decompress/zstd_decompress_internal.h
+add_executable(cs3test)
+target_sources(cs3test PRIVATE
+	main_cs3_test.cpp
+	x64/emitter.cpp
+	x64/emitter.h
 
-	zstd/compress/fse_compress.c
-	zstd/compress/hist.c
-	zstd/compress/huf_compress.c
-	zstd/compress/zstd_compress.c
-	zstd/compress/zstd_compress_literals.c
-	zstd/compress/zstd_compress_sequences.c
-	zstd/compress/zstd_compress_superblock.c
-	zstd/compress/zstd_double_fast.c
-	zstd/compress/zstd_fast.c
-	zstd/compress/zstd_lazy.c
-	zstd/compress/zstd_ldm.c
-	zstd/compress/zstd_opt.c
-	zstd/compress/zstdmt_compress.c
-	zstd/compress/clevels.h
-	zstd/compress/hist.h
-	zstd/compress/zstd_compress_internal.h
-	zstd/compress/zstd_compress_literals.h
-	zstd/compress/zstd_compress_sequences.h
-	zstd/compress/zstd_compress_superblock.h
-	zstd/compress/zstd_cwksp.h
-	zstd/compress/zstd_double_fast.h
-	zstd/compress/zstd_fast.h
-	zstd/compress/zstd_lazy.h
-	zstd/compress/zstd_ldm.h
-	zstd/compress/zstd_ldm_geartab.h
-	zstd/compress/zstd_opt.h
-	zstd/compress/zstdmt_compress.h
+	${SOURCES_BASE_FIXES}
+	${SOURCES_CS3_FIXES}
 
-	lzma2301/7zTypes.h
-	lzma2301/Compiler.h
-	lzma2301/LzmaDec.c
-	lzma2301/LzmaDec.h
-	lzma2301/Precomp.h
+	${SOURCES_LZ4}
+	${SOURCES_ZSTD_BASE}
+	${SOURCES_ZSTD_COMPRESSION}
+)
+target_include_directories(cs3test
+	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+)
+
+add_library(cs3hook SHARED)
+target_sources(cs3hook PRIVATE
+	dinput8.def
+	main_cs3.cpp
+	p3a/structs.h
+	p3a/p3a.cpp
+	p3a/p3a.h
+	x64/emitter.cpp
+	x64/emitter.h
+
+	${SOURCES_BASE_FIXES}
+	${SOURCES_CS3_FIXES}
+
+	${SOURCES_LZ4}
+	${SOURCES_ZSTD_BASE}
+	${SOURCES_ZSTD_COMPRESSION}
  )
+ target_include_directories(cs3hook
+	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+)
 
 add_executable(sha1_test)
 target_sources(sha1_test PRIVATE
@@ -276,4 +402,6 @@ target_sources(sha1_test PRIVATE
 	file.cpp
 	file.h
 )
-
+target_include_directories(sha1_test
+	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
