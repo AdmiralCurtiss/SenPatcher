@@ -41,15 +41,15 @@ int main(int argc, char** argv) {
             return -1;
         }
 
-        std::u8string_view source((const char8_t*)argv[2]);
-        std::u8string_view target;
-        std::u8string tmp;
+        std::string_view source(argv[2]);
+        std::string_view target;
+        std::string tmp;
         if (argc < 4) {
-            tmp = std::u8string(source);
-            tmp += (const char8_t*)".ex";
+            tmp = std::string(source);
+            tmp += ".ex";
             target = tmp;
         } else {
-            target = std::u8string_view((const char8_t*)argv[3]);
+            target = std::string_view(argv[3]);
         }
 
         if (!SenPatcher::UnpackP3A(std::filesystem::path(source.begin(), source.end()),
@@ -63,8 +63,8 @@ int main(int argc, char** argv) {
             return -1;
         }
 
-        std::u8string_view source((const char8_t*)argv[2]);
-        std::u8string_view target((const char8_t*)argv[3]);
+        std::string_view source(argv[2]);
+        std::string_view target(argv[3]);
         if (!SenPatcher::PackP3AFromDirectory(std::filesystem::path(source.begin(), source.end()),
                                               std::filesystem::path(target.begin(), target.end()),
                                               SenPatcher::P3ACompressionType::LZ4)) {
@@ -77,8 +77,8 @@ int main(int argc, char** argv) {
             return -1;
         }
 
-        std::u8string_view source((const char8_t*)argv[2]);
-        std::u8string_view target((const char8_t*)argv[3]);
+        std::string_view source(argv[2]);
+        std::string_view target(argv[3]);
         if (!SenPatcher::PackP3AFromJsonFile(std::filesystem::path(source.begin(), source.end()),
                                              std::filesystem::path(target.begin(), target.end()))) {
             return -1;
