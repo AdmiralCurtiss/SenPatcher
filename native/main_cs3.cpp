@@ -1530,7 +1530,20 @@ static void PatchShowMouseCursor(SenPatcher::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
-                                 char* codespaceEnd) {}
+                                 char* codespaceEnd) {
+    using namespace SenPatcher::x64;
+    char* showCursorPos = GetCodeAddressJpEn(version, textRegion, 0x140599734, 0x1405a5ae4);
+
+    // remove call to ShowCursor(0)
+    {
+        char* tmp = showCursorPos;
+        PageUnprotect page(logger, tmp, 8);
+        for (size_t i = 0; i < 8; ++i) {
+            *tmp++ = 0x90; // nop
+        }
+    }
+}
+
 static void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
                                          char* textRegion,
                                          GameVersion version,
