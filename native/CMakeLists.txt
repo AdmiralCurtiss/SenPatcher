@@ -12,33 +12,17 @@ function(senpatcher_generate_embeddable_file SOURCE_PATH TARGET_NAME)
 	file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/senpatcher_embeds/${TARGET_NAME}" CONTENT "${TMP_SENPATCHER_FILE}")
 endfunction()
 
-set(SENPATCHER_VERSION "(unknown version)")
-
-find_package(Git)
-if(GIT_FOUND)
-	execute_process(
-		COMMAND ${GIT_EXECUTABLE} describe --dirty --tags --always
-		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
-		RESULT_VARIABLE TMP_SENPATCHER_GIT_DESCRIBE_RESULT
-		OUTPUT_VARIABLE TMP_SENPATCHER_GIT_DESCRIBE_OUTPUT
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	execute_process(
-		COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
-		RESULT_VARIABLE TMP_SENPATCHER_GIT_REVPARSE_RESULT
-		OUTPUT_VARIABLE TMP_SENPATCHER_GIT_REVPARSE_OUTPUT
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	if (${TMP_SENPATCHER_GIT_DESCRIBE_RESULT} EQUAL 0 AND ${TMP_SENPATCHER_GIT_REVPARSE_RESULT} EQUAL 0)
-		if (${TMP_SENPATCHER_GIT_REVPARSE_OUTPUT} STREQUAL "master")
-			set(SENPATCHER_VERSION "${TMP_SENPATCHER_GIT_DESCRIBE_OUTPUT}")
-		else()
-			set(SENPATCHER_VERSION "${TMP_SENPATCHER_GIT_DESCRIBE_OUTPUT} (${TMP_SENPATCHER_GIT_REVPARSE_OUTPUT})")
-		endif()
-	endif()
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/senpatcher_embeds")
+if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h")
+	file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h")
 endif()
-file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h" CONTENT "#pragma once\n#define SENPATCHER_VERSION \"${SENPATCHER_VERSION}\";")
+
+add_custom_target(
+	GenerateGitRevisionHeader
+	${CMAKE_COMMAND} -P "${CMAKE_CURRENT_SOURCE_DIR}/GitRevisionHeader.cmake"
+	BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h"
+	VERBATIM
+)
 
 set(SOURCES_LZ4
 	lz4/lz4.c
@@ -421,6 +405,7 @@ target_sources(cs3hook PRIVATE
  target_include_directories(cs3hook
 	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 )
+add_dependencies(cs3hook GenerateGitRevisionHeader)
 
 add_executable(sha1_test)
 target_sources(sha1_test PRIVATE
