@@ -146,4 +146,26 @@ private:
     void AddSource(char* source);
     void Commit(char* source);
 };
+
+struct BranchHelper4Byte {
+public:
+    BranchHelper4Byte() = default;
+    BranchHelper4Byte(const BranchHelper4Byte& other) = delete;
+    BranchHelper4Byte(BranchHelper4Byte&& other) = delete;
+    BranchHelper4Byte& operator=(const BranchHelper4Byte& other) = delete;
+    BranchHelper4Byte& operator=(BranchHelper4Byte&& other) = delete;
+    ~BranchHelper4Byte() = default;
+
+    void SetTarget(char* target);
+
+    // CALL and JMP result in 5 bytes, everything else is 6 bytes
+    void WriteJump(char*& address, JumpCondition condition);
+
+private:
+    char* Target = nullptr;
+    std::vector<char*> Sources;
+
+    void AddSource(char* source);
+    void Commit(char* source);
+};
 } // namespace SenPatcher::x64

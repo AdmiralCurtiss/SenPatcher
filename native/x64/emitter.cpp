@@ -242,4 +242,49 @@ void BranchHelper1Byte::WriteJump(char*& address, JumpCondition condition) {
     *address++ = 0xfe; // self-jump until set
     AddSource(address - 1);
 }
+
+void BranchHelper4Byte::SetTarget(char* target) {
+    assert(Target == nullptr);
+    Target = target;
+    if (!Sources.empty()) {
+        for (char* s : Sources) {
+            Commit(s);
+        }
+        Sources.clear();
+    }
+}
+
+void BranchHelper4Byte::AddSource(char* source) {
+    if (Target == nullptr) {
+        Sources.push_back(source);
+    } else {
+        Commit(source);
+    }
+}
+
+void BranchHelper4Byte::Commit(char* source) {
+    int64_t diff = (Target - (source + 1));
+    assert(diff >= INT32_MIN && diff <= INT32_MAX);
+    int32_t diff32 = static_cast<int32_t>(diff);
+    std::memcpy(source, &diff32, 4);
+}
+
+void BranchHelper4Byte::WriteJump(char*& address, JumpCondition condition) {
+    int32_t offset;
+    if (condition == JumpCondition::JMP) {
+        *address++ = 0xe9;
+        offset = -5;
+    } else if (condition == JumpCondition::CALL) {
+        *address++ = 0xe8;
+        offset = -5;
+    } else {
+        *address++ = 0x0f;
+        char op = 0x80 | static_cast<int>(condition);
+        *address++ = op;
+        offset = -6;
+    }
+    std::memcpy(address, &offset, 4); // self-jump until set
+    AddSource(address);
+    address += 4;
+}
 } // namespace SenPatcher::x64
