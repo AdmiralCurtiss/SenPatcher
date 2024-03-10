@@ -263,7 +263,7 @@ void BranchHelper4Byte::AddSource(char* source) {
 }
 
 void BranchHelper4Byte::Commit(char* source) {
-    int64_t diff = (Target - (source + 1));
+    int64_t diff = (Target - (source + 4));
     assert(diff >= INT32_MIN && diff <= INT32_MAX);
     int32_t diff32 = static_cast<int32_t>(diff);
     std::memcpy(source, &diff32, 4);
