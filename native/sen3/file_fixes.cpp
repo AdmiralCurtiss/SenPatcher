@@ -28,6 +28,7 @@ DECLARE_STANDARD_FIX(a0417_dat)
 DECLARE_STANDARD_FIX(book05_dat)
 DECLARE_STANDARD_FIX(book06_dat)
 DECLARE_STANDARD_FIX(book07_dat)
+DECLARE_STANDARD_FIX(c0000_dat)
 DECLARE_STANDARD_FIX(c0200_dat)
 DECLARE_STANDARD_FIX(c0250_dat)
 DECLARE_STANDARD_FIX(c0400_dat)
@@ -61,6 +62,7 @@ DECLARE_STANDARD_FIX(m4004_dat)
 DECLARE_STANDARD_FIX(r0210_dat)
 DECLARE_STANDARD_FIX(r2290_dat)
 DECLARE_STANDARD_FIX(r3000_dat)
+DECLARE_STANDARD_FIX(r3090_dat)
 DECLARE_STANDARD_FIX(r3200_dat)
 DECLARE_STANDARD_FIX(r3430_dat)
 DECLARE_STANDARD_FIX(r4200_dat)
@@ -97,6 +99,7 @@ DECLARE_STANDARD_FIX(tk_stark_dat)
 DECLARE_STANDARD_FIX(tk_tovar_dat)
 DECLARE_STANDARD_FIX(tk_zessica_dat)
 DECLARE_STANDARD_FIX(v0010_dat)
+DECLARE_STANDARD_FIX(v0030_dat)
 DECLARE_STANDARD_FIX(v0050_dat)
 DECLARE_STANDARD_FIX(voice_opus_ps4_103)
 DECLARE_STANDARD_FIX(voice_opus_v00e0441)
@@ -124,6 +127,7 @@ static bool CollectAssets(const SenPatcher::GetCheckedFileCallback& callback,
     EARLY_EXIT(SenLib::Sen3::FileFixes::book05_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::book06_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::book07_dat::TryApply(callback, packData.Files));
+    EARLY_EXIT(SenLib::Sen3::FileFixes::c0000_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::c0200_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::c0250_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::c0400_dat::TryApply(callback, packData.Files));
@@ -154,6 +158,7 @@ static bool CollectAssets(const SenPatcher::GetCheckedFileCallback& callback,
     EARLY_EXIT(SenLib::Sen3::FileFixes::r0210_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::r2290_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::r3000_dat::TryApply(callback, packData.Files));
+    EARLY_EXIT(SenLib::Sen3::FileFixes::r3090_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::r3200_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::r3430_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::r4200_dat::TryApply(callback, packData.Files));
@@ -192,6 +197,7 @@ static bool CollectAssets(const SenPatcher::GetCheckedFileCallback& callback,
     EARLY_EXIT(SenLib::Sen3::FileFixes::tk_tovar_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::tk_zessica_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::v0010_dat::TryApply(callback, packData.Files));
+    EARLY_EXIT(SenLib::Sen3::FileFixes::v0030_dat::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::v0050_dat::TryApply(callback, packData.Files));
     return true;
 }
@@ -201,14 +207,6 @@ static bool CollectAudio(const SenPatcher::GetCheckedFileCallback& callback,
     EARLY_EXIT(SenLib::Sen3::FileFixes::voice_opus_ps4_103::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::voice_opus_v00e0441::TryApply(callback, packData.Files));
     EARLY_EXIT(SenLib::Sen3::FileFixes::voice_opus_v00s2728::TryApply(callback, packData.Files));
-    return true;
-}
-
-static bool CollectVideo(const SenPatcher::GetCheckedFileCallback& callback,
-                         SenPatcher::P3APackData& packData) {
-    EARLY_EXIT(SenLib::Sen3::FileFixes::insa05::TryApply(callback, packData.Files));
-    EARLY_EXIT(SenLib::Sen3::FileFixes::insa08::TryApply(callback, packData.Files));
-    EARLY_EXIT(SenLib::Sen3::FileFixes::insa09::TryApply(callback, packData.Files));
     return true;
 }
 
@@ -282,6 +280,50 @@ static void CreateArchiveIfNeeded(
     }
 }
 
+static void CreateVideoIfNeeded(
+    const std::filesystem::path& videoPath,
+    const std::function<bool(SenPatcher::P3APackData& packData)>& collectAssets) {
+    // Turns out redirecting video files to a memory stream is nontrivial, so we'll just put
+    // modified videos directly into the file system.
+    {
+        SenPatcher::IO::File f(videoPath, SenPatcher::IO::OpenMode::Read);
+        if (f.IsOpen()) {
+            // assume that it's good if it exists...
+            return;
+        }
+    }
+
+    SenPatcher::P3APackData packData;
+    if (!collectAssets(packData)) {
+        return;
+    }
+
+    // This should give us exactly one file.
+    if (packData.Files.size() != 1) {
+        return;
+    }
+    if (!std::holds_alternative<std::vector<char>>(packData.Files[0].Data)) {
+        return;
+    }
+    const auto& data = std::get<std::vector<char>>(packData.Files[0].Data);
+
+    auto tmpPath = videoPath;
+    tmpPath += ".tmp";
+    SenPatcher::IO::File f(tmpPath, SenPatcher::IO::OpenMode::Write);
+    if (!f.IsOpen()) {
+        return;
+    }
+
+    if (f.Write(data.data(), data.size()) != data.size()) {
+        f.Delete();
+        return;
+    }
+
+    if (!f.Rename(videoPath)) {
+        f.Delete();
+    }
+}
+
 void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem::path& baseDir) {
     // TODO: handle this flag somehow?
     bool allowSwitchToNightmare = true;
@@ -331,9 +373,20 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem:
                           [&](SenPatcher::P3APackData& packData) -> bool {
                               return CollectAudio(callback, packData);
                           });
-    CreateArchiveIfNeeded(baseDir / L"mods/zzz_senpatcher_cs3video.p3a",
-                          [&](SenPatcher::P3APackData& packData) -> bool {
-                              return CollectVideo(callback, packData);
-                          });
+    CreateVideoIfNeeded(baseDir / L"data/movie_us/webm/insa_f5.webm",
+                        [&](SenPatcher::P3APackData& packData) -> bool {
+                            return SenLib::Sen3::FileFixes::insa05::TryApply(callback,
+                                                                             packData.Files);
+                        });
+    CreateVideoIfNeeded(baseDir / L"data/movie_us/webm/insa_f8.webm",
+                        [&](SenPatcher::P3APackData& packData) -> bool {
+                            return SenLib::Sen3::FileFixes::insa08::TryApply(callback,
+                                                                             packData.Files);
+                        });
+    CreateVideoIfNeeded(baseDir / L"data/movie_us/webm/insa_f9.webm",
+                        [&](SenPatcher::P3APackData& packData) -> bool {
+                            return SenLib::Sen3::FileFixes::insa09::TryApply(callback,
+                                                                             packData.Files);
+                        });
 }
 } // namespace SenLib::Sen3

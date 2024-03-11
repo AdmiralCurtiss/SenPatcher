@@ -249,6 +249,7 @@ set(SOURCES_CS3_FIXES
 	sen3/FileFixes/book05_dat.cpp
 	sen3/FileFixes/book06_dat.cpp
 	sen3/FileFixes/book07_dat.cpp
+	sen3/FileFixes/c0000_dat.cpp
 	sen3/FileFixes/c0200_dat.cpp
 	sen3/FileFixes/c0250_dat.cpp
 	sen3/FileFixes/c0400_dat.cpp
@@ -282,6 +283,7 @@ set(SOURCES_CS3_FIXES
 	sen3/FileFixes/r0210_dat.cpp
 	sen3/FileFixes/r2290_dat.cpp
 	sen3/FileFixes/r3000_dat.cpp
+	sen3/FileFixes/r3090_dat.cpp
 	sen3/FileFixes/r3200_dat.cpp
 	sen3/FileFixes/r3430_dat.cpp
 	sen3/FileFixes/r4200_dat.cpp
@@ -319,6 +321,7 @@ set(SOURCES_CS3_FIXES
 	sen3/FileFixes/tk_tovar_dat.cpp
 	sen3/FileFixes/tk_zessica_dat.cpp
 	sen3/FileFixes/v0010_dat.cpp
+	sen3/FileFixes/v0030_dat.cpp
 	sen3/FileFixes/v0050_dat.cpp
 	sen3/FileFixes/voice_opus_ps4_103.cpp
 	sen3/FileFixes/voice_opus_v00e0441.cpp
