@@ -33,6 +33,8 @@ public:
     std::optional<uint64_t> GetLength() noexcept;
     size_t Read(void* data, size_t length) noexcept;
     size_t Write(const void* data, size_t length) noexcept;
+    bool Delete() noexcept;
+    bool Rename(const std::filesystem::path& p) noexcept;
 
     void* ReleaseHandle() noexcept;
 

@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
@@ -60,8 +61,8 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
         case OpenMode::Write:
 #ifdef _MSC_VER
             Filehandle = CreateFileW(p.c_str(),
-                                     GENERIC_WRITE,
-                                     FILE_SHARE_DELETE,
+                                     GENERIC_WRITE | DELETE,
+                                     0,
                                      nullptr,
                                      CREATE_ALWAYS,
                                      FILE_ATTRIBUTE_NORMAL,
@@ -215,6 +216,46 @@ size_t File::Write(const void* data, size_t length) noexcept {
         buffer += blockWritten;
     }
     return totalWritten;
+}
+
+bool File::Delete() noexcept {
+    assert(IsOpen());
+
+#ifdef _MSC_VER
+    FILE_DISPOSITION_INFO info{};
+    info.DeleteFile = TRUE;
+    if (SetFileInformationByHandle(Filehandle, FileDispositionInfo, &info, sizeof(info)) != 0) {
+        return true;
+    }
+#else
+    // TODO: How do you delete a file by handle in POSIX?
+#endif
+
+    return false;
+}
+
+bool File::Rename(const std::filesystem::path& p) noexcept {
+    assert(IsOpen());
+
+#ifdef _MSC_VER
+    // This struct has a very odd definition, because its size is dynamic, so we must do something
+    // like this...
+    const auto& wstr = p.native();
+    size_t allocationLength = sizeof(FILE_RENAME_INFO) + (wstr.size() * sizeof(char16_t));
+    auto buffer = std::make_unique<char[]>(allocationLength);
+    FILE_RENAME_INFO* info = reinterpret_cast<FILE_RENAME_INFO*>(buffer.get());
+    info->ReplaceIfExists = TRUE;
+    info->RootDirectory = nullptr;
+    info->FileNameLength = wstr.size() * 2;
+    std::memcpy(info->FileName, wstr.data(), wstr.size() * sizeof(char16_t));
+    if (SetFileInformationByHandle(Filehandle, FileRenameInfo, info, allocationLength) != 0) {
+        return true;
+    }
+#else
+    // TODO: How do you rename a file by handle in POSIX?
+#endif
+
+    return false;
 }
 
 void* File::ReleaseHandle() noexcept {
