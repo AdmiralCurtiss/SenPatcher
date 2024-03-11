@@ -287,52 +287,91 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem:
     const auto videoArchivePath = baseDir / L"mods/zzz_senpatcher_cs3video.p3a";
 
     if (!CheckArchiveExistsAndIsRightVersion(assetArchivePath)) {
-        SenPatcher::P3APackData packData;
-        packData.Alignment = 0x10;
-        AddSenPatcherVersionFile(packData);
-        if (CollectAssets(callback, packData, allowSwitchToNightmare)) {
-            std::stable_sort(
-                packData.Files.begin(),
-                packData.Files.end(),
-                [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                    return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
-                           < 0;
-                });
-            SenPatcher::PackP3A(assetArchivePath, packData);
+        auto tmpPath = assetArchivePath;
+        tmpPath += ".tmp";
+        SenPatcher::IO::File newArchive(tmpPath, SenPatcher::IO::OpenMode::Write);
+        if (newArchive.IsOpen()) {
+            SenPatcher::P3APackData packData;
+            packData.Alignment = 0x10;
+            AddSenPatcherVersionFile(packData);
+            if (CollectAssets(callback, packData, allowSwitchToNightmare)) {
+                std::stable_sort(
+                    packData.Files.begin(),
+                    packData.Files.end(),
+                    [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
+                        return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
+                               < 0;
+                    });
+                if (SenPatcher::PackP3A(newArchive, packData)) {
+                    if (!newArchive.Rename(assetArchivePath)) {
+                        newArchive.Delete();
+                    }
+                } else {
+                    newArchive.Delete();
+                }
+            } else {
+                newArchive.Delete();
+            }
         }
     }
 
     if (!CheckArchiveExistsAndIsRightVersion(audioArchivePath)) {
-        SenPatcher::P3APackData packData;
-        packData.Alignment = 0x10;
-        AddSenPatcherVersionFile(packData);
-        if (CollectAudio(callback, packData)) {
-            std::stable_sort(
-                packData.Files.begin(),
-                packData.Files.end(),
-                [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                    return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
-                           < 0;
-                });
-            SenPatcher::PackP3A(audioArchivePath, packData);
+        auto tmpPath = audioArchivePath;
+        tmpPath += ".tmp";
+        SenPatcher::IO::File newArchive(tmpPath, SenPatcher::IO::OpenMode::Write);
+        if (newArchive.IsOpen()) {
+            SenPatcher::P3APackData packData;
+            packData.Alignment = 0x10;
+            AddSenPatcherVersionFile(packData);
+            if (CollectAudio(callback, packData)) {
+                std::stable_sort(
+                    packData.Files.begin(),
+                    packData.Files.end(),
+                    [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
+                        return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
+                               < 0;
+                    });
+                if (SenPatcher::PackP3A(newArchive, packData)) {
+                    if (!newArchive.Rename(audioArchivePath)) {
+                        newArchive.Delete();
+                    }
+                } else {
+                    newArchive.Delete();
+                }
+            } else {
+                newArchive.Delete();
+            }
         }
     }
 
     if (!CheckArchiveExistsAndIsRightVersion(videoArchivePath)) {
-        SenPatcher::P3APackData packData;
-        packData.Alignment = 0x10;
-        AddSenPatcherVersionFile(packData);
-        if (SenLib::Sen3::FileFixes::insa05::TryApply(callback, packData.Files)
-            && SenLib::Sen3::FileFixes::insa08::TryApply(callback, packData.Files)
-            && SenLib::Sen3::FileFixes::insa09::TryApply(callback, packData.Files)) {
-            std::stable_sort(
-                packData.Files.begin(),
-                packData.Files.end(),
-                [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                    return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
-                           < 0;
-                });
-            SenPatcher::PackP3A(videoArchivePath, packData);
+        auto tmpPath = videoArchivePath;
+        tmpPath += ".tmp";
+        SenPatcher::IO::File newArchive(tmpPath, SenPatcher::IO::OpenMode::Write);
+        if (newArchive.IsOpen()) {
+            SenPatcher::P3APackData packData;
+            packData.Alignment = 0x10;
+            AddSenPatcherVersionFile(packData);
+            if (SenLib::Sen3::FileFixes::insa05::TryApply(callback, packData.Files)
+                && SenLib::Sen3::FileFixes::insa08::TryApply(callback, packData.Files)
+                && SenLib::Sen3::FileFixes::insa09::TryApply(callback, packData.Files)) {
+                std::stable_sort(
+                    packData.Files.begin(),
+                    packData.Files.end(),
+                    [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
+                        return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
+                               < 0;
+                    });
+                if (SenPatcher::PackP3A(newArchive, packData)) {
+                    if (!newArchive.Rename(videoArchivePath)) {
+                        newArchive.Delete();
+                    }
+                } else {
+                    newArchive.Delete();
+                }
+            } else {
+                newArchive.Delete();
+            }
         }
     }
 }
