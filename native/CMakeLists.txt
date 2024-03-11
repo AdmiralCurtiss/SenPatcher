@@ -167,6 +167,8 @@ target_sources(p3a_archiver PRIVATE
 	align.cpp
 	file.h
 	file.cpp
+	util/text.cpp
+	util/text.h
 
 	p3a/pack.cpp
 	p3a/pack.h
@@ -353,8 +355,11 @@ set(SOURCES_BASE_FIXES
 	util/text.h
 	util/vector.h
 
+	p3a/p3a.cpp
+	p3a/p3a.h
 	p3a/pack.cpp
 	p3a/pack.h
+	p3a/structs.h
 	p3a/util.cpp
 	p3a/util.h
 
@@ -384,14 +389,12 @@ target_sources(cs3test PRIVATE
 target_include_directories(cs3test
 	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 )
+add_dependencies(cs3test GenerateGitRevisionHeader)
 
 add_library(cs3hook SHARED)
 target_sources(cs3hook PRIVATE
 	dinput8.def
 	main_cs3.cpp
-	p3a/structs.h
-	p3a/p3a.cpp
-	p3a/p3a.h
 	x64/emitter.cpp
 	x64/emitter.h
 
@@ -414,6 +417,8 @@ target_sources(sha1_test PRIVATE
 	sha1.h
 	file.cpp
 	file.h
+	util/text.cpp
+	util/text.h
 )
 target_include_directories(sha1_test
 	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
