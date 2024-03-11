@@ -28,6 +28,6 @@ if (GIT_FOUND)
 endif()
 
 message(STATUS "Revision is ${SENPATCHER_VERSION}")
-file(WRITE "${CMAKE_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h.tmp" "#pragma once\n#define SENPATCHER_VERSION \"${SENPATCHER_VERSION}\";")
+file(WRITE "${CMAKE_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h.tmp" "#pragma once\n#define SENPATCHER_VERSION \"${SENPATCHER_VERSION}\"")
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h.tmp" "${CMAKE_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h")
 file(REMOVE ${SCMREV_HEADER_PATH}.tmp)
