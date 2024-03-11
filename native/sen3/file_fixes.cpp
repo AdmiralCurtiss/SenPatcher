@@ -111,7 +111,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
 #define EARLY_EXIT(expr)  \
     do {                  \
-        if (!expr)        \
+        if (!(expr))      \
             return false; \
     } while (false)
 
@@ -204,6 +204,14 @@ static bool CollectAudio(const SenPatcher::GetCheckedFileCallback& callback,
     return true;
 }
 
+static bool CollectVideo(const SenPatcher::GetCheckedFileCallback& callback,
+                         SenPatcher::P3APackData& packData) {
+    EARLY_EXIT(SenLib::Sen3::FileFixes::insa05::TryApply(callback, packData.Files));
+    EARLY_EXIT(SenLib::Sen3::FileFixes::insa08::TryApply(callback, packData.Files));
+    EARLY_EXIT(SenLib::Sen3::FileFixes::insa09::TryApply(callback, packData.Files));
+    return true;
+}
+
 static bool IsSenPatcherVersionFile(const SenPatcher::P3AFileInfo& f) {
     return strcmp((const char*)f.Filename.data(), "_senpatcher_version.txt") == 0;
 }
@@ -237,6 +245,41 @@ static void AddSenPatcherVersionFile(SenPatcher::P3APackData& packData) {
         SenPatcher::P3APackFile{std::move(bin),
                                 SenPatcher::InitializeP3AFilename("_senpatcher_version.txt"),
                                 SenPatcher::P3ACompressionType::None});
+}
+
+static void CreateArchiveIfNeeded(
+    const std::filesystem::path& archivePath,
+    const std::function<bool(SenPatcher::P3APackData& packData)>& collectAssets) {
+    // check if the archive already exists and is at the correct version,
+    // and if yes don't recreate it
+    if (!CheckArchiveExistsAndIsRightVersion(archivePath)) {
+        auto tmpPath = archivePath;
+        tmpPath += ".tmp";
+        SenPatcher::IO::File newArchive(tmpPath, SenPatcher::IO::OpenMode::Write);
+        if (newArchive.IsOpen()) {
+            SenPatcher::P3APackData packData;
+            packData.Alignment = 0x10;
+            AddSenPatcherVersionFile(packData);
+            if (collectAssets(packData)) {
+                std::stable_sort(
+                    packData.Files.begin(),
+                    packData.Files.end(),
+                    [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
+                        return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
+                               < 0;
+                    });
+                if (SenPatcher::PackP3A(newArchive, packData)) {
+                    if (!newArchive.Rename(archivePath)) {
+                        newArchive.Delete();
+                    }
+                } else {
+                    newArchive.Delete();
+                }
+            } else {
+                newArchive.Delete();
+            }
+        }
+    }
 }
 
 void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem::path& baseDir) {
@@ -280,99 +323,17 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem:
         return result;
     };
 
-    // check if the archives already exist and are at the correct version, and if yes don't recreate
-    // them
-    const auto assetArchivePath = baseDir / L"mods/zzz_senpatcher_cs3asset.p3a";
-    const auto audioArchivePath = baseDir / L"mods/zzz_senpatcher_cs3audio.p3a";
-    const auto videoArchivePath = baseDir / L"mods/zzz_senpatcher_cs3video.p3a";
-
-    if (!CheckArchiveExistsAndIsRightVersion(assetArchivePath)) {
-        auto tmpPath = assetArchivePath;
-        tmpPath += ".tmp";
-        SenPatcher::IO::File newArchive(tmpPath, SenPatcher::IO::OpenMode::Write);
-        if (newArchive.IsOpen()) {
-            SenPatcher::P3APackData packData;
-            packData.Alignment = 0x10;
-            AddSenPatcherVersionFile(packData);
-            if (CollectAssets(callback, packData, allowSwitchToNightmare)) {
-                std::stable_sort(
-                    packData.Files.begin(),
-                    packData.Files.end(),
-                    [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                        return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
-                               < 0;
-                    });
-                if (SenPatcher::PackP3A(newArchive, packData)) {
-                    if (!newArchive.Rename(assetArchivePath)) {
-                        newArchive.Delete();
-                    }
-                } else {
-                    newArchive.Delete();
-                }
-            } else {
-                newArchive.Delete();
-            }
-        }
-    }
-
-    if (!CheckArchiveExistsAndIsRightVersion(audioArchivePath)) {
-        auto tmpPath = audioArchivePath;
-        tmpPath += ".tmp";
-        SenPatcher::IO::File newArchive(tmpPath, SenPatcher::IO::OpenMode::Write);
-        if (newArchive.IsOpen()) {
-            SenPatcher::P3APackData packData;
-            packData.Alignment = 0x10;
-            AddSenPatcherVersionFile(packData);
-            if (CollectAudio(callback, packData)) {
-                std::stable_sort(
-                    packData.Files.begin(),
-                    packData.Files.end(),
-                    [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                        return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
-                               < 0;
-                    });
-                if (SenPatcher::PackP3A(newArchive, packData)) {
-                    if (!newArchive.Rename(audioArchivePath)) {
-                        newArchive.Delete();
-                    }
-                } else {
-                    newArchive.Delete();
-                }
-            } else {
-                newArchive.Delete();
-            }
-        }
-    }
-
-    if (!CheckArchiveExistsAndIsRightVersion(videoArchivePath)) {
-        auto tmpPath = videoArchivePath;
-        tmpPath += ".tmp";
-        SenPatcher::IO::File newArchive(tmpPath, SenPatcher::IO::OpenMode::Write);
-        if (newArchive.IsOpen()) {
-            SenPatcher::P3APackData packData;
-            packData.Alignment = 0x10;
-            AddSenPatcherVersionFile(packData);
-            if (SenLib::Sen3::FileFixes::insa05::TryApply(callback, packData.Files)
-                && SenLib::Sen3::FileFixes::insa08::TryApply(callback, packData.Files)
-                && SenLib::Sen3::FileFixes::insa09::TryApply(callback, packData.Files)) {
-                std::stable_sort(
-                    packData.Files.begin(),
-                    packData.Files.end(),
-                    [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                        return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
-                               < 0;
-                    });
-                if (SenPatcher::PackP3A(newArchive, packData)) {
-                    if (!newArchive.Rename(videoArchivePath)) {
-                        newArchive.Delete();
-                    }
-                } else {
-                    newArchive.Delete();
-                }
-            } else {
-                newArchive.Delete();
-            }
-        }
-    }
+    CreateArchiveIfNeeded(baseDir / L"mods/zzz_senpatcher_cs3asset.p3a",
+                          [&](SenPatcher::P3APackData& packData) -> bool {
+                              return CollectAssets(callback, packData, allowSwitchToNightmare);
+                          });
+    CreateArchiveIfNeeded(baseDir / L"mods/zzz_senpatcher_cs3audio.p3a",
+                          [&](SenPatcher::P3APackData& packData) -> bool {
+                              return CollectAudio(callback, packData);
+                          });
+    CreateArchiveIfNeeded(baseDir / L"mods/zzz_senpatcher_cs3video.p3a",
+                          [&](SenPatcher::P3APackData& packData) -> bool {
+                              return CollectVideo(callback, packData);
+                          });
 }
 } // namespace SenLib::Sen3
