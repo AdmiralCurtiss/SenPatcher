@@ -43,6 +43,27 @@ std::string Utf16ToUtf8(const char16_t* data, size_t length) {
     return result;
 }
 
+std::u16string Utf8ToUtf16(const char* data, size_t length) {
+    if (length > INT32_MAX) {
+        throw "string too long";
+    }
+
+    const auto requiredBytes = MultiByteToWideChar(CP_UTF8, 0, data, length, nullptr, 0);
+    if (requiredBytes <= 0) {
+        throw "string conversion failed";
+    }
+
+    std::u16string utf16;
+    utf16.resize(requiredBytes);
+    const auto convertedBytes =
+        MultiByteToWideChar(CP_UTF8, 0, data, length, (wchar_t*)utf16.data(), utf16.size());
+    if (convertedBytes != requiredBytes) {
+        throw "string conversion failed";
+    }
+
+    return utf16;
+}
+
 std::string ShiftJisToUtf8(const char* data, size_t length) {
     if (length > INT32_MAX) {
         throw "string too long";
