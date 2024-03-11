@@ -110,6 +110,15 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
 }
 
 bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packData) {
+    IO::File file(archivePath, IO::OpenMode::Write);
+    return PackP3A(file, packData);
+}
+
+bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
+    if (!file.IsOpen()) {
+        return false;
+    }
+
     std::unique_ptr<uint8_t[]> dict;
     uint64_t dictLength = 0;
     ZSTD_CDict_UniquePtr cdict = nullptr;
@@ -147,10 +156,6 @@ bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packDa
     const auto& fileinfos = packData.Files;
 
     uint64_t position = 0;
-    IO::File file(archivePath, IO::OpenMode::Write);
-    if (!file.IsOpen()) {
-        return false;
-    }
     {
         P3AHeader header{};
         header.Magic = {'P', 'H', '3', 'A', 'R', 'C', 'V', '\0'};

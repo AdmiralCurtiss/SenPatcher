@@ -7,6 +7,10 @@
 #include <variant>
 #include <vector>
 
+namespace SenPatcher::IO {
+struct File;
+}
+
 namespace SenPatcher {
 enum class P3ACompressionType : uint64_t;
 
@@ -32,4 +36,5 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                           P3ACompressionType desiredCompressionType,
                           const std::filesystem::path& dictPath = std::filesystem::path());
 bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packData);
+bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData);
 } // namespace SenPatcher
