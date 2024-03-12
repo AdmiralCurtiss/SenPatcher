@@ -185,4 +185,18 @@ std::string AdjustNewlinesToTwoSpaces(std::string desc) {
     }
     return s;
 }
+
+static bool IsWhitespace(char c) {
+    return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v';
+}
+
+std::string_view Trim(std::string_view sv) {
+    while (!sv.empty() && IsWhitespace(sv.front())) {
+        sv.remove_prefix(1);
+    }
+    while (!sv.empty() && IsWhitespace(sv.back())) {
+        sv.remove_suffix(1);
+    }
+    return sv;
+}
 } // namespace HyoutaUtils::TextUtils

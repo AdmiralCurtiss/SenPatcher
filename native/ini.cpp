@@ -6,26 +6,15 @@
 #include <vector>
 
 #include "file.h"
+#include "util/text.h"
 
 namespace SenPatcher {
 IniFile::IniFile() = default;
 IniFile::~IniFile() = default;
 
-static bool IsWhitespace(char c) {
-    return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v';
-}
-
-static std::string_view Trim(std::string_view sv) {
-    while (!sv.empty() && IsWhitespace(sv.front())) {
-        sv.remove_prefix(1);
-    }
-    while (!sv.empty() && IsWhitespace(sv.back())) {
-        sv.remove_suffix(1);
-    }
-    return sv;
-}
-
 bool IniFile::ParseFile(SenPatcher::IO::File& file) {
+    using HyoutaUtils::TextUtils::Trim;
+
     if (!file.IsOpen()) {
         return false;
     }

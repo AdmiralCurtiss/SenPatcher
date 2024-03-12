@@ -25,6 +25,7 @@
 #include "file.h"
 #include "ini.h"
 #include "logger.h"
+#include "util/text.h"
 
 #include "sen3/file_fixes.h"
 
@@ -306,28 +307,145 @@ static bool IsValidReroutablePath(const char* path) {
            && (path[4] == '/' || path[4] == '\\');
 }
 
+static bool LoadOrderTxt(std::vector<std::filesystem::path>& output,
+                         SenPatcher::Logger& logger,
+                         SenPatcher::IO::File& file) {
+    using HyoutaUtils::TextUtils::Trim;
+    using HyoutaUtils::TextUtils::Utf8ToUtf16;
+
+    if (!file.IsOpen()) {
+        return false;
+    }
+    const auto length = file.GetLength();
+    if (!length) {
+        return false;
+    }
+    auto buffer = std::make_unique_for_overwrite<char[]>(*length);
+    if (file.Read(buffer.get(), *length) != *length) {
+        return false;
+    }
+    std::string_view remaining(buffer.get(), *length);
+    // skip UTF8 BOM if it's there
+    if (remaining.starts_with("\xef\xbb\xbf")) {
+        remaining = remaining.substr(3);
+    }
+
+    while (!remaining.empty()) {
+        const size_t nextLineSeparator = remaining.find_first_of("\r\n");
+        std::string_view line = Trim(remaining.substr(0, nextLineSeparator));
+        remaining = nextLineSeparator != std::string_view::npos
+                        ? remaining.substr(nextLineSeparator + 1)
+                        : std::string_view();
+        if (line.empty()) {
+            continue;
+        }
+        auto path = std::filesystem::path(Utf8ToUtf16(line.data(), line.size()));
+
+        // TODO: sanitize path here so it doesn't go outside the mods dir
+
+        output.emplace_back(path);
+    }
+
+    return true;
+}
+
+static bool WriteOrderTxt(const std::vector<std::filesystem::path>& paths,
+                          SenPatcher::Logger& logger,
+                          SenPatcher::IO::File& file) {
+    if (!file.IsOpen()) {
+        return false;
+    }
+
+    for (const auto& path : paths) {
+        const auto& string = path.native();
+        const auto utf8 =
+            HyoutaUtils::TextUtils::Utf16ToUtf8((const char16_t*)string.data(), string.size());
+        if (file.Write(utf8.data(), utf8.size()) != utf8.size()) {
+            return false;
+        }
+        if (file.Write("\r\n", 2) != 2) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& logger,
+                                                          const std::filesystem::path& modsDir) {
+    std::vector<std::filesystem::path> paths;
+    const auto orderPath = modsDir / L"order.txt";
+
+    // check for order.txt, which may define an order (priority) for the mods
+    {
+        SenPatcher::IO::File orderfile(orderPath, SenPatcher::IO::OpenMode::Read);
+        LoadOrderTxt(paths, logger, orderfile);
+    }
+
+    // the rest we just load in whatever the order the filesystem gives us, which may be
+    // arbitrary...
+    std::error_code ec;
+    std::filesystem::directory_iterator iterator(modsDir, ec);
+    if (ec) {
+        return paths;
+    }
+
+    bool modified = false;
+    for (auto const& entry : iterator) {
+        if (entry.is_directory()) {
+            continue;
+        }
+
+        auto& path = entry.path();
+        auto& string = path.native();
+        if (string.size() >= 4 && string[string.size() - 4] == L'.'
+            && (string[string.size() - 3] == L'P' || string[string.size() - 3] == L'p')
+            && string[string.size() - 2] == L'3'
+            && (string[string.size() - 1] == L'A' || string[string.size() - 1] == L'a')) {
+            auto filename = path.filename();
+            if (std::find(paths.begin(), paths.end(), filename) == paths.end()) {
+                paths.emplace_back(std::move(filename));
+                modified = true;
+            }
+        }
+    }
+
+    if (modified) {
+        // write out the modified file so that the user has an easier time editing the priorities
+        auto orderPathTmp = orderPath;
+        orderPathTmp += L".tmp";
+        SenPatcher::IO::File orderfile(orderPathTmp, SenPatcher::IO::OpenMode::Write);
+        if (WriteOrderTxt(paths, logger, orderfile)) {
+            if (!orderfile.Rename(orderPath)) {
+                orderfile.Delete();
+            }
+        } else {
+            orderfile.Delete();
+        }
+    }
+
+    return paths;
+}
+
 static void LoadModP3As(SenPatcher::Logger& logger, const std::filesystem::path& baseDir) {
     s_CombinedFileInfoCount = 0;
     s_CombinedFileInfos.reset();
     s_P3As.reset();
+    {
+        std::error_code ec;
+        s_CheckDevFolderForAssets = std::filesystem::is_directory(baseDir / L"dev", ec);
+    }
 
     size_t p3acount = 0;
     std::unique_ptr<P3AData[]> p3as;
     {
+        const auto modsDir = baseDir / L"mods";
+        const auto modPaths = CollectModPaths(logger, modsDir);
         std::vector<SenPatcher::P3A> p3avector;
-        std::error_code ec;
-        s_CheckDevFolderForAssets = std::filesystem::is_directory(baseDir / L"dev", ec);
-        std::filesystem::directory_iterator iterator(baseDir / L"mods", ec);
-        if (ec) {
-            return;
-        }
-        for (auto const& entry : iterator) {
-            if (entry.is_directory()) {
-                continue;
-            }
-
+        p3avector.reserve(modPaths.size());
+        for (auto const& path : modPaths) {
             SenPatcher::P3A& p3a = p3avector.emplace_back();
-            if (!p3a.Load(entry.path())) {
+            if (!p3a.Load(modsDir / path)) {
                 p3avector.pop_back();
             }
         }
@@ -342,6 +460,10 @@ static void LoadModP3As(SenPatcher::Logger& logger, const std::filesystem::path&
     size_t totalFileInfoCount = 0;
     for (size_t i = 0; i < p3acount; ++i) {
         totalFileInfoCount += p3as[i].Archive.FileCount;
+    }
+
+    if (totalFileInfoCount == 0) {
+        return;
     }
 
     // now to make a binary tree from all files from all archives

@@ -33,4 +33,6 @@ std::string Insert(std::string_view input, size_t offset, std::string_view inser
 std::string UInt32ToString(uint32_t value);
 
 std::string AdjustNewlinesToTwoSpaces(std::string desc);
+
+std::string_view Trim(std::string_view sv);
 } // namespace HyoutaUtils::TextUtils
