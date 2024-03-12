@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include <string_view>
 
 namespace SenPatcher {
 struct Logger {
@@ -15,7 +16,7 @@ public:
     Logger& operator=(Logger&& other) = delete;
     ~Logger();
 
-    Logger& Log(const char* text);
+    Logger& Log(std::string_view text);
     Logger& LogPtr(const void* ptr);
     Logger& LogInt(int v);
     Logger& LogHex(unsigned long long v);

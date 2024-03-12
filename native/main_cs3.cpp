@@ -23,6 +23,7 @@
 #include "crc32.h"
 
 #include "file.h"
+#include "ini.h"
 #include "logger.h"
 
 #include "sen3/file_fixes.h"
@@ -1896,6 +1897,20 @@ static void PatchFixControllerMappings(SenPatcher::Logger& logger,
     }
 }
 
+static bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        const char cl = (lhs[i] >= 'A' && lhs[i] <= 'Z') ? (lhs[i] + ('a' - 'A')) : lhs[i];
+        const char cr = (rhs[i] >= 'A' && rhs[i] <= 'Z') ? (rhs[i] + ('a' - 'A')) : rhs[i];
+        if (cl != cr) {
+            return false;
+        }
+    }
+    return true;
+}
+
 static PDirectInput8Create addr_PDirectInput8Create = 0;
 static void* SetupHacks() {
     SenPatcher::Logger logger("senpatcher_inject_cs3.log");
@@ -1942,7 +1957,59 @@ static void* SetupHacks() {
         return nullptr;
     }
 
-    SenLib::Sen3::CreateAssetPatchIfNeeded(logger, baseDir);
+    bool assetFixes = true;
+    bool fixInGameButtonMappingValidity = true;
+    bool allowSwitchToNightmare = true;
+    bool fixControllerMapping = true;
+    bool disableMouseCapture = false;
+    bool showMouseCursor = false;
+    bool disablePauseOnFocusLoss = false;
+    bool forceXInput = false;
+    bool swapBrokenMasterQuartzValuesForDisplay = true;
+
+    {
+        SenPatcher::IO::File settingsFile(baseDir / L"senpatcher_settings.ini",
+                                          SenPatcher::IO::OpenMode::Read);
+        if (settingsFile.IsOpen()) {
+            SenPatcher::IniFile ini;
+            if (ini.ParseFile(settingsFile)) {
+                const auto check_boolean =
+                    [&](std::string_view section, std::string_view key, bool& b) {
+                        const auto* kvp = ini.FindValue(section, key);
+                        if (kvp) {
+                            if (CaseInsensitiveEquals(kvp->Value, "true")) {
+                                logger.Log("Patch ");
+                                logger.Log(key);
+                                logger.Log(" enabled via ini.\n");
+                                b = true;
+                            } else if (CaseInsensitiveEquals(kvp->Value, "false")) {
+                                logger.Log("Patch ");
+                                logger.Log(key);
+                                logger.Log(" disabled via ini.\n");
+                                b = false;
+                            } else {
+                                logger.Log("Patch ");
+                                logger.Log(key);
+                                logger.Log(" not found in ini, leaving default.\n");
+                            }
+                        }
+                    };
+                check_boolean("CS3", "AssetFixes", assetFixes);
+                check_boolean("CS3", "FixInGameButtonRemapping", fixInGameButtonMappingValidity);
+                check_boolean("CS3", "AllowSwitchToNightmare", allowSwitchToNightmare);
+                check_boolean("CS3", "FixControllerMapping", fixControllerMapping);
+                check_boolean("CS3", "DisableMouseCapture", disableMouseCapture);
+                check_boolean("CS3", "ShowMouseCursor", showMouseCursor);
+                check_boolean("CS3", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
+                check_boolean("CS3", "ForceXInput", forceXInput);
+            }
+        }
+    }
+
+    if (assetFixes) {
+        SenLib::Sen3::CreateAssetPatchIfNeeded(logger, baseDir);
+    }
+
     LoadModP3As(logger, baseDir);
 
     InjectAtFFileOpen(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
@@ -1953,15 +2020,6 @@ static void* SetupHacks() {
 
     DeglobalizeMutexes(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     AddSenPatcherVersionToTitle(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-
-    bool fixInGameButtonMappingValidity = true;
-    bool allowSwitchToNightmare = true;
-    bool swapBrokenMasterQuartzValuesForDisplay = true;
-    bool disableMouseCapture = true;
-    bool showMouseCursor = true;
-    bool disablePauseOnFocusLoss = true;
-    bool forceXInput = true;
-    bool fixControllerMapping = true;
 
     if (fixInGameButtonMappingValidity) {
         FixInGameButtonMappingValidity(

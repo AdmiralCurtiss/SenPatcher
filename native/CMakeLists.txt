@@ -379,6 +379,8 @@ set(SOURCES_BASE_FIXES
 add_executable(cs3test)
 target_sources(cs3test PRIVATE
 	main_cs3_test.cpp
+	ini.cpp
+	ini.h
 	x64/emitter.cpp
 	x64/emitter.h
 
@@ -398,6 +400,8 @@ add_library(cs3hook SHARED)
 target_sources(cs3hook PRIVATE
 	dinput8.def
 	main_cs3.cpp
+	ini.cpp
+	ini.h
 	x64/emitter.cpp
 	x64/emitter.h
 

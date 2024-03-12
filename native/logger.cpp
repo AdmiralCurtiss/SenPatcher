@@ -20,9 +20,9 @@ Logger::~Logger() {
     }
 }
 
-Logger& Logger::Log(const char* text) {
+Logger& Logger::Log(std::string_view text) {
     if (f) {
-        fwrite(text, strlen(text), 1, f);
+        fwrite(text.data(), 1, text.size(), f);
         fflush(f);
     }
     return *this;
