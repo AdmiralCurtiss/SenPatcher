@@ -1,42 +1,27 @@
-#define _CRT_SECURE_NO_WARNINGS
-
-#include <Windows.h>
-
-#include <algorithm>
 #include <array>
-#include <bit>
-#include <cassert>
-#include <cinttypes>
 #include <cstdint>
-#include <cstdio>
+#include <cstring>
 #include <filesystem>
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <vector>
+#include <string>
+#include <string_view>
 
 #include "crc32.h"
-
 #include "file.h"
 #include "ini.h"
 #include "logger.h"
-#include "util/text.h"
+
+#include "modload/loaded_mods.h"
 
 #include "sen3/exe_patch.h"
 #include "sen3/file_fixes.h"
 #include "sen3/inject_modloader.h"
 
-#include "p3a/p3a.h"
-#include "p3a/structs.h"
-
-#include "modload/loaded_mods.h"
-
-#include "x64/emitter.h"
-#include "x64/inject_jump_into.h"
-#include "x64/page_unprotect.h"
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 using SenLib::Sen3::GameVersion;
-using SenPatcher::x64::PageUnprotect;
 
 using PDirectInput8Create =
     HRESULT (*)(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, void* punkOuter);
@@ -48,7 +33,7 @@ static PDirectInput8Create LoadForwarderAddress(SenPatcher::Logger& logger) {
         logger.Log("Failed constructing path for system dinput8.dll.\n");
         return nullptr;
     }
-    memcpy(tmp + count, L"\\dinput8.dll\0", sizeof(L"\\dinput8.dll\0"));
+    std::memcpy(tmp + count, L"\\dinput8.dll\0", sizeof(L"\\dinput8.dll\0"));
 
     HMODULE dll = ::LoadLibraryW(tmp);
     if (!dll) {
@@ -77,7 +62,7 @@ static char* Align16CodePage(SenPatcher::Logger& logger, void* new_page) {
 static GameVersion FindImageBase(SenPatcher::Logger& logger, void** code) {
     GameVersion gameVersion = GameVersion::Unknown;
     MEMORY_BASIC_INFORMATION info;
-    memset(&info, 0, sizeof(info));
+    std::memset(&info, 0, sizeof(info));
     *code = nullptr;
     size_t address = 0;
     while (true) {
@@ -158,6 +143,11 @@ struct FFile {
 
     uint32_t MemoryPosition;
 };
+static_assert(offsetof(FFile, Filesize) == 0x8);
+static_assert(offsetof(FFile, NativeFileHandle) == 0x10);
+static_assert(offsetof(FFile, MemoryPointer) == 0x18);
+static_assert(offsetof(FFile, MemoryPointerForFreeing) == 0x20);
+static_assert(offsetof(FFile, MemoryPosition) == 0x28);
 
 using PTrackedMalloc = void*(__fastcall*)(uint64_t size,
                                           uint64_t alignment,
@@ -301,6 +291,7 @@ struct FSoundFile {
     void* FTell;
     void* FClose;
 };
+static_assert(sizeof(FSoundFile) == 32);
 
 static int32_t __fastcall SenPatcherFile_FSoundFileRead(SenPatcher::IO::File* file,
                                                         void* memory,
