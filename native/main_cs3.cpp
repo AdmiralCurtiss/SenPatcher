@@ -150,46 +150,67 @@ static GameVersion FindImageBase(SenPatcher::Logger& logger, void** code) {
     MEMORY_BASIC_INFORMATION info;
     memset(&info, 0, sizeof(info));
     *code = nullptr;
-    for (unsigned long long address = 0; address < 0x80000000000; address += info.RegionSize) {
+    size_t address = 0;
+    while (true) {
         if (VirtualQuery(reinterpret_cast<void*>(address), &info, sizeof(info)) == 0) {
+            logger.Log("Querying address ").LogHex(address).Log(" failed.\n");
+            break;
+        }
+        if (info.RegionSize == 0) {
+            logger.Log("Querying address ").LogHex(address).Log(" returned zero-sized region.\n");
             break;
         }
 
-        if (info.State == MEM_COMMIT && info.Type == MEM_IMAGE) {
-            logger.Log("Allocation at ")
-                .LogPtr(info.AllocationBase)
-                .Log(", base ptr ")
-                .LogPtr(info.BaseAddress)
-                .Log(", size ")
-                .LogHex(info.RegionSize)
-                .Log(", protection ")
-                .LogHex(info.Protect)
-                .Log(".\n");
-            if ((*code == 0) && info.RegionSize == 0x7e9000 && info.Protect == PAGE_EXECUTE_READ) {
-                // crc_t crc = crc_init();
-                // crc = crc_update(crc, info.BaseAddress, info.RegionSize);
-                // crc = crc_finalize(crc);
-                // logger.Log("Checksum is ").LogHex(crc).Log(".\n");
-                logger.Log("Appears to be the EN version.\n");
-                *code = info.BaseAddress;
-                gameVersion = GameVersion::English;
-            } else if ((*code == 0) && info.RegionSize == 0x7dc000
-                       && info.Protect == PAGE_EXECUTE_READ) {
-                // crc_t crc = crc_init();
-                // crc = crc_update(crc, info.BaseAddress, info.RegionSize);
-                // crc = crc_finalize(crc);
-                // logger.Log("Checksum is ").LogHex(crc).Log(".\n");
-                logger.Log("Appears to be the JP version.\n");
-                *code = info.BaseAddress;
-                gameVersion = GameVersion::Japanese;
+        logger.Log("Querying address ")
+            .LogHex(address)
+            .Log(", got allocation at ")
+            .LogPtr(info.AllocationBase)
+            .Log(", base ptr ")
+            .LogPtr(info.BaseAddress)
+            .Log(", size ")
+            .LogHex(info.RegionSize)
+            .Log(", protection ")
+            .LogHex(info.Protect)
+            .Log(".\n");
+        if (gameVersion == GameVersion::Unknown && info.State == MEM_COMMIT
+            && info.Type == MEM_IMAGE) {
+            if (info.RegionSize == 0x7e9000 && info.Protect == PAGE_EXECUTE_READ) {
+                crc_t crc = crc_init();
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xf48f0, 0x3d);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x7c51d8, 0x24);
+                crc = crc_finalize(crc);
+                logger.Log("Checksum is ").LogHex(crc).Log(".\n");
+                if (crc == 0x19068487) {
+                    logger.Log("Appears to be the EN version.\n");
+                    *code = info.BaseAddress;
+                    gameVersion = GameVersion::English;
+                }
+            } else if (info.RegionSize == 0x7dc000 && info.Protect == PAGE_EXECUTE_READ) {
+                crc_t crc = crc_init();
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xf4270, 0x3d);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x7b82bc, 0x24);
+                crc = crc_finalize(crc);
+                logger.Log("Checksum is ").LogHex(crc).Log(".\n");
+                if (crc == 0x19068487) {
+                    logger.Log("Appears to be the JP version.\n");
+                    *code = info.BaseAddress;
+                    gameVersion = GameVersion::Japanese;
+                }
             }
 
-            // logger.Log("First 64 bytes are:");
-            // for (int i = 0; i < (info.RegionSize < 64 ? info.RegionSize : 64); ++i) {
-            //    logger.Log(" ").LogHex(*(reinterpret_cast<unsigned char*>(info.BaseAddress) + i));
+            // logger.Log("Memory is: ");
+            // for (int i = 0; i < info.RegionSize; ++i) {
+            //  logger.Log(" ").LogHex(*(reinterpret_cast<unsigned char*>(info.BaseAddress) + i));
             // }
             // logger.Log("\n");
         }
+
+        if (address >= (size_t(0) - info.RegionSize)) {
+            // would wrap around
+            break;
+        }
+
+        address += info.RegionSize;
     }
 
     return gameVersion;
