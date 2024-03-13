@@ -379,10 +379,6 @@ set(SOURCES_BASE_FIXES
 add_executable(cs3test)
 target_sources(cs3test PRIVATE
 	main_cs3_test.cpp
-	ini.cpp
-	ini.h
-	x64/emitter.cpp
-	x64/emitter.h
 
 	${SOURCES_BASE_FIXES}
 	${SOURCES_CS3_FIXES}
@@ -404,6 +400,21 @@ target_sources(cs3hook PRIVATE
 	ini.h
 	x64/emitter.cpp
 	x64/emitter.h
+	x64/inject_jump_into.h
+	x64/page_unprotect.cpp
+	x64/page_unprotect.h
+
+	sen3/exe_patch.h
+	sen3/exe_patch_add_senpatcher_version_to_title.cpp
+	sen3/exe_patch_allow_switch_to_nightmare.cpp
+	sen3/exe_patch_deglobalize_mutexes.cpp
+	sen3/exe_patch_disable_mouse_capture.cpp
+	sen3/exe_patch_disable_pause_on_focus_loss.cpp
+	sen3/exe_patch_fix_controller_mappings.cpp
+	sen3/exe_patch_fix_in_game_button_mapping.cpp
+	sen3/exe_patch_force_xinput.cpp
+	sen3/exe_patch_show_mouse_cursor.cpp
+	sen3/exe_patch_swap_broken_mq_values.cpp
 
 	${SOURCES_BASE_FIXES}
 	${SOURCES_CS3_FIXES}
