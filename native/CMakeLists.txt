@@ -398,6 +398,8 @@ target_sources(cs3hook PRIVATE
 	main_cs3.cpp
 	ini.cpp
 	ini.h
+	modload/loaded_mods.cpp
+	modload/loaded_mods.h
 	x64/emitter.cpp
 	x64/emitter.h
 	x64/inject_jump_into.h
