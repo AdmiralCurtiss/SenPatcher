@@ -83,14 +83,6 @@ struct PageUnprotect {
 };
 } // namespace
 
-static int SelectOffset(GameVersion version, int en, int jp) {
-    switch (version) {
-        case GameVersion::English: return en;
-        case GameVersion::Japanese: return jp;
-        default: return 0;
-    }
-}
-
 using PDirectInput8Create =
     HRESULT (*)(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, void* punkOuter);
 static PDirectInput8Create LoadForwarderAddress(SenPatcher::Logger& logger) {
@@ -115,24 +107,6 @@ static PDirectInput8Create LoadForwarderAddress(SenPatcher::Logger& logger) {
         logger.Log("Found system DirectInput8Create at ").LogPtr(addr).Log(".\n");
     }
     return (PDirectInput8Create)addr;
-}
-
-static void WriteFloat(SenPatcher::Logger& logger, void* addr, float value) {
-    logger.Log("Writing float ").LogFloat(value).Log(" to ").LogPtr(addr).Log(".\n");
-    PageUnprotect unprotect(logger, addr, 4);
-    memcpy(addr, &value, 4);
-}
-
-static void WriteInt(SenPatcher::Logger& logger, void* addr, int value) {
-    logger.Log("Writing int ").LogInt(value).Log(" to ").LogPtr(addr).Log(".\n");
-    PageUnprotect unprotect(logger, addr, 4);
-    memcpy(addr, &value, 4);
-}
-
-static void WriteByte(SenPatcher::Logger& logger, void* addr, char value) {
-    logger.Log("Writing byte ").LogHex(value).Log(" to ").LogPtr(addr).Log(".\n");
-    PageUnprotect unprotect(logger, addr, 1);
-    memcpy(addr, &value, 1);
 }
 
 static char* Align16CodePage(SenPatcher::Logger& logger, void* new_page) {
@@ -2054,12 +2028,7 @@ static bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
     return true;
 }
 
-static PDirectInput8Create addr_PDirectInput8Create = 0;
-static void* SetupHacks() {
-    SenPatcher::Logger logger("senpatcher_inject_cs3.log");
-
-    addr_PDirectInput8Create = LoadForwarderAddress(logger);
-
+static void* SetupHacks(SenPatcher::Logger& logger) {
     void* codeBase = nullptr;
     GameVersion version = FindImageBase(logger, &codeBase);
     if (version == GameVersion::Unknown || !codeBase) {
@@ -2204,7 +2173,14 @@ static void* SetupHacks() {
 
     return newPageStart;
 }
-static void* dummy = SetupHacks();
+
+PDirectInput8Create InjectionDllInitializer() {
+    SenPatcher::Logger logger("senpatcher_inject_cs3.log");
+    auto* forwarder = LoadForwarderAddress(logger);
+    SetupHacks(logger);
+    return forwarder;
+}
+static PDirectInput8Create addr_PDirectInput8Create = InjectionDllInitializer();
 
 extern "C" {
 HRESULT DirectInput8Create(HINSTANCE hinst,
