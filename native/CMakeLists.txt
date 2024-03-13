@@ -417,6 +417,8 @@ target_sources(cs3hook PRIVATE
 	sen3/exe_patch_force_xinput.cpp
 	sen3/exe_patch_show_mouse_cursor.cpp
 	sen3/exe_patch_swap_broken_mq_values.cpp
+	sen3/inject_modloader.h
+	sen3/inject_modloader.cpp
 
 	${SOURCES_BASE_FIXES}
 	${SOURCES_CS3_FIXES}
