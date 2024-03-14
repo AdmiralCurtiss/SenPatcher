@@ -11,26 +11,31 @@ struct SenScriptPatcher {
 
     std::vector<char>& Bin;
 
-    SenScriptPatcher(std::vector<char>& s);
+    SenScriptPatcher(std::vector<char>& s) : Bin(s) {}
+    SenScriptPatcher(const SenScriptPatcher& other) = delete;
+    SenScriptPatcher(SenScriptPatcher&& other) = delete;
+    SenScriptPatcher& operator=(const SenScriptPatcher& other) = delete;
+    SenScriptPatcher& operator=(SenScriptPatcher&& other) = delete;
+    ~SenScriptPatcher() = default;
 
-    void ReplaceCommand(int64_t originalLocation,
-                        int64_t originalLength,
+    void ReplaceCommand(uint32_t originalLocation,
+                        uint32_t originalLength,
                         std::span<const char> newCommand);
 
-    void ReplacePartialCommand(int64_t commandLocation,
-                               int64_t commandLength,
-                               int64_t replacementLocation,
-                               int64_t replacementLength,
+    void ReplacePartialCommand(uint32_t commandLocation,
+                               uint32_t commandLength,
+                               uint32_t replacementLocation,
+                               uint32_t replacementLength,
                                std::span<const char> replacementData);
 
-    void RemovePartialCommand(int64_t commandLocation,
-                              int64_t commandLength,
-                              int64_t removeLocation,
-                              int64_t removeLength);
+    void RemovePartialCommand(uint32_t commandLocation,
+                              uint32_t commandLength,
+                              uint32_t removeLocation,
+                              uint32_t removeLength);
 
-    void ExtendPartialCommand(int64_t commandLocation,
-                              int64_t commandLength,
-                              int64_t extendLocation,
+    void ExtendPartialCommand(uint32_t commandLocation,
+                              uint32_t commandLength,
+                              uint32_t extendLocation,
                               std::span<const char> extendData);
 };
 } // namespace SenLib

@@ -7,12 +7,10 @@
 #include "util/stream.h"
 
 namespace SenLib {
-SenScriptPatcher::SenScriptPatcher(std::vector<char>& s) : Bin(s) {}
-
-void SenScriptPatcher::ReplaceCommand(int64_t originalLocation,
-                                      int64_t originalLength,
+void SenScriptPatcher::ReplaceCommand(uint32_t originalLocation,
+                                      uint32_t originalLength,
                                       std::span<const char> newCommand) {
-    int64_t nextCommandLocation = originalLocation + originalLength;
+    uint32_t nextCommandLocation = originalLocation + originalLength;
 
     MemoryStream bin(Bin);
 
@@ -20,8 +18,8 @@ void SenScriptPatcher::ReplaceCommand(int64_t originalLocation,
         // this is simple, just put the new command and fill the rest with NOP
         bin.CurrentPosition = originalLocation;
         bin.Write(newCommand.data(), newCommand.size());
-        int64_t rest = nextCommandLocation - bin.CurrentPosition;
-        for (int64_t i = 0; i < rest; ++i) {
+        size_t rest = nextCommandLocation - bin.CurrentPosition;
+        for (size_t i = 0; i < rest; ++i) {
             bin.WriteByte(NopCommand);
         }
         Bin = std::move(bin.Data);
@@ -40,7 +38,7 @@ void SenScriptPatcher::ReplaceCommand(int64_t originalLocation,
     // write new command at and of file
     bin.CurrentPosition = bin.Data.size();
     bin.WriteAlign(4);
-    uint32_t newCommandLocation = (uint32_t)bin.CurrentPosition;
+    uint32_t newCommandLocation = static_cast<uint32_t>(bin.CurrentPosition);
     bin.Write(newCommand.data(), newCommand.size());
 
     // then a jump back to the actual script
@@ -54,20 +52,20 @@ void SenScriptPatcher::ReplaceCommand(int64_t originalLocation,
     bin.WriteUInt32(newCommandLocation, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
     // and to be clean, dummy out the rest of the old command
-    for (int64_t i = 0; i < originalLength - 5; ++i) {
+    for (uint32_t i = 0; i < originalLength - 5; ++i) {
         bin.WriteUInt8(NopCommand);
     }
 
     Bin = std::move(bin.Data);
 }
 
-void SenScriptPatcher::ReplacePartialCommand(int64_t commandLocation,
-                                             int64_t commandLength,
-                                             int64_t replacementLocation,
-                                             int64_t replacementLength,
+void SenScriptPatcher::ReplacePartialCommand(uint32_t commandLocation,
+                                             uint32_t commandLength,
+                                             uint32_t replacementLocation,
+                                             uint32_t replacementLength,
                                              std::span<const char> replacementData) {
-    int64_t keepByteCountStart = replacementLocation - commandLocation;
-    int64_t keepByteCountEnd =
+    uint32_t keepByteCountStart = replacementLocation - commandLocation;
+    uint32_t keepByteCountEnd =
         (commandLocation + commandLength) - (replacementLocation + replacementLength);
 
     std::vector<char> newCommand;
@@ -86,17 +84,17 @@ void SenScriptPatcher::ReplacePartialCommand(int64_t commandLocation,
     ReplaceCommand(commandLocation, commandLength, newCommand);
 }
 
-void SenScriptPatcher::RemovePartialCommand(int64_t commandLocation,
-                                            int64_t commandLength,
-                                            int64_t removeLocation,
-                                            int64_t removeLength) {
+void SenScriptPatcher::RemovePartialCommand(uint32_t commandLocation,
+                                            uint32_t commandLength,
+                                            uint32_t removeLocation,
+                                            uint32_t removeLength) {
     ReplacePartialCommand(
         commandLocation, commandLength, removeLocation, removeLength, std::span<const char>());
 }
 
-void SenScriptPatcher::ExtendPartialCommand(int64_t commandLocation,
-                                            int64_t commandLength,
-                                            int64_t extendLocation,
+void SenScriptPatcher::ExtendPartialCommand(uint32_t commandLocation,
+                                            uint32_t commandLength,
+                                            uint32_t extendLocation,
                                             std::span<const char> extendData) {
     ReplacePartialCommand(commandLocation, commandLength, extendLocation, 0, extendData);
 }
