@@ -1,15 +1,14 @@
 #pragma once
 
-#include <cstdio>
+#include <cstdint>
 #include <string_view>
+
+#include "file.h"
 
 namespace SenPatcher {
 struct Logger {
-private:
-    FILE* f; // TODO: change this to SenPatcher::File
-
-public:
-    explicit Logger(const char* filename);
+    explicit Logger();
+    explicit Logger(SenPatcher::IO::File file);
     Logger(const Logger& other) = delete;
     Logger(Logger&& other) = delete;
     Logger& operator=(const Logger& other) = delete;
@@ -21,5 +20,8 @@ public:
     Logger& LogInt(int v);
     Logger& LogHex(unsigned long long v);
     Logger& LogFloat(float v);
+
+private:
+    SenPatcher::IO::File Handle;
 };
 } // namespace SenPatcher

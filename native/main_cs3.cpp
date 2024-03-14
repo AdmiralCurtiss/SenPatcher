@@ -612,7 +612,8 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 }
 
 PDirectInput8Create InjectionDllInitializer() {
-    SenPatcher::Logger logger("senpatcher_inject_cs3.log");
+    SenPatcher::Logger logger(
+        SenPatcher::IO::File(L"senpatcher_inject_cs3.log", SenPatcher::IO::OpenMode::Write));
     auto* forwarder = LoadForwarderAddress(logger);
     SetupHacks(logger);
     return forwarder;
