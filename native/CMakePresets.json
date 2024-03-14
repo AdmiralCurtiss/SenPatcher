@@ -1,0 +1,140 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug32",
+      "displayName": "Debug (x86)",
+      "generator": "Ninja",
+      "architecture": {
+        "value": "Win32",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/debug32",
+      "installDir": "${sourceDir}/out/debug32",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
+        "CMAKE_C_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
+        "CMAKE_CXX_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
+        "SENPATCHER_BUILD_P3A": "OFF",
+        "SENPATCHER_BUILD_CS1HOOK": "ON",
+        "SENPATCHER_BUILD_CS2HOOK": "ON",
+        "SENPATCHER_BUILD_CS3HOOK": "OFF",
+        "SENPATCHER_BUILD_CS4HOOK": "OFF",
+        "SENPATCHER_BUILD_CS1TEST": "ON",
+        "SENPATCHER_BUILD_CS2TEST": "ON",
+        "SENPATCHER_BUILD_CS3TEST": "OFF",
+        "SENPATCHER_BUILD_CS4TEST": "OFF",
+        "SENPATCHER_BUILD_SHA1TEST": "OFF"
+      }
+    },
+    {
+      "name": "release32",
+      "displayName": "Release (x86)",
+      "generator": "Ninja",
+      "architecture": {
+        "value": "Win32",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/release32",
+      "installDir": "${sourceDir}/out/release32",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
+        "CMAKE_C_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
+        "CMAKE_CXX_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
+        "SENPATCHER_BUILD_P3A": "ON",
+        "SENPATCHER_BUILD_CS1HOOK": "ON",
+        "SENPATCHER_BUILD_CS2HOOK": "ON",
+        "SENPATCHER_BUILD_CS3HOOK": "OFF",
+        "SENPATCHER_BUILD_CS4HOOK": "OFF",
+        "SENPATCHER_BUILD_CS1TEST": "OFF",
+        "SENPATCHER_BUILD_CS2TEST": "OFF",
+        "SENPATCHER_BUILD_CS3TEST": "OFF",
+        "SENPATCHER_BUILD_CS4TEST": "OFF",
+        "SENPATCHER_BUILD_SHA1TEST": "OFF"
+      }
+    },
+    {
+      "name": "debug64",
+      "displayName": "Debug (x86-64)",
+      "generator": "Ninja",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/debug64",
+      "installDir": "${sourceDir}/out/debug64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
+        "CMAKE_C_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
+        "CMAKE_CXX_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
+        "SENPATCHER_BUILD_P3A": "OFF",
+        "SENPATCHER_BUILD_CS1HOOK": "OFF",
+        "SENPATCHER_BUILD_CS2HOOK": "OFF",
+        "SENPATCHER_BUILD_CS3HOOK": "ON",
+        "SENPATCHER_BUILD_CS4HOOK": "ON",
+        "SENPATCHER_BUILD_CS1TEST": "OFF",
+        "SENPATCHER_BUILD_CS2TEST": "OFF",
+        "SENPATCHER_BUILD_CS3TEST": "ON",
+        "SENPATCHER_BUILD_CS4TEST": "ON",
+        "SENPATCHER_BUILD_SHA1TEST": "OFF"
+      }
+    },
+    {
+      "name": "release64",
+      "displayName": "Release (x86-64)",
+      "generator": "Ninja",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/release64",
+      "installDir": "${sourceDir}/out/release64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
+        "CMAKE_C_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
+        "CMAKE_CXX_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
+        "SENPATCHER_BUILD_P3A": "ON",
+        "SENPATCHER_BUILD_CS1HOOK": "OFF",
+        "SENPATCHER_BUILD_CS2HOOK": "OFF",
+        "SENPATCHER_BUILD_CS3HOOK": "ON",
+        "SENPATCHER_BUILD_CS4HOOK": "ON",
+        "SENPATCHER_BUILD_CS1TEST": "OFF",
+        "SENPATCHER_BUILD_CS2TEST": "OFF",
+        "SENPATCHER_BUILD_CS3TEST": "OFF",
+        "SENPATCHER_BUILD_CS4TEST": "OFF",
+        "SENPATCHER_BUILD_SHA1TEST": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug32",
+      "displayName": "Debug (x86)",
+      "configurePreset": "debug32"
+    },
+    {
+      "name": "release32",
+      "displayName": "Release (x86)",
+      "configurePreset": "release32"
+    },
+    {
+      "name": "debug64",
+      "displayName": "Debug (x86-64)",
+      "configurePreset": "debug64"
+    },
+    {
+      "name": "release64",
+      "displayName": "Release (x86-64)",
+      "configurePreset": "release64"
+    }
+  ]
+}

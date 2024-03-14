@@ -5,6 +5,17 @@ project(SenPatcher LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+option(SENPATCHER_BUILD_P3A "build P3A packer/extractor executable" ON)
+option(SENPATCHER_BUILD_CS1HOOK "build CS1 injection dll" OFF)
+option(SENPATCHER_BUILD_CS2HOOK "build CS2 injection dll" OFF)
+option(SENPATCHER_BUILD_CS3HOOK "build CS3 injection dll" OFF)
+option(SENPATCHER_BUILD_CS4HOOK "build CS4 injection dll" OFF)
+option(SENPATCHER_BUILD_CS1TEST "build CS1 asset builder executable" OFF)
+option(SENPATCHER_BUILD_CS2TEST "build CS2 asset builder executable" OFF)
+option(SENPATCHER_BUILD_CS3TEST "build CS3 asset builder executable" OFF)
+option(SENPATCHER_BUILD_CS4TEST "build CS4 asset builder executable" OFF)
+option(SENPATCHER_BUILD_SHA1TEST "build SHA1 test executable" OFF)
+
 function(senpatcher_generate_embeddable_file SOURCE_PATH TARGET_NAME)
 	file(READ "${SOURCE_PATH}" TMP_SENPATCHER_FILE HEX)
 	string(REGEX REPLACE "([0-9A-Fa-f][0-9A-Fa-f])" ",(char)0x\\1" TMP_SENPATCHER_FILE "${TMP_SENPATCHER_FILE}")
@@ -159,89 +170,97 @@ set(SOURCES_RAPIDJSON
 	rapidjson/msinttypes/stdint.h
 )
 
-add_executable(p3a_archiver)
-target_sources(p3a_archiver PRIVATE
-	main_p3a_archiver.cpp
+if (SENPATCHER_BUILD_P3A)
+	add_executable(p3a)
+	target_sources(p3a PRIVATE
+		main_p3a_archiver.cpp
 
-	align.h
-	align.cpp
-	file.h
-	file.cpp
-	util/text.cpp
-	util/text.h
+		align.h
+		align.cpp
+		file.h
+		file.cpp
+		util/text.cpp
+		util/text.h
 
-	p3a/pack.cpp
-	p3a/pack.h
-	p3a/packjson.cpp
-	p3a/packjson.h
-	p3a/structs.h
-	p3a/unpack.cpp
-	p3a/unpack.h
+		p3a/pack.cpp
+		p3a/pack.h
+		p3a/packjson.cpp
+		p3a/packjson.h
+		p3a/structs.h
+		p3a/unpack.cpp
+		p3a/unpack.h
 
-	${SOURCES_LZ4}
-	${SOURCES_ZSTD_BASE}
-	${SOURCES_ZSTD_COMPRESSION}
-	${SOURCES_ZSTD_DICTBUILDER}
-	${SOURCES_RAPIDJSON}
-)
-target_include_directories(p3a_archiver
-	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-)
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+		${SOURCES_ZSTD_DICTBUILDER}
+		${SOURCES_RAPIDJSON}
+	)
+	target_include_directories(p3a
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+	)
+endif()
 
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m2150.bin" "embed_sen1_ed8m2150.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m4097.bin" "embed_sen1_ed8m4097.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m4217.bin" "embed_sen1_ed8m4217.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/pc8v02551_4.bin" "embed_sen1_pc8v02551_4.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/pc8v10286_15.bin" "embed_sen1_pc8v10286_15.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_jp_3.bin" "embed_sen1_vctiming_jp_3.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_jp_4.bin" "embed_sen1_vctiming_jp_4.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_us_3.bin" "embed_sen1_vctiming_us_3.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_us_4.bin" "embed_sen1_vctiming_us_4.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_data.bin" "embed_sen2_ed82_j140_to_j142_data.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_header.bin" "embed_sen2_ed82_j140_to_j142_header.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_rdata.bin" "embed_sen2_ed82_j140_to_j142_rdata.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_rsrc.bin" "embed_sen2_ed82_j140_to_j142_rsrc.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_text.bin" "embed_sen2_ed82_j140_to_j142_text.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_data.bin" "embed_sen2_ed82_j142_to_u142_data.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_header.bin" "embed_sen2_ed82_j142_to_u142_header.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_rsrc.bin" "embed_sen2_ed82_j142_to_u142_rsrc.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_text.bin" "embed_sen2_ed82_j142_to_u142_text.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_u140j142_to_u142_rdata.bin" "embed_sen2_ed82_u140j142_to_u142_rdata.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82j142.bin" "embed_sen2_ed82j142.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82u142j.bin" "embed_sen2_ed82u142j.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/t1001_dat_to_tbl.bin" "embed_sen2_t1001_dat_to_tbl.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis0061.bin" "embed_sen3_cvis0061.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis1008.bin" "embed_sen3_cvis1008.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_05.bin" "embed_sen3_insa_05.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_08.bin" "embed_sen3_insa_08.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_09.bin" "embed_sen3_insa_09.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/jump009.bin" "embed_sen3_jump009.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/t0250_dat.bin" "embed_sen3_t0250_dat.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0427.bin" "embed_sen3_v00_e0427.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0441.bin" "embed_sen3_v00_e0441.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e1032.bin" "embed_sen3_v00_e1032.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e1054.bin" "embed_sen3_v00_e1054.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0027.bin" "embed_sen3_v00_s0027.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0028.bin" "embed_sen3_v00_s0028.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0081.bin" "embed_sen3_v00_s0081.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0264.bin" "embed_sen3_v00_s0264.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v20_e0066.bin" "embed_sen3_v20_e0066.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v27_e0042.bin" "embed_sen3_v27_e0042.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v31_e0070.bin" "embed_sen3_v31_e0070.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v43_e0023.bin" "embed_sen3_v43_e0023.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v49_e0004.bin" "embed_sen3_v49_e0004.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v52_e0109.bin" "embed_sen3_v52_e0109.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v52_e0119.bin" "embed_sen3_v52_e0119.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v55_e0018.bin" "embed_sen3_v55_e0018.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v55_e0062.bin" "embed_sen3_v55_e0062.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v56_e0080.bin" "embed_sen3_v56_e0080.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v56_e0092.bin" "embed_sen3_v56_e0092.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v57_e0020.bin" "embed_sen3_v57_e0020.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v64_e0040.bin" "embed_sen3_v64_e0040.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0005.bin" "embed_sen3_v72_e0005.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0011.bin" "embed_sen3_v72_e0011.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0012.bin" "embed_sen3_v72_e0012.h")
-senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v93_e0300.bin" "embed_sen3_v93_e0300.h")
+if (SENPATCHER_BUILD_CS1HOOK OR SENPATCHER_BUILD_CS1TEST)
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m2150.bin" "embed_sen1_ed8m2150.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m4097.bin" "embed_sen1_ed8m4097.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/ed8m4217.bin" "embed_sen1_ed8m4217.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/pc8v02551_4.bin" "embed_sen1_pc8v02551_4.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/pc8v10286_15.bin" "embed_sen1_pc8v10286_15.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_jp_3.bin" "embed_sen1_vctiming_jp_3.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_jp_4.bin" "embed_sen1_vctiming_jp_4.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_us_3.bin" "embed_sen1_vctiming_us_3.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_us_4.bin" "embed_sen1_vctiming_us_4.h")
+endif()
+if (SENPATCHER_BUILD_CS2HOOK OR SENPATCHER_BUILD_CS2TEST)
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_data.bin" "embed_sen2_ed82_j140_to_j142_data.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_header.bin" "embed_sen2_ed82_j140_to_j142_header.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_rdata.bin" "embed_sen2_ed82_j140_to_j142_rdata.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_rsrc.bin" "embed_sen2_ed82_j140_to_j142_rsrc.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_text.bin" "embed_sen2_ed82_j140_to_j142_text.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_data.bin" "embed_sen2_ed82_j142_to_u142_data.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_header.bin" "embed_sen2_ed82_j142_to_u142_header.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_rsrc.bin" "embed_sen2_ed82_j142_to_u142_rsrc.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_text.bin" "embed_sen2_ed82_j142_to_u142_text.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_u140j142_to_u142_rdata.bin" "embed_sen2_ed82_u140j142_to_u142_rdata.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82j142.bin" "embed_sen2_ed82j142.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82u142j.bin" "embed_sen2_ed82u142j.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/t1001_dat_to_tbl.bin" "embed_sen2_t1001_dat_to_tbl.h")
+endif()
+if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis0061.bin" "embed_sen3_cvis0061.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis1008.bin" "embed_sen3_cvis1008.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_05.bin" "embed_sen3_insa_05.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_08.bin" "embed_sen3_insa_08.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_09.bin" "embed_sen3_insa_09.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/jump009.bin" "embed_sen3_jump009.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/t0250_dat.bin" "embed_sen3_t0250_dat.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0427.bin" "embed_sen3_v00_e0427.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0441.bin" "embed_sen3_v00_e0441.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e1032.bin" "embed_sen3_v00_e1032.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e1054.bin" "embed_sen3_v00_e1054.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0027.bin" "embed_sen3_v00_s0027.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0028.bin" "embed_sen3_v00_s0028.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0081.bin" "embed_sen3_v00_s0081.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_s0264.bin" "embed_sen3_v00_s0264.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v20_e0066.bin" "embed_sen3_v20_e0066.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v27_e0042.bin" "embed_sen3_v27_e0042.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v31_e0070.bin" "embed_sen3_v31_e0070.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v43_e0023.bin" "embed_sen3_v43_e0023.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v49_e0004.bin" "embed_sen3_v49_e0004.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v52_e0109.bin" "embed_sen3_v52_e0109.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v52_e0119.bin" "embed_sen3_v52_e0119.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v55_e0018.bin" "embed_sen3_v55_e0018.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v55_e0062.bin" "embed_sen3_v55_e0062.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v56_e0080.bin" "embed_sen3_v56_e0080.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v56_e0092.bin" "embed_sen3_v56_e0092.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v57_e0020.bin" "embed_sen3_v57_e0020.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v64_e0040.bin" "embed_sen3_v64_e0040.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0005.bin" "embed_sen3_v72_e0005.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0011.bin" "embed_sen3_v72_e0011.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0012.bin" "embed_sen3_v72_e0012.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v93_e0300.bin" "embed_sen3_v93_e0300.h")
+endif()
 
 set(SOURCES_CS3_FIXES
 	sen3/FileFixes/alchr022_dat.cpp
@@ -376,72 +395,78 @@ set(SOURCES_BASE_FIXES
 	${SOURCES_LZMA}
 )
 
-add_executable(cs3test)
-target_sources(cs3test PRIVATE
-	main_cs3_test.cpp
+if (SENPATCHER_BUILD_CS3TEST)
+	add_executable(cs3test)
+	target_sources(cs3test PRIVATE
+		main_cs3_test.cpp
 
-	${SOURCES_BASE_FIXES}
-	${SOURCES_CS3_FIXES}
+		${SOURCES_BASE_FIXES}
+		${SOURCES_CS3_FIXES}
 
-	${SOURCES_LZ4}
-	${SOURCES_ZSTD_BASE}
-	${SOURCES_ZSTD_COMPRESSION}
-)
-target_include_directories(cs3test
-	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
-)
-add_dependencies(cs3test GenerateGitRevisionHeader)
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_include_directories(cs3test
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(cs3test GenerateGitRevisionHeader)
+endif()
 
-add_library(cs3hook SHARED)
-target_sources(cs3hook PRIVATE
-	dinput8.def
-	main_cs3.cpp
-	ini.cpp
-	ini.h
-	modload/loaded_mods.cpp
-	modload/loaded_mods.h
-	x64/emitter.cpp
-	x64/emitter.h
-	x64/inject_jump_into.h
-	x64/page_unprotect.cpp
-	x64/page_unprotect.h
+if (SENPATCHER_BUILD_CS3HOOK)
+	add_library(cs3hook SHARED)
+	target_sources(cs3hook PRIVATE
+		dinput8.def
+		main_cs3.cpp
+		ini.cpp
+		ini.h
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+		x64/emitter.cpp
+		x64/emitter.h
+		x64/inject_jump_into.h
+		x64/page_unprotect.cpp
+		x64/page_unprotect.h
 
-	sen3/exe_patch.h
-	sen3/exe_patch_add_senpatcher_version_to_title.cpp
-	sen3/exe_patch_allow_switch_to_nightmare.cpp
-	sen3/exe_patch_deglobalize_mutexes.cpp
-	sen3/exe_patch_disable_mouse_capture.cpp
-	sen3/exe_patch_disable_pause_on_focus_loss.cpp
-	sen3/exe_patch_fix_controller_mappings.cpp
-	sen3/exe_patch_fix_in_game_button_mapping.cpp
-	sen3/exe_patch_force_xinput.cpp
-	sen3/exe_patch_show_mouse_cursor.cpp
-	sen3/exe_patch_swap_broken_mq_values.cpp
-	sen3/inject_modloader.h
-	sen3/inject_modloader.cpp
+		sen3/exe_patch.h
+		sen3/exe_patch_add_senpatcher_version_to_title.cpp
+		sen3/exe_patch_allow_switch_to_nightmare.cpp
+		sen3/exe_patch_deglobalize_mutexes.cpp
+		sen3/exe_patch_disable_mouse_capture.cpp
+		sen3/exe_patch_disable_pause_on_focus_loss.cpp
+		sen3/exe_patch_fix_controller_mappings.cpp
+		sen3/exe_patch_fix_in_game_button_mapping.cpp
+		sen3/exe_patch_force_xinput.cpp
+		sen3/exe_patch_show_mouse_cursor.cpp
+		sen3/exe_patch_swap_broken_mq_values.cpp
+		sen3/inject_modloader.h
+		sen3/inject_modloader.cpp
 
-	${SOURCES_BASE_FIXES}
-	${SOURCES_CS3_FIXES}
+		${SOURCES_BASE_FIXES}
+		${SOURCES_CS3_FIXES}
 
-	${SOURCES_LZ4}
-	${SOURCES_ZSTD_BASE}
-	${SOURCES_ZSTD_COMPRESSION}
- )
- target_include_directories(cs3hook
-	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
-)
-add_dependencies(cs3hook GenerateGitRevisionHeader)
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_include_directories(cs3hook
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(cs3hook GenerateGitRevisionHeader)
+endif()
 
-add_executable(sha1_test)
-target_sources(sha1_test PRIVATE
-	main_sha1_test.cpp
-	sha1.cpp
-	sha1.h
-	file.cpp
-	file.h
-	util/text.cpp
-	util/text.h
-)
-target_include_directories(sha1_test
-	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-)
+if (SENPATCHER_BUILD_SHA1TEST)
+	add_executable(sha1_test)
+	target_sources(sha1_test PRIVATE
+		main_sha1_test.cpp
+		sha1.cpp
+		sha1.h
+		file.cpp
+		file.h
+		util/text.cpp
+		util/text.h
+	)
+	target_include_directories(sha1_test
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+	)
+endif()
