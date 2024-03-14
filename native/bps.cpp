@@ -56,47 +56,6 @@ std::pair<Action, uint64_t> ReadAction(SenLib::ReadStream& s) {
     throw "should never reach here";
 }
 
-uint64_t EncodeSignedNumber(int64_t v) {
-    bool negative = v < 0;
-    if (negative) {
-        return (((uint64_t)-v) << 1) | 1ul;
-    } else {
-        return (((uint64_t)v) << 1);
-    }
-}
-
-uint64_t EncodeAction(Action action, uint64_t length) {
-    switch (action) {
-        case Action::SourceRead: return 0ul | ((length - 1) << 2);
-        case Action::TargetRead: return 1ul | ((length - 1) << 2);
-        case Action::SourceCopy: return 2ul | ((length - 1) << 2);
-        case Action::TargetCopy: return 3ul | ((length - 1) << 2);
-    }
-    throw "should never reach here";
-}
-
-void WriteUnsignedNumber(SenLib::WriteStream& s, uint64_t d) {
-    uint64_t data = d;
-    while (true) {
-        uint8_t x = (uint8_t)(data & 0x7f);
-        data >>= 7;
-        if (data == 0) {
-            s.WriteByte((uint8_t)(0x80 | x));
-            break;
-        }
-        s.WriteByte(x);
-        --data;
-    }
-}
-
-void WriteSignedNumber(SenLib::WriteStream& s, int64_t d) {
-    WriteUnsignedNumber(s, EncodeSignedNumber(d));
-}
-
-void WriteAction(SenLib::WriteStream& s, Action action, uint64_t length) {
-    WriteUnsignedNumber(s, EncodeAction(action, length));
-}
-
 uint32_t CalculateCRC32FromCurrentPosition(SenLib::ReadStream& s, uint64_t bytecount) {
     uint32_t crc32 = crc_init();
     std::array<char, 4096> buffer;
@@ -138,15 +97,22 @@ struct BpsPatcher {
     BpsPatcher(SenLib::ReadStream& source, SenLib::ReadStream& patch, SenLib::MemoryStream& target)
       : Source(source), Patch(patch), Target(target) {}
 
+    BpsPatcher(const BpsPatcher& other) = delete;
+    BpsPatcher(BpsPatcher&& other) = delete;
+    BpsPatcher& operator=(const BpsPatcher& other) = delete;
+    BpsPatcher& operator=(BpsPatcher&& other) = delete;
+
+    ~BpsPatcher() = default;
+
     void ApplyPatchToStreamInternal() {
         Patch.SetPosition(0);
         Target.SetPosition(0);
 
-        int64_t patchSize = Patch.GetLength();
+        uint64_t patchSize = Patch.GetLength();
         if (patchSize < 12) {
             throw "Patch too small to be a valid patch.";
         }
-        int64_t patchFooterPosition = patchSize - 12L;
+        uint64_t patchFooterPosition = patchSize - 12;
 
         // note: spec doesn't actually say what endian, but files in the wild suggest little
         Patch.SetPosition(patchFooterPosition);
@@ -177,7 +143,7 @@ struct BpsPatcher {
         uint64_t metadataSize = ReadUnsignedNumber(Patch);
         if (metadataSize > 0) {
             // skip metadata, we don't care about it
-            Patch.SetPosition((int64_t)(((uint64_t)Patch.GetPosition()) + metadataSize));
+            Patch.SetPosition(Patch.GetPosition() + metadataSize);
         }
 
         Source.SetPosition(0);
@@ -232,12 +198,12 @@ struct BpsPatcher {
         SenLib::CopyStream(Patch, Target, length);
     }
 
-    void AddChecked(uint64_t& pos, int64_t d, int64_t length) {
+    void AddChecked(uint64_t& pos, int64_t d, uint64_t length) {
         // pos must end up in range [0, length-1], else error out
         if (d >= 0) {
             // d is positive, make sure we don't end up >= length
             uint64_t o = (uint64_t)d;
-            if (o >= (((uint64_t)length) - pos)) {
+            if (o >= (length - pos)) {
                 throw "Invalid offset.";
             }
             pos += o;
@@ -257,7 +223,7 @@ struct BpsPatcher {
         if (SourceRelativeOffset + length > (uint64_t)Source.GetLength()) {
             throw "Invalid length in SourceCopy.";
         }
-        Source.SetPosition((int64_t)SourceRelativeOffset);
+        Source.SetPosition(SourceRelativeOffset);
         SenLib::CopyStream(Source, Target, length);
         SourceRelativeOffset += length;
     }
@@ -266,10 +232,10 @@ struct BpsPatcher {
         int64_t d = ReadSignedNumber(Patch);
         AddChecked(TargetRelativeOffset, d, Target.GetLength());
         for (uint64_t i = 0; i < length; ++i) {
-            int64_t p = Target.GetPosition();
-            Target.SetPosition((int64_t)TargetRelativeOffset);
+            uint64_t p = Target.GetPosition();
+            Target.SetPosition(TargetRelativeOffset);
             ++TargetRelativeOffset;
-            uint8_t b = Target.Data[Target.CurrentPosition];
+            uint8_t b = static_cast<uint8_t>(Target.Data[Target.CurrentPosition]);
             Target.SetPosition(p);
             Target.WriteByte(b);
         }
