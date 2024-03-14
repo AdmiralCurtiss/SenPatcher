@@ -108,6 +108,13 @@ std::optional<uint64_t> File::GetPosition() noexcept {
     return std::nullopt;
 }
 
+bool File::SetPosition(uint64_t position) noexcept {
+    if (position > static_cast<uint64_t>(INT64_MAX)) {
+        return false;
+    }
+    return SetPosition(static_cast<int64_t>(position), SetPositionMode::Begin);
+}
+
 bool File::SetPosition(int64_t position, SetPositionMode mode) noexcept {
     assert(IsOpen());
 #ifdef _MSC_VER
