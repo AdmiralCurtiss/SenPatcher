@@ -4,9 +4,9 @@
 #include <filesystem>
 #include <memory>
 
-#include "../file.h"
+#include "file.h"
 
-#include "structs.h"
+#include "p3a/structs.h"
 
 typedef struct ZSTD_DDict_s ZSTD_DDict;
 

@@ -6,13 +6,13 @@
 #include <string_view>
 #include <vector>
 
-#include "../file.h"
-#include "../file_getter.h"
-#include "../p3a/p3a.h"
-#include "../p3a/pack.h"
-#include "../p3a/structs.h"
-#include "../p3a/util.h"
-#include "../sha1.h"
+#include "file.h"
+#include "file_getter.h"
+#include "p3a/p3a.h"
+#include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "p3a/util.h"
+#include "sha1.h"
 
 #include "senpatcher_version.h"
 

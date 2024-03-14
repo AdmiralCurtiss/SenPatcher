@@ -9,16 +9,16 @@
 #include <string>
 #include <vector>
 
-#include "../lz4/lz4.h"
-#include "../lz4/lz4hc.h"
+#include "lz4/lz4.h"
+#include "lz4/lz4hc.h"
 
-#include "../zstd/common/xxhash.h"
-#include "../zstd/zstd.h"
+#include "zstd/common/xxhash.h"
+#include "zstd/zstd.h"
 
-#include "structs.h"
+#include "p3a/structs.h"
 
-#include "../align.h"
-#include "../file.h"
+#include "align.h"
+#include "file.h"
 
 namespace SenPatcher {
 P3APackFile::~P3APackFile() = default;

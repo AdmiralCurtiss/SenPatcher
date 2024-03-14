@@ -4,7 +4,7 @@
 #include <span>
 #include <vector>
 
-#include "../util/stream.h"
+#include "util/stream.h"
 
 namespace SenLib {
 SenScriptPatcher::SenScriptPatcher(std::vector<char>& s) : Bin(s) {}

@@ -3,11 +3,11 @@
 #include <string_view>
 #include <vector>
 
-#include "../file_fixes.h"
+#include "file_getter.h"
 
-#include "../../p3a/pack.h"
-#include "../../p3a/structs.h"
-#include "../../sha1.h"
+#include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "sha1.h"
 
 namespace SenLib::Sen3::FileFixes::alchr022_dat {
 std::string_view GetDescription() {

@@ -2,13 +2,13 @@
 #include <string_view>
 #include <vector>
 
-#include "../file_fixes.h"
+#include "file_getter.h"
 
-#include "../../p3a/pack.h"
-#include "../../p3a/structs.h"
-#include "../../sen/book_table.h"
-#include "../../sha1.h"
-#include "../../util/stream.h"
+#include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "sen/book_table.h"
+#include "sha1.h"
+#include "util/stream.h"
 
 namespace SenLib::Sen3::FileFixes::book06_dat {
 std::string_view GetDescription() {

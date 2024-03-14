@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pack.h"
+#include "p3a/pack.h"
 
 namespace SenPatcher {
 bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,

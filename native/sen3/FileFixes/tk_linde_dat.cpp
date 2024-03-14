@@ -2,12 +2,12 @@
 #include <string_view>
 #include <vector>
 
-#include "../file_fixes.h"
+#include "file_getter.h"
 
-#include "../../p3a/pack.h"
-#include "../../p3a/structs.h"
-#include "../../sen/sen_script_patcher.h"
-#include "../../sha1.h"
+#include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "sen/sen_script_patcher.h"
+#include "sha1.h"
 
 namespace SenLib::Sen3::FileFixes::tk_linde_dat {
 std::string_view GetDescription() {

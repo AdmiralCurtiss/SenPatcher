@@ -7,9 +7,9 @@
 #include <string>
 #include <vector>
 
-#include "../util/endian.h"
-#include "../util/stream.h"
-#include "../util/text.h"
+#include "util/endian.h"
+#include "util/stream.h"
+#include "util/text.h"
 
 // warning: ported from C#, contains C#-isms
 

@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
-#include "../util/endian.h"
-#include "../util/stream.h"
-#include "../util/text.h"
+#include "util/endian.h"
+#include "util/stream.h"
+#include "util/text.h"
 
 namespace SenLib {
 struct BookDataStruct {

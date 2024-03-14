@@ -2,13 +2,13 @@
 #include <string_view>
 #include <vector>
 
-#include "../file_fixes.h"
+#include "file_getter.h"
 
-#include "../../p3a/pack.h"
-#include "../../p3a/structs.h"
-#include "../../sen/sen_script_patcher.h"
-#include "../../sha1.h"
-#include "../../util/vector.h"
+#include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "sen/sen_script_patcher.h"
+#include "sha1.h"
+#include "util/vector.h"
 
 namespace SenLib::Sen3::FileFixes::c2610_dat {
 std::string_view GetDescription() {

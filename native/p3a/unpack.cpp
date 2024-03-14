@@ -4,17 +4,17 @@
 #include <memory>
 #include <string_view>
 
-#include "../lz4/lz4.h"
+#include "lz4/lz4.h"
 
-#include "../zstd/common/xxhash.h"
-#include "../zstd/zstd.h"
+#include "zstd/common/xxhash.h"
+#include "zstd/zstd.h"
 
-#include "../rapidjson/prettywriter.h"
-#include "../rapidjson/stringbuffer.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
 
-#include "structs.h"
+#include "p3a/structs.h"
 
-#include "../file.h"
+#include "file.h"
 
 namespace SenPatcher {
 template<typename CharT, typename Traits>

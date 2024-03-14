@@ -5,7 +5,7 @@
 #include <string_view>
 #include <vector>
 
-#include "../file_getter.h"
+#include "file_getter.h"
 
 namespace SenPatcher {
 struct Logger;

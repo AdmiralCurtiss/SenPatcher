@@ -5,11 +5,11 @@
 #include <string>
 #include <string_view>
 
-#include "structs.h"
+#include "p3a/structs.h"
 
-#include "../file.h"
+#include "file.h"
 
-#include "../rapidjson/document.h"
+#include "rapidjson/document.h"
 
 namespace SenPatcher {
 template<typename T>

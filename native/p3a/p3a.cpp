@@ -4,14 +4,14 @@
 #include <filesystem>
 #include <memory>
 
-#include "../file.h"
+#include "file.h"
 
-#include "../lz4/lz4.h"
+#include "lz4/lz4.h"
 
-#include "../zstd/common/xxhash.h"
-#include "../zstd/zstd.h"
+#include "zstd/common/xxhash.h"
+#include "zstd/zstd.h"
 
-#include "structs.h"
+#include "p3a/structs.h"
 
 namespace SenPatcher {
 namespace {

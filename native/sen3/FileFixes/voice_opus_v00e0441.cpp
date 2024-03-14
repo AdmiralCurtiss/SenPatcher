@@ -2,13 +2,13 @@
 #include <string_view>
 #include <vector>
 
-#include "../file_fixes.h"
+#include "file_getter.h"
 
-#include "../../decompress_helper.h"
-#include "../../p3a/pack.h"
-#include "../../p3a/structs.h"
-#include "../../p3a/util.h"
-#include "../../sha1.h"
+#include "decompress_helper.h"
+#include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "p3a/util.h"
+#include "sha1.h"
 
 namespace {
 static constexpr char PatchData[] = {
