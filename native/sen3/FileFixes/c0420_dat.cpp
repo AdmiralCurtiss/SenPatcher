@@ -31,8 +31,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenLib::WriteAt(
             bin, 0x1837, {{0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x20, 0x46, 0x69, 0x73, 0x68}});
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

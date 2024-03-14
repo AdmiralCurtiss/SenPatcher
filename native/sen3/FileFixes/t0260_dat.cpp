@@ -63,8 +63,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // switch gender in line from Schmidt
         patcher.ExtendPartialCommand(0x1380a, 0x73, 0x1386e, {{0x73}});
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

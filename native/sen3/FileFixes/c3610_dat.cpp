@@ -31,8 +31,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // synched -> synced
         patcher.RemovePartialCommand(0x15249, 0x3d, 0x15264, 0x1);
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

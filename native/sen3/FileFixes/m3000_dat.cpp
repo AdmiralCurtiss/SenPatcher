@@ -30,8 +30,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // General Aurelia -> General Le Guin
         WriteAt(bin, 0x6847, {{0x4c, 0x65, 0x20, 0x47, 0x75, 0x69, 0x6e}});
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

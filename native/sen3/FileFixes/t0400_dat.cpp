@@ -33,8 +33,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // stop calling him that did not get changed, however, leading to a weird mismatch.
         WriteAt(bin, 0x4e07, {{0x6f, 0x6c, 0x64, 0x20, 0x6d, 0x61, 0x6e}});
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

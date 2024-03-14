@@ -28,8 +28,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
     // Imperial government -> Imperial Government
     bin[0xfe3b] = 0x47;
 
-    result.emplace_back(SenPatcher::P3APackFile{
-        std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+    result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
     return true;
 }

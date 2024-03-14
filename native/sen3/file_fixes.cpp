@@ -239,10 +239,9 @@ static bool CheckArchiveExistsAndIsRightVersion(const std::filesystem::path& pat
 static void AddSenPatcherVersionFile(SenPatcher::P3APackData& packData) {
     std::string_view sv(SENPATCHER_VERSION);
     std::vector<char> bin(sv.begin(), sv.end());
-    packData.Files.emplace_back(
-        SenPatcher::P3APackFile{std::move(bin),
+    packData.Files.emplace_back(std::move(bin),
                                 SenPatcher::InitializeP3AFilename("_senpatcher_version.txt"),
-                                SenPatcher::P3ACompressionType::None});
+                                SenPatcher::P3ACompressionType::None);
 }
 
 static void CreateArchiveIfNeeded(

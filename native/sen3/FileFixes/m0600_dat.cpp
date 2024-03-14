@@ -40,8 +40,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         bin[0xb26b] = 0x73;
         bin[0xb276] = 0x6d;
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

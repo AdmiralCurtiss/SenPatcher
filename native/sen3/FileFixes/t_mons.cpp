@@ -57,8 +57,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         MemoryStream result_en(result_en_vec);
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(result_en_vec), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(
+            std::move(result_en_vec), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

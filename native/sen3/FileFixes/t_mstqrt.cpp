@@ -123,10 +123,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         MemoryStream result_fr(result_fr_vec);
         tbl_fr.WriteToStream(result_fr, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(result_en_vec), file_en->Filename, SenPatcher::P3ACompressionType::LZ4});
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(result_fr_vec), file_fr->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(
+            std::move(result_en_vec), file_en->Filename, SenPatcher::P3ACompressionType::LZ4);
+        result.emplace_back(
+            std::move(result_fr_vec), file_fr->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

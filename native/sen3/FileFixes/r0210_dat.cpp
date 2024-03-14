@@ -34,8 +34,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // Brigadier General Wallace -> Brigadier General Bardias
         WriteAt(bin, 0x3eb9, {{0x42, 0x61, 0x72, 0x64, 0x69, 0x61, 0x73}});
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

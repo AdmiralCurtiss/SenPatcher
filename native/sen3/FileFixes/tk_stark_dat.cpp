@@ -32,8 +32,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // the Juno Naval Fortress -> Juno Naval Fortress (chapter 3 field exercises day 1, camp)
         patcher.RemovePartialCommand(0x5eb3, 0x152, 0x5f31, 0x4);
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

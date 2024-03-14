@@ -30,8 +30,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // swap linebreak forwards so line doesn't overflow textbox
         std::swap(bin[0x8a0a], bin[0x8a19]);
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

@@ -21,7 +21,25 @@
 #include "file.h"
 
 namespace SenPatcher {
+P3APackFile::P3APackFile(std::vector<char> data,
+                         const std::array<char8_t, 0x100>& filename,
+                         P3ACompressionType desiredCompressionType)
+  : Data(std::move(data)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
+P3APackFile::P3APackFile(std::filesystem::path path,
+                         const std::array<char8_t, 0x100>& filename,
+                         P3ACompressionType desiredCompressionType)
+  : Data(std::move(path)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
+P3APackFile::P3APackFile(const P3APackFile& other) = default;
+P3APackFile::P3APackFile(P3APackFile&& other) = default;
+P3APackFile& P3APackFile::operator=(const P3APackFile& other) = default;
+P3APackFile& P3APackFile::operator=(P3APackFile&& other) = default;
 P3APackFile::~P3APackFile() = default;
+
+P3APackData::P3APackData() = default;
+P3APackData::P3APackData(const P3APackData& other) = default;
+P3APackData::P3APackData(P3APackData&& other) = default;
+P3APackData& P3APackData::operator=(const P3APackData& other) = default;
+P3APackData& P3APackData::operator=(P3APackData&& other) = default;
 P3APackData::~P3APackData() = default;
 
 namespace {
@@ -67,14 +85,15 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
         const auto filename = relativePath.u8string();
         const char8_t* filenameC = filename.c_str();
 
-        auto& fileinfo = fileinfos.emplace_back(P3APackFile{entry.path()});
-        for (size_t i = 0; i < fileinfo.Filename.size(); ++i) {
+        std::array<char8_t, 0x100> fn{};
+        for (size_t i = 0; i < fn.size(); ++i) {
             const char8_t c = filenameC[i];
             if (c == char8_t(0)) {
                 break;
             }
-            fileinfo.Filename[i] = (c == char8_t('\\') ? char8_t('/') : c);
+            fn[i] = (c == char8_t('\\') ? char8_t('/') : c);
         }
+        fileinfos.emplace_back(entry.path(), fn, SenPatcher::P3ACompressionType::None);
     }
     return true;
 }

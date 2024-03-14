@@ -46,8 +46,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         std::vector<char> target;
         HyoutaUtils::Bps::ApplyPatchToStream(source, patch, target);
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(target), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(target), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

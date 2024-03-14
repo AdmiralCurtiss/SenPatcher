@@ -106,27 +106,30 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                 if (!nameInArchive || !pathOnDisk || !compression) {
                     return false;
                 }
-                auto& pf = packData.Files.emplace_back();
-                pf.Data = jsonPath.parent_path().append(
-                    std::u8string_view((const char8_t*)pathOnDisk->data(),
-                                       ((const char8_t*)pathOnDisk->data()) + pathOnDisk->size()));
-                pf.Filename.fill(0);
-                if (nameInArchive->size() > pf.Filename.size()) {
+                std::array<char8_t, 0x100> fn{};
+                if (nameInArchive->size() > fn.size()) {
                     return false;
                 }
-                std::memcpy(pf.Filename.data(), nameInArchive->data(), nameInArchive->size());
-
+                std::memcpy(fn.data(), nameInArchive->data(), nameInArchive->size());
+                SenPatcher::P3ACompressionType ct = SenPatcher::P3ACompressionType::None;
                 if (CaseInsensitiveEquals(*compression, "none")) {
-                    pf.DesiredCompressionType = SenPatcher::P3ACompressionType::None;
+                    ct = SenPatcher::P3ACompressionType::None;
                 } else if (CaseInsensitiveEquals(*compression, "lz4")) {
-                    pf.DesiredCompressionType = SenPatcher::P3ACompressionType::LZ4;
+                    ct = SenPatcher::P3ACompressionType::LZ4;
                 } else if (CaseInsensitiveEquals(*compression, "zStd")) {
-                    pf.DesiredCompressionType = SenPatcher::P3ACompressionType::ZSTD;
+                    ct = SenPatcher::P3ACompressionType::ZSTD;
                 } else if (CaseInsensitiveEquals(*compression, "zStdDict")) {
-                    pf.DesiredCompressionType = SenPatcher::P3ACompressionType::ZSTD_DICT;
+                    ct = SenPatcher::P3ACompressionType::ZSTD_DICT;
                 } else {
                     return false;
                 }
+
+                packData.Files.emplace_back(
+                    jsonPath.parent_path().append(std::u8string_view(
+                        (const char8_t*)pathOnDisk->data(),
+                        ((const char8_t*)pathOnDisk->data()) + pathOnDisk->size())),
+                    fn,
+                    ct);
             } else {
                 return false;
             }

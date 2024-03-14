@@ -179,12 +179,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         // there's two identical copies in the game files
-        result.emplace_back(SenPatcher::P3APackFile{
-            result_en_vec, file->Filename, SenPatcher::P3ACompressionType::LZ4});
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(result_en_vec),
-            SenPatcher::InitializeP3AFilename("data/text/dat_fr/t_item_en.tbl"),
-            SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(result_en_vec, file->Filename, SenPatcher::P3ACompressionType::LZ4);
+        result.emplace_back(std::move(result_en_vec),
+                            SenPatcher::InitializeP3AFilename("data/text/dat_fr/t_item_en.tbl"),
+                            SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

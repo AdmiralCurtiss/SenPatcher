@@ -36,8 +36,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
     newdata.insert(newdata.end(), data.begin() + 0xa, data.begin() + 0xa + 8);
     std::memcpy(&bin[0x384], newdata.data(), newdata.size());
 
-    result.emplace_back(SenPatcher::P3APackFile{
-        std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+    result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
     return true;
 }

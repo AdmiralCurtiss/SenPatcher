@@ -32,8 +32,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // St. Ursula's -> St. Ursula (after picking her for the radio sidequest in chapter 4)
         patcher.RemovePartialCommand(0xac3, 0xcd, 0xb54, 0x2);
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

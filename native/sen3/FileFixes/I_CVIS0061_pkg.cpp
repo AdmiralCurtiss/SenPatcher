@@ -36,8 +36,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto patch = DecompressFromBuffer(PatchData, PatchLength);
         auto tex = PatchSingleTexturePkg(bin.data(), bin.size(), patch.data(), patch.size());
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(tex), file->Filename, SenPatcher::P3ACompressionType::None});
+        result.emplace_back(std::move(tex), file->Filename, SenPatcher::P3ACompressionType::None);
 
         return true;
     } catch (...) {

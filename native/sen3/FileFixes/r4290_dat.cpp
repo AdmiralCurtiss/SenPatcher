@@ -35,8 +35,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // General Aurelia -> Aurelia
         patcher.RemovePartialCommand(0x13d0d, 0x53, 0x13d19, 8);
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

@@ -42,8 +42,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // FIXME: update output filename here
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(target), file->Filename, SenPatcher::P3ACompressionType::None});
+        result.emplace_back(
+            std::move(target), file->Filename, SenPatcher::P3ACompressionType::None);
 
         return true;
     } catch (...) {

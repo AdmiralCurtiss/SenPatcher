@@ -30,8 +30,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // Your Majesty's -> Your Highness'
         WriteAt(bin, 0x2506e, {{0x48, 0x69, 0x67, 0x68, 0x6e, 0x65, 0x73, 0x73, 0x27}});
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {

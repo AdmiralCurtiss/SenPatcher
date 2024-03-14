@@ -39,8 +39,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             book.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
         }
 
-        result.emplace_back(SenPatcher::P3APackFile{
-            std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4});
+        result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
     } catch (...) {
