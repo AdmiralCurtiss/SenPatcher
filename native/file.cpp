@@ -248,14 +248,26 @@ bool File::Rename(const std::filesystem::path& p) noexcept {
     // This struct has a very odd definition, because its size is dynamic, so we must do something
     // like this...
     const auto& wstr = p.native();
+    if (wstr.size() > (32767 + 4)) {
+        // not sure what the actual limit is, but this is max path length 32767 + '\\?\' prefix
+        return false;
+    }
+
+    // note that this looks like it has an off-by-one error, but it doesn't, because
+    // sizeof(FILE_RENAME_INFO) includes a single WCHAR which accounts for the nullterminator
     size_t allocationLength = sizeof(FILE_RENAME_INFO) + (wstr.size() * sizeof(char16_t));
     auto buffer = std::make_unique<char[]>(allocationLength);
+    if (!buffer) {
+        return false;
+    }
     FILE_RENAME_INFO* info = reinterpret_cast<FILE_RENAME_INFO*>(buffer.get());
     info->ReplaceIfExists = TRUE;
     info->RootDirectory = nullptr;
-    info->FileNameLength = wstr.size() * 2;
+    info->FileNameLength = static_cast<DWORD>(wstr.size() * sizeof(char16_t));
     std::memcpy(info->FileName, wstr.data(), wstr.size() * sizeof(char16_t));
-    if (SetFileInformationByHandle(Filehandle, FileRenameInfo, info, allocationLength) != 0) {
+    if (SetFileInformationByHandle(
+            Filehandle, FileRenameInfo, info, static_cast<DWORD>(allocationLength))
+        != 0) {
         return true;
     }
 #else
