@@ -59,8 +59,9 @@ std::vector<char> DecompressFromBuffer(const char* buffer, size_t bufferLength) 
     size_t len = uncompressedLength;
     size_t compressedLength = bufferLength - 18;
     ELzmaStatus lzmaStatus = LZMA_STATUS_NOT_SPECIFIED;
-    ISzAlloc alloc{.Alloc = [](ISzAllocPtr p, size_t size) { return malloc(size); },
-                   .Free = [](ISzAllocPtr p, void* address) { return free(address); }};
+    ISzAlloc alloc{
+        .Alloc = []([[maybe_unused]] ISzAllocPtr p, size_t size) { return malloc(size); },
+        .Free = []([[maybe_unused]] ISzAllocPtr p, void* address) { return free(address); }};
     if (LzmaDecode((unsigned char*)outbuffer.data(),
                    &len,
                    (const unsigned char*)&buffer[18],
