@@ -177,7 +177,7 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
     uint64_t position = 0;
     {
         P3AHeader header{};
-        header.Magic = {'P', 'H', '3', 'A', 'R', 'C', 'V', '\0'};
+        header.Magic = {{'P', 'H', '3', 'A', 'R', 'C', 'V', '\0'}};
         header.Flags = 0;
         if (dict) {
             header.Flags |= P3AHeaderFlag_HasZstdDict;
@@ -193,7 +193,7 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
     {
         // we'll fill in the actual data later
         P3AFileInfo tmp{};
-        for (const auto& fileinfo : fileinfos) {
+        for (size_t i = 0; i < fileinfos.size(); ++i) {
             if (file.Write(&tmp, sizeof(P3AFileInfo)) != sizeof(P3AFileInfo)) {
                 return false;
             }
@@ -202,7 +202,7 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
     }
     if (dict) {
         P3ADictHeader dictHeader{};
-        dictHeader.Magic = {'P', '3', 'A', 'D', 'I', 'C', 'T', '\0'};
+        dictHeader.Magic = {{'P', '3', 'A', 'D', 'I', 'C', 'T', '\0'}};
         dictHeader.Length = dictLength;
         if (file.Write(&dictHeader, sizeof(P3ADictHeader)) != sizeof(P3ADictHeader)) {
             return false;
