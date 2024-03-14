@@ -105,7 +105,7 @@ inline uint64_t ToEndian(uint64_t x, Endianness endian) {
             } else {
                 return x;
             }
-        default: "Invalid Endianness";
+        default: throw "Invalid Endianness";
     }
 }
 
