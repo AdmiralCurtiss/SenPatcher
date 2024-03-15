@@ -32,7 +32,7 @@ static InjectJumpIntoCodeResult<length> InjectJumpIntoCode(SenPatcher::Logger& l
         Emit_JMP_R64(inject, reg);
         if constexpr (length > 12) {
             for (size_t i = 12; i < length; ++i) {
-                *inject++ = 0xcc;
+                *inject++ = static_cast<char>(0xcc);
             }
         }
     }
