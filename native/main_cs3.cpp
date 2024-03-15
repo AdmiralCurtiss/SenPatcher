@@ -534,6 +534,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         }
     }
 
+    {
+        std::error_code ec;
+        std::filesystem::create_directory(baseDir / L"mods", baseDir / L"bin", ec);
+    }
+
     if (assetFixes) {
         SenLib::Sen3::CreateAssetPatchIfNeeded(logger, baseDir);
     }
