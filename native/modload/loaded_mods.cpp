@@ -30,7 +30,7 @@ void FilterP3APath(char8_t* path, size_t length) {
     size_t out = 0;
 
     while (in < length) { // in is always >= out so no need to check out
-        const char c = path[in];
+        const char8_t c = path[in];
         if (c == '\0') {
             break;
         }
@@ -43,7 +43,7 @@ void FilterP3APath(char8_t* path, size_t length) {
             }
         } else {
             if (c >= 'A' && c <= 'Z') {
-                path[out] = c + ('a' - 'A');
+                path[out] = static_cast<char8_t>(c + ('a' - 'A'));
             } else {
                 path[out] = c;
             }
@@ -74,9 +74,9 @@ bool FilterGamePath(char8_t* out_path, const char* in_path, size_t length) {
             }
         } else {
             if (c >= 'A' && c <= 'Z') {
-                out_path[out] = c + ('a' - 'A');
+                out_path[out] = static_cast<char8_t>(c + ('a' - 'A'));
             } else {
-                out_path[out] = c;
+                out_path[out] = static_cast<char8_t>(c);
             }
             ++in;
             ++out;
@@ -344,6 +344,10 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
 
     switch (fi.CompressionType) {
         case SenPatcher::P3ACompressionType::None: {
+            if (fi.CompressedSize != fi.UncompressedSize) {
+                return false;
+            }
+
             auto& archiveData = *ref.ArchiveData;
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
@@ -373,6 +377,12 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             return true;
         }
         case SenPatcher::P3ACompressionType::LZ4: {
+            if (fi.UncompressedSize > static_cast<uint32_t>(LZ4_MAX_INPUT_SIZE)
+                || fi.CompressedSize
+                       > static_cast<uint32_t>(LZ4_COMPRESSBOUND(LZ4_MAX_INPUT_SIZE))) {
+                return false;
+            }
+
             auto& archiveData = *ref.ArchiveData;
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
@@ -407,9 +417,9 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
 
             if (LZ4_decompress_safe(compressedMemory.get(),
                                     static_cast<char*>(memory),
-                                    fi.CompressedSize,
-                                    fi.UncompressedSize)
-                != fi.UncompressedSize) {
+                                    static_cast<int>(fi.CompressedSize),
+                                    static_cast<int>(fi.UncompressedSize))
+                != static_cast<int>(fi.UncompressedSize)) {
                 compressedMemory.reset();
                 free_func(memory);
                 return false;

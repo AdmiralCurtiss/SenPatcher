@@ -16,11 +16,25 @@ using PFree = void (*)(void* memory);
 struct P3AData {
     SenPatcher::P3A Archive;
     std::recursive_mutex Mutex;
+
+    P3AData() = default;
+    P3AData(const P3AData& other) = delete;
+    P3AData(P3AData&& other) = delete;
+    P3AData& operator=(const P3AData& other) = delete;
+    P3AData& operator=(P3AData&& other) = delete;
+    ~P3AData() = default;
 };
 
 struct P3AFileRef {
     P3AData* ArchiveData;
     SenPatcher::P3AFileInfo* FileInfo;
+
+    P3AFileRef() = default;
+    P3AFileRef(const P3AFileRef& other) = default;
+    P3AFileRef(P3AFileRef&& other) = default;
+    P3AFileRef& operator=(const P3AFileRef& other) = default;
+    P3AFileRef& operator=(P3AFileRef&& other) = default;
+    ~P3AFileRef() = default;
 };
 
 struct LoadedModsData {
@@ -28,6 +42,13 @@ struct LoadedModsData {
     size_t CombinedFileInfoCount = 0;
     std::unique_ptr<P3AFileRef[]> CombinedFileInfos{};
     bool CheckDevFolderForAssets = false;
+
+    LoadedModsData() = default;
+    LoadedModsData(const LoadedModsData& other) = delete;
+    LoadedModsData(LoadedModsData&& other) = delete;
+    LoadedModsData& operator=(const LoadedModsData& other) = delete;
+    LoadedModsData& operator=(LoadedModsData&& other) = delete;
+    ~LoadedModsData() = default;
 };
 
 void LoadModP3As(SenPatcher::Logger& logger,
