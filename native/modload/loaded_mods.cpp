@@ -85,6 +85,40 @@ bool FilterGamePath(char8_t* out_path, const char* in_path, size_t length) {
     return in_path[in] == '\0';
 }
 
+static bool PathIsAllowed(std::string_view path) {
+    if (path.empty()) {
+        return false;
+    }
+
+    std::string_view rest = path;
+    while (true) {
+        size_t nextPathSeparator = rest.find_first_of("/\\");
+        std::string_view currentElement;
+        if (nextPathSeparator == std::string_view::npos) {
+            currentElement = rest;
+            rest = std::string_view();
+        } else {
+            currentElement = rest.substr(0, nextPathSeparator);
+            rest = rest.substr(nextPathSeparator + 1);
+        }
+
+        if (currentElement.empty()) {
+            // empty path element is not allowed
+            return false;
+        }
+
+        if (std::all_of(
+                currentElement.begin(), currentElement.end(), [](char c) { return c == '.'; })) {
+            // all dot path element is not allowed
+            return false;
+        }
+
+        if (rest.empty()) {
+            return true;
+        }
+    }
+}
+
 static bool LoadOrderTxt(std::vector<std::filesystem::path>& output,
                          SenPatcher::Logger& logger,
                          SenPatcher::IO::File& file) {
@@ -114,14 +148,14 @@ static bool LoadOrderTxt(std::vector<std::filesystem::path>& output,
         remaining = nextLineSeparator != std::string_view::npos
                         ? remaining.substr(nextLineSeparator + 1)
                         : std::string_view();
-        if (line.empty()) {
+        if (!PathIsAllowed(line)) {
             continue;
         }
-        auto path = std::filesystem::path(Utf8ToUtf16(line.data(), line.size()));
-
-        // TODO: sanitize path here so it doesn't go outside the mods dir
-
-        output.emplace_back(path);
+        auto& p = output.emplace_back(Utf8ToUtf16(line.data(), line.size()));
+        if (p.is_absolute()) {
+            // don't allow absolute paths either
+            output.pop_back();
+        }
     }
 
     return true;
@@ -147,6 +181,54 @@ static bool WriteOrderTxt(const std::vector<std::filesystem::path>& paths,
     }
 
     return true;
+}
+
+static bool IsEquivalentPath(std::wstring_view lhs, std::wstring_view rhs) {
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        const char cl =
+            (lhs[i] == L'\\'
+                 ? L'/'
+                 : ((lhs[i] >= L'A' && lhs[i] <= L'Z') ? (lhs[i] + (L'a' - L'A')) : lhs[i]));
+        const char cr =
+            (rhs[i] == L'\\'
+                 ? L'/'
+                 : ((rhs[i] >= L'A' && rhs[i] <= L'Z') ? (rhs[i] + (L'a' - L'A')) : rhs[i]));
+        if (cl != cr) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ContainsPath(const std::vector<std::filesystem::path>& paths,
+                         const std::filesystem::path& searchpath) {
+    for (const auto& path : paths) {
+        if (IsEquivalentPath(path.native(), searchpath.native())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void MoveSenpatcherAssetsToEnd(std::vector<std::filesystem::path>& paths) {
+    std::wstring_view prefix = L"zzz_senpatcher_";
+    const auto is_senpatcher_asset = [&](const std::filesystem::path& p) {
+        const auto& str = p.native();
+        if (str.size() < 15) {
+            return false;
+        }
+        return IsEquivalentPath(prefix, std::wstring_view(str).substr(0, 15));
+    };
+    std::stable_sort(paths.begin(),
+                     paths.end(),
+                     [&](const std::filesystem::path& lhs, const std::filesystem::path& rhs) {
+                         int lhsIsSenpatcherAsset = is_senpatcher_asset(lhs) ? 1 : 0;
+                         int rhsIsSenpatcherAsset = is_senpatcher_asset(rhs) ? 1 : 0;
+                         return lhsIsSenpatcherAsset < rhsIsSenpatcherAsset;
+                     });
 }
 
 static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& logger,
@@ -181,7 +263,7 @@ static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& lo
             && string[string.size() - 2] == L'3'
             && (string[string.size() - 1] == L'A' || string[string.size() - 1] == L'a')) {
             auto filename = path.filename();
-            if (std::find(paths.begin(), paths.end(), filename) == paths.end()) {
+            if (!ContainsPath(paths, filename)) {
                 paths.emplace_back(std::move(filename));
                 modified = true;
             }
@@ -189,6 +271,10 @@ static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& lo
     }
 
     if (modified) {
+        // new files from the directory were added, so to avoid confusing behavior where the
+        // built-in asset patches override a mod, move them to the end of the list
+        MoveSenpatcherAssetsToEnd(paths);
+
         // write out the modified file so that the user has an easier time editing the priorities
         auto orderPathTmp = orderPath;
         orderPathTmp += L".tmp";
