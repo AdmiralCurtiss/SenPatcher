@@ -18,6 +18,8 @@
 #include "sen3/file_fixes.h"
 #include "sen3/inject_modloader.h"
 
+#include "senpatcher_version.h"
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -49,14 +51,13 @@ static PDirectInput8Create LoadForwarderAddress(SenPatcher::Logger& logger) {
     return (PDirectInput8Create)addr;
 }
 
-static char* Align16CodePage(SenPatcher::Logger& logger, void* new_page) {
+static void Align16CodePage(SenPatcher::Logger& logger, char*& new_page) {
     logger.Log("Aligning ").LogPtr(new_page).Log(" to 16 bytes.\n");
-    char* p = reinterpret_cast<char*>(new_page);
-    *p++ = 0xcc;
-    while ((reinterpret_cast<unsigned long long>(p) & 0xf) != 0) {
-        *p++ = 0xcc;
+    char* p = new_page;
+    while ((std::bit_cast<uint64_t>(p) & 0xf) != 0) {
+        *p++ = static_cast<char>(0xcc);
     }
-    return p;
+    new_page = p;
 }
 
 static GameVersion FindImageBase(SenPatcher::Logger& logger, void** code) {
@@ -321,7 +322,7 @@ static int32_t __fastcall SenPatcherFile_FSoundFileSeek(SenPatcher::IO::File* fi
 static int64_t __fastcall SenPatcherFile_FSoundFileTell(SenPatcher::IO::File* file) {
     auto position = file->GetPosition();
     if (position) {
-        return *position;
+        return static_cast<int64_t>(*position);
     }
     return -1;
 }
@@ -346,7 +347,7 @@ static int32_t __fastcall MemoryFile_FSoundFileRead(MemoryFile* file,
 
     char* current = file->Memory + file->Position;
     char* end = file->Memory + file->Length;
-    size_t toRead = end - current;
+    size_t toRead = static_cast<size_t>(end - current);
     if (static_cast<size_t>(length) < toRead) {
         toRead = static_cast<size_t>(length);
     }
@@ -375,12 +376,12 @@ static int32_t __fastcall MemoryFile_FSoundFileSeek(MemoryFile* file, int64_t po
         return -1;
     }
 
-    file->Position = targetPosition;
+    file->Position = static_cast<size_t>(targetPosition);
     return 0;
 }
 
 static int64_t __fastcall MemoryFile_FSoundFileTell(MemoryFile* file) {
-    return file->Position;
+    return static_cast<int64_t>(file->Position);
 }
 
 static void __fastcall MemoryFile_FSoundFileClose(MemoryFile* file) {
@@ -458,7 +459,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     void* codeBase = nullptr;
     GameVersion version = FindImageBase(logger, &codeBase);
     if (version == GameVersion::Unknown || !codeBase) {
-        logger.Log("Failed finding executable in memory -- wrong game or version?\n");
+        logger.Log("Failed finding CS3 executable in memory -- wrong game or version?\n");
         return nullptr;
     }
 
@@ -487,8 +488,10 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     // and get a relative path to the root game directory
     std::filesystem::path baseDir;
     if (std::filesystem::exists(L"Sen3Launcher.exe")) {
+        logger.Log("Root game dir is current dir.\n");
         baseDir = L"./";
     } else if (std::filesystem::exists(L"../../Sen3Launcher.exe")) {
+        logger.Log("Root game dir is ../..\n");
         baseDir = L"../../";
     } else {
         logger.Log("Failed finding root game directory.\n");
@@ -552,52 +555,66 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     SenLib::Sen3::InjectAtFFileOpen(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileOpenForwarder);
+    Align16CodePage(logger, newPage);
     SenLib::Sen3::InjectAtFFileGetFilesize(logger,
                                            static_cast<char*>(codeBase),
                                            version,
                                            newPage,
                                            newPageEnd,
                                            &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, newPage);
     SenLib::Sen3::InjectAtFreestandingGetFilesize(logger,
                                                   static_cast<char*>(codeBase),
                                                   version,
                                                   newPage,
                                                   newPageEnd,
                                                   &FreestandingGetFilesizeForwarder);
+    Align16CodePage(logger, newPage);
     SenLib::Sen3::InjectAtOpenFSoundFile(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FSoundOpenForwarder);
+    Align16CodePage(logger, newPage);
 
     DeglobalizeMutexes(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
     AddSenPatcherVersionToTitle(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
 
     if (fixInGameButtonMappingValidity) {
         FixInGameButtonMappingValidity(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
     if (allowSwitchToNightmare) {
         AllowSwitchToNightmare(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
     if (swapBrokenMasterQuartzValuesForDisplay) {
         SwapBrokenMasterQuartzValuesForDisplay(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
     if (disableMouseCapture) {
         PatchDisableMouseCapture(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
     if (showMouseCursor) {
         PatchShowMouseCursor(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
     if (disablePauseOnFocusLoss) {
         PatchDisablePauseOnFocusLoss(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
     if (forceXInput) {
         PatchForceXInput(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
     if (fixControllerMapping) {
         PatchFixControllerMappings(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
 
 
@@ -608,12 +625,15 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         FlushInstructionCache(GetCurrentProcess(), newPageStart, newPageLength);
     }
 
+    logger.Log("Injection done!\n");
+
     return newPageStart;
 }
 
 PDirectInput8Create InjectionDllInitializer() {
     SenPatcher::Logger logger(
         SenPatcher::IO::File(L"senpatcher_inject_cs3.log", SenPatcher::IO::OpenMode::Write));
+    logger.Log("Initializing CS3 hook from SenPatcher, version " SENPATCHER_VERSION "...\n");
     auto* forwarder = LoadForwarderAddress(logger);
     SetupHacks(logger);
     return forwarder;
