@@ -225,15 +225,15 @@ std::string ReadStream::ReadShiftJisNullterm() {
     while (b != 0 && b != -1) {
         if ((b >= 0 && b <= 0x80) || (b >= 0xA0 && b <= 0xDF)) {
             // is a single byte
-            sb.push_back(b);
+            sb.push_back(static_cast<char>(b));
         } else {
             // is two bytes
-            sb.push_back(b);
+            sb.push_back(static_cast<char>(b));
             b = ReadByte();
             if (b == -1) {
                 throw "Invalid Shift-JIS string";
             }
-            sb.push_back(b);
+            sb.push_back(static_cast<char>(b));
         }
         b = ReadByte();
     }
@@ -460,7 +460,7 @@ void WriteStream::WriteStringRaw(std::string_view str, size_t count, bool trim) 
 
     size_t i;
     for (i = 0; i < str.size(); ++i) {
-        WriteByte(chars[i]);
+        WriteByte(static_cast<uint8_t>(chars[i]));
     }
     for (; i < count; ++i) {
         WriteByte(0);
@@ -559,7 +559,7 @@ void DuplicatableByteArrayStream::End() {
 }
 
 MemoryStream::MemoryStream(std::vector<char>& data, size_t initialPosition)
-  : Data(data), CurrentPosition(0) {}
+  : Data(data), CurrentPosition(initialPosition) {}
 
 MemoryStream::~MemoryStream() = default;
 
