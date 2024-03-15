@@ -353,6 +353,11 @@ set(SOURCES_CS3_FIXES
 	sen3/tbl.h
 )
 
+set(SOURCES_CS4_FIXES
+	sen4/file_fixes.cpp
+	sen4/file_fixes.h
+)
+
 set(SOURCES_BASE_FIXES
 	align.h
 	align.cpp
@@ -453,6 +458,56 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
 	add_dependencies(cs3hook GenerateGitRevisionHeader)
+endif()
+
+if (SENPATCHER_BUILD_CS4TEST)
+	add_executable(cs4test)
+	target_sources(cs4test PRIVATE
+		main_cs4_test.cpp
+
+		${SOURCES_BASE_FIXES}
+		${SOURCES_CS4_FIXES}
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_include_directories(cs4test
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(cs4test GenerateGitRevisionHeader)
+endif()
+
+if (SENPATCHER_BUILD_CS4HOOK)
+	add_library(cs4hook SHARED)
+	target_sources(cs4hook PRIVATE
+		dinput8.def
+		main_cs4.cpp
+		ini.cpp
+		ini.h
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+		x64/emitter.cpp
+		x64/emitter.h
+		x64/inject_jump_into.h
+		x64/page_unprotect.cpp
+		x64/page_unprotect.h
+
+		sen4/exe_patch.h
+		sen4/inject_modloader.cpp
+		sen4/inject_modloader.h
+
+		${SOURCES_BASE_FIXES}
+		${SOURCES_CS4_FIXES}
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_include_directories(cs4hook
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(cs4hook GenerateGitRevisionHeader)
 endif()
 
 if (SENPATCHER_BUILD_SHA1TEST)
