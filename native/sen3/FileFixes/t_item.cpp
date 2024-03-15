@@ -142,19 +142,19 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         // A bunch of items that claim EP when they should be CP
-        for (size_t idx : {
+        for (int idx : {
                  51,   52,   53,  54,  61,  62,   63,   64,   65,   66,   67,   1026, 1029, 1034,
                  1040, 1044, 988, 991, 996, 1002, 1006, 1015, 1019, 1022, 1048, 1051, 1057, 1066,
              }) {
-            auto& e = tbl_en.Entries[idx];
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
             ItemData m(e.Data.data(), e.Data.size());
             m.desc = Replace(m.desc, "EP", "CP");
             e.Data = m.ToBinary();
         }
 
         // Extra comma in Sandy-grown stuff
-        for (size_t idx : {68, 69, 70}) {
-            auto& e = tbl_en.Entries[idx];
+        for (int idx : {68, 69, 70}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
             ItemData m(e.Data.data(), e.Data.size());
             m.desc = Replace(m.desc, ", ", " ");
             e.Data = m.ToBinary();

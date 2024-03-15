@@ -55,7 +55,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // this description is gibberish because someone assumed %s is the MQ name instead of the
         // character name, rewrite it so it makes sense
-        for (int i = 0; i < 2; ++i) {
+        for (size_t i = 0; i < 2; ++i) {
             auto& e = tbl_en.Entries.at(127 + i);
             TextTableData m(e.Data.data(), e.Data.size());
             m.str = "#1C%s has this master quartz equipped in the #3C";

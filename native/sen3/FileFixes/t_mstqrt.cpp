@@ -102,7 +102,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                 MasterQuartzMemo m(e.Data.data(), e.Data.size());
                 if (!m.str.starts_with("\xe2\x98\x85")) { // black star U+2605
                     m.str = Insert(m.str,
-                                   m.str.starts_with("$") ? 1 : 0,
+                                   m.str.starts_with("$") ? 1u : 0u,
                                    "\xe3\x80\x80"); // fullwidth space U+3000
                     if (i == 191) {
                         m.str = ReplaceSubstring(

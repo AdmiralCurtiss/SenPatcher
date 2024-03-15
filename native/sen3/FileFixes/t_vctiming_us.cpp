@@ -38,15 +38,6 @@ static void CopyEntryData(Tbl& tbl, size_t source, size_t target) {
     e_target.Data = vd_target.ToBinary(HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 }
 
-static void CreateEntryData(Tbl& tbl, size_t target, std::vector<char> data) {
-    auto& e_target = tbl.Entries[target];
-    VoiceTimingData vd_target(e_target.Data.data(),
-                              e_target.Data.size(),
-                              HyoutaUtils::EndianUtils::Endianness::LittleEndian);
-    vd_target.Unknown = std::move(data);
-    e_target.Data = vd_target.ToBinary(HyoutaUtils::EndianUtils::Endianness::LittleEndian);
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
@@ -86,23 +77,23 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // CopyEntryData(tbl_pc, 254, 986); // v07_e0026
         // tbl_pc.Entries[986].Data[4] = 0x13;
         CopyEntryData(tbl_pc, 435, 1554); // v00_e0441
-        tbl_pc.Entries[1554].Data[5] = 0x0f;
+        tbl_pc.Entries[1554].Data[5] = static_cast<char>(0x0f);
         CopyEntryData(tbl_pc, 1454, 3756); // v49_e0004
-        tbl_pc.Entries[3756].Data[6] = 0x03;
+        tbl_pc.Entries[3756].Data[6] = static_cast<char>(0x03);
         CopyEntryData(tbl_pc, 370, 4494); // v55_e0018
         tbl_pc.Entries[4494].Data[5] = tbl_pc.Entries[33].Data[5];
         tbl_pc.Entries[4494].Data[6] = tbl_pc.Entries[33].Data[6];
         CopyEntryData(tbl_pc, 5519, 4579); // v00_e1032
-        tbl_pc.Entries[4579].Data[5] = 0x78;
+        tbl_pc.Entries[4579].Data[5] = static_cast<char>(0x78);
         CopyEntryData(tbl_pc, 5836, 4598); // v55_e0062
-        tbl_pc.Entries[4598].Data[6] = 0xef;
-        tbl_pc.Entries[4598].Data[7] = 0xff;
+        tbl_pc.Entries[4598].Data[6] = static_cast<char>(0xef);
+        tbl_pc.Entries[4598].Data[7] = static_cast<char>(0xff);
         CopyEntryData(tbl_pc, 624, 4618); // v00_e1054
-        tbl_pc.Entries[4618].Data[6] = 0x03;
+        tbl_pc.Entries[4618].Data[6] = static_cast<char>(0x03);
         CopyEntryData(tbl_pc, 743, 4899); // v52_e0119
-        tbl_pc.Entries[4899].Data[6] = 0xf7;
+        tbl_pc.Entries[4899].Data[6] = static_cast<char>(0xf7);
         CopyEntryData(tbl_pc, 1431, 6793); // v06_s0047
-        tbl_pc.Entries[6793].Data[4] = 0x0d;
+        tbl_pc.Entries[6793].Data[4] = static_cast<char>(0x0d);
 
         // these are not in the PS4 patch
         tbl_pc.Entries.erase(tbl_pc.Entries.begin() + 6614); // v04_s0054

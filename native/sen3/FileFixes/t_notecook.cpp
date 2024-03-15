@@ -47,10 +47,10 @@ static std::string GenerateAttackItemLine1(ItemData item, Tbl tbl_text_en, Tbl t
     // out for the given items anyway
     uint16_t area = item.effect1[0];
     uint16_t power = item.effect2[1];
-    const auto& area_data = tbl_itemhelp_en.Entries[area < 1000 ? 182 : 184].Data;
+    const auto& area_data = tbl_itemhelp_en.Entries[area < 1000u ? 182u : 184u].Data;
     std::string area_string = CompHelpData(area_data.data(), area_data.size()).str;
     const auto& power_data =
-        tbl_itemhelp_en.Entries[power <= 130 ? 204 : (power <= 150 ? 206 : 208)].Data;
+        tbl_itemhelp_en.Entries[power <= 130u ? 204u : (power <= 150u ? 206u : 208u)].Data;
     std::string power_string = CompHelpData(power_data.data(), power_data.size()).str;
     const auto& a_data = tbl_text_en.Entries[205].Data;
     std::string a = TextTableData(a_data.data(), a_data.size()).str.substr(0, 7);
