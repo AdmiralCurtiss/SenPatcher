@@ -13,10 +13,10 @@
 #include "logger.h"
 
 #include "modload/loaded_mods.h"
-
 #include "sen3/exe_patch.h"
 #include "sen3/file_fixes.h"
 #include "sen3/inject_modloader.h"
+#include "util/text.h"
 
 #include "senpatcher_version.h"
 
@@ -441,20 +441,6 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
     return nullptr;
 }
 
-static bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
-    if (lhs.size() != rhs.size()) {
-        return false;
-    }
-    for (size_t i = 0; i < lhs.size(); ++i) {
-        const char cl = (lhs[i] >= 'A' && lhs[i] <= 'Z') ? (lhs[i] + ('a' - 'A')) : lhs[i];
-        const char cr = (rhs[i] >= 'A' && rhs[i] <= 'Z') ? (rhs[i] + ('a' - 'A')) : rhs[i];
-        if (cl != cr) {
-            return false;
-        }
-    }
-    return true;
-}
-
 static void* SetupHacks(SenPatcher::Logger& logger) {
     void* codeBase = nullptr;
     GameVersion version = FindImageBase(logger, &codeBase);
@@ -518,6 +504,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                     [&](std::string_view section, std::string_view key, bool& b) {
                         const auto* kvp = ini.FindValue(section, key);
                         if (kvp) {
+                            using HyoutaUtils::TextUtils::CaseInsensitiveEquals;
                             if (CaseInsensitiveEquals(kvp->Value, "true")) {
                                 logger.Log("Patch ");
                                 logger.Log(key);

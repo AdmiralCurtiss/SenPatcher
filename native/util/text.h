@@ -35,4 +35,6 @@ std::string UInt32ToString(uint32_t value);
 std::string AdjustNewlinesToTwoSpaces(std::string desc);
 
 std::string_view Trim(std::string_view sv);
+
+bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs);
 } // namespace HyoutaUtils::TextUtils

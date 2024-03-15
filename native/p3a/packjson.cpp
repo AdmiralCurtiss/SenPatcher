@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "p3a/structs.h"
+#include "util/text.h"
 
 #include "file.h"
 
@@ -42,20 +43,6 @@ static std::optional<std::string> ReadString(T& json, const char* key) {
         return std::string(str, len);
     }
     return std::nullopt;
-}
-
-static bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
-    if (lhs.size() != rhs.size()) {
-        return false;
-    }
-    for (size_t i = 0; i < lhs.size(); ++i) {
-        const char cl = (lhs[i] >= 'A' && lhs[i] <= 'Z') ? (lhs[i] + ('a' - 'A')) : lhs[i];
-        const char cr = (rhs[i] >= 'A' && rhs[i] <= 'Z') ? (rhs[i] + ('a' - 'A')) : rhs[i];
-        if (cl != cr) {
-            return false;
-        }
-    }
-    return true;
 }
 
 bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
@@ -112,6 +99,7 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                 }
                 std::memcpy(fn.data(), nameInArchive->data(), nameInArchive->size());
                 SenPatcher::P3ACompressionType ct = SenPatcher::P3ACompressionType::None;
+                using HyoutaUtils::TextUtils::CaseInsensitiveEquals;
                 if (CaseInsensitiveEquals(*compression, "none")) {
                     ct = SenPatcher::P3ACompressionType::None;
                 } else if (CaseInsensitiveEquals(*compression, "lz4")) {

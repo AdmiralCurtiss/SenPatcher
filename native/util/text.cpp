@@ -199,4 +199,18 @@ std::string_view Trim(std::string_view sv) {
     }
     return sv;
 }
+
+bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        const char cl = (lhs[i] >= 'A' && lhs[i] <= 'Z') ? (lhs[i] + ('a' - 'A')) : lhs[i];
+        const char cr = (rhs[i] >= 'A' && rhs[i] <= 'Z') ? (rhs[i] + ('a' - 'A')) : rhs[i];
+        if (cl != cr) {
+            return false;
+        }
+    }
+    return true;
+}
 } // namespace HyoutaUtils::TextUtils
