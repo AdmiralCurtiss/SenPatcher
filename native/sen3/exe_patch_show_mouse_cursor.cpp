@@ -20,7 +20,7 @@ void PatchShowMouseCursor(SenPatcher::Logger& logger,
         char* tmp = showCursorPos;
         PageUnprotect page(logger, tmp, 8);
         for (size_t i = 0; i < 8; ++i) {
-            *tmp++ = 0x90; // nop
+            *tmp++ = static_cast<char>(0x90); // nop
         }
     }
 }

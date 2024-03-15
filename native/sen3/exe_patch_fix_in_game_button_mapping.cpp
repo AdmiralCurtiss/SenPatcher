@@ -22,7 +22,7 @@ void FixInGameButtonMappingValidity(SenPatcher::Logger& logger,
     {
         char* tmp = entryPoint;
         for (size_t i = 0; i < length; ++i) {
-            *tmp++ = 0xcc; // int 3
+            *tmp++ = static_cast<char>(0xcc); // int 3
         }
     }
 
@@ -69,7 +69,7 @@ void FixInGameButtonMappingValidity(SenPatcher::Logger& logger,
     done.WriteJump(inject, JumpCondition::JMP); // jmp done
 
     while (std::bit_cast<uint64_t>(inject) % 4 != 0) {
-        *inject++ = 0xcc; // int 3
+        *inject++ = static_cast<char>(0xcc); // int 3
     }
 
     char* lookup_table_address = inject;

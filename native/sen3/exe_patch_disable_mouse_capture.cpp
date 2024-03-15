@@ -24,11 +24,11 @@ void PatchDisableMouseCapture(SenPatcher::Logger& logger,
     // change functions that capture the mouse cursor to not do that
     {
         PageUnprotect page(logger, captureMouseCursorPos1, 1);
-        *captureMouseCursorPos1 = 0xeb; // jz -> jmp
+        *captureMouseCursorPos1 = static_cast<char>(0xeb); // jz -> jmp
     }
     {
         PageUnprotect page(logger, captureMouseCursorPos2, 1);
-        *captureMouseCursorPos2 = 0xeb; // jz -> jmp
+        *captureMouseCursorPos2 = static_cast<char>(0xeb); // jz -> jmp
     }
 
     // change function that handles camera movement to not react to mouse movement
@@ -39,7 +39,7 @@ void PatchDisableMouseCapture(SenPatcher::Logger& logger,
         branch.SetTarget(cameraMouseFuncPos2);
         char* tmp = cameraMouseFuncPos1;
         branch.WriteJump(tmp, JumpCondition::JMP);
-        *tmp = 0x90; // nop
+        *tmp = static_cast<char>(0x90); // nop
     }
 
     // skip mouse movement processing function or something like that?
@@ -47,7 +47,7 @@ void PatchDisableMouseCapture(SenPatcher::Logger& logger,
         char* tmp = processMouseFuncPos;
         PageUnprotect page(logger, tmp, 5);
         for (size_t i = 0; i < 5; ++i) {
-            *tmp++ = 0x90; // nop
+            *tmp++ = static_cast<char>(0x90); // nop
         }
     }
 }

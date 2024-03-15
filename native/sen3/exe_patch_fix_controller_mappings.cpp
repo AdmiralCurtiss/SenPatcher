@@ -21,10 +21,10 @@ void PatchFixControllerMappings(SenPatcher::Logger& logger,
         GetCodeAddressJpEn(version, textRegion, 0x14012dd89, 0x140131309) + 2;
     char* addressInjectPos = GetCodeAddressJpEn(version, textRegion, 0x14012d88c, 0x140130e0e);
     char* addressMapLookupCode = GetCodeAddressJpEn(version, textRegion, 0x14012e086, 0x140131622);
-    size_t lengthMapLookupCodeForDelete = (jp ? 0x45 : 0x3f);
+    size_t lengthMapLookupCodeForDelete = static_cast<size_t>(jp ? 0x45 : 0x3f);
     char* addressMapLookupSuccessForDelete =
         GetCodeAddressJpEn(version, textRegion, 0x14012e0d8, 0x14013166e);
-    size_t lengthMapLookupSuccessForDelete = (jp ? 4 : 3);
+    size_t lengthMapLookupSuccessForDelete = static_cast<size_t>(jp ? 4 : 3);
     char* jpSwapActions45 = textRegion + (0x14012d785u - 0x140001000u); // only in JP build
     static constexpr size_t jpSwapActions45Len = 13;                    // only in JP build
     assert(addressMapLookupCode < addressMapLookupSuccessForDelete);
@@ -64,8 +64,8 @@ void PatchFixControllerMappings(SenPatcher::Logger& logger,
     uint8_t allocLengthOld;
     {
         PageUnprotect page(logger, addressStructMemAlloc, 1);
-        allocLengthOld = *addressStructMemAlloc;
-        uint8_t allocLengthNew = allocLengthOld + 0x20;
+        allocLengthOld = static_cast<uint8_t>(*addressStructMemAlloc);
+        char allocLengthNew = static_cast<char>(allocLengthOld + 0x20);
         *addressStructMemAlloc = allocLengthNew;
     }
 
@@ -153,11 +153,11 @@ void PatchFixControllerMappings(SenPatcher::Logger& logger,
         // clear out old lookup code
         char* tmp = addressMapLookupCode;
         for (size_t i = 0; i < lengthMapLookupCodeForDelete; ++i) {
-            *tmp++ = 0x90; // nop
+            *tmp++ = static_cast<char>(0x90); // nop
         }
         tmp = addressMapLookupSuccessForDelete;
         for (size_t i = 0; i < lengthMapLookupSuccessForDelete; ++i) {
-            *tmp++ = 0x90; // nop
+            *tmp++ = static_cast<char>(0x90); // nop
         }
 
         // replace with new lookup code
@@ -178,11 +178,11 @@ void PatchFixControllerMappings(SenPatcher::Logger& logger,
         lookup_fail.WriteJump(tmp, JC::JNB); // jnb lookup_fail
         if (!jp) {
             write_instruction_32(tmp, 0x0fb64c03u); // movzx ecx,byte ptr[rbx+rax+allocLengthOld]
-            *tmp++ = allocLengthOld;
+            *tmp++ = static_cast<char>(allocLengthOld);
             write_instruction_24(tmp, 0x83f920); // cmp ecx,20h
         } else {
             write_instruction_32(tmp, 0x0fb64403u); // movzx eax,byte ptr[rbx+rax+allocLengthOld]
-            *tmp++ = allocLengthOld;
+            *tmp++ = static_cast<char>(allocLengthOld);
             write_instruction_24(tmp, 0x83f820); // cmp eax,20h
         }
         lookup_fail.WriteJump(tmp, JC::JNB);    // jnb lookup_fail

@@ -19,7 +19,7 @@ void PatchForceXInput(SenPatcher::Logger& logger,
         char* tmp = xinputCheckPos;
         PageUnprotect page(logger, xinputCheckPos, 6);
         for (size_t i = 0; i < 6; ++i) {
-            *tmp++ = 0x90; // nop
+            *tmp++ = static_cast<char>(0x90); // nop
         }
     }
 }

@@ -25,8 +25,9 @@ void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
         GetCodeAddressJpEn(version, textRegion, 0x141d43de0, 0x141d59f80);
 
     // don't silence audio output when unfocused
-    int distance = silenceAudioIfUnfocusedPos2 - silenceAudioIfUnfocusedPos1;
-    PageUnprotect page(logger, silenceAudioIfUnfocusedPos1, distance);
+    size_t distance =
+        static_cast<size_t>(silenceAudioIfUnfocusedPos2 - silenceAudioIfUnfocusedPos1);
+    PageUnprotect page2(logger, silenceAudioIfUnfocusedPos1, distance);
     {
         char* tmp = silenceAudioIfUnfocusedPos1;
         BranchHelper1Byte branch;
@@ -35,8 +36,8 @@ void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
 
         // the rest of this we reserve for the mouse click asm below
         // (there's not enough space there to write a 12byte absolute jmp)
-        for (int i = 2; i < distance; ++i) {
-            *tmp++ = 0xcc; // int 3
+        for (size_t i = 2; i < distance; ++i) {
+            *tmp++ = static_cast<char>(0xcc); // int 3
         }
     }
 
@@ -45,7 +46,7 @@ void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
         char* tmp = runMainGameLoopIfUnfocusedPos;
         PageUnprotect page(logger, tmp, 6);
         for (size_t i = 0; i < 6; ++i) {
-            *tmp++ = 0x90; // nop
+            *tmp++ = static_cast<char>(0x90); // nop
         }
     }
 
@@ -91,7 +92,7 @@ void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
             char* tmp = skipMouseButtonsIfUnfocusedPos1;
             PageUnprotect page(logger, tmp, 6);
             jump_to_codespace.WriteJump(tmp, JC::JMP); // jmp jump_to_codespace
-            *tmp = 0x90;                               // nop
+            *tmp = static_cast<char>(0x90);            // nop
         }
 
         const auto WriteRelativeAddress32 = [](char*& codepos, char* absoluteTarget) {

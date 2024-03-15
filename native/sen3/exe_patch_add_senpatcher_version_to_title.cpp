@@ -37,7 +37,7 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
         }
     }
     constexpr char senpatcherVersionString[] = "  SenPatcher " SENPATCHER_VERSION;
-    std::strcpy(codespace, senpatcherVersionString);
+    std::memcpy(codespace, senpatcherVersionString, sizeof(senpatcherVersionString));
     codespace += sizeof(senpatcherVersionString);
 
     // inject a jump to codespace
@@ -59,7 +59,7 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
         char* tmp = rdxLoad;
         PageUnprotect page(logger, rdxLoad, 7);
         for (size_t i = 0; i < 7; ++i) {
-            *tmp++ = 0x90; // nop
+            *tmp++ = static_cast<char>(0x90); // nop
         }
     }
 }
