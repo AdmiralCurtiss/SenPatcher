@@ -494,6 +494,14 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		x64/page_unprotect.h
 
 		sen4/exe_patch.h
+		sen4/exe_patch_add_senpatcher_version_to_title.cpp
+		sen4/exe_patch_allow_switch_to_nightmare.cpp
+		sen4/exe_patch_deglobalize_mutexes.cpp
+		sen4/exe_patch_disable_mouse_capture.cpp
+		sen4/exe_patch_disable_pause_on_focus_loss.cpp
+		sen4/exe_patch_fix_pc_confirm_cancel_when_swapped.cpp
+		sen4/exe_patch_force_swap_confirm_cancel.cpp
+		sen4/exe_patch_show_mouse_cursor.cpp
 		sen4/inject_modloader.cpp
 		sen4/inject_modloader.h
 

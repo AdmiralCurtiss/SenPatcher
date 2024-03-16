@@ -482,11 +482,12 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     bool assetFixes = true;
     bool allowSwitchToNightmare = true;
-    bool forceConfirmCancel = false;
-    bool forceConfirmJp = false;
+    bool forceSwapConfirmCancel = false;
+    bool forceSwapConfirmCancelToJp = false;
     bool disableMouseCapture = false;
     bool showMouseCursor = false;
     bool disablePauseOnFocusLoss = false;
+    bool fixSwappedButtonsWhenDynamicPromptsOff = true;
 
     {
         SenPatcher::IO::File settingsFile(baseDir / L"senpatcher_settings.ini",
@@ -518,8 +519,8 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                     };
                 check_boolean("CS4", "AssetFixes", assetFixes);
                 check_boolean("CS4", "AllowSwitchToNightmare", allowSwitchToNightmare);
-                check_boolean("CS4", "ForceConfirmCancel", forceConfirmCancel);
-                check_boolean("CS4", "ForceConfirmJp", forceConfirmJp);
+                check_boolean("CS4", "ForceConfirmCancel", forceSwapConfirmCancel);
+                check_boolean("CS4", "ForceConfirmJp", forceSwapConfirmCancelToJp);
                 check_boolean("CS4", "DisableMouseCapture", disableMouseCapture);
                 check_boolean("CS4", "ShowMouseCursor", showMouseCursor);
                 check_boolean("CS4", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
@@ -559,24 +560,13 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FSoundOpenForwarder);
     Align16CodePage(logger, newPage);
 
-    /*
     DeglobalizeMutexes(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
     AddSenPatcherVersionToTitle(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
 
-    if (fixInGameButtonMappingValidity) {
-        FixInGameButtonMappingValidity(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
-    }
     if (allowSwitchToNightmare) {
         AllowSwitchToNightmare(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
-    }
-    if (swapBrokenMasterQuartzValuesForDisplay) {
-        SwapBrokenMasterQuartzValuesForDisplay(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
     if (disableMouseCapture) {
@@ -593,17 +583,20 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
-    if (forceXInput) {
-        PatchForceXInput(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    if (forceSwapConfirmCancel) {
+        PatchForceSwapConfirmCancel(logger,
+                                    static_cast<char*>(codeBase),
+                                    version,
+                                    newPage,
+                                    newPageEnd,
+                                    forceSwapConfirmCancelToJp);
         Align16CodePage(logger, newPage);
     }
-    if (fixControllerMapping) {
-        PatchFixControllerMappings(
+    if (fixSwappedButtonsWhenDynamicPromptsOff) {
+        PatchFixPcConfirmCancelWhenSwapped(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
-    */
-
 
     // mark newly allocated page as executable
     {
