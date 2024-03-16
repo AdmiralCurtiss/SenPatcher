@@ -53,12 +53,12 @@ static bool CollectAssets(SenPatcher::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           SenPatcher::P3APackData& packData,
                           bool allowSwitchToNightmare) {
-    // TRY_APPLY(f4200_dat, TryApply(callback, packData.Files));
-    // TRY_APPLY(m9031_dat, TryApply(callback, packData.Files));
-    // TRY_APPLY(t_item, TryApply(callback, packData.Files));
-    // TRY_APPLY(t_mstqrt, TryApply(callback, packData.Files));
-    // TRY_APPLY(t_text, TryApply(callback, packData.Files, allowSwitchToNightmare));
-    // TRY_APPLY(t3600_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(f4200_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(m9031_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(t_item, TryApply(callback, packData.Files));
+    TRY_APPLY(t_mstqrt, TryApply(callback, packData.Files));
+    TRY_APPLY(t_text, TryApply(callback, packData.Files, allowSwitchToNightmare));
+    TRY_APPLY(t3600_dat, TryApply(callback, packData.Files));
     return true;
 }
 
