@@ -94,6 +94,28 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Katze says attack/craft instead of magic for its second effect
+        {
+            auto& e = tbl_en.Entries[248];
+            const auto& e2 = tbl_en.Entries[234];
+            MasterQuartzMemo m(e.Data.data(), e.Data.size());
+            m.str = ReplaceSubstring(
+                m.str, 3, 14, MasterQuartzMemo(e2.Data.data(), e2.Data.size()).str, 3, 14);
+            e.Data = m.ToBinary();
+        }
+
+        //{
+        //    std::vector<std::pair<size_t, MasterQuartzMemo>> memos;
+        //    for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
+        //        if (tbl_en.Entries[i].Name == "MasterQuartzMemo") {
+        //            auto& e = tbl_en.Entries[i];
+        //            MasterQuartzMemo m(e.Data.data(), e.Data.size());
+        //            memos.emplace_back(i, m);
+        //        }
+        //    }
+        //    __debugbreak();
+        //}
+
         // Add leading fullwidth space to all MQ effect descriptions, CS4 does this and it looks
         // much nicer.
         for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
