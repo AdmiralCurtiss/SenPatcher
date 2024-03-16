@@ -18,10 +18,10 @@ void InjectAtFFileOpen(SenPatcher::Logger& logger,
     using namespace SenPatcher::x64;
 
     char* const entryPoint = textRegion
-                             + (version == GameVersion::Japanese ? (00000000000 - 0x140001000)
+                             + (version == GameVersion::Japanese ? (0x1400af780 - 0x140001000)
                                                                  : (0x1400af7a0 - 0x140001000));
     char* const exitPoint = textRegion
-                            + (version == GameVersion::Japanese ? (00000000000 - 0x140001000)
+                            + (version == GameVersion::Japanese ? (0x1400af89d - 0x140001000)
                                                                 : (0x1400af8bd - 0x140001000));
 
 
@@ -77,10 +77,10 @@ void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
     using namespace SenPatcher::x64;
 
     char* const entryPoint = textRegion
-                             + (version == GameVersion::Japanese ? (00000000000 - 0x140001000)
+                             + (version == GameVersion::Japanese ? (0x1400af636 - 0x140001000)
                                                                  : (0x1400af656 - 0x140001000));
     char* const exitPoint = textRegion
-                            + (version == GameVersion::Japanese ? (00000000000 - 0x140001000)
+                            + (version == GameVersion::Japanese ? (0x1400af736 - 0x140001000)
                                                                 : (0x1400af756 - 0x140001000));
 
 
@@ -138,10 +138,10 @@ void InjectAtFreestandingGetFilesize(SenPatcher::Logger& logger,
     using namespace SenPatcher::x64;
 
     char* const entryPoint = textRegion
-                             + (version == GameVersion::Japanese ? (00000000000 - 0x140001000)
+                             + (version == GameVersion::Japanese ? (0x1400aed65 - 0x140001000)
                                                                  : (0x1400aed85 - 0x140001000));
     char* const exitPoint = textRegion
-                            + (version == GameVersion::Japanese ? (00000000000 - 0x140001000)
+                            + (version == GameVersion::Japanese ? (0x1400aee8e - 0x140001000)
                                                                 : (0x1400aeeae - 0x140001000));
 
 
@@ -200,7 +200,7 @@ void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
     using namespace SenPatcher::x64;
 
     char* const entryPoint = textRegion
-                             + (version == GameVersion::Japanese ? (00000000000 - 0x140001000)
+                             + (version == GameVersion::Japanese ? (0x14080ceb0 - 0x140001000)
                                                                  : (0x14080f430 - 0x140001000));
 
 

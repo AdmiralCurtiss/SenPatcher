@@ -90,27 +90,27 @@ static GameVersion FindImageBase(SenPatcher::Logger& logger, void** code) {
         if (gameVersion == GameVersion::Unknown && info.State == MEM_COMMIT
             && info.Type == MEM_IMAGE) {
             if (info.RegionSize == 0x872000 && info.Protect == PAGE_EXECUTE_READ) {
-                // crc_t crc = crc_init();
-                // crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xf48f0, 0x3d);
-                // crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x7c51d8, 0x24);
-                // crc = crc_finalize(crc);
-                // logger.Log("Checksum is ").LogHex(crc).Log(".\n");
-                // if (crc == 0x19068487) {
-                logger.Log("Appears to be the EN version.\n");
-                *code = info.BaseAddress;
-                gameVersion = GameVersion::English;
-                //}
+                crc_t crc = crc_init();
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xae7a0, 0x3d);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x844780, 0x21);
+                crc = crc_finalize(crc);
+                logger.Log("Checksum is ").LogHex(crc).Log(".\n");
+                if (crc == 0x300c7e9f) {
+                    logger.Log("Appears to be the EN version.\n");
+                    *code = info.BaseAddress;
+                    gameVersion = GameVersion::English;
+                }
             } else if (info.RegionSize == 0x86f000 && info.Protect == PAGE_EXECUTE_READ) {
-                // crc_t crc = crc_init();
-                // crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xf4270, 0x3d);
-                // crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x7b82bc, 0x24);
-                // crc = crc_finalize(crc);
-                // logger.Log("Checksum is ").LogHex(crc).Log(".\n");
-                // if (crc == 0x19068487) {
-                logger.Log("Appears to be the JP version.\n");
-                *code = info.BaseAddress;
-                gameVersion = GameVersion::Japanese;
-                //}
+                crc_t crc = crc_init();
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xae780, 0x3d);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x842120, 0x21);
+                crc = crc_finalize(crc);
+                logger.Log("Checksum is ").LogHex(crc).Log(".\n");
+                if (crc == 0x300c7e9f) {
+                    logger.Log("Appears to be the JP version.\n");
+                    *code = info.BaseAddress;
+                    gameVersion = GameVersion::Japanese;
+                }
             }
 
             // logger.Log("Memory is: ");
@@ -447,11 +447,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(static_cast<char*>(codeBase)
                                                        + (version == GameVersion::Japanese
-                                                              ? (00000000000 - 0x140001000)
+                                                              ? (0x14052ed00 - 0x140001000)
                                                               : (0x140531280 - 0x140001000)));
     s_TrackedFree = reinterpret_cast<PTrackedFree>(static_cast<char*>(codeBase)
                                                    + (version == GameVersion::Japanese
-                                                          ? (00000000000 - 0x140001000)
+                                                          ? (0x14052ece0 - 0x140001000)
                                                           : (0x140531260 - 0x140001000)));
 
     // allocate extra page for code
