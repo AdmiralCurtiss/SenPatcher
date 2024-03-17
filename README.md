@@ -10,6 +10,58 @@ Fixes and customizations for:
 https://github.com/AdmiralCurtiss/SenPatcher
 
 
+----
+
+Prerequisites
+-------------
+
+- If you have installed a version of SenPatcher before v1.0, please restore your game before continuing.
+  - Launch the old version of SenPatcher again and click the "Remove Patches / Restore Original" button.
+  - Alternatively, verify the game files in Steam or GoG Galaxy. It will detect and redownload any patches files and replace them with unpatched ones.
+- Make sure your game is updated to a supported version (CS1 v1.6, CS2 v1.4.1 or v1.4.2, CS3 v1.06, CS4 v1.2.1). Other versions of the games will not work.
+
+Windows
+-------
+
+- Place the contents of the folder for the game you want to patch into your game install directory.
+  - The DINPUT8.dll should end up in the same folder as the game executable, ie. the executables starting with 'ed8'.
+- Adjust configuration in senpatcher_settings.ini to taste.
+- Run the game as usual.
+- To uninstall just delete DINPUT8.dll from the folder with the game executable.
+
+Steam Deck
+----------
+
+- Switch to Desktop mode.
+- Place the contents of the folder for the game you want to patch into your game install directory.
+  - The DINPUT8.dll should end up in the same folder as the game executable, ie. the executables starting with 'ed8'.
+- Right-click the game in the Steam game list and select 'Properties'.
+- In the General tab, add the following text (without the backticks!) into the advanced Launch Options field at the bottom: `WINEDLLOVERRIDES=DINPUT8=n,b %command%`
+- Adjust configuration in senpatcher_settings.ini to taste.
+- You can switch back to Game mode now.
+- To uninstall just delete DINPUT8.dll from the folder with the game executable.
+
+----
+
+For modders:
+
+This version of SenPatcher has *file mod support*. This allows seamless replacement of files as seen by the game without actually replacing them in the file system.
+
+This comes in two flavors:
+
+For development, you can create a `dev` directory in the base game directory and put your replacement files in there. Files in this folder will have priority over everything else, so eg. if you want to replace the t_magic table in CS4, you can place your modified copy at `The Legend of Heroes Trails of Cold Steel IV\dev\data\text\dat_en\t_magic.tbl`. This should work for all game files *except* the FMVs and the big `assets.pka`. Note that the `dev` directory must exist when the game is booted in order for this replacement to take effect.
+
+Once you're ready to release your mod into the world, you can pack it into a convenient archive file for distribution. In order to do that, take the included `p3a.exe` and pack the `dev` directory with it, so for example `p3a.exe pack --compression lz4 "The Legend of Heroes Trails of Cold Steel IV\dev" mymod.p3a`. The generated `mymod.p3a` can be placed in the `mods` directory that is created by SenPatcher, where it will act exactly like the freestanding `dev` directory, replacing the files as seen by the game. (Yes, this is the same file format used by the PH3 Daybreak PC port. You may choose to use their tool instead if you prefer it.)
+
+If there are multiple copies of a single file across multiple mods, only the highest priority one will be seen by the game. The priority list is:
+
+- Files in the `dev` directory (highest priority)
+- Files contained in the p3a archives in the `mods` directory. The `order.txt` in there can be used to change which mods have priority over which other mods, higher in the list has priority.
+- Base game files (lowest priority)
+
+----
+
+
 Feature Set for Trails of Cold Steel
 ====================================
 
