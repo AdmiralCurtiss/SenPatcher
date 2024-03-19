@@ -262,6 +262,11 @@ if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v93_e0300.bin" "embed_sen3_v93_e0300.h")
 endif()
 
+set(SOURCES_CS2_FIXES
+	sen2/file_fixes.cpp
+	sen2/file_fixes.h
+)
+
 set(SOURCES_CS3_FIXES
 	sen3/FileFixes/alchr022_dat.cpp
 	sen3/FileFixes/a0417_dat.cpp
@@ -424,6 +429,56 @@ if (SENPATCHER_BUILD_CS3TEST)
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
 	add_dependencies(cs3test GenerateGitRevisionHeader)
+endif()
+
+if (SENPATCHER_BUILD_CS2HOOK)
+	add_library(cs2hook SHARED)
+	target_sources(cs2hook PRIVATE
+		dinput8.def
+		main_cs2.cpp
+		ini.cpp
+		ini.h
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+		x86/emitter.cpp
+		x86/emitter.h
+		x86/inject_jump_into.h
+		x86/page_unprotect.cpp
+		x86/page_unprotect.h
+
+		sen2/exe_patch.h
+		sen2/inject_modloader.h
+		sen2/inject_modloader.cpp
+
+		${SOURCES_BASE_FIXES}
+		${SOURCES_CS2_FIXES}
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_include_directories(cs2hook
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(cs2hook GenerateGitRevisionHeader)
+endif()
+
+if (SENPATCHER_BUILD_CS2TEST)
+	add_executable(cs2test)
+	target_sources(cs2test PRIVATE
+		main_cs2_test.cpp
+
+		${SOURCES_BASE_FIXES}
+		${SOURCES_CS2_FIXES}
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_include_directories(cs2test
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(cs2test GenerateGitRevisionHeader)
 endif()
 
 if (SENPATCHER_BUILD_CS3HOOK)
