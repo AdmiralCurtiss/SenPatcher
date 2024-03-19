@@ -30,7 +30,7 @@ public:
     void Close() noexcept;
     std::optional<uint64_t> GetPosition() noexcept;
     bool SetPosition(uint64_t position) noexcept;
-    bool SetPosition(int64_t position, SetPositionMode mode = SetPositionMode::Begin) noexcept;
+    bool SetPosition(int64_t position, SetPositionMode mode) noexcept;
     std::optional<uint64_t> GetLength() noexcept;
     size_t Read(void* data, size_t length) noexcept;
     size_t Write(const void* data, size_t length) noexcept;
