@@ -10,7 +10,7 @@
 #include "p3a/p3a.h"
 
 namespace SenLib::ModLoad {
-using PMalloc = void* (*)(uint64_t size);
+using PMalloc = void* (*)(size_t size);
 using PFree = void (*)(void* memory);
 
 struct P3AData {
