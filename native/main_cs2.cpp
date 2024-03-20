@@ -393,6 +393,15 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                                            &FFileGetFilesizeForwarder);
     Align16CodePage(logger, newPage);
 
+    SenLib::Sen2::DeglobalizeMutexes(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen2::FixGogGalaxy(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen2::AddSenPatcherVersionToTitle(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
+
     // mark newly allocated page as executable
     {
         DWORD tmpdword;

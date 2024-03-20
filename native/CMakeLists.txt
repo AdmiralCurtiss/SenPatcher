@@ -447,6 +447,9 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		x86/page_unprotect.h
 
 		sen2/exe_patch.h
+		sen2/exe_patch_add_senpatcher_version_to_title.cpp
+		sen2/exe_patch_deglobalize_mutexes.cpp
+		sen2/exe_patch_fix_gog_galaxy.cpp
 		sen2/inject_modloader.h
 		sen2/inject_modloader.cpp
 
