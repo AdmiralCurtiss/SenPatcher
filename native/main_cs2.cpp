@@ -401,6 +401,15 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     SenLib::Sen2::AddSenPatcherVersionToTitle(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
+    SenLib::Sen2::AddCS2ToTitleBar(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
+
+    if (removeTurboSkip) {
+        SenLib::Sen2::RemoveTurboAutoSkip(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
 
     // mark newly allocated page as executable
     {

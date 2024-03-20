@@ -36,4 +36,14 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  GameVersion version,
                                  char*& codespace,
                                  char* codespaceEnd);
+void AddCS2ToTitleBar(SenPatcher::Logger& logger,
+                      char* textRegion,
+                      GameVersion version,
+                      char*& codespace,
+                      char* codespaceEnd);
+void RemoveTurboAutoSkip(SenPatcher::Logger& logger,
+                         char* textRegion,
+                         GameVersion version,
+                         char*& codespace,
+                         char* codespaceEnd);
 } // namespace SenLib::Sen2
