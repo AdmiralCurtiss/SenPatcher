@@ -50,22 +50,6 @@ void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
         }
     }
 
-    const auto write_instruction_32 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 24) & 0xff);
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_24 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_16 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-
     // avoid processing mouse clicks when unfocused
     // (this previously happened only implicitly because the game didn't run...)
     // assemble some logic to skip mouse button processing when unfocused
@@ -102,24 +86,24 @@ void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
             codepos += 4;
         };
 
-        write_instruction_24(codespace, 0x488d05u); // lea rax,[address_that_holds_game_state]
+        WriteInstruction24(codespace, 0x488d05u); // lea rax,[address_that_holds_game_state]
         WriteRelativeAddress32(codespace, GameStateAddress);
-        write_instruction_24(codespace, 0x488b00u);   // mov rax,[rax]
-        write_instruction_24(codespace, 0x4885c0u);   // test rax,rax
+        WriteInstruction24(codespace, 0x488b00u);     // mov rax,[rax]
+        WriteInstruction24(codespace, 0x4885c0u);     // test rax,rax
         skip_processing.WriteJump(codespace, JC::JZ); // jz skip_processing
-        write_instruction_24(codespace, 0x0fb680u);   // movzx eax,byte ptr[rax+1ce0h]
-        write_instruction_32(codespace, 0xe01c0000u);
-        write_instruction_16(codespace, 0x85c0);      // test eax,eax
+        WriteInstruction24(codespace, 0x0fb680u);     // movzx eax,byte ptr[rax+1ce0h]
+        WriteInstruction32(codespace, 0xe01c0000u);
+        WriteInstruction16(codespace, 0x85c0);        // test eax,eax
         skip_processing.WriteJump(codespace, JC::JZ); // jz skip_processing
-        write_instruction_24(codespace, 0x488d05u);   // lea rax,[GetKeyState]
+        WriteInstruction24(codespace, 0x488d05u);     // lea rax,[GetKeyState]
         WriteRelativeAddress32(codespace, GetKeyStateAddress);
-        write_instruction_24(codespace, 0x488b00u);           // mov rax,[rax]
-        write_instruction_24(codespace, 0x4885c0u);           // test rax,rax
+        WriteInstruction24(codespace, 0x488b00u);             // mov rax,[rax]
+        WriteInstruction24(codespace, 0x4885c0u);             // test rax,rax
         skip_processing.WriteJump(codespace, JC::JZ);         // jz skip_processing
-        write_instruction_16(codespace, 0xffd0);              // call rax
+        WriteInstruction16(codespace, 0xffd0);                // call rax
         back_to_function_short.WriteJump(codespace, JC::JMP); // jmp back_to_function_short
         skip_processing.SetTarget(codespace);
-        write_instruction_24(codespace, 0x6633c0); // xor ax,ax
+        WriteInstruction24(codespace, 0x6633c0); // xor ax,ax
         back_to_function_short.SetTarget(codespace);
         back_to_function.WriteJump(codespace, JC::JMP); // jmp back_to_function
     }

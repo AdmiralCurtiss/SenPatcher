@@ -21,37 +21,6 @@ void PatchFixPcConfirmCancelWhenSwapped(SenPatcher::Logger& logger,
         GetCodeAddressJpEn(version, textRegion, 0x1405fa810, 0x1405fcd90);
     char* getPcSettingsFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1405fa670, 0x1405fcbf0);
 
-    const auto write_instruction_48 = [&](char*& codepos, uint64_t instr) {
-        *codepos++ = (char)((instr >> 40) & 0xff);
-        *codepos++ = (char)((instr >> 32) & 0xff);
-        *codepos++ = (char)((instr >> 24) & 0xff);
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_40 = [&](char*& codepos, uint64_t instr) {
-        *codepos++ = (char)((instr >> 32) & 0xff);
-        *codepos++ = (char)((instr >> 24) & 0xff);
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_32 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 24) & 0xff);
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_24 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_16 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-
     {
         // our chosen injection location has some relative addresses, so untangle those
         int32_t relativeAddressStringBinding;
@@ -72,27 +41,27 @@ void PatchFixPcConfirmCancelWhenSwapped(SenPatcher::Logger& logger,
         Emit_MOV_R64_R64(codespace, R64::RCX, R64::RAX); // mov rcx,rax
         Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(isSwitchButtonFuncPos));
         Emit_CALL_R64(codespace, R64::RDX);                    // call isSwitchButton
-        write_instruction_16(codespace, 0x84c0);               // test al,al
+        WriteInstruction16(codespace, 0x84c0);                 // test al,al
         jumpBackShort.WriteJump(codespace, JumpCondition::JZ); // jz jumpBackShort
         Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(getPcSettingsFuncPos));
         Emit_CALL_R64(codespace, R64::RDX);              // call getPcSettings
         Emit_MOV_R64_R64(codespace, R64::RCX, R64::RAX); // mov rcx,rax
         Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(isDynamicPromptsFuncPos));
         Emit_CALL_R64(codespace, R64::RDX);                     // call isDynamicPrompts
-        write_instruction_16(codespace, 0x84c0);                // test al,al
+        WriteInstruction16(codespace, 0x84c0);                  // test al,al
         jumpBackShort.WriteJump(codespace, JumpCondition::JNZ); // jnz jumpBackShort
 
         // checks out, so swap around config for 4 and 5
-        write_instruction_40(codespace, 0x488d442438);          // lea rax,[rsp+38h]
-        write_instruction_16(codespace, 0x8b08);                // mov ecx,dword ptr[rax]
-        write_instruction_24(codespace, 0x83f904);              // cmp ecx,4
+        WriteInstruction40(codespace, 0x488d442438);            // lea rax,[rsp+38h]
+        WriteInstruction16(codespace, 0x8b08);                  // mov ecx,dword ptr[rax]
+        WriteInstruction24(codespace, 0x83f904);                // cmp ecx,4
         check5.WriteJump(codespace, JumpCondition::JNE);        // jne check5
-        write_instruction_48(codespace, 0xc70005000000);        // mov dword ptr[rax],5
+        WriteInstruction48(codespace, 0xc70005000000);          // mov dword ptr[rax],5
         jumpBackShort.WriteJump(codespace, JumpCondition::JMP); // jmp jumpBackShort
         check5.SetTarget(codespace);
-        write_instruction_24(codespace, 0x83f905);              // cmp ecx,5
+        WriteInstruction24(codespace, 0x83f905);                // cmp ecx,5
         jumpBackShort.WriteJump(codespace, JumpCondition::JNE); // jne jumpBackShort
-        write_instruction_48(codespace, 0xc70004000000);        // mov dword ptr[rax],4
+        WriteInstruction48(codespace, 0xc70004000000);          // mov dword ptr[rax],4
 
         jumpBackShort.SetTarget(codespace);
 

@@ -16,18 +16,6 @@ void PatchForceSwapConfirmCancel(SenPatcher::Logger& logger,
     using namespace SenPatcher::x64;
     char* isSwitchButtonFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1405fa7b0, 0x1405fcd30);
 
-    const auto write_instruction_32 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 24) & 0xff);
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_24 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-
     // replace function that usually checks for (mapping == Switch) with (SwapOX && mapping != PC)
     {
         char* inject = isSwitchButtonFuncPos;
@@ -38,8 +26,8 @@ void PatchForceSwapConfirmCancel(SenPatcher::Logger& logger,
 
         if (swapOX) {
             // always return 1, except when PC mappings are active return 0
-            write_instruction_32(inject, 0x83794002); // cmp   dword ptr [rcx+40h],2
-            write_instruction_24(inject, 0x0f95c0);   // setne al
+            WriteInstruction32(inject, 0x83794002); // cmp   dword ptr [rcx+40h],2
+            WriteInstruction24(inject, 0x0f95c0);   // setne al
             Emit_RET(inject);
         } else {
             // trivial, always just return 0

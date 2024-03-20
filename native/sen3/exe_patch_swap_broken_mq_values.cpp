@@ -42,25 +42,6 @@ void SwapBrokenMasterQuartzValuesForDisplay(SenPatcher::Logger& logger,
     char* fixParametersPos = textRegion + ((0x14028020eu - 0x140001000u));
     constexpr size_t fixParametersLen = 12;
 
-    const auto write_instruction_40 = [&](char*& codepos, uint64_t instr) {
-        *codepos++ = (char)((instr >> 32) & 0xff);
-        *codepos++ = (char)((instr >> 24) & 0xff);
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_32 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 24) & 0xff);
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_24 = [&](char*& codepos, uint32_t instr) {
-        *codepos++ = (char)((instr >> 16) & 0xff);
-        *codepos++ = (char)((instr >> 8) & 0xff);
-        *codepos++ = (char)(instr & 0xff);
-    };
-
     // first initialize sentinel check flag on stack near start of function
     {
         auto injectResult = InjectJumpIntoCode<initSentinelCheckLen>(
@@ -69,7 +50,7 @@ void SwapBrokenMasterQuartzValuesForDisplay(SenPatcher::Logger& logger,
         std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
         codespace += overwrittenInstructions.size();
 
-        write_instruction_40(codespace, 0xc644243400); // mov byte ptr [rsp+34h],0
+        WriteInstruction40(codespace, 0xc644243400); // mov byte ptr [rsp+34h],0
 
         Emit_MOV_R64_IMM64(
             codespace, R64::RAX, std::bit_cast<uint64_t>(injectResult.JumpBackAddress));
@@ -90,12 +71,12 @@ void SwapBrokenMasterQuartzValuesForDisplay(SenPatcher::Logger& logger,
 
         // rdx contains the address of the string, r8d is free to use
         BranchHelper1Byte return_to_function_short;
-        write_instruction_24(codespace, 0x448a02);   // mov r8b,byte ptr[rdx]
-        write_instruction_32(codespace, 0x4180f824); // cmp r8b,24h
+        WriteInstruction24(codespace, 0x448a02);   // mov r8b,byte ptr[rdx]
+        WriteInstruction32(codespace, 0x4180f824); // cmp r8b,24h
         return_to_function_short.WriteJump(codespace,
                                            JumpCondition::JNE); // jne return_to_function_short
-        write_instruction_40(codespace, 0xc644243401);          // mov byte ptr [rsp+34h],1
-        write_instruction_24(codespace, 0x48ffc2);              // inc rdx
+        WriteInstruction40(codespace, 0xc644243401);            // mov byte ptr [rsp+34h],1
+        WriteInstruction24(codespace, 0x48ffc2);                // inc rdx
         return_to_function_short.SetTarget(codespace);
 
         // don't copy back the jz at the start of the overwritten instructions
@@ -122,12 +103,12 @@ void SwapBrokenMasterQuartzValuesForDisplay(SenPatcher::Logger& logger,
         codespace += overwrittenInstructions.size();
 
         BranchHelper1Byte exit_without_swap;
-        write_instruction_40(codespace, 0x448a4c2434);             // mov r9b,byte ptr[rsp+34h]
-        write_instruction_24(codespace, 0x4584c9);                 // test r9b,r9b
+        WriteInstruction40(codespace, 0x448a4c2434);               // mov r9b,byte ptr[rsp+34h]
+        WriteInstruction24(codespace, 0x4584c9);                   // test r9b,r9b
         exit_without_swap.WriteJump(codespace, JumpCondition::JZ); // jz exit_without_swap
-        write_instruction_32(codespace, 0xf30f7ed3);               // movq xmm2,xmm3
-        write_instruction_32(codespace, 0xf30f7ed9);               // movq xmm3,xmm1
-        write_instruction_32(codespace, 0xf30f7eca);               // movq xmm1,xmm2
+        WriteInstruction32(codespace, 0xf30f7ed3);                 // movq xmm2,xmm3
+        WriteInstruction32(codespace, 0xf30f7ed9);                 // movq xmm3,xmm1
+        WriteInstruction32(codespace, 0xf30f7eca);                 // movq xmm1,xmm2
         exit_without_swap.SetTarget(codespace);
 
         Emit_MOV_R64_IMM64(

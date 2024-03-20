@@ -37,35 +37,24 @@ void FixInGameButtonMappingValidity(SenPatcher::Logger& logger,
     //   esi = 0 if option should be enabled, esi = 3 if option should be disabled
 
     char* inject = entryPoint;
-    const auto write_instruction_32 = [&](uint32_t instr) {
-        *inject++ = (char)((instr >> 24) & 0xff);
-        *inject++ = (char)((instr >> 16) & 0xff);
-        *inject++ = (char)((instr >> 8) & 0xff);
-        *inject++ = (char)(instr & 0xff);
-    };
-    const auto write_instruction_24 = [&](uint32_t instr) {
-        *inject++ = (char)((instr >> 16) & 0xff);
-        *inject++ = (char)((instr >> 8) & 0xff);
-        *inject++ = (char)(instr & 0xff);
-    };
     const auto write_integer_16 = [&](uint32_t value) {
         *inject++ = (char)(value & 0xff);
         *inject++ = (char)((value >> 8) & 0xff);
     };
 
-    write_instruction_24(0x488d0d); // lea rcx,[lookup_table]
-    write_instruction_32(0);        // ^ relative address of lookup table
+    WriteInstruction24(inject, 0x488d0d); // lea rcx,[lookup_table]
+    WriteInstruction32(inject, 0);        // ^ relative address of lookup table
     char* lookup_table_inject_address = inject;
-    write_instruction_32(0x480fb7c0);           // movzx rax,ax
-    write_instruction_32(0x488d0c41);           // lea rcx,[rcx+rax*2]
-    write_instruction_24(0x668b01);             // mov ax,word ptr[rcx]
-    write_instruction_24(0x668bcb);             // mov cx,bx
-    write_instruction_24(0x66d3e8);             // shr ax,cl
-    write_instruction_32(0x6683e001);           // and ax,1
-    write_instruction_24(0x668bc8);             // mov cx,ax
-    write_instruction_24(0x66d1e0);             // shl ax,1
-    write_instruction_24(0x660bc1);             // or ax,cx
-    write_instruction_24(0x0fb7f0);             // movzx esi,ax
+    WriteInstruction32(inject, 0x480fb7c0);     // movzx rax,ax
+    WriteInstruction32(inject, 0x488d0c41);     // lea rcx,[rcx+rax*2]
+    WriteInstruction24(inject, 0x668b01);       // mov ax,word ptr[rcx]
+    WriteInstruction24(inject, 0x668bcb);       // mov cx,bx
+    WriteInstruction24(inject, 0x66d3e8);       // shr ax,cl
+    WriteInstruction32(inject, 0x6683e001);     // and ax,1
+    WriteInstruction24(inject, 0x668bc8);       // mov cx,ax
+    WriteInstruction24(inject, 0x66d1e0);       // shl ax,1
+    WriteInstruction24(inject, 0x660bc1);       // or ax,cx
+    WriteInstruction24(inject, 0x0fb7f0);       // movzx esi,ax
     done.WriteJump(inject, JumpCondition::JMP); // jmp done
 
     while (std::bit_cast<uint64_t>(inject) % 4 != 0) {
