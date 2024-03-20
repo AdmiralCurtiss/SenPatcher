@@ -410,6 +410,21 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
+    if (disableMouseCapture) {
+        SenLib::Sen2::PatchDisableMouseCapture(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (showMouseCursor) {
+        SenLib::Sen2::PatchShowMouseCursor(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (disablePauseOnFocusLoss) {
+        SenLib::Sen2::PatchDisablePauseOnFocusLoss(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
 
     // mark newly allocated page as executable
     {

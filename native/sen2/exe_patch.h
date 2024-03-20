@@ -46,4 +46,19 @@ void RemoveTurboAutoSkip(SenPatcher::Logger& logger,
                          GameVersion version,
                          char*& codespace,
                          char* codespaceEnd);
+void PatchDisableMouseCapture(SenPatcher::Logger& logger,
+                              char* textRegion,
+                              GameVersion version,
+                              char*& codespace,
+                              char* codespaceEnd);
+void PatchShowMouseCursor(SenPatcher::Logger& logger,
+                          char* textRegion,
+                          GameVersion version,
+                          char*& codespace,
+                          char* codespaceEnd);
+void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
+                                  char* textRegion,
+                                  GameVersion version,
+                                  char*& codespace,
+                                  char* codespaceEnd);
 } // namespace SenLib::Sen2

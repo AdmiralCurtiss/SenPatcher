@@ -450,8 +450,11 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		sen2/exe_patch_add_cs2_to_title_bar.cpp
 		sen2/exe_patch_add_senpatcher_version_to_title.cpp
 		sen2/exe_patch_deglobalize_mutexes.cpp
+		sen2/exe_patch_disable_mouse_capture.cpp
+		sen2/exe_patch_disable_pause_on_focus_loss.cpp
 		sen2/exe_patch_fix_gog_galaxy.cpp
 		sen2/exe_patch_remove_turbo_auto_skip.cpp
+		sen2/exe_patch_show_mouse_cursor.cpp
 		sen2/inject_modloader.h
 		sen2/inject_modloader.cpp
 
