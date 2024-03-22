@@ -15,7 +15,12 @@ struct InjectJumpIntoCodeResult {
     std::array<char, length> OverwrittenInstructions;
 };
 
-template<size_t length>
+enum class PaddingInstruction { Interrupt, Nop };
+template<PaddingInstruction paddingInstruction>
+constexpr bool IsValidPaddingInstruction = paddingInstruction == PaddingInstruction::Interrupt
+                                           || paddingInstruction == PaddingInstruction::Nop;
+
+template<size_t length, PaddingInstruction paddingInstruction = PaddingInstruction::Interrupt>
 static InjectJumpIntoCodeResult<length>
     InjectJumpIntoCode(SenPatcher::Logger& logger, char* injectAt, char* jumpTarget) {
     static_assert(length >= 5);
@@ -30,8 +35,15 @@ static InjectJumpIntoCodeResult<length>
         branch.SetTarget(jumpTarget);
         branch.WriteJump(inject, JumpCondition::JMP);
         if constexpr (length > 5) {
-            for (size_t i = 5; i < length; ++i) {
-                *inject++ = static_cast<char>(0xcc);
+            static_assert(IsValidPaddingInstruction<paddingInstruction>);
+            if constexpr (paddingInstruction == PaddingInstruction::Interrupt) {
+                for (size_t i = 5; i < length; ++i) {
+                    *inject++ = static_cast<char>(0xcc);
+                }
+            } else if constexpr (paddingInstruction == PaddingInstruction::Nop) {
+                for (size_t i = 5; i < length; ++i) {
+                    *inject++ = static_cast<char>(0x90);
+                }
             }
         }
     }
