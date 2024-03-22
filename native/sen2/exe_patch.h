@@ -46,6 +46,17 @@ void RemoveTurboAutoSkip(SenPatcher::Logger& logger,
                          GameVersion version,
                          char*& codespace,
                          char* codespaceEnd);
+void PatchMusicFadeTiming(SenPatcher::Logger& logger,
+                          char* textRegion,
+                          GameVersion version,
+                          char*& codespace,
+                          char* codespaceEnd,
+                          uint32_t divisor);
+void PatchMusicQueueingOnSoundThreadSide(SenPatcher::Logger& logger,
+                                         char* textRegion,
+                                         GameVersion version,
+                                         char*& codespace,
+                                         char* codespaceEnd);
 void PatchDisableMouseCapture(SenPatcher::Logger& logger,
                               char* textRegion,
                               GameVersion version,
@@ -61,4 +72,9 @@ void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
                                   GameVersion version,
                                   char*& codespace,
                                   char* codespaceEnd);
+void PatchRemoveDebugLeftovers(SenPatcher::Logger& logger,
+                               char* textRegion,
+                               GameVersion version,
+                               char*& codespace,
+                               char* codespaceEnd);
 } // namespace SenLib::Sen2

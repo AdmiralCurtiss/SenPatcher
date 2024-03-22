@@ -129,6 +129,16 @@ private:
     void Commit(char* source);
 };
 
+inline void WriteInstruction56(char*& codepos, uint64_t instr) {
+    *codepos++ = (char)((instr >> 48) & 0xff);
+    *codepos++ = (char)((instr >> 40) & 0xff);
+    *codepos++ = (char)((instr >> 32) & 0xff);
+    *codepos++ = (char)((instr >> 24) & 0xff);
+    *codepos++ = (char)((instr >> 16) & 0xff);
+    *codepos++ = (char)((instr >> 8) & 0xff);
+    *codepos++ = (char)(instr & 0xff);
+}
+
 inline void WriteInstruction48(char*& codepos, uint64_t instr) {
     *codepos++ = (char)((instr >> 40) & 0xff);
     *codepos++ = (char)((instr >> 32) & 0xff);
@@ -161,6 +171,10 @@ inline void WriteInstruction24(char*& codepos, uint32_t instr) {
 
 inline void WriteInstruction16(char*& codepos, uint32_t instr) {
     *codepos++ = (char)((instr >> 8) & 0xff);
+    *codepos++ = (char)(instr & 0xff);
+}
+
+inline void WriteInstruction8(char*& codepos, uint32_t instr) {
     *codepos++ = (char)(instr & 0xff);
 }
 } // namespace SenPatcher::x86

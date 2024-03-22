@@ -404,9 +404,22 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     SenLib::Sen2::AddCS2ToTitleBar(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
+    SenLib::Sen2::PatchRemoveDebugLeftovers(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
 
     if (removeTurboSkip) {
         SenLib::Sen2::RemoveTurboAutoSkip(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (replaceAudioTimingThread) {
+        SenLib::Sen2::PatchMusicFadeTiming(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, 1000);
+        Align16CodePage(logger, newPage);
+    }
+    if (fixBgmEnqueue) {
+        SenLib::Sen2::PatchMusicQueueingOnSoundThreadSide(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
