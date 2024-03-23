@@ -443,6 +443,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
+    if (fixControllerMapping) {
+        SenLib::Sen2::PatchFixControllerMappings(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
     if (fixArtsSupportCutin) {
         SenLib::Sen2::PatchFixArtsSupportCutin(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
