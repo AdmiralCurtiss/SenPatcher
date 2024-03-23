@@ -403,6 +403,35 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                                            &FFileGetFilesizeForwarder);
     Align16CodePage(logger, newPage);
 
+    SenLib::Sen1::DeglobalizeMutexes(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen1::AddSenPatcherVersionToTitle(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen1::PatchThorMasterQuartzString(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen1::FixTextboxAdvancePrompt(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    Align16CodePage(logger, newPage);
+
+    if (disableMouseCapture) {
+        SenLib::Sen1::PatchDisableMouseCapture(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (showMouseCursor) {
+        SenLib::Sen1::PatchShowMouseCursor(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (disablePauseOnFocusLoss) {
+        SenLib::Sen1::PatchDisablePauseOnFocusLoss(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+
     // mark newly allocated page as executable
     {
         DWORD tmpdword;

@@ -452,6 +452,13 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		x86/page_unprotect.h
 
 		sen1/exe_patch.h
+		sen1/exe_patch_add_senpatcher_version_to_title.cpp
+		sen1/exe_patch_deglobalize_mutexes.cpp
+		sen1/exe_patch_disable_mouse_capture.cpp
+		sen1/exe_patch_disable_pause_on_focus_loss.cpp
+		sen1/exe_patch_fix_textbox_advance_prompt.cpp
+		sen1/exe_patch_show_mouse_cursor.cpp
+		sen1/exe_patch_thor_mq_string.cpp
 		sen1/inject_modloader.h
 		sen1/inject_modloader.cpp
 
