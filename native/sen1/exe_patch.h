@@ -77,4 +77,14 @@ void PatchLanguageAppropriateVoiceTables(SenPatcher::Logger& logger,
                                          GameVersion version,
                                          char*& codespace,
                                          char* codespaceEnd);
+void PatchForce0Kerning(SenPatcher::Logger& logger,
+                        char* textRegion,
+                        GameVersion version,
+                        char*& codespace,
+                        char* codespaceEnd);
+void PatchForceXInput(SenPatcher::Logger& logger,
+                      char* textRegion,
+                      GameVersion version,
+                      char*& codespace,
+                      char* codespaceEnd);
 } // namespace SenLib::Sen1
