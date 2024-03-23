@@ -458,6 +458,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
+    if (fixBattleScopeCrash) {
+        SenLib::Sen2::PatchAddNullCheckBattleScopeCrashMaybe(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
     if (forceXInput) {
         SenLib::Sen2::PatchForceXInput(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);

@@ -453,6 +453,7 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		sen2/exe_patch_disable_mouse_capture.cpp
 		sen2/exe_patch_disable_pause_on_focus_loss.cpp
 		sen2/exe_patch_fix_arts_support_cutin.cpp
+		sen2/exe_patch_fix_battle_scope_crash.cpp
 		sen2/exe_patch_fix_controller_mappings.cpp
 		sen2/exe_patch_fix_gog_galaxy.cpp
 		sen2/exe_patch_fix_voice_tables.cpp
