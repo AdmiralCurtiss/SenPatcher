@@ -451,6 +451,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
+    if (fixArtsSupportCutin) {
+        SenLib::Sen1::PatchFixArtsSupportCutin(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
     if (force0Kerning) {
         SenLib::Sen1::PatchForce0Kerning(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);

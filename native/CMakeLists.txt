@@ -458,6 +458,7 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		sen1/exe_patch_deglobalize_mutexes.cpp
 		sen1/exe_patch_disable_mouse_capture.cpp
 		sen1/exe_patch_disable_pause_on_focus_loss.cpp
+		sen1/exe_patch_fix_arts_support_cutin.cpp
 		sen1/exe_patch_fix_textbox_advance_prompt.cpp
 		sen1/exe_patch_fix_voice_tables.cpp
 		sen1/exe_patch_force_no_kerning.cpp
