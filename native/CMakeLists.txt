@@ -459,6 +459,7 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		sen1/exe_patch_disable_mouse_capture.cpp
 		sen1/exe_patch_disable_pause_on_focus_loss.cpp
 		sen1/exe_patch_fix_textbox_advance_prompt.cpp
+		sen1/exe_patch_fix_voice_tables.cpp
 		sen1/exe_patch_remove_turbo_auto_skip.cpp
 		sen1/exe_patch_show_mouse_cursor.cpp
 		sen1/exe_patch_thor_mq_string.cpp

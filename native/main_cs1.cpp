@@ -431,6 +431,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, turboModeButton);
         Align16CodePage(logger, newPage);
     }
+    if (correctLanguageVoiceTables) {
+        SenLib::Sen1::PatchLanguageAppropriateVoiceTables(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
     if (disableMouseCapture) {
         SenLib::Sen1::PatchDisableMouseCapture(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
