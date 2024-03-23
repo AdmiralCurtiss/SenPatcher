@@ -416,6 +416,21 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
 
+    if (removeTurboSkip) {
+        SenLib::Sen1::RemoveTurboAutoSkip(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (allowR2NotebookShortcut) {
+        SenLib::Sen1::AllowR2NotebookShortcut(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (turboModeButton >= 0 && turboModeButton <= 0xF) {
+        SenLib::Sen1::ChangeTurboModeButton(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, turboModeButton);
+        Align16CodePage(logger, newPage);
+    }
     if (disableMouseCapture) {
         SenLib::Sen1::PatchDisableMouseCapture(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);

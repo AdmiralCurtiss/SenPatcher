@@ -31,6 +31,22 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  GameVersion version,
                                  char*& codespace,
                                  char* codespaceEnd);
+void RemoveTurboAutoSkip(SenPatcher::Logger& logger,
+                         char* textRegion,
+                         GameVersion version,
+                         char*& codespace,
+                         char* codespaceEnd);
+void AllowR2NotebookShortcut(SenPatcher::Logger& logger,
+                             char* textRegion,
+                             GameVersion version,
+                             char*& codespace,
+                             char* codespaceEnd);
+void ChangeTurboModeButton(SenPatcher::Logger& logger,
+                           char* textRegion,
+                           GameVersion version,
+                           char*& codespace,
+                           char* codespaceEnd,
+                           int turboModeButton);
 void PatchThorMasterQuartzString(SenPatcher::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
