@@ -216,8 +216,8 @@ static void SHA1_All(word32* digest, const char* data, size_t length)
         }
     }
 
-    const word32 lowbits = (word32)((length*8) & 0xffffffff);
-    const word32 highbits = (word32)((length*8) >> 32);
+    const word32 lowbits = (word32)((length << 3) & 0xffffffff);
+    const word32 highbits = (word32)((length >> 29) & 0xffffffff);
     buffer[14] = highbits;
     buffer[15] = lowbits;
 
