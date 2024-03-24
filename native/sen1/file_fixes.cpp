@@ -24,6 +24,17 @@
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
 
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_a0006_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_c0100_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_c0110_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_m0040_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_m2130_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_m3008_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_r0600_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_r0601_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_r0610_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_r0800_dat)
+
 #define TRY_APPLY(asset, apply)                         \
     do {                                                \
         logger.Log("Applying: ");                       \
@@ -39,6 +50,16 @@ namespace SenLib::Sen1 {
 static bool CollectAssets(SenPatcher::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           SenPatcher::P3APackData& packData) {
+    TRY_APPLY(scripts_scena_dat_us_a0006_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_c0100_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_c0110_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_m0040_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_m2130_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_m3008_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_r0600_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_r0601_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_r0610_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_r0800_dat, TryApply(callback, packData.Files));
     return true;
 }
 
@@ -164,7 +185,7 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem:
     };
 
     CreateArchiveIfNeeded(logger,
-                          baseDir / L"mods/zzz_senpatcher_cs2asset.p3a",
+                          baseDir / L"mods/zzz_senpatcher_cs1asset.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
                               return CollectAssets(logger, callback, packData);
                           });

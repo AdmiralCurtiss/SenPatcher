@@ -263,6 +263,16 @@ if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 endif()
 
 set(SOURCES_CS1_FIXES
+	sen1/file_fixes/scripts_scena_dat_us_a0006_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_c0100_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_c0110_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_m0040_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_m2130_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_m3008_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_r0600_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_r0601_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_r0610_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_r0800_dat.cpp
 	sen1/file_fixes.cpp
 	sen1/file_fixes.h
 )
@@ -394,6 +404,8 @@ set(SOURCES_BASE_FIXES
 	sha1.h
 
 	util/endian.h
+	util/memread.h
+	util/memwrite.h
 	util/stream.cpp
 	util/stream.h
 	util/text.cpp
