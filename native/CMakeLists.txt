@@ -263,6 +263,10 @@ if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 endif()
 
 set(SOURCES_CS1_FIXES
+	sen1/file_fixes/scripts_book_dat_us_book00_dat.cpp
+	sen1/file_fixes/scripts_book_dat_us_book01_dat.cpp
+	sen1/file_fixes/scripts_book_dat_us_book02_dat.cpp
+	sen1/file_fixes/scripts_book_dat_us_book03_dat.cpp
 	sen1/file_fixes/scripts_scena_dat_us_a0006_dat.cpp
 	sen1/file_fixes/scripts_scena_dat_us_c0100_dat.cpp
 	sen1/file_fixes/scripts_scena_dat_us_c0110_dat.cpp

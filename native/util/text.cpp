@@ -4,6 +4,7 @@
 #include <charconv>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -198,6 +199,33 @@ std::string_view Trim(std::string_view sv) {
         sv.remove_suffix(1);
     }
     return sv;
+}
+
+std::vector<std::string_view> Split(std::string_view sv, std::string_view splitPattern) {
+    std::vector<std::string_view> result;
+    std::string_view rest = sv;
+    while (true) {
+        size_t offset = rest.find(splitPattern);
+        if (offset == std::string_view::npos) {
+            result.push_back(rest);
+            return result;
+        } else {
+            result.push_back(rest.substr(0, offset));
+            rest = rest.substr(offset + splitPattern.size());
+        }
+    }
+}
+
+std::string Join(const std::vector<std::string_view>& svs, std::string_view joinPattern) {
+    std::string result;
+    if (!svs.empty()) {
+        result.append(svs[0]);
+        for (size_t i = 1; i < svs.size(); ++i) {
+            result.append(joinPattern);
+            result.append(svs[i]);
+        }
+    }
+    return result;
 }
 
 bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
