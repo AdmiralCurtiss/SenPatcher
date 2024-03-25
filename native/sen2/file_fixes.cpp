@@ -24,6 +24,30 @@
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
 
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_e7050_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_e7060_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_e7090_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_e7101_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_e7110_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_r0920_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_r1010_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_system_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t0001_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t0010_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t1010_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t3060_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t3500_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t3740_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t4000_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t4080_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t5501_dat)
+DECLARE_STANDARD_FIX(scripts_scena_dat_us_t6500_dat)
+DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_beryl_dat)
+DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_emily_dat)
+DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_heinrich_dat)
+DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_monica_dat)
+DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_rosine_dat)
+
 #define TRY_APPLY(asset, apply)                         \
     do {                                                \
         logger.Log("Applying: ");                       \
@@ -39,6 +63,29 @@ namespace SenLib::Sen2 {
 static bool CollectAssets(SenPatcher::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           SenPatcher::P3APackData& packData) {
+    TRY_APPLY(scripts_scena_dat_us_e7050_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_e7060_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_e7090_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_e7101_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_e7110_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_r0920_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_r1010_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_system_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t0001_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t0010_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t1010_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t3060_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t3500_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t3740_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t4000_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t4080_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t5501_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_scena_dat_us_t6500_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_talk_dat_us_tk_beryl_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_talk_dat_us_tk_emily_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_talk_dat_us_tk_heinrich_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_talk_dat_us_tk_monica_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_talk_dat_us_tk_rosine_dat, TryApply(callback, packData.Files));
     return true;
 }
 

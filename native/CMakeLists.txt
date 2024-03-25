@@ -312,6 +312,29 @@ set(SOURCES_CS1_FIXES
 )
 
 set(SOURCES_CS2_FIXES
+	sen2/file_fixes/scripts_scena_dat_us_e7050_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_e7060_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_e7090_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_e7101_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_e7110_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_r0920_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_r1010_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_system_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t0001_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t0010_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t1010_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t3060_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t3500_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t3740_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t4000_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t4080_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t5501_dat.cpp
+	sen2/file_fixes/scripts_scena_dat_us_t6500_dat.cpp
+	sen2/file_fixes/scripts_talk_dat_us_tk_beryl_dat.cpp
+	sen2/file_fixes/scripts_talk_dat_us_tk_emily_dat.cpp
+	sen2/file_fixes/scripts_talk_dat_us_tk_heinrich_dat.cpp
+	sen2/file_fixes/scripts_talk_dat_us_tk_monica_dat.cpp
+	sen2/file_fixes/scripts_talk_dat_us_tk_rosine_dat.cpp
 	sen2/file_fixes.cpp
 	sen2/file_fixes.h
 )
