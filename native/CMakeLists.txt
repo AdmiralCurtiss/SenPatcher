@@ -273,6 +273,36 @@ set(SOURCES_CS1_FIXES
 	sen1/file_fixes/scripts_scena_dat_us_r0601_dat.cpp
 	sen1/file_fixes/scripts_scena_dat_us_r0610_dat.cpp
 	sen1/file_fixes/scripts_scena_dat_us_r0800_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0000_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0000c_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0010_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0020_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0031_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0032_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0050_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0060_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0070_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0080_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t0090_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t1000_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t1010_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t1020_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t1030_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t1040_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t1050_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t1110_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t1500_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t3500_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t4610_dat.cpp
+	sen1/file_fixes/scripts_scena_dat_us_t5660_dat.cpp
+	sen1/file_fixes/scripts_talk_dat_us_tk_angelica_dat.cpp
+	sen1/file_fixes/scripts_talk_dat_us_tk_becky_dat.cpp
+	sen1/file_fixes/scripts_talk_dat_us_tk_beryl_dat.cpp
+	sen1/file_fixes/scripts_talk_dat_us_tk_edel_dat.cpp
+	sen1/file_fixes/scripts_talk_dat_us_tk_heinrich_dat.cpp
+	sen1/file_fixes/scripts_talk_dat_us_tk_laura_dat.cpp
+	sen1/file_fixes/scripts_talk_dat_us_tk_thomas_dat.cpp
+	sen1/file_fixes/scripts_talk_dat_us_tk_vandyck_dat.cpp
 	sen1/file_fixes.cpp
 	sen1/file_fixes.h
 )
