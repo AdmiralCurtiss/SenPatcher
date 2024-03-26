@@ -341,8 +341,14 @@ set(SOURCES_CS2_FIXES
 	sen2/file_fixes/scripts_talk_dat_us_tk_heinrich_dat.cpp
 	sen2/file_fixes/scripts_talk_dat_us_tk_monica_dat.cpp
 	sen2/file_fixes/scripts_talk_dat_us_tk_rosine_dat.cpp
+	sen2/file_fixes/text_dat_us_t_item_tbl_t_magic_tbl.cpp
+	sen2/file_fixes/text_dat_us_t_item_tbl_t_magic_tbl.h
+	sen2/file_fixes/text_dat_us_t_notecook_tbl.cpp
+	sen2/file_fixes/text_dat_us_t_voice_tbl.cpp
 	sen2/file_fixes.cpp
 	sen2/file_fixes.h
+	sen2/tbl.cpp
+	sen2/tbl.h
 )
 
 set(SOURCES_CS3_FIXES

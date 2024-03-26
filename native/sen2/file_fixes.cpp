@@ -51,6 +51,9 @@ DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_emily_dat)
 DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_heinrich_dat)
 DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_monica_dat)
 DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_rosine_dat)
+DECLARE_STANDARD_FIX(text_dat_us_t_item_tbl_t_magic_tbl)
+DECLARE_STANDARD_FIX(text_dat_us_t_notecook_tbl)
+DECLARE_STANDARD_FIX(text_dat_us_t_voice_tbl)
 
 #define TRY_APPLY(asset, apply)                         \
     do {                                                \
@@ -94,6 +97,9 @@ static bool CollectAssets(SenPatcher::Logger& logger,
     TRY_APPLY(scripts_talk_dat_us_tk_heinrich_dat, TryApply(callback, packData.Files));
     TRY_APPLY(scripts_talk_dat_us_tk_monica_dat, TryApply(callback, packData.Files));
     TRY_APPLY(scripts_talk_dat_us_tk_rosine_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(text_dat_us_t_item_tbl_t_magic_tbl, TryApply(callback, packData.Files));
+    TRY_APPLY(text_dat_us_t_notecook_tbl, TryApply(callback, packData.Files));
+    TRY_APPLY(text_dat_us_t_voice_tbl, TryApply(callback, packData.Files));
     return true;
 }
 
