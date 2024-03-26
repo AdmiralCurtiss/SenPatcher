@@ -264,6 +264,7 @@ endif()
 
 set(SOURCES_CS1_FIXES
 	sen1/file_fixes/scripts_book_dat_us_book00_dat.cpp
+	sen1/file_fixes/scripts_book_dat_us_book00_dat_shared.h
 	sen1/file_fixes/scripts_book_dat_us_book01_dat.cpp
 	sen1/file_fixes/scripts_book_dat_us_book02_dat.cpp
 	sen1/file_fixes/scripts_book_dat_us_book03_dat.cpp
@@ -312,6 +313,11 @@ set(SOURCES_CS1_FIXES
 )
 
 set(SOURCES_CS2_FIXES
+	sen1/file_fixes/scripts_book_dat_us_book00_dat_shared.h
+	sen2/file_fixes/scripts_book_dat_us_book00_dat.cpp
+	sen2/file_fixes/scripts_book_dat_us_book03_dat.cpp
+	sen2/file_fixes/scripts_book_dat_us_book04_dat.cpp
+	sen2/file_fixes/scripts_book_dat_us_book05_dat.cpp
 	sen2/file_fixes/scripts_scena_dat_us_e7050_dat.cpp
 	sen2/file_fixes/scripts_scena_dat_us_e7060_dat.cpp
 	sen2/file_fixes/scripts_scena_dat_us_e7090_dat.cpp

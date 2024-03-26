@@ -24,6 +24,10 @@
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
 
+DECLARE_STANDARD_FIX(scripts_book_dat_us_book00_dat)
+DECLARE_STANDARD_FIX(scripts_book_dat_us_book03_dat)
+DECLARE_STANDARD_FIX(scripts_book_dat_us_book04_dat)
+DECLARE_STANDARD_FIX(scripts_book_dat_us_book05_dat)
 DECLARE_STANDARD_FIX(scripts_scena_dat_us_e7050_dat)
 DECLARE_STANDARD_FIX(scripts_scena_dat_us_e7060_dat)
 DECLARE_STANDARD_FIX(scripts_scena_dat_us_e7090_dat)
@@ -63,6 +67,10 @@ namespace SenLib::Sen2 {
 static bool CollectAssets(SenPatcher::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           SenPatcher::P3APackData& packData) {
+    TRY_APPLY(scripts_book_dat_us_book00_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_book_dat_us_book03_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_book_dat_us_book04_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(scripts_book_dat_us_book05_dat, TryApply(callback, packData.Files));
     TRY_APPLY(scripts_scena_dat_us_e7050_dat, TryApply(callback, packData.Files));
     TRY_APPLY(scripts_scena_dat_us_e7060_dat, TryApply(callback, packData.Files));
     TRY_APPLY(scripts_scena_dat_us_e7090_dat, TryApply(callback, packData.Files));
