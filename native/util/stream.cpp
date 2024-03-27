@@ -487,6 +487,12 @@ void WriteStream::WriteUTF8Nullterm(std::string_view str) {
     WriteByte(0);
 }
 
+void WriteStream::WriteShiftJisNullterm(std::string_view str) {
+    auto sjis = HyoutaUtils::TextUtils::Utf8ToShiftJis(str.data(), str.size());
+    WriteStringRaw(sjis, 0, false);
+    WriteByte(0);
+}
+
 void WriteStream::WriteAsciiNullterm(std::string_view str) {
     WriteStringRaw(str, 0, false);
     WriteByte(0);
@@ -496,6 +502,7 @@ void WriteStream::WriteNulltermString(std::string_view str,
                                       HyoutaUtils::TextUtils::GameTextEncoding encoding) {
     switch (encoding) {
         case HyoutaUtils::TextUtils::GameTextEncoding::ASCII: WriteAsciiNullterm(str); return;
+        case HyoutaUtils::TextUtils::GameTextEncoding::ShiftJIS: WriteShiftJisNullterm(str); return;
         case HyoutaUtils::TextUtils::GameTextEncoding::UTF8: WriteUTF8Nullterm(str); return;
     }
     throw "Writing string not implemented for encoding";

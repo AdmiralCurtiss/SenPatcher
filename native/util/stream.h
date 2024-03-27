@@ -106,6 +106,7 @@ struct WriteStream {
                      bool trim = false);
 
     void WriteUTF8Nullterm(std::string_view str);
+    void WriteShiftJisNullterm(std::string_view str);
     void WriteAsciiNullterm(std::string_view str);
     void WriteNulltermString(std::string_view str,
                              HyoutaUtils::TextUtils::GameTextEncoding encoding);

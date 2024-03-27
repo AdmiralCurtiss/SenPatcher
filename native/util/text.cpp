@@ -10,12 +10,12 @@
 #include <Windows.h>
 
 namespace HyoutaUtils::TextUtils {
-std::string Utf16ToUtf8(const char16_t* data, size_t length) {
+static std::string Utf16ToCodepage(const char16_t* data, size_t length, UINT codepage) {
     if (length > INT32_MAX) {
         throw "string too long";
     }
 
-    const auto requiredBytes = WideCharToMultiByte(CP_UTF8,
+    const auto requiredBytes = WideCharToMultiByte(codepage,
                                                    0,
                                                    reinterpret_cast<const wchar_t*>(data),
                                                    static_cast<int>(length),
@@ -29,7 +29,7 @@ std::string Utf16ToUtf8(const char16_t* data, size_t length) {
 
     std::string result;
     result.resize(requiredBytes);
-    const auto convertedBytes = WideCharToMultiByte(CP_UTF8,
+    const auto convertedBytes = WideCharToMultiByte(codepage,
                                                     0,
                                                     reinterpret_cast<const wchar_t*>(data),
                                                     static_cast<int>(length),
@@ -44,12 +44,12 @@ std::string Utf16ToUtf8(const char16_t* data, size_t length) {
     return result;
 }
 
-std::u16string Utf8ToUtf16(const char* data, size_t length) {
+static std::u16string CodepageToUtf16(const char* data, size_t length, UINT codepage) {
     if (length > INT32_MAX) {
         throw "string too long";
     }
 
-    const auto requiredBytes = MultiByteToWideChar(CP_UTF8, 0, data, length, nullptr, 0);
+    const auto requiredBytes = MultiByteToWideChar(codepage, 0, data, length, nullptr, 0);
     if (requiredBytes <= 0) {
         throw "string conversion failed";
     }
@@ -57,7 +57,7 @@ std::u16string Utf8ToUtf16(const char* data, size_t length) {
     std::u16string utf16;
     utf16.resize(requiredBytes);
     const auto convertedBytes =
-        MultiByteToWideChar(CP_UTF8, 0, data, length, (wchar_t*)utf16.data(), utf16.size());
+        MultiByteToWideChar(codepage, 0, data, length, (wchar_t*)utf16.data(), utf16.size());
     if (convertedBytes != requiredBytes) {
         throw "string conversion failed";
     }
@@ -65,25 +65,31 @@ std::u16string Utf8ToUtf16(const char* data, size_t length) {
     return utf16;
 }
 
+
+std::string Utf16ToUtf8(const char16_t* data, size_t length) {
+    return Utf16ToCodepage(data, length, CP_UTF8);
+}
+
+std::u16string Utf8ToUtf16(const char* data, size_t length) {
+    return CodepageToUtf16(data, length, CP_UTF8);
+}
+
+std::string Utf16ToShiftJis(const char16_t* data, size_t length) {
+    return Utf16ToCodepage(data, length, 932);
+}
+
+std::u16string ShiftJisToUtf16(const char* data, size_t length) {
+    return CodepageToUtf16(data, length, 932);
+}
+
 std::string ShiftJisToUtf8(const char* data, size_t length) {
-    if (length > INT32_MAX) {
-        throw "string too long";
-    }
-
-    const auto requiredBytes = MultiByteToWideChar(932, 0, data, length, nullptr, 0);
-    if (requiredBytes <= 0) {
-        throw "string conversion failed";
-    }
-
-    std::u16string utf16;
-    utf16.resize(requiredBytes);
-    const auto convertedBytes =
-        MultiByteToWideChar(932, 0, data, length, (wchar_t*)utf16.data(), utf16.size());
-    if (convertedBytes != requiredBytes) {
-        throw "string conversion failed";
-    }
-
+    auto utf16 = ShiftJisToUtf16(data, length);
     return Utf16ToUtf8(utf16.data(), utf16.size());
+}
+
+std::string Utf8ToShiftJis(const char* data, size_t length) {
+    auto utf16 = Utf8ToUtf16(data, length);
+    return Utf16ToShiftJis(utf16.data(), utf16.size());
 }
 
 std::string Replace(std::string_view input, std::string_view search, std::string_view replacement) {

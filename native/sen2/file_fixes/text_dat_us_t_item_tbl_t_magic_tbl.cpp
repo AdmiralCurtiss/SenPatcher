@@ -208,8 +208,8 @@ static void PatchItemTbl(Tbl& tbl) {
     }
 }
 
-static std::string GetPhysicalClass(uint32_t value) {
-    std::string c = "D";
+static const char* GetPhysicalClass(uint32_t value) {
+    const char* c = "D";
     if (value >= 110)
         c = "C";
     if (value >= 115)
@@ -240,8 +240,8 @@ static std::string GetPhysicalClass(uint32_t value) {
         c = "4S+";
     return c;
 }
-static std::string GetMagicClass(uint32_t value) {
-    std::string c = "D";
+static const char* GetMagicClass(uint32_t value) {
+    const char* c = "D";
     if (value >= 120)
         c = "C";
     if (value >= 135)

@@ -263,6 +263,7 @@ if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 endif()
 
 set(SOURCES_CS1_FIXES
+	sen1/file_fixes/missing_audio_files.cpp
 	sen1/file_fixes/scripts_book_dat_us_book00_dat.cpp
 	sen1/file_fixes/scripts_book_dat_us_book00_dat_shared.h
 	sen1/file_fixes/scripts_book_dat_us_book01_dat.cpp
@@ -308,8 +309,17 @@ set(SOURCES_CS1_FIXES
 	sen1/file_fixes/scripts_talk_dat_us_tk_laura_dat.cpp
 	sen1/file_fixes/scripts_talk_dat_us_tk_thomas_dat.cpp
 	sen1/file_fixes/scripts_talk_dat_us_tk_vandyck_dat.cpp
+	sen1/file_fixes/se_wav_ed8m2123_wav.cpp
+	sen1/file_fixes/text_dat_t_item_tbl.cpp
+	sen1/file_fixes/text_dat_t_voice_tbl.cpp
+	sen1/file_fixes/text_dat_us_t_item_tbl_t_magic_tbl.cpp
+	sen1/file_fixes/text_dat_us_t_item_tbl_t_magic_tbl.h
+	sen1/file_fixes/text_dat_us_t_notecook_tbl.cpp
+	sen1/file_fixes/text_dat_us_t_voice_tbl.cpp
 	sen1/file_fixes.cpp
 	sen1/file_fixes.h
+	sen1/tbl.cpp
+	sen1/tbl.h
 )
 
 set(SOURCES_CS2_FIXES

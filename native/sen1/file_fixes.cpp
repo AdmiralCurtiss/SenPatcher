@@ -24,6 +24,7 @@
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
 
+DECLARE_STANDARD_FIX(missing_audio_files)
 DECLARE_STANDARD_FIX(scripts_book_dat_us_book00_dat)
 DECLARE_STANDARD_FIX(scripts_book_dat_us_book01_dat)
 DECLARE_STANDARD_FIX(scripts_book_dat_us_book02_dat)
@@ -68,6 +69,12 @@ DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_heinrich_dat)
 DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_laura_dat)
 DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_thomas_dat)
 DECLARE_STANDARD_FIX(scripts_talk_dat_us_tk_vandyck_dat)
+DECLARE_STANDARD_FIX(se_wav_ed8m2123_wav)
+DECLARE_STANDARD_FIX(text_dat_t_item_tbl)
+DECLARE_STANDARD_FIX(text_dat_t_voice_tbl)
+DECLARE_STANDARD_FIX(text_dat_us_t_item_tbl_t_magic_tbl)
+DECLARE_STANDARD_FIX(text_dat_us_t_notecook_tbl)
+DECLARE_STANDARD_FIX(text_dat_us_t_voice_tbl)
 
 #define TRY_APPLY(asset, apply)                         \
     do {                                                \
@@ -128,6 +135,19 @@ static bool CollectAssets(SenPatcher::Logger& logger,
     TRY_APPLY(scripts_talk_dat_us_tk_laura_dat, TryApply(callback, packData.Files));
     TRY_APPLY(scripts_talk_dat_us_tk_thomas_dat, TryApply(callback, packData.Files));
     TRY_APPLY(scripts_talk_dat_us_tk_vandyck_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(text_dat_t_item_tbl, TryApply(callback, packData.Files));
+    TRY_APPLY(text_dat_t_voice_tbl, TryApply(callback, packData.Files));
+    TRY_APPLY(text_dat_us_t_item_tbl_t_magic_tbl, TryApply(callback, packData.Files));
+    TRY_APPLY(text_dat_us_t_notecook_tbl, TryApply(callback, packData.Files));
+    TRY_APPLY(text_dat_us_t_voice_tbl, TryApply(callback, packData.Files));
+    return true;
+}
+
+static bool CollectAudio(SenPatcher::Logger& logger,
+                         const SenPatcher::GetCheckedFileCallback& callback,
+                         SenPatcher::P3APackData& packData) {
+    TRY_APPLY(missing_audio_files, TryApply(callback, packData.Files));
+    TRY_APPLY(se_wav_ed8m2123_wav, TryApply(callback, packData.Files));
     return true;
 }
 
@@ -256,6 +276,11 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem:
                           baseDir / L"mods/zzz_senpatcher_cs1asset.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
                               return CollectAssets(logger, callback, packData);
+                          });
+    CreateArchiveIfNeeded(logger,
+                          baseDir / L"mods/zzz_senpatcher_cs1audio.p3a",
+                          [&](SenPatcher::P3APackData& packData) -> bool {
+                              return CollectAudio(logger, callback, packData);
                           });
 }
 } // namespace SenLib::Sen1

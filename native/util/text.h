@@ -15,7 +15,11 @@ enum class GameTextEncoding {
 
 std::string Utf16ToUtf8(const char16_t* data, size_t length);
 std::u16string Utf8ToUtf16(const char* data, size_t length);
+std::string Utf16ToShiftJis(const char16_t* data, size_t length);
+std::u16string ShiftJisToUtf16(const char* data, size_t length);
+
 std::string ShiftJisToUtf8(const char* data, size_t length);
+std::string Utf8ToShiftJis(const char* data, size_t length);
 
 std::string Replace(std::string_view input, std::string_view search, std::string_view replacement);
 std::string InsertSubstring(std::string_view a,
