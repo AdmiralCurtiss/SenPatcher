@@ -24,7 +24,7 @@ namespace SenPatcherCli.Sen1 {
 		private EndianUtils.Endianness Endian;
 		private TextUtils.GameTextEncoding Encoding;
 
-		private Dictionary<ushort, SenLib.Sen1.FileFixes.MagicData> Magic;
+		private Dictionary<ushort, SenLib.Sen1.MagicData> Magic;
 
 		public TblDumper(
 			DuplicatableStream t_item_stream,
@@ -39,9 +39,9 @@ namespace SenPatcherCli.Sen1 {
 			t_magic = new Tbl(t_magic_stream, endian, encoding);
 			t_notecook = new Tbl(t_notecook_stream, endian, encoding);
 
-			Magic = new Dictionary<ushort, SenLib.Sen1.FileFixes.MagicData>();
+			Magic = new Dictionary<ushort, SenLib.Sen1.MagicData>();
 			foreach (var e in t_magic.Entries) {
-				var m = new SenLib.Sen1.FileFixes.MagicData(e.Data, endian, encoding);
+				var m = new SenLib.Sen1.MagicData(e.Data, endian, encoding);
 				Magic.Add(m.Idx, m);
 			}
 		}

@@ -20,13 +20,13 @@ namespace SenPatcherCli {
 			if (sengame == 1) {
 				var tbl = new SenLib.Sen1.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
 				foreach (var e in tbl.Entries) {
-					var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+					var vd = new SenLib.Sen1.VoiceDataCS1(e.Data, endian, encoding);
 					tblEntries.Add(new t_voice_tbl_entry(vd.Index, vd.Name));
 				}
 			} else if (sengame == 2) {
 				var tbl = new SenLib.Sen2.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
 				foreach (var e in tbl.Entries) {
-					var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+					var vd = new SenLib.Sen1.VoiceDataCS1(e.Data, endian, encoding);
 					tblEntries.Add(new t_voice_tbl_entry(vd.Index, vd.Name));
 				}
 			} else if (sengame == 3) {

@@ -25,9 +25,6 @@ namespace SenPatcherGui {
 			InitializeComponent();
 			labelFile.Text = path;
 
-			int assetPatchCount = Sen4Mods.GetAssetMods().Count;
-			checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
-
 			comboBoxButtonLayout.Items.Clear();
 			comboBoxButtonLayout.Items.Add("Xbox or English PlayStation Style (Confirm on bottom, Cancel on right)");
 			comboBoxButtonLayout.Items.Add("Nintendo or Japanese PlayStation Style (Confirm on right, Cancel on bottom)");
@@ -48,23 +45,7 @@ namespace SenPatcherGui {
 				bool confirmCancelOption = checkBoxButtonLayout.Checked;
 				bool defaultJpLayout = confirmCancelOption && comboBoxButtonLayout.SelectedIndex == 1;
 
-				var mods = new List<FileMod>();
-				mods.AddRange(Sen4Mods.GetExecutableMods(
-					allowSwitchToNightmare: allowNightmare,
-					disableMouseCapture: disableMouseCapture,
-					showMouseCursor: showMouseCursor,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
-					separateSwapConfirmCancelOption: confirmCancelOption,
-					defaultSwapConfirmCancelOptionOn: defaultJpLayout,
-					fixSwappedButtonsWhenDynamicPromptsOff: true
-				));
-				if (patchAssets) {
-					mods.AddRange(Sen4Mods.GetAssetMods(
-						allowSwitchToNightmare: allowNightmare
-					));
-				}
-
-				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
+				// TODO: copy native DLL to target
 
 				WriteToIni();
 			} catch (Exception ex) {
@@ -109,17 +90,16 @@ namespace SenPatcherGui {
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
 			try {
 				SenLib.Logging.Log("Unpatching CS4.");
-				var mods = new List<FileMod>();
-				mods.AddRange(Sen4Mods.GetExecutableMods());
-				mods.AddRange(Sen4Mods.GetAssetMods());
-				GameUnpatchClass.RunUnpatch(new GameUnpatchClass(Path, Storage, mods));
+
+				// TODO: remove native DLL
+
 			} catch (Exception ex) {
 				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
 		}
 
 		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
-			new TextDisplayForm("Asset fix details for Cold Steel 4", SenUtils.ExtractUserFriendlyStringFromModDescriptions(Sen4Mods.GetAssetMods())).ShowDialog();
+			new TextDisplayForm("Asset fix details for Cold Steel 4", "(details currently not available)").ShowDialog();
 		}
 
 		private void checkBoxButtonLayout_CheckedChanged(object sender, EventArgs e) {

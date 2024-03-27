@@ -25,9 +25,6 @@ namespace SenPatcherGui {
 			InitializeComponent();
 			labelFile.Text = path;
 
-			int assetPatchCount = Sen3Mods.GetAssetMods().Count;
-			checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
-
 			ReadFromIni();
 		}
 
@@ -43,24 +40,7 @@ namespace SenPatcherGui {
 				bool fixControllerMapping = checkBoxControllerMapping.Checked;
 				bool forceXInput = checkBoxForceXInput.Checked;
 
-				var mods = new List<FileMod>();
-				mods.AddRange(Sen3Mods.GetExecutableMods(
-					fixInGameButtonMappingValidity: fixButtonRemapping,
-					allowSwitchToNightmare: allowNightmare,
-					swapBrokenMasterQuartzValuesForDisplay: true,
-					disableMouseCapture: disableMouseCapture,
-					showMouseCursor: showMouseCursor,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
-					fixControllerMapping: fixControllerMapping,
-					forceXInput: forceXInput
-				));
-				if (patchAssets) {
-					mods.AddRange(Sen3Mods.GetAssetMods(
-						allowSwitchToNightmare: allowNightmare
-					));
-				}
-
-				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
+				// TODO: copy native DLL to target
 
 				WriteToIni();
 			} catch (Exception ex) {
@@ -106,17 +86,16 @@ namespace SenPatcherGui {
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
 			try {
 				SenLib.Logging.Log("Unpatching CS3.");
-				var mods = new List<FileMod>();
-				mods.AddRange(Sen3Mods.GetExecutableMods());
-				mods.AddRange(Sen3Mods.GetAssetMods());
-				GameUnpatchClass.RunUnpatch(new GameUnpatchClass(Path, Storage, mods));
+
+				// TODO: remove native DLL
+
 			} catch (Exception ex) {
 				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
 		}
 
 		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
-			new TextDisplayForm("Asset fix details for Cold Steel 3", SenUtils.ExtractUserFriendlyStringFromModDescriptions(Sen3Mods.GetAssetMods())).ShowDialog();
+			new TextDisplayForm("Asset fix details for Cold Steel 3", "(details currently not available)").ShowDialog();
 		}
 	}
 }

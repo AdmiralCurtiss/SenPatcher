@@ -25,9 +25,6 @@ namespace SenPatcherGui {
 			InitializeComponent();
 			labelFile.Text = path;
 
-			int assetPatchCount = Sen1Mods.GetAssetMods().Count;
-			checkBoxAssetPatches.Text += " (" + assetPatchCount + " file" + (assetPatchCount == 1 ? "" : "s") + ")";
-
 			comboBoxTurboModeKey.Items.Clear();
 			comboBoxTurboModeKey.Items.Add("Square / X");
 			comboBoxTurboModeKey.Items.Add("Cross / A");
@@ -66,25 +63,7 @@ namespace SenPatcherGui {
 				bool force0Kerning = checkBoxForce0Kerning.Checked;
 				bool forceXInput = checkBoxForceXInput.Checked;
 
-				var mods = new List<FileMod>();
-				mods.AddRange(Sen1Mods.GetExecutableMods(
-					removeTurboSkip: removeTurboSkip,
-					allowR2NotebookShortcut: allowR2NotebookShortcut,
-					turboKey: turboKey,
-					fixTextureIds: fixTextureIds,
-					correctLanguageVoiceTables: fixVoiceTables,
-					disableMouseCapture: disableMouseCapture,
-					showMouseCursor: showMouseCursor,
-					disablePauseOnFocusLoss: disablePauseOnFocusLoss,
-					fixArtsSupport: fixArtsSupport,
-					force0Kerning: force0Kerning,
-					forceXInput: forceXInput
-				));
-				if (patchAssets) {
-					mods.AddRange(Sen1Mods.GetAssetMods());
-				}
-
-				GamePatchClass.RunPatch(new GamePatchClass(Path, Storage, mods));
+				// TODO: copy native DLL to target
 
 				WriteToIni();
 			} catch (Exception ex) {
@@ -141,17 +120,16 @@ namespace SenPatcherGui {
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
 			try {
 				SenLib.Logging.Log("Unpatching CS1.");
-				var mods = new List<FileMod>();
-				mods.AddRange(Sen1Mods.GetExecutableMods());
-				mods.AddRange(Sen1Mods.GetAssetMods());
-				GameUnpatchClass.RunUnpatch(new GameUnpatchClass(Path, Storage, mods));
+
+				// TODO: remove native DLL
+
 			} catch (Exception ex) {
 				MessageBox.Show("Unknown error occurred: " + ex.Message);
 			}
 		}
 
 		private void buttonAssetFixDetails_Click(object sender, EventArgs e) {
-			new TextDisplayForm("Asset fix details for Cold Steel 1", SenUtils.ExtractUserFriendlyStringFromModDescriptions(Sen1Mods.GetAssetMods())).ShowDialog();
+			new TextDisplayForm("Asset fix details for Cold Steel 1", "(details currently not available)").ShowDialog();
 		}
 	}
 }

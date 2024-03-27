@@ -53,12 +53,6 @@
     <Compile Include="ScriptReplaceHelperForm.Designer.cs">
       <DependentUpon>ScriptReplaceHelperForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Sen2VersionSelectorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Sen2VersionSelectorForm.Designer.cs">
-      <DependentUpon>Sen2VersionSelectorForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="GamePatchGuiLogic.cs" />
     <Compile Include="GamePaths.cs" />
     <Compile Include="MainForm.cs">
@@ -140,9 +134,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Sen1SystemDataForm.resx">
       <DependentUpon>Sen1SystemDataForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Sen2VersionSelectorForm.resx">
-      <DependentUpon>Sen2VersionSelectorForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Sen4Form.resx">
       <DependentUpon>Sen4Form.cs</DependentUpon>

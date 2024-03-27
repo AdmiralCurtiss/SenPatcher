@@ -406,7 +406,7 @@ namespace SenLib {
 				if (sengame == 1) {
 					var tbl = new SenLib.Sen1.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
 					foreach (var e in tbl.Entries) {
-						var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+						var vd = new SenLib.Sen1.VoiceDataCS1(e.Data, endian, encoding);
 						if (!byIndex.ContainsKey(vd.Index)) {
 							byIndex.Add(vd.Index, vd.Name);
 						}
@@ -415,7 +415,7 @@ namespace SenLib {
 					var tbl = new SenLib.Sen2.Tbl(new HyoutaUtils.Streams.DuplicatableFileStream(voicetablefilename), endian, encoding);
 					foreach (var e in tbl.Entries) {
 						// tbl header is different in CS2 but voice data payload is the same as CS1
-						var vd = new SenLib.Sen1.FileFixes.VoiceData(e.Data, endian, encoding);
+						var vd = new SenLib.Sen1.VoiceDataCS1(e.Data, endian, encoding);
 						if (!byIndex.ContainsKey(vd.Index)) {
 							byIndex.Add(vd.Index, vd.Name);
 						}
