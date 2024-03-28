@@ -12,6 +12,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -21,6 +22,11 @@ namespace SenPatcherGui {
 		public MainForm() {
 			InitializeComponent();
 			labelVersion.Text = "Version " + SenLib.Version.SenPatcherVersion;
+		}
+
+		public static void ShowError(string msg, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0) {
+			Logging.LogForwarded(string.Format("ERROR: {0}", msg), memberName, sourceFilePath, sourceLineNumber);
+			MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 		}
 
 		private void buttonCS1Patch_Click(object sender, EventArgs e) {
@@ -37,91 +43,44 @@ namespace SenPatcherGui {
 			}
 		}
 
-		private class Cs1GameInitClass {
-			// input
-			public string Sen1LauncherPath;
-			public ProgressReporter Progress;
-
-			// output
-			public string Path;
-
-			public bool ShouldProceedToPatchOptionWindow;
-
-			public Cs1GameInitClass(string launcherPath, ProgressReporter progress) {
-				Sen1LauncherPath = launcherPath;
-				Progress = progress;
+		public string Cs1GameInit(string launcherPath) {
+			try {
+				Logging.Log("Checking Sen1Launcher.exe...");
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
+					SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					if (hash != new SHA1(0x8dde2b39f128179aul, 0x0beb3301cfd56a98ul, 0xc0f98a55u)) {
+						ShowError("Selected file does not appear to be Sen1Launcher.exe of version 1.6.");
+						return null;
+					}
+				}
+			} catch (Exception ex) {
+				ShowError("Error while validating Sen1Launcher.exe: " + ex.Message);
+				return null;
 			}
 
-			public void Cs1GameInit() {
-				int CurrentProgress = 0;
-				int TotalProgress = 2;
-				bool shouldAutoCloseWindow = true;
-				try {
-					Progress.Message("Checking Sen1Launcher.exe...", CurrentProgress++, TotalProgress);
-					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(Sen1LauncherPath)) {
-						SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
-						if (hash != new SHA1(0x8dde2b39f128179aul, 0x0beb3301cfd56a98ul, 0xc0f98a55u)) {
-							Progress.Error("Selected file does not appear to be Sen1Launcher.exe of version 1.6.");
-							Progress.Finish(false);
-							return;
-						}
-					}
-				} catch (Exception ex) {
-					Progress.Error("Error while validating Sen1Launcher.exe: " + ex.Message);
-					Progress.Finish(false);
-					return;
-				}
-
-				try {
-					Path = System.IO.Path.GetDirectoryName(Sen1LauncherPath);
-					Progress.Message("Checking if we have encoding errors in filenames...", CurrentProgress++, TotalProgress);
-					if (FilenameFix.FixupIncorrectEncodingInFilenames(Path, 1, false, Progress)) {
-						if (!FilenameFix.FixupIncorrectEncodingInFilenames(Path, 1, true, Progress)) {
-							Progress.Error("Failed to fix encoding errors in filenames, attempting to proceed anyway...");
-							shouldAutoCloseWindow = false;
-						}
-					}
-				} catch (Exception ex) {
-					Progress.Error("Error while initializing CS1 patch/game data: " + ex.Message);
-					Progress.Finish(false);
-					return;
-				}
-
-				ShouldProceedToPatchOptionWindow = Path != null;
-				if (shouldAutoCloseWindow) {
-					Progress.Message("Initialized CS1 data, proceeding to patch options...", CurrentProgress, TotalProgress);
-				} else {
-					Progress.Message("", CurrentProgress, TotalProgress);
-					if (ShouldProceedToPatchOptionWindow) {
-						Progress.Error(
-							  "Encountered problems while initializing CS1 data. "
-							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
-							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
-							+ "Please also ensure you're trying to patch a compatible version of the game. (XSEED release version 1.6; other game versions are not compatible)"
-						);
-					} else {
-						Progress.Error(
-							  "Unrecoverable issues while initializing CS1 data. "
-							+ "Please ensure SenPatcher has read and write access to the selected game directory, then try again."
-						);
+			string path;
+			try {
+				path = System.IO.Path.GetDirectoryName(launcherPath);
+				Logging.Log("Checking if we have encoding errors in filenames...");
+				if (FilenameFix.FixupIncorrectEncodingInFilenames(path, 1, false, new DummyProgressReporter())) {
+					if (!FilenameFix.FixupIncorrectEncodingInFilenames(path, 1, true, new DummyProgressReporter())) {
+						Logging.Log("Failed to fix encoding errors in filenames, proceeding anyway...");
 					}
 				}
-				Progress.Finish(shouldAutoCloseWindow);
+			} catch (Exception ex) {
+				ShowError("Error while initializing CS1 patch/game data: " + ex.Message);
+				return null;
 			}
+
+			return path;
 		}
 
 		private void OpenCs1GameDir(string launcherPath) {
-			var progressForm = new ProgressForm();
-			var progress = progressForm.GetProgressReporter();
-			var init = new Cs1GameInitClass(launcherPath, progress);
-			var thread = new System.Threading.Thread(init.Cs1GameInit);
-			thread.Start();
-			progressForm.ShowDialog();
-
-			thread.Join();
-			if (init.ShouldProceedToPatchOptionWindow) {
-				Properties.Settings.Default.Sen1Path = init.Path;
-				new Sen1Form(init.Path).ShowDialog();
+			var path = Cs1GameInit(launcherPath);
+			if (path != null) {
+				Logging.Log("Launching CS1 patch window at " + path);
+				Properties.Settings.Default.Sen1Path = path;
+				new Sen1Form(path).ShowDialog();
 			}
 		}
 
@@ -139,91 +98,44 @@ namespace SenPatcherGui {
 			}
 		}
 
-		private class Cs2GameInitClass {
-			// input
-			public string Sen2LauncherPath;
-			public ProgressReporter Progress;
-
-			// output
-			public string Path;
-
-			public bool ShouldProceedToPatchOptionWindow;
-
-			public Cs2GameInitClass(string launcherPath, ProgressReporter progress) {
-				Sen2LauncherPath = launcherPath;
-				Progress = progress;
+		public string Cs2GameInit(string launcherPath) {
+			try {
+				Logging.Log("Checking Sen2Launcher.exe...");
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
+					SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					if (hash != new SHA1(0x81024410cc1fd1b4ul, 0x62c600e0378714bdul, 0x7704b202u)) {
+						ShowError("Selected file does not appear to be Sen2Launcher.exe of version 1.4, 1.4.1, or 1.4.2.");
+						return null;
+					}
+				}
+			} catch (Exception ex) {
+				ShowError("Error while validating Sen2Launcher.exe: " + ex.Message);
+				return null;
 			}
 
-			public void Cs2GameInit() {
-				int CurrentProgress = 0;
-				int TotalProgress = 2;
-				bool shouldAutoCloseWindow = true;
-				try {
-					Progress.Message("Checking Sen2Launcher.exe...", CurrentProgress++, TotalProgress);
-					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(Sen2LauncherPath)) {
-						SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
-						if (hash != new SHA1(0x81024410cc1fd1b4ul, 0x62c600e0378714bdul, 0x7704b202u)) {
-							Progress.Error("Selected file does not appear to be Sen2Launcher.exe of version 1.4, 1.4.1, or 1.4.2.");
-							Progress.Finish(false);
-							return;
-						}
-					}
-				} catch (Exception ex) {
-					Progress.Error("Error while validating Sen2Launcher.exe: " + ex.Message);
-					Progress.Finish(false);
-					return;
-				}
-
-				try {
-					Path = System.IO.Path.GetDirectoryName(Sen2LauncherPath);
-					Progress.Message("Checking if we have encoding errors in filenames...", CurrentProgress++, TotalProgress);
-					if (FilenameFix.FixupIncorrectEncodingInFilenames(Path, 2, false, Progress)) {
-						if (!FilenameFix.FixupIncorrectEncodingInFilenames(Path, 2, true, Progress)) {
-							Progress.Error("Failed to fix encoding errors in filenames, attempting to proceed anyway...");
-							shouldAutoCloseWindow = false;
-						}
-					}
-				} catch (Exception ex) {
-					Progress.Error("Error while initializing CS2 patch/game data: " + ex.Message);
-					Progress.Finish(false);
-					return;
-				}
-
-				ShouldProceedToPatchOptionWindow = Path != null;
-				if (shouldAutoCloseWindow) {
-					Progress.Message("Initialized CS2 data, proceeding to patch options...", CurrentProgress, TotalProgress);
-				} else {
-					Progress.Message("", CurrentProgress, TotalProgress);
-					if (ShouldProceedToPatchOptionWindow) {
-						Progress.Error(
-							  "Encountered problems while initializing CS2 data. "
-							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
-							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
-							+ "Please also ensure you're trying to patch a compatible version of the game. (XSEED release version 1.4, 1.4.1, or 1.4.2; other game versions are not compatible)"
-						);
-					} else {
-						Progress.Error(
-							  "Unrecoverable issues while initializing CS2 data. "
-							+ "Please ensure SenPatcher has read and write access to the selected game directory, then try again."
-						);
+			string path;
+			try {
+				path = System.IO.Path.GetDirectoryName(launcherPath);
+				Logging.Log("Checking if we have encoding errors in filenames...");
+				if (FilenameFix.FixupIncorrectEncodingInFilenames(path, 2, false, new DummyProgressReporter())) {
+					if (!FilenameFix.FixupIncorrectEncodingInFilenames(path, 2, true, new DummyProgressReporter())) {
+						Logging.Log("Failed to fix encoding errors in filenames, proceeding anyway...");
 					}
 				}
-				Progress.Finish(shouldAutoCloseWindow);
+			} catch (Exception ex) {
+				ShowError("Error while initializing CS2 patch/game data: " + ex.Message);
+				return null;
 			}
+
+			return path;
 		}
 
 		private void OpenCs2GameDir(string launcherPath) {
-			var progressForm = new ProgressForm();
-			var progress = progressForm.GetProgressReporter();
-			var init = new Cs2GameInitClass(launcherPath, progress);
-			var thread = new System.Threading.Thread(init.Cs2GameInit);
-			thread.Start();
-			progressForm.ShowDialog();
-
-			thread.Join();
-			if (init.ShouldProceedToPatchOptionWindow) {
-				Properties.Settings.Default.Sen2Path = init.Path;
-				new Sen2Form(init.Path).ShowDialog();
+			var path = Cs2GameInit(launcherPath);
+			if (path != null) {
+				Logging.Log("Launching CS2 patch window at " + path);
+				Properties.Settings.Default.Sen2Path = path;
+				new Sen2Form(path).ShowDialog();
 			}
 		}
 
@@ -298,84 +210,38 @@ namespace SenPatcherGui {
 			}
 		}
 
-		private class Cs3GameInitClass {
-			// input
-			public string Sen3LauncherPath;
-			public ProgressReporter Progress;
-
-			// output
-			public string Path;
-
-			public bool ShouldProceedToPatchOptionWindow;
-
-			public Cs3GameInitClass(string launcherPath, ProgressReporter progress) {
-				Sen3LauncherPath = launcherPath;
-				Progress = progress;
-			}
-
-			public void Cs3GameInit() {
-				int CurrentProgress = 0;
-				int TotalProgress = 1;
-				bool shouldAutoCloseWindow = true;
-				try {
-					Progress.Message("Checking Sen3Launcher.exe...", CurrentProgress++, TotalProgress);
-					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(Sen3LauncherPath)) {
-						SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
-						if (hash != new SHA1(0x21de3b088a5ddad7ul, 0xed1fdb8e40061497ul, 0xc248ca65u)) {
-							Progress.Error("Selected file does not appear to be Sen3Launcher.exe of version 1.06.");
-							Progress.Finish(false);
-							return;
-						}
-					}
-				} catch (Exception ex) {
-					Progress.Error("Error while validating Sen3Launcher.exe: " + ex.Message);
-					Progress.Finish(false);
-					return;
-				}
-
-				try {
-					Path = System.IO.Path.GetDirectoryName(Sen3LauncherPath);
-				} catch (Exception ex) {
-					Progress.Error("Error while initializing CS3 patch/game data: " + ex.Message);
-					Progress.Finish(false);
-					return;
-				}
-
-				ShouldProceedToPatchOptionWindow = Path != null;
-				if (shouldAutoCloseWindow) {
-					Progress.Message("Initialized CS3 data, proceeding to patch options...", CurrentProgress, TotalProgress);
-				} else {
-					Progress.Message("", CurrentProgress, TotalProgress);
-					if (ShouldProceedToPatchOptionWindow) {
-						Progress.Error(
-							  "Encountered problems while initializing CS3 data. "
-							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
-							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
-							+ "Please also ensure you're trying to patch a compatible version of the game. (NISA release version 1.06; other game versions are not compatible, though if you own the EGS version I'd appreciate a report about file differences, if any!)"
-						);
-					} else {
-						Progress.Error(
-							  "Unrecoverable issues while initializing CS3 data. "
-							+ "Please ensure SenPatcher has read and write access to the selected game directory, then try again."
-						);
+		public string Cs3GameInit(string launcherPath) {
+			try {
+				Logging.Log("Checking Sen3Launcher.exe...");
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
+					SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					if (hash != new SHA1(0x21de3b088a5ddad7ul, 0xed1fdb8e40061497ul, 0xc248ca65u)) {
+						ShowError("Selected file does not appear to be Sen3Launcher.exe of version 1.06.");
+						return null;
 					}
 				}
-				Progress.Finish(shouldAutoCloseWindow);
+			} catch (Exception ex) {
+				ShowError("Error while validating Sen3Launcher.exe: " + ex.Message);
+				return null;
 			}
+
+			string path;
+			try {
+				path = System.IO.Path.GetDirectoryName(launcherPath);
+			} catch (Exception ex) {
+				ShowError("Error while initializing CS3 patch/game data: " + ex.Message);
+				return null;
+			}
+
+			return path;
 		}
 
 		private void OpenCs3GameDir(string launcherPath) {
-			var progressForm = new ProgressForm();
-			var progress = progressForm.GetProgressReporter();
-			var init = new Cs3GameInitClass(launcherPath, progress);
-			var thread = new System.Threading.Thread(init.Cs3GameInit);
-			thread.Start();
-			progressForm.ShowDialog();
-
-			thread.Join();
-			if (init.ShouldProceedToPatchOptionWindow) {
-				Properties.Settings.Default.Sen3Path = init.Path;
-				new Sen3Form(init.Path).ShowDialog();
+			var path = Cs3GameInit(launcherPath);
+			if (path != null) {
+				Logging.Log("Launching CS3 patch window at " + path);
+				Properties.Settings.Default.Sen3Path = path;
+				new Sen3Form(path).ShowDialog();
 			}
 		}
 
@@ -392,84 +258,38 @@ namespace SenPatcherGui {
 			}
 		}
 
-		private class Cs4GameInitClass {
-			// input
-			public string Sen4LauncherPath;
-			public ProgressReporter Progress;
-
-			// output
-			public string Path;
-
-			public bool ShouldProceedToPatchOptionWindow;
-
-			public Cs4GameInitClass(string launcherPath, ProgressReporter progress) {
-				Sen4LauncherPath = launcherPath;
-				Progress = progress;
-			}
-
-			public void Cs4GameInit() {
-				int CurrentProgress = 0;
-				int TotalProgress = 1;
-				bool shouldAutoCloseWindow = true;
-				try {
-					Progress.Message("Checking Sen4Launcher.exe...", CurrentProgress++, TotalProgress);
-					using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(Sen4LauncherPath)) {
-						SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
-						if (hash != new SHA1(0x5f480136aa4c3b53ul, 0xadd422bf75b63350ul, 0xfa58d202u)) {
-							Progress.Error("Selected file does not appear to be Sen4Launcher.exe of version 1.2.1.");
-							Progress.Finish(false);
-							return;
-						}
-					}
-				} catch (Exception ex) {
-					Progress.Error("Error while validating Sen4Launcher.exe: " + ex.Message);
-					Progress.Finish(false);
-					return;
-				}
-
-				try {
-					Path = System.IO.Path.GetDirectoryName(Sen4LauncherPath);
-				} catch (Exception ex) {
-					Progress.Error("Error while initializing CS4 patch/game data: " + ex.Message);
-					Progress.Finish(false);
-					return;
-				}
-
-				ShouldProceedToPatchOptionWindow = Path != null;
-				if (shouldAutoCloseWindow) {
-					Progress.Message("Initialized CS4 data, proceeding to patch options...", CurrentProgress, TotalProgress);
-				} else {
-					Progress.Message("", CurrentProgress, TotalProgress);
-					if (ShouldProceedToPatchOptionWindow) {
-						Progress.Error(
-							  "Encountered problems while initializing CS4 data. "
-							+ "Closing this window will proceed to the patch options anyway, but be aware that some patches may not work correctly. "
-							+ "It is recommended to verify the game files using Steam or GOG Galaxy's build-in feature to do so, or to reinstall the game. "
-							+ "Please also ensure you're trying to patch a compatible version of the game. (NISA release version 1.2.1; other game versions are not compatible, though if you own the EGS version I'd appreciate a report about file differences, if any!)"
-						);
-					} else {
-						Progress.Error(
-							  "Unrecoverable issues while initializing CS4 data. "
-							+ "Please ensure SenPatcher has read and write access to the selected game directory, then try again."
-						);
+		public string Cs4GameInit(string launcherPath) {
+			try {
+				Logging.Log("Checking Sen4Launcher.exe...");
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
+					SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
+					if (hash != new SHA1(0x5f480136aa4c3b53ul, 0xadd422bf75b63350ul, 0xfa58d202u)) {
+						ShowError("Selected file does not appear to be Sen4Launcher.exe of version 1.2.1.");
+						return null;
 					}
 				}
-				Progress.Finish(shouldAutoCloseWindow);
+			} catch (Exception ex) {
+				ShowError("Error while validating Sen4Launcher.exe: " + ex.Message);
+				return null;
 			}
+
+			string path;
+			try {
+				path = System.IO.Path.GetDirectoryName(launcherPath);
+			} catch (Exception ex) {
+				ShowError("Error while initializing CS4 patch/game data: " + ex.Message);
+				return null;
+			}
+
+			return path;
 		}
 
 		private void OpenCs4GameDir(string launcherPath) {
-			var progressForm = new ProgressForm();
-			var progress = progressForm.GetProgressReporter();
-			var init = new Cs4GameInitClass(launcherPath, progress);
-			var thread = new System.Threading.Thread(init.Cs4GameInit);
-			thread.Start();
-			progressForm.ShowDialog();
-
-			thread.Join();
-			if (init.ShouldProceedToPatchOptionWindow) {
-				Properties.Settings.Default.Sen4Path = init.Path;
-				new Sen4Form(init.Path).ShowDialog();
+			var path = Cs4GameInit(launcherPath);
+			if (path != null) {
+				Logging.Log("Launching CS4 patch window at " + path);
+				Properties.Settings.Default.Sen4Path = path;
+				new Sen4Form(path).ShowDialog();
 			}
 		}
 
