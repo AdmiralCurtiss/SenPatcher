@@ -15,6 +15,7 @@ using System.Windows.Forms;
 namespace SenPatcherGui {
 	public partial class Sen2Form : Form {
 		private string Path;
+		private static string RelativeDllPath = "bin\\Win32\\DINPUT8.dll";
 
 		public Sen2Form(string path) {
 			SenLib.Logging.Log(string.Format("Initializing CS2 GUI for patching at {0}.", path));
@@ -42,12 +43,13 @@ namespace SenPatcherGui {
 				bool force0Kerning = checkBoxForce0Kerning.Checked;
 				bool fixBattleScopeCrash = checkBoxFixBattleScopeCrash.Checked;
 				bool forceXInput = checkBoxForceXInput.Checked;
-
-				// TODO: copy native DLL to target
-
 				WriteToIni();
+
+				string dllpath = System.IO.Path.Combine(Path, RelativeDllPath);
+				File.Copy(System.IO.Path.Combine("Trails of Cold Steel II", RelativeDllPath), dllpath, true);
+				MessageBox.Show("SenPatcher DLL successfully copied to game directory.");
 			} catch (Exception ex) {
-				MessageBox.Show("Unknown error occurred: " + ex.Message);
+				MessageBox.Show("Error occurred: " + ex.Message);
 			}
 		}
 
@@ -99,11 +101,15 @@ namespace SenPatcherGui {
 		private void buttonUnpatch_Click(object sender, EventArgs e) {
 			try {
 				SenLib.Logging.Log("Unpatching CS2.");
-
-				// TODO: remove native DLL
-
+				string dllpath = System.IO.Path.Combine(Path, RelativeDllPath);
+				if (File.Exists(dllpath)) {
+					System.IO.File.Delete(dllpath);
+					MessageBox.Show("Removed SenPatcher DLL. Files for installed mods have not been removed, but will no longer be loaded. To remove them, navigate to the game directory and delete the 'mods' folder.");
+				} else {
+					MessageBox.Show("Could not find anything to remove.");
+				}
 			} catch (Exception ex) {
-				MessageBox.Show("Unknown error occurred: " + ex.Message);
+				MessageBox.Show("Error occurred: " + ex.Message);
 			}
 		}
 
