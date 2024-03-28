@@ -44,7 +44,6 @@ namespace SenPatcherGui {
 
 			// output
 			public string Path;
-			public FileStorage Storage;
 
 			public bool ShouldProceedToPatchOptionWindow;
 
@@ -55,7 +54,7 @@ namespace SenPatcherGui {
 
 			public void Cs1GameInit() {
 				int CurrentProgress = 0;
-				int TotalProgress = 4;
+				int TotalProgress = 2;
 				bool shouldAutoCloseWindow = true;
 				try {
 					Progress.Message("Checking Sen1Launcher.exe...", CurrentProgress++, TotalProgress);
@@ -82,21 +81,13 @@ namespace SenPatcherGui {
 							shouldAutoCloseWindow = false;
 						}
 					}
-					Progress.Message("Initializing patch data...", CurrentProgress++, TotalProgress);
-					var files = Sen1KnownFiles.Files;
-					Progress.Message("Initializing game data...", CurrentProgress++, TotalProgress);
-					var storageInit = FileModExec.InitializeAndPersistFileStorage(Path, files, Progress);
-					Storage = storageInit?.Storage;
-					if (storageInit == null || storageInit.Errors.Count != 0) {
-						shouldAutoCloseWindow = false;
-					}
 				} catch (Exception ex) {
 					Progress.Error("Error while initializing CS1 patch/game data: " + ex.Message);
 					Progress.Finish(false);
 					return;
 				}
 
-				ShouldProceedToPatchOptionWindow = Path != null && Storage != null;
+				ShouldProceedToPatchOptionWindow = Path != null;
 				if (shouldAutoCloseWindow) {
 					Progress.Message("Initialized CS1 data, proceeding to patch options...", CurrentProgress, TotalProgress);
 				} else {
@@ -130,7 +121,7 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				Properties.Settings.Default.Sen1Path = init.Path;
-				new Sen1Form(init.Path, init.Storage).ShowDialog();
+				new Sen1Form(init.Path).ShowDialog();
 			}
 		}
 
@@ -155,7 +146,6 @@ namespace SenPatcherGui {
 
 			// output
 			public string Path;
-			public FileStorage Storage;
 
 			public bool ShouldProceedToPatchOptionWindow;
 
@@ -166,7 +156,7 @@ namespace SenPatcherGui {
 
 			public void Cs2GameInit() {
 				int CurrentProgress = 0;
-				int TotalProgress = 4;
+				int TotalProgress = 2;
 				bool shouldAutoCloseWindow = true;
 				try {
 					Progress.Message("Checking Sen2Launcher.exe...", CurrentProgress++, TotalProgress);
@@ -193,21 +183,13 @@ namespace SenPatcherGui {
 							shouldAutoCloseWindow = false;
 						}
 					}
-					Progress.Message("Initializing patch data...", CurrentProgress++, TotalProgress);
-					var files = Sen2KnownFiles.Files;
-					Progress.Message("Initializing game data...", CurrentProgress++, TotalProgress);
-					var storageInit = FileModExec.InitializeAndPersistFileStorage(Path, files, Progress);
-					Storage = storageInit?.Storage;
-					if (storageInit == null || storageInit.Errors.Count != 0) {
-						shouldAutoCloseWindow = false;
-					}
 				} catch (Exception ex) {
 					Progress.Error("Error while initializing CS2 patch/game data: " + ex.Message);
 					Progress.Finish(false);
 					return;
 				}
 
-				ShouldProceedToPatchOptionWindow = Path != null && Storage != null;
+				ShouldProceedToPatchOptionWindow = Path != null;
 				if (shouldAutoCloseWindow) {
 					Progress.Message("Initialized CS2 data, proceeding to patch options...", CurrentProgress, TotalProgress);
 				} else {
@@ -241,7 +223,7 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				Properties.Settings.Default.Sen2Path = init.Path;
-				new Sen2Form(init.Path, init.Storage).ShowDialog();
+				new Sen2Form(init.Path).ShowDialog();
 			}
 		}
 
@@ -323,7 +305,6 @@ namespace SenPatcherGui {
 
 			// output
 			public string Path;
-			public FileStorage Storage;
 
 			public bool ShouldProceedToPatchOptionWindow;
 
@@ -334,7 +315,7 @@ namespace SenPatcherGui {
 
 			public void Cs3GameInit() {
 				int CurrentProgress = 0;
-				int TotalProgress = 3;
+				int TotalProgress = 1;
 				bool shouldAutoCloseWindow = true;
 				try {
 					Progress.Message("Checking Sen3Launcher.exe...", CurrentProgress++, TotalProgress);
@@ -354,21 +335,13 @@ namespace SenPatcherGui {
 
 				try {
 					Path = System.IO.Path.GetDirectoryName(Sen3LauncherPath);
-					Progress.Message("Initializing patch data...", CurrentProgress++, TotalProgress);
-					var files = Sen3KnownFiles.Files;
-					Progress.Message("Initializing game data...", CurrentProgress++, TotalProgress);
-					var storageInit = FileModExec.InitializeAndPersistFileStorage(Path, files, Progress);
-					Storage = storageInit?.Storage;
-					if (storageInit == null || storageInit.Errors.Count != 0) {
-						shouldAutoCloseWindow = false;
-					}
 				} catch (Exception ex) {
 					Progress.Error("Error while initializing CS3 patch/game data: " + ex.Message);
 					Progress.Finish(false);
 					return;
 				}
 
-				ShouldProceedToPatchOptionWindow = Path != null && Storage != null;
+				ShouldProceedToPatchOptionWindow = Path != null;
 				if (shouldAutoCloseWindow) {
 					Progress.Message("Initialized CS3 data, proceeding to patch options...", CurrentProgress, TotalProgress);
 				} else {
@@ -402,7 +375,7 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				Properties.Settings.Default.Sen3Path = init.Path;
-				new Sen3Form(init.Path, init.Storage).ShowDialog();
+				new Sen3Form(init.Path).ShowDialog();
 			}
 		}
 
@@ -426,7 +399,6 @@ namespace SenPatcherGui {
 
 			// output
 			public string Path;
-			public FileStorage Storage;
 
 			public bool ShouldProceedToPatchOptionWindow;
 
@@ -437,7 +409,7 @@ namespace SenPatcherGui {
 
 			public void Cs4GameInit() {
 				int CurrentProgress = 0;
-				int TotalProgress = 3;
+				int TotalProgress = 1;
 				bool shouldAutoCloseWindow = true;
 				try {
 					Progress.Message("Checking Sen4Launcher.exe...", CurrentProgress++, TotalProgress);
@@ -457,21 +429,13 @@ namespace SenPatcherGui {
 
 				try {
 					Path = System.IO.Path.GetDirectoryName(Sen4LauncherPath);
-					Progress.Message("Initializing patch data...", CurrentProgress++, TotalProgress);
-					var files = Sen4KnownFiles.Files;
-					Progress.Message("Initializing game data...", CurrentProgress++, TotalProgress);
-					var storageInit = FileModExec.InitializeAndPersistFileStorage(Path, files, Progress);
-					Storage = storageInit?.Storage;
-					if (storageInit == null || storageInit.Errors.Count != 0) {
-						shouldAutoCloseWindow = false;
-					}
 				} catch (Exception ex) {
 					Progress.Error("Error while initializing CS4 patch/game data: " + ex.Message);
 					Progress.Finish(false);
 					return;
 				}
 
-				ShouldProceedToPatchOptionWindow = Path != null && Storage != null;
+				ShouldProceedToPatchOptionWindow = Path != null;
 				if (shouldAutoCloseWindow) {
 					Progress.Message("Initialized CS4 data, proceeding to patch options...", CurrentProgress, TotalProgress);
 				} else {
@@ -505,7 +469,7 @@ namespace SenPatcherGui {
 			thread.Join();
 			if (init.ShouldProceedToPatchOptionWindow) {
 				Properties.Settings.Default.Sen4Path = init.Path;
-				new Sen4Form(init.Path, init.Storage).ShowDialog();
+				new Sen4Form(init.Path).ShowDialog();
 			}
 		}
 

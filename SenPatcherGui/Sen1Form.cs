@@ -15,12 +15,10 @@ using System.Windows.Forms;
 namespace SenPatcherGui {
 	public partial class Sen1Form : Form {
 		private string Path;
-		private FileStorage Storage;
 
-		public Sen1Form(string path, FileStorage storage) {
+		public Sen1Form(string path) {
 			SenLib.Logging.Log(string.Format("Initializing CS1 GUI for patching at {0}.", path));
 			Path = path;
-			Storage = storage;
 
 			InitializeComponent();
 			labelFile.Text = path;
