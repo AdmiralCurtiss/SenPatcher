@@ -234,15 +234,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Sen1\FileFixes\ed8m2150.bin" />
-    <None Include="Sen1\FileFixes\ed8m4097.bin" />
-    <None Include="Sen1\FileFixes\ed8m4217.bin" />
-    <None Include="Sen1\FileFixes\pc8v02551_4.bin" />
-    <None Include="Sen1\FileFixes\pc8v10286_15.bin" />
-    <None Include="Sen1\FileFixes\vctiming_jp_3.bin" />
-    <None Include="Sen1\FileFixes\vctiming_jp_4.bin" />
-    <None Include="Sen1\FileFixes\vctiming_us_3.bin" />
-    <None Include="Sen1\FileFixes\vctiming_us_4.bin" />
+    <None Include="Sen1\senpatcher_settings.ini" />
     <None Include="Sen2\FileFixes\ed82j142.bin" />
     <None Include="Sen2\FileFixes\ed82u142j.bin" />
     <None Include="Sen2\FileFixes\ed82_j140_to_j142_data.bin" />
@@ -256,38 +248,9 @@
     <None Include="Sen2\FileFixes\ed82_j142_to_u142_text.bin" />
     <None Include="Sen2\FileFixes\ed82_u140j142_to_u142_rdata.bin" />
     <None Include="Sen2\FileFixes\t1001_dat_to_tbl.bin" />
-    <None Include="Sen3\FileFixes\cvis0061.bin" />
-    <None Include="Sen3\FileFixes\cvis1008.bin" />
-    <None Include="Sen3\FileFixes\insa_05.bin" />
-    <None Include="Sen3\FileFixes\insa_08.bin" />
-    <None Include="Sen3\FileFixes\insa_09.bin" />
-    <None Include="Sen3\FileFixes\jump009.bin" />
-    <None Include="Sen3\FileFixes\t0250_dat.bin" />
-    <None Include="Sen3\FileFixes\v00_e0427.bin" />
-    <None Include="Sen3\FileFixes\v00_e0441.bin" />
-    <None Include="Sen3\FileFixes\v00_e1032.bin" />
-    <None Include="Sen3\FileFixes\v00_e1054.bin" />
-    <None Include="Sen3\FileFixes\v00_s0027.bin" />
-    <None Include="Sen3\FileFixes\v00_s0028.bin" />
-    <None Include="Sen3\FileFixes\v00_s0081.bin" />
-    <None Include="Sen3\FileFixes\v00_s0264.bin" />
-    <None Include="Sen3\FileFixes\v20_e0066.bin" />
-    <None Include="Sen3\FileFixes\v27_e0042.bin" />
-    <None Include="Sen3\FileFixes\v31_e0070.bin" />
-    <None Include="Sen3\FileFixes\v43_e0023.bin" />
-    <None Include="Sen3\FileFixes\v49_e0004.bin" />
-    <None Include="Sen3\FileFixes\v52_e0109.bin" />
-    <None Include="Sen3\FileFixes\v52_e0119.bin" />
-    <None Include="Sen3\FileFixes\v55_e0018.bin" />
-    <None Include="Sen3\FileFixes\v55_e0062.bin" />
-    <None Include="Sen3\FileFixes\v56_e0080.bin" />
-    <None Include="Sen3\FileFixes\v56_e0092.bin" />
-    <None Include="Sen3\FileFixes\v57_e0020.bin" />
-    <None Include="Sen3\FileFixes\v64_e0040.bin" />
-    <None Include="Sen3\FileFixes\v72_e0005.bin" />
-    <None Include="Sen3\FileFixes\v72_e0011.bin" />
-    <None Include="Sen3\FileFixes\v72_e0012.bin" />
-    <None Include="Sen3\FileFixes\v93_e0300.bin" />
+    <None Include="Sen2\senpatcher_settings.ini" />
+    <None Include="Sen3\senpatcher_settings.ini" />
+    <None Include="Sen4\senpatcher_settings.ini" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -51,7 +51,6 @@ namespace SenPatcherGui {
 				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
 				bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
 				int turboKey = comboBoxTurboModeKey.SelectedIndex;
-				bool fixTextureIds = checkBoxFixHdTextureId.Checked;
 				bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
 				bool patchAssets = checkBoxAssetPatches.Checked;
 				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
@@ -72,10 +71,10 @@ namespace SenPatcherGui {
 		private void ReadFromIni() {
 			try {
 				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
-				IniFile ini = new IniFile(inipath);
+				IniFile ini = new IniFile();
+				ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
 				checkBoxAssetPatches.Checked = ini.GetBool("CS1", "AssetFixes", true);
 				checkBoxBattleAutoSkip.Checked = ini.GetBool("CS1", "RemoveTurboSkip", true);
-				checkBoxFixHdTextureId.Checked = ini.GetBool("CS1", "FixTextureIds", true);
 				checkBoxFixVoiceFileLang.Checked = ini.GetBool("CS1", "CorrectLanguageVoiceTables", true);
 				checkBoxArtsSupport.Checked = ini.GetBool("CS1", "FixArtsSupportCutin", true);
 				checkBoxForce0Kerning.Checked = ini.GetBool("CS1", "Force0Kerning", false);
@@ -93,15 +92,13 @@ namespace SenPatcherGui {
 		private void WriteToIni() {
 			try {
 				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
-				IniFile ini;
+				IniFile ini = new IniFile();
 				try {
-					ini = new IniFile(inipath);
-				} catch (Exception) {
-					ini = new IniFile();
-				}
+					ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
+				} catch (Exception) { }
+				ini.LoadIniFromString(Properties.Resources.senpatcher_settings_cs1, overwriteExistingValues: true);
 				ini.SetBool("CS1", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetBool("CS1", "RemoveTurboSkip", checkBoxBattleAutoSkip.Checked);
-				ini.SetBool("CS1", "FixTextureIds", checkBoxFixHdTextureId.Checked);
 				ini.SetBool("CS1", "CorrectLanguageVoiceTables", checkBoxFixVoiceFileLang.Checked);
 				ini.SetBool("CS1", "FixArtsSupportCutin", checkBoxArtsSupport.Checked);
 				ini.SetBool("CS1", "Force0Kerning", checkBoxForce0Kerning.Checked);

@@ -49,7 +49,8 @@ namespace SenPatcherGui {
 		private void ReadFromIni() {
 			try {
 				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
-				IniFile ini = new IniFile(inipath);
+				IniFile ini = new IniFile();
+				ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
 				checkBoxAssetPatches.Checked = ini.GetBool("CS3", "AssetFixes", true);
 				checkBoxFixButtonRemapping.Checked = ini.GetBool("CS3", "FixInGameButtonRemapping", true);
 				checkBoxAllowNightmare.Checked = ini.GetBool("CS3", "AllowSwitchToNightmare", true);
@@ -63,12 +64,11 @@ namespace SenPatcherGui {
 		private void WriteToIni() {
 			try {
 				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
-				IniFile ini;
+				IniFile ini = new IniFile();
 				try {
-					ini = new IniFile(inipath);
-				} catch (Exception) {
-					ini = new IniFile();
-				}
+					ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
+				} catch (Exception) { }
+				ini.LoadIniFromString(Properties.Resources.senpatcher_settings_cs3, overwriteExistingValues: true);
 				ini.SetBool("CS3", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetBool("CS3", "FixInGameButtonRemapping", checkBoxFixButtonRemapping.Checked);
 				ini.SetBool("CS3", "AllowSwitchToNightmare", checkBoxAllowNightmare.Checked);

@@ -10,6 +10,7 @@ namespace SenPatcherGui {
 	public class Value {
 		internal string Name;
 		internal string Data;
+		internal List<string> Comment;
 	}
 
 	public class Section {
@@ -20,20 +21,29 @@ namespace SenPatcherGui {
 
 		internal void FillLines(List<string> lines) {
 			foreach (var v in Values) {
+				if (v.Comment != null) {
+					foreach (string line in v.Comment) {
+						lines.Add("; " + line);
+					}
+				}
 				lines.Add(string.Format("{0}={1}", v.Name, v.Data));
+				lines.Add("");
 			}
 		}
 
-		internal void Insert(string name, string data, bool overwrite) {
+		internal void Insert(string name, string data, List<string> comment, bool overwrite) {
 			foreach (var v in Values) {
 				if (string.Compare(name, v.Name, true, CultureInfo.InvariantCulture) == 0) {
 					if (overwrite) {
 						v.Data = data;
+						if (comment != null && comment.Count > 0) {
+							v.Comment = comment;
+						}
 					}
 					return;
 				}
 			}
-			Values.Add(new Value { Name = name, Data = data });
+			Values.Add(new Value { Name = name, Data = data, Comment = comment });
 		}
 
 		internal bool TryGet(string name, out string value) {
@@ -54,12 +64,14 @@ namespace SenPatcherGui {
 		public IniFile() {
 		}
 
-		public IniFile(string path) {
-			string[] lines = System.IO.File.ReadAllLines(path);
+		public void LoadIniFromString(string iniString, bool overwriteExistingValues) {
+			string[] lines = iniString.Split('\n');
 			string currentSection = null;
+			List<string> currentComment = new List<string>();
 			foreach (string rawLine in lines) {
 				string line = rawLine.Trim();
 				if (line.StartsWith(";")) {
+					currentComment.Add(line.Substring(1).Trim());
 					continue;
 				}
 
@@ -72,7 +84,8 @@ namespace SenPatcherGui {
 					string[] split = line.Split(new char[] { '=' }, 2);
 					string key = split[0].TrimEnd();
 					string value = split[1].TrimStart();
-					MakeOrGetSection(currentSection).Insert(key, value, false);
+					MakeOrGetSection(currentSection).Insert(key, value, currentComment, overwriteExistingValues);
+					currentComment = new List<string>();
 				}
 			}
 		}
@@ -114,6 +127,7 @@ namespace SenPatcherGui {
 			foreach (Section section in Sections) {
 				if (section.Name != null) {
 					lines.Add(string.Format("[{0}]", section.Name));
+					lines.Add("");
 					section.FillLines(lines);
 				}
 			}
@@ -180,7 +194,7 @@ namespace SenPatcherGui {
 		}
 
 		public void SetString(string sectionName, string keyName, string stringValue) {
-			MakeOrGetSection(sectionName).Insert(keyName, stringValue, true);
+			MakeOrGetSection(sectionName).Insert(keyName, stringValue, null, true);
 		}
 	}
 }

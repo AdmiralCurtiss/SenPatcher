@@ -54,7 +54,8 @@ namespace SenPatcherGui {
 		private void ReadFromIni() {
 			try {
 				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
-				IniFile ini = new IniFile(inipath);
+				IniFile ini = new IniFile();
+				ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
 				checkBoxAssetPatches.Checked = ini.GetBool("CS2", "AssetFixes", true);
 				checkBoxBattleAutoSkip.Checked = ini.GetBool("CS2", "RemoveTurboSkip", true);
 				checkBoxFixVoiceFileLang.Checked = ini.GetBool("CS2", "CorrectLanguageVoiceTables", true);
@@ -73,12 +74,11 @@ namespace SenPatcherGui {
 		private void WriteToIni() {
 			try {
 				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
-				IniFile ini;
+				IniFile ini = new IniFile();
 				try {
-					ini = new IniFile(inipath);
-				} catch (Exception) {
-					ini = new IniFile();
-				}
+					ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
+				} catch (Exception) { }
+				ini.LoadIniFromString(Properties.Resources.senpatcher_settings_cs2, overwriteExistingValues: true);
 				ini.SetBool("CS2", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetBool("CS2", "RemoveTurboSkip", checkBoxBattleAutoSkip.Checked);
 				ini.SetBool("CS2", "CorrectLanguageVoiceTables", checkBoxFixVoiceFileLang.Checked);
