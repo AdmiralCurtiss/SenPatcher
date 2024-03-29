@@ -1,6 +1,7 @@
 #include "loaded_mods.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -293,20 +294,25 @@ static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& lo
 
 void LoadModP3As(SenPatcher::Logger& logger,
                  LoadedModsData& loadedModsData,
-                 const std::filesystem::path& baseDir) {
+                 std::string_view baseDir) {
     loadedModsData.CombinedFileInfoCount = 0;
     loadedModsData.CombinedFileInfos.reset();
     loadedModsData.P3As.reset();
+    loadedModsData.CheckDevFolderForAssets = false;
+
+    std::filesystem::path baseDirStdFs =
+        HyoutaUtils::TextUtils::Utf8ToWString(baseDir.data(), baseDir.size());
+
     {
         std::error_code ec;
         loadedModsData.CheckDevFolderForAssets =
-            std::filesystem::is_directory(baseDir / L"dev", ec);
+            std::filesystem::is_directory(baseDirStdFs / L"dev", ec);
     }
 
     size_t p3acount = 0;
     std::unique_ptr<P3AData[]> p3as;
     {
-        const auto modsDir = baseDir / L"mods";
+        const auto modsDir = baseDirStdFs / L"mods";
         const auto modPaths = CollectModPaths(logger, modsDir);
         std::vector<SenPatcher::P3A> p3avector;
         p3avector.reserve(modPaths.size());

@@ -2,9 +2,9 @@
 
 #include <array>
 #include <cstdint>
-#include <filesystem>
 #include <memory>
 #include <mutex>
+#include <string_view>
 
 #include "logger.h"
 #include "p3a/p3a.h"
@@ -53,7 +53,7 @@ struct LoadedModsData {
 
 void LoadModP3As(SenPatcher::Logger& logger,
                  LoadedModsData& loadedModsData,
-                 const std::filesystem::path& baseDir);
+                 std::string_view baseDir);
 const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
                                  const std::array<char8_t, 0x100>& filteredPath);
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,
