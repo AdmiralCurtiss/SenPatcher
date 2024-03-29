@@ -476,7 +476,6 @@ set(SOURCES_BASE_FIXES
 	decompress_helper.h
 	file.h
 	file.cpp
-	file_getter.h
 	logger.cpp
 	logger.h
 	sha1.cpp
@@ -503,6 +502,7 @@ set(SOURCES_BASE_FIXES
 	sen/asset_patch.h
 	sen/book_table.cpp
 	sen/book_table.h
+	sen/file_getter.h
 	sen/pkg.cpp
 	sen/pkg.h
 	sen/sen_script_patcher.cpp

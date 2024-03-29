@@ -301,12 +301,15 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     // figure out whether we're running in the root game directory or in the bin/x64 subdirectory
     // and get a relative path to the root game directory
     std::filesystem::path baseDir;
+    std::string_view baseDirUtf8;
     if (std::filesystem::exists(L"Sen2Launcher.exe")) {
         logger.Log("Root game dir is current dir.\n");
         baseDir = L"./";
+        baseDirUtf8 = ".";
     } else if (std::filesystem::exists(L"../../Sen2Launcher.exe")) {
         logger.Log("Root game dir is ../..\n");
         baseDir = L"../../";
+        baseDirUtf8 = "../..";
     } else {
         logger.Log("Failed finding root game directory.\n");
         return nullptr;
@@ -377,7 +380,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     }
 
     if (assetFixes) {
-        SenLib::Sen2::CreateAssetPatchIfNeeded(logger, baseDir);
+        SenLib::Sen2::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
     LoadModP3As(logger, s_LoadedModsData, baseDir);

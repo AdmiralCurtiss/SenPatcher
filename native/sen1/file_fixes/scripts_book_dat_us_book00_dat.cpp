@@ -1,12 +1,10 @@
-#include <filesystem>
 #include <span>
 #include <string_view>
 #include <vector>
 
 #include "sen1/file_fixes/scripts_book_dat_us_book00_dat_shared.h"
 
-#include "file_getter.h"
-
+#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/book_table.h"

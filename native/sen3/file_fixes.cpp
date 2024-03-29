@@ -3,12 +3,10 @@
 #include <string_view>
 #include <vector>
 
-#include "file_getter.h"
 #include "logger.h"
-
 #include "p3a/pack.h"
-
 #include "sen/asset_patch.h"
+#include "sen/file_getter.h"
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen3::FileFixes::##name {                                 \
@@ -210,7 +208,7 @@ static bool CollectAudio(SenPatcher::Logger& logger,
     return true;
 }
 
-void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem::path& baseDir) {
+void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
     // TODO: handle this flag somehow?
     bool allowSwitchToNightmare = true;
 
@@ -223,30 +221,35 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem:
     };
 
     CreateArchiveIfNeeded(logger,
-                          baseDir / L"mods/zzz_senpatcher_cs3asset.p3a",
+                          baseDir,
+                          "mods/zzz_senpatcher_cs3asset.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
                               return CollectAssets(
                                   logger, callback, packData, allowSwitchToNightmare);
                           });
     CreateArchiveIfNeeded(logger,
-                          baseDir / L"mods/zzz_senpatcher_cs3audio.p3a",
+                          baseDir,
+                          "mods/zzz_senpatcher_cs3audio.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
                               return CollectAudio(logger, callback, packData);
                           });
     CreateVideoIfNeeded(logger,
-                        baseDir / L"data/movie_us/webm/insa_f5.webm",
+                        baseDir,
+                        "data/movie_us/webm/insa_f5.webm",
                         [&](SenPatcher::P3APackData& packData) -> bool {
                             return SenLib::Sen3::FileFixes::insa05::TryApply(callback,
                                                                              packData.Files);
                         });
     CreateVideoIfNeeded(logger,
-                        baseDir / L"data/movie_us/webm/insa_f8.webm",
+                        baseDir,
+                        "data/movie_us/webm/insa_f8.webm",
                         [&](SenPatcher::P3APackData& packData) -> bool {
                             return SenLib::Sen3::FileFixes::insa08::TryApply(callback,
                                                                              packData.Files);
                         });
     CreateVideoIfNeeded(logger,
-                        baseDir / L"data/movie_us/webm/insa_f9.webm",
+                        baseDir,
+                        "data/movie_us/webm/insa_f9.webm",
                         [&](SenPatcher::P3APackData& packData) -> bool {
                             return SenLib::Sen3::FileFixes::insa09::TryApply(callback,
                                                                              packData.Files);

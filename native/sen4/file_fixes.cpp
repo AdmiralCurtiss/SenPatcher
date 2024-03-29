@@ -3,12 +3,10 @@
 #include <string_view>
 #include <vector>
 
-#include "file_getter.h"
 #include "logger.h"
-
 #include "p3a/pack.h"
-
 #include "sen/asset_patch.h"
+#include "sen/file_getter.h"
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen4::FileFixes::##name {                                 \
@@ -55,7 +53,7 @@ static bool CollectAssets(SenPatcher::Logger& logger,
     return true;
 }
 
-void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem::path& baseDir) {
+void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
     // TODO: handle this flag somehow?
     bool allowSwitchToNightmare = true;
 
@@ -68,7 +66,8 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem:
     };
 
     CreateArchiveIfNeeded(logger,
-                          baseDir / L"mods/zzz_senpatcher_cs4asset.p3a",
+                          baseDir,
+                          "mods/zzz_senpatcher_cs4asset.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
                               return CollectAssets(
                                   logger, callback, packData, allowSwitchToNightmare);

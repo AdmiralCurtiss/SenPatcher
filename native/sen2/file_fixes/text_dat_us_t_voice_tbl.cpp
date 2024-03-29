@@ -1,10 +1,8 @@
-#include <filesystem>
 #include <optional>
 #include <string_view>
 #include <vector>
 
-#include "file_getter.h"
-
+#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen2/tbl.h"

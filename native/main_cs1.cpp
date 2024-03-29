@@ -297,9 +297,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     // CS1 should always run in the same directory
     std::filesystem::path baseDir;
+    std::string_view baseDirUtf8;
     if (std::filesystem::exists(L"Sen1Launcher.exe")) {
         logger.Log("Root game dir is current dir.\n");
         baseDir = L"./";
+        baseDirUtf8 = ".";
     } else {
         logger.Log("Failed finding root game directory.\n");
         return nullptr;
@@ -387,7 +389,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     }
 
     if (assetFixes) {
-        SenLib::Sen1::CreateAssetPatchIfNeeded(logger, baseDir);
+        SenLib::Sen1::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
     LoadModP3As(logger, s_LoadedModsData, baseDir);

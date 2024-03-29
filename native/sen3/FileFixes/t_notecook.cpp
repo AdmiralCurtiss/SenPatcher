@@ -1,9 +1,9 @@
 ﻿#include <cstdint>
-#include <filesystem>
 #include <optional>
 #include <string_view>
 #include <vector>
 
+#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen3/file_fixes.h"

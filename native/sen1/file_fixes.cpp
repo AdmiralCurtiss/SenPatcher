@@ -3,12 +3,10 @@
 #include <string_view>
 #include <vector>
 
-#include "file_getter.h"
 #include "logger.h"
-
 #include "p3a/pack.h"
-
 #include "sen/asset_patch.h"
+#include "sen/file_getter.h"
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen1::FileFixes::##name {                                 \
@@ -144,7 +142,7 @@ static bool CollectAudio(SenPatcher::Logger& logger,
     return true;
 }
 
-void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem::path& baseDir) {
+void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
             size_t size,
@@ -153,12 +151,14 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, const std::filesystem:
     };
 
     CreateArchiveIfNeeded(logger,
-                          baseDir / L"mods/zzz_senpatcher_cs1asset.p3a",
+                          baseDir,
+                          "mods/zzz_senpatcher_cs1asset.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
                               return CollectAssets(logger, callback, packData);
                           });
     CreateArchiveIfNeeded(logger,
-                          baseDir / L"mods/zzz_senpatcher_cs1audio.p3a",
+                          baseDir,
+                          "mods/zzz_senpatcher_cs1audio.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
                               return CollectAudio(logger, callback, packData);
                           });

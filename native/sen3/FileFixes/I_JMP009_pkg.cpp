@@ -1,8 +1,8 @@
-﻿#include <filesystem>
-#include <string_view>
+﻿#include <string_view>
 #include <vector>
 
 #include "decompress_helper.h"
+#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen3/file_fixes.h"
