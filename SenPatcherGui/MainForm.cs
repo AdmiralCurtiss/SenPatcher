@@ -1,4 +1,5 @@
-﻿using HyoutaUtils;
+﻿using HyoutaPluginBase;
+using HyoutaUtils;
 using HyoutaUtils.Checksum;
 using SenLib;
 using SenLib.Sen1;
@@ -127,7 +128,175 @@ namespace SenPatcherGui {
 				return null;
 			}
 
+			// it's possible that someone is launching this on CS2 1.4, because that's the last build that was pushed to Humble Bundle
+			// if so, offer an update to 1.4.2
+			try {
+				if (!TryPatchCs2Version14(path)) {
+					return null;
+				}
+			} catch (Exception ex) {
+				ShowError("Error while checking for CS2 1.4: " + ex.Message);
+				return null;
+			}
+
 			return path;
+		}
+
+		private void TryMoveTempFileIfMatches(string path, string tmppath, SHA1 hash) {
+			if (File.Exists(tmppath)) {
+				var filedata = new HyoutaUtils.Streams.DuplicatableFileStream(tmppath).CopyToByteArrayStreamAndDispose();
+				if (hash == ChecksumUtils.CalculateSHA1ForEntireStream(filedata)) {
+					SenUtils.TryDeleteFile(path);
+					File.Move(tmppath, path);
+				}
+			}
+		}
+
+		private bool TryPatchCs2Version14(string path) {
+			string path_exe_jp = Path.Combine(path, "bin/Win32/ed8_2_PC_JP.exe");
+			string path_exe_us = Path.Combine(path, "bin/Win32/ed8_2_PC_US.exe");
+			string path_t1001_jp = Path.Combine(path, "data/scripts/scena/dat/t1001.dat");
+			string path_t1001_us = Path.Combine(path, "data/scripts/scena/dat_us/t1001.dat");
+			string path_asm_folder = Path.Combine(path, "data/scripts/scena/asm");
+			string path_asm_file = Path.Combine(path, "data/scripts/scena/asm/t1001.tbl");
+			string path_exe_jp_tmp = path_exe_jp + ".cs142";
+			string path_exe_us_tmp = path_exe_us + ".cs142";
+			string path_t1001_jp_tmp = path_t1001_jp + ".cs142";
+			string path_t1001_us_tmp = path_t1001_us + ".cs142";
+			string path_asm_file_tmp = path_asm_file + ".cs142";
+			SHA1 jp142hash = new SHA1(0x7d1db7e0bb91ab77ul, 0xa3fd1eba53b0ed25ul, 0x806186c1u);
+			SHA1 us142hash = new SHA1(0xb08ece4ee38e6e3aul, 0x99e58eb11cffb45eul, 0x49704f86u);
+			SHA1 t1001jp142hash = new SHA1(0x24b90bc222efb431ul, 0xa05941973b3bcbd7ul, 0xe3599d81u);
+			SHA1 t1001us142hash = new SHA1(0xfae1d23cd07aa0c9ul, 0x90ca63607e64fcddul, 0xd60a80dau);
+			SHA1 t1001asm142hash = new SHA1(0x568a1ae375a6077eul, 0xf5c6fb8e277a333ful, 0x1979505bu);
+			SHA1 us14hash = new SHA1(0xe5f2e2682557af7aul, 0x2f52b2299ba0980ful, 0x218c5e66u);
+			SHA1 jp14hash = new SHA1(0x825e264333896356ul, 0x5f49e3c40aa0aec1ul, 0xd77229fau);
+			SHA1 t1001us14hash = new SHA1(0xace845b437df94fbul, 0xfe2d638a2ec162b4ul, 0x92a657b3u);
+			SHA1 t1001jp14hash = new SHA1(0x3d75d79e3201f8f5ul, 0xac61c206f8cc86dbul, 0x7c4651ddu);
+
+			// try to recover a patch that was interrupted during the writeout phase
+			TryMoveTempFileIfMatches(path_exe_jp, path_exe_jp_tmp, jp142hash);
+			TryMoveTempFileIfMatches(path_exe_us, path_exe_us_tmp, us142hash);
+			TryMoveTempFileIfMatches(path_t1001_jp, path_t1001_jp_tmp, t1001jp142hash);
+			TryMoveTempFileIfMatches(path_t1001_us, path_t1001_us_tmp, t1001us142hash);
+			TryMoveTempFileIfMatches(path_asm_file, path_asm_file_tmp, t1001asm142hash);
+			SenUtils.TryDeleteFile(path_exe_jp_tmp);
+			SenUtils.TryDeleteFile(path_exe_us_tmp);
+			SenUtils.TryDeleteFile(path_t1001_jp_tmp);
+			SenUtils.TryDeleteFile(path_t1001_us_tmp);
+			SenUtils.TryDeleteFile(path_asm_file_tmp);
+
+			if (File.Exists(path_asm_file)) {
+				return true;
+			}
+			var exe_us_14 = new HyoutaUtils.Streams.DuplicatableFileStream(path_exe_us).CopyToByteArrayStreamAndDispose();
+			if (us14hash != ChecksumUtils.CalculateSHA1ForEntireStream(exe_us_14)) {
+				return true;
+			}
+			var exe_jp_14 = new HyoutaUtils.Streams.DuplicatableFileStream(path_exe_jp).CopyToByteArrayStreamAndDispose();
+			if (jp14hash != ChecksumUtils.CalculateSHA1ForEntireStream(exe_jp_14)) {
+				return true;
+			}
+			var t1001_us_14 = new HyoutaUtils.Streams.DuplicatableFileStream(path_t1001_us).CopyToByteArrayStreamAndDispose();
+			if (t1001us14hash != ChecksumUtils.CalculateSHA1ForEntireStream(t1001_us_14)) {
+				return true;
+			}
+			var t1001_jp_14 = new HyoutaUtils.Streams.DuplicatableFileStream(path_t1001_jp).CopyToByteArrayStreamAndDispose();
+			if (t1001jp14hash != ChecksumUtils.CalculateSHA1ForEntireStream(t1001_jp_14)) {
+				return true;
+			}
+
+			// it's sloppy to mix in GUI code like this but whatever, this is not very reusable anyway...
+			Logging.Log("CS2 1.4 found.");
+			var result = MessageBox.Show("This appears to be version 1.4 of CS2.\n" +
+				"SenPatcher does not support this version directly, but it can update the game to version 1.4.2, which is supported.\n\n" +
+				"Would you like to perform this update?",
+				"Old CS2 version found", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+			if (result != DialogResult.Yes) {
+				Logging.Log("Declined CS2 update.");
+				return false;
+			}
+
+			Logging.Log("Performing CS2 update.");
+
+			var jp140exe = new SectionSplitExe(exe_jp_14);
+			var jp142header = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp140exe.header.Duplicate(), new HyoutaUtils.Streams.DuplicatableByteArrayStream(SenLib.Properties.Resources.ed82_j140_to_j142_header)).CopyToByteArrayStreamAndDispose();
+			var jp142text = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp140exe.text.Duplicate(), DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.ed82_j140_to_j142_text).CopyToByteArrayStreamAndDispose()).CopyToByteArrayStreamAndDispose();
+			var jp142rdata = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp140exe.rdata.Duplicate(), DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.ed82_j140_to_j142_rdata).CopyToByteArrayStreamAndDispose()).CopyToByteArrayStreamAndDispose();
+			var jp142data = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp140exe.data.Duplicate(), DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.ed82_j140_to_j142_data).CopyToByteArrayStreamAndDispose()).CopyToByteArrayStreamAndDispose();
+			var jp142rsrc = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp140exe.rsrc.Duplicate(), DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.ed82_j140_to_j142_rsrc).CopyToByteArrayStreamAndDispose()).CopyToByteArrayStreamAndDispose();
+			var jp142 = HyoutaUtils.Streams.ConcatenatedStream.CreateConcatenatedStream(new List<DuplicatableStream>() { jp142header.Duplicate(), jp142text.Duplicate(), jp142rdata.Duplicate(), jp142data.Duplicate(), jp142rsrc.Duplicate() }).CopyToByteArrayStreamAndDispose();
+			if (ChecksumUtils.CalculateSHA1ForEntireStream(jp142) == jp142hash) {
+				Logging.Log(string.Format("Acquired {0} (CS2 JP 1.4.2) from 1.4.0!", jp142hash.ToString()));
+			} else {
+				// very unlikely
+				Logging.Log("CS2 JP 1.4.2 patch did not apply correctly.");
+				return false;
+			}
+			var us140exe = new SectionSplitExe(exe_us_14);
+			var us142header = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp142header.Duplicate(), DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.ed82_j142_to_u142_header).CopyToByteArrayStreamAndDispose()).CopyToByteArrayStreamAndDispose();
+			var us142text = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp142text.Duplicate(), DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.ed82_j142_to_u142_text).CopyToByteArrayStreamAndDispose()).CopyToByteArrayStreamAndDispose();
+			var us142rdata = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(HyoutaUtils.Streams.ConcatenatedStream.CreateConcatenatedStream(new List<DuplicatableStream>() { us140exe.rdata.Duplicate(), jp142rdata.Duplicate() }), DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.ed82_u140j142_to_u142_rdata).CopyToByteArrayStreamAndDispose()).CopyToByteArrayStreamAndDispose();
+			var us142data = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp142data.Duplicate(), DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.ed82_j142_to_u142_data).CopyToByteArrayStreamAndDispose()).CopyToByteArrayStreamAndDispose();
+			var us142rsrc = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(jp142rsrc.Duplicate(), new HyoutaUtils.Streams.DuplicatableByteArrayStream(SenLib.Properties.Resources.ed82_j142_to_u142_rsrc)).CopyToByteArrayStreamAndDispose();
+			var us142 = HyoutaUtils.Streams.ConcatenatedStream.CreateConcatenatedStream(new List<DuplicatableStream>() { us142header.Duplicate(), us142text.Duplicate(), us142rdata.Duplicate(), us142data.Duplicate(), us142rsrc.Duplicate() }).CopyToByteArrayStreamAndDispose();
+			if (ChecksumUtils.CalculateSHA1ForEntireStream(us142) == us142hash) {
+				SenLib.Logging.Log(string.Format("Acquired {0} (CS2 US 1.4.2) from 1.4.0!", us142hash.ToString()));
+			} else {
+				// very unlikely
+				Logging.Log("CS2 US 1.4.2 patch did not apply correctly.");
+				return false;
+			}
+
+			var t1001_jp_142 = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(t1001_jp_14, new HyoutaUtils.Streams.DuplicatableByteArrayStream(new byte[] { 0x42, 0x50, 0x53, 0x31, 0x51, 0x59, 0x89, 0x51, 0x59, 0x89, 0x80, 0x50, 0x13, 0x93, 0x81, 0xfe, 0x68, 0x54, 0x95, 0xd1, 0x34, 0x92, 0x1c, 0x08, 0x78, 0xd2, 0xa8, 0x99, 0xe0, 0x0c, 0x42 }));
+			if (ChecksumUtils.CalculateSHA1ForEntireStream(t1001_jp_142) == t1001jp142hash) {
+				Logging.Log(string.Format("Acquired {0} (t1001 JP 1.4.2) from 1.4.0!", t1001jp142hash.ToString()));
+			} else {
+				// very unlikely
+				Logging.Log("t1001 JP 1.4.2 patch did not apply correctly.");
+				return false;
+			}
+			var t1001_us_142 = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(t1001_us_14, new HyoutaUtils.Streams.DuplicatableByteArrayStream(new byte[] { 0x42, 0x50, 0x53, 0x31, 0x11, 0x6a, 0x8a, 0x11, 0x6a, 0x8a, 0x80, 0x28, 0x76, 0x94, 0x81, 0xfe, 0x10, 0x34, 0x98, 0x4b, 0x18, 0x20, 0x67, 0x25, 0xf8, 0x4d, 0x9d, 0xc0, 0x33, 0x34, 0xcd }));
+			if (ChecksumUtils.CalculateSHA1ForEntireStream(t1001_us_142) == t1001us142hash) {
+				Logging.Log(string.Format("Acquired {0} (t1001 US 1.4.2) from 1.4.0!", t1001us142hash.ToString()));
+			} else {
+				// very unlikely
+				Logging.Log("t1001 US 1.4.2 patch did not apply correctly.");
+				return false;
+			}
+			var t1001_asm_142 = HyoutaUtils.Bps.BpsPatcher.ApplyPatchToStream(t1001_jp_142, DecompressHelper.DecompressFromBuffer(SenLib.Properties.Resources.t1001_dat_to_tbl).CopyToByteArrayStreamAndDispose());
+			if (ChecksumUtils.CalculateSHA1ForEntireStream(t1001_asm_142) == t1001asm142hash) {
+				Logging.Log(string.Format("Acquired {0} (t1001 asm 1.4.2) from 1.4.0!", t1001asm142hash.ToString()));
+			} else {
+				// very unlikely
+				Logging.Log("t1001 asm 1.4.2 patch did not apply correctly.");
+				return false;
+			}
+
+			// patching success, write out
+			Directory.CreateDirectory(path_asm_folder);
+			File.WriteAllBytes(path_exe_jp_tmp + ".tmp", jp142.CopyToByteArrayAndDispose());
+			File.WriteAllBytes(path_exe_us_tmp + ".tmp", us142.CopyToByteArrayAndDispose());
+			File.WriteAllBytes(path_t1001_jp_tmp + ".tmp", t1001_jp_142.CopyToByteArrayAndDispose());
+			File.WriteAllBytes(path_t1001_us_tmp + ".tmp", t1001_us_142.CopyToByteArrayAndDispose());
+			File.WriteAllBytes(path_asm_file_tmp + ".tmp", t1001_asm_142.CopyToByteArrayAndDispose());
+			File.Move(path_exe_us_tmp + ".tmp", path_exe_us_tmp);
+			File.Move(path_exe_jp_tmp + ".tmp", path_exe_jp_tmp);
+			File.Move(path_t1001_jp_tmp + ".tmp", path_t1001_jp_tmp);
+			File.Move(path_t1001_us_tmp + ".tmp", path_t1001_us_tmp);
+			File.Move(path_asm_file_tmp + ".tmp", path_asm_file_tmp);
+			SenUtils.TryDeleteFile(path_exe_us);
+			File.Move(path_exe_us_tmp, path_exe_us);
+			SenUtils.TryDeleteFile(path_exe_jp);
+			File.Move(path_exe_jp_tmp, path_exe_jp);
+			SenUtils.TryDeleteFile(path_t1001_jp);
+			File.Move(path_t1001_jp_tmp, path_t1001_jp);
+			SenUtils.TryDeleteFile(path_t1001_us);
+			File.Move(path_t1001_us_tmp, path_t1001_us);
+			SenUtils.TryDeleteFile(path_asm_file);
+			File.Move(path_asm_file_tmp, path_asm_file);
+
+			return true;
 		}
 
 		private void OpenCs2GameDir(string launcherPath) {
@@ -469,6 +638,23 @@ namespace SenPatcherGui {
 					MessageBox.Show("Decompression failed: " + ex.Message);
 				}
 			}
+		}
+	}
+
+	internal class SectionSplitExe {
+		public DuplicatableStream header;
+		public DuplicatableStream text;
+		public DuplicatableStream rdata;
+		public DuplicatableStream data;
+		public DuplicatableStream rsrc;
+
+		public SectionSplitExe(DuplicatableStream s) {
+			var exe = new PeExe(s, EndianUtils.Endianness.LittleEndian);
+			header = new HyoutaUtils.Streams.PartialStream(s, 0, exe.SectionHeaders[0].PointerToRawData);
+			text = new HyoutaUtils.Streams.PartialStream(s, exe.SectionHeaders[0].PointerToRawData, exe.SectionHeaders[0].SizeOfRawData);
+			rdata = new HyoutaUtils.Streams.PartialStream(s, exe.SectionHeaders[1].PointerToRawData, exe.SectionHeaders[1].SizeOfRawData);
+			data = new HyoutaUtils.Streams.PartialStream(s, exe.SectionHeaders[2].PointerToRawData, exe.SectionHeaders[2].SizeOfRawData);
+			rsrc = new HyoutaUtils.Streams.PartialStream(s, exe.SectionHeaders[3].PointerToRawData, exe.SectionHeaders[3].SizeOfRawData);
 		}
 	}
 }
