@@ -18,6 +18,15 @@ std::u16string Utf8ToUtf16(const char* data, size_t length);
 std::string Utf16ToShiftJis(const char16_t* data, size_t length);
 std::u16string ShiftJisToUtf16(const char* data, size_t length);
 
+#ifdef _MSC_VER
+// this is technically identical to the utf16 variants, but the compiler considers them separate
+// types...
+std::string WStringToUtf8(const wchar_t* data, size_t length);
+std::wstring Utf8ToWString(const char* data, size_t length);
+std::string WStringToShiftJis(const wchar_t* data, size_t length);
+std::wstring ShiftJisToWString(const char* data, size_t length);
+#endif
+
 std::string ShiftJisToUtf8(const char* data, size_t length);
 std::string Utf8ToShiftJis(const char* data, size_t length);
 

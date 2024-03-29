@@ -6,8 +6,15 @@
 
 #include <cassert>
 #include <cstdint>
-#include <filesystem>
 #include <memory>
+#include <string>
+#include <string_view>
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+#include <filesystem>
+#endif
+
+#include "util/text.h"
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
@@ -22,10 +29,16 @@
 namespace SenPatcher::IO {
 File::File() noexcept : Filehandle(INVALID_HANDLE_VALUE) {}
 
+File::File(std::string_view p, OpenMode mode) noexcept : Filehandle(INVALID_HANDLE_VALUE) {
+    Open(p, mode);
+}
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 File::File(const std::filesystem::path& p, OpenMode mode) noexcept
   : Filehandle(INVALID_HANDLE_VALUE) {
     Open(p, mode);
 }
+#endif
 
 File::File(File&& other) noexcept : Filehandle(other.Filehandle) {
     other.Filehandle = INVALID_HANDLE_VALUE;
@@ -42,6 +55,46 @@ File::~File() noexcept {
     Close();
 }
 
+bool File::Open(std::string_view p, OpenMode mode) noexcept {
+    Close();
+    switch (mode) {
+        case OpenMode::Read: {
+#ifdef _MSC_VER
+            auto s = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+            Filehandle = CreateFileW(s.c_str(),
+                                     GENERIC_READ,
+                                     FILE_SHARE_READ,
+                                     nullptr,
+                                     OPEN_EXISTING,
+                                     FILE_ATTRIBUTE_NORMAL,
+                                     nullptr);
+#else
+            std::string s(p);
+            Filehandle = fopen(s.c_str(), "rb");
+#endif
+            return Filehandle != INVALID_HANDLE_VALUE;
+        }
+        case OpenMode::Write: {
+#ifdef _MSC_VER
+            auto s = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+            Filehandle = CreateFileW(s.c_str(),
+                                     GENERIC_WRITE | DELETE,
+                                     0,
+                                     nullptr,
+                                     CREATE_ALWAYS,
+                                     FILE_ATTRIBUTE_NORMAL,
+                                     nullptr);
+#else
+            std::string s(p);
+            Filehandle = fopen(s.c_str(), "wb");
+#endif
+            return Filehandle != INVALID_HANDLE_VALUE;
+        }
+        default: Filehandle = INVALID_HANDLE_VALUE; return false;
+    }
+}
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
     Close();
     switch (mode) {
@@ -74,6 +127,7 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
         default: Filehandle = INVALID_HANDLE_VALUE; return false;
     }
 }
+#endif
 
 bool File::IsOpen() const noexcept {
     return Filehandle != INVALID_HANDLE_VALUE;
@@ -241,21 +295,18 @@ bool File::Delete() noexcept {
     return false;
 }
 
-bool File::Rename(const std::filesystem::path& p) noexcept {
-    assert(IsOpen());
-
 #ifdef _MSC_VER
+bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t wstr_len) {
     // This struct has a very odd definition, because its size is dynamic, so we must do something
     // like this...
-    const auto& wstr = p.native();
-    if (wstr.size() > (32767 + 4)) {
+    if (wstr_len > (32767 + 4)) {
         // not sure what the actual limit is, but this is max path length 32767 + '\\?\' prefix
         return false;
     }
 
     // note that this looks like it has an off-by-one error, but it doesn't, because
     // sizeof(FILE_RENAME_INFO) includes a single WCHAR which accounts for the nullterminator
-    size_t allocationLength = sizeof(FILE_RENAME_INFO) + (wstr.size() * sizeof(char16_t));
+    size_t allocationLength = sizeof(FILE_RENAME_INFO) + (wstr_len * sizeof(wchar_t));
     auto buffer = std::make_unique<char[]>(allocationLength);
     if (!buffer) {
         return false;
@@ -263,19 +314,42 @@ bool File::Rename(const std::filesystem::path& p) noexcept {
     FILE_RENAME_INFO* info = reinterpret_cast<FILE_RENAME_INFO*>(buffer.get());
     info->ReplaceIfExists = TRUE;
     info->RootDirectory = nullptr;
-    info->FileNameLength = static_cast<DWORD>(wstr.size() * sizeof(char16_t));
-    std::memcpy(info->FileName, wstr.data(), wstr.size() * sizeof(char16_t));
+    info->FileNameLength = static_cast<DWORD>(wstr_len * sizeof(wchar_t));
+    std::memcpy(info->FileName, wstr_data, wstr_len * sizeof(wchar_t));
     if (SetFileInformationByHandle(
-            Filehandle, FileRenameInfo, info, static_cast<DWORD>(allocationLength))
+            filehandle, FileRenameInfo, info, static_cast<DWORD>(allocationLength))
         != 0) {
         return true;
     }
-#else
-    // TODO: How do you rename a file by handle in POSIX?
-#endif
-
     return false;
 }
+#endif
+
+bool File::Rename(const std::string_view p) noexcept {
+    assert(IsOpen());
+
+#ifdef _MSC_VER
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+    return RenameInternalWindows(Filehandle, wstr.data(), wstr.size());
+#else
+    // TODO: How do you rename a file by handle in POSIX?
+    return false;
+#endif
+}
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+bool File::Rename(const std::filesystem::path& p) noexcept {
+    assert(IsOpen());
+
+#ifdef _MSC_VER
+    const auto& wstr = p.native();
+    return RenameInternalWindows(Filehandle, wstr.data(), wstr.size());
+#else
+    // TODO: How do you rename a file by handle in POSIX?
+    return false;
+#endif
+}
+#endif
 
 void* File::ReleaseHandle() noexcept {
     void* h = Filehandle;
