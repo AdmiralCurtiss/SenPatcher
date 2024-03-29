@@ -499,6 +499,8 @@ set(SOURCES_BASE_FIXES
 	p3a/util.cpp
 	p3a/util.h
 
+	sen/asset_patch.cpp
+	sen/asset_patch.h
 	sen/book_table.cpp
 	sen/book_table.h
 	sen/pkg.cpp
