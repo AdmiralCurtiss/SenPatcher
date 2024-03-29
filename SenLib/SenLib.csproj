@@ -205,18 +205,19 @@
     <Compile Include="RegionHelper.cs" />
     <Compile Include="ScriptParser.cs" />
     <Compile Include="Sen1\MagicData.cs" />
-    <Compile Include="Sen1\Sen1KnownFiles.cs" />
     <Compile Include="Sen1\Sen1SystemData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sen1\Sen1UnpatchData.cs" />
+    <Compile Include="Sen2\Sen2UnpatchData.cs" />
+    <Compile Include="Sen3\Sen3UnpatchData.cs" />
+    <Compile Include="Sen4\Sen4UnpatchData.cs" />
+    <Compile Include="UnpatchFile.cs" />
     <Compile Include="Sen1\Tbl.cs" />
     <Compile Include="Sen1\VoiceDataCS1.cs" />
-    <Compile Include="Sen2\Sen2KnownFiles.cs" />
     <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="Sen2\Tbl.cs" />
-    <Compile Include="Sen3\Sen3KnownFiles.cs" />
     <Compile Include="Sen3\VoiceDataCS3.cs" />
     <Compile Include="Sen4\Save.cs" />
-    <Compile Include="Sen4\Sen4KnownFiles.cs" />
     <Compile Include="Sen4\Tbl.cs" />
     <Compile Include="Sen4\VoiceDataCS4.cs" />
     <Compile Include="SenCommonPaths.cs" />
@@ -224,6 +225,7 @@
     <Compile Include="SenUtils.cs" />
     <Compile Include="SHA256.cs" />
     <Compile Include="Sen3\Tbl.cs" />
+    <Compile Include="UnpatchGame.cs" />
     <Compile Include="Version.cs" />
     <Compile Include="VoiceTiming.cs" />
   </ItemGroup>

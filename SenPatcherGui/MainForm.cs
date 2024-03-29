@@ -73,7 +73,31 @@ namespace SenPatcherGui {
 				return null;
 			}
 
+			DoUnpatchWithUserConfirmation(path, Sen1UnpatchData.GetFiles(), 1);
+
 			return path;
+		}
+
+		private bool DoUnpatchWithUserConfirmation(string path, UnpatchFile[] unpatchFiles, int sengame) {
+			if (SenLib.UnpatchGame.HasOldSenpatcherBackups(path, sengame)) {
+				var result = MessageBox.Show("Old SenPatcher backup files have been detected.\n" +
+					"This version of SenPatcher requires an unpatched game to work correctly, so any existing patches need to be removed first.\n\n" +
+					"Would you like to remove any remaining old SenPatcher patches before proceeding? This may take a few seconds.\n\n" +
+					"(This may remove some non-SenPatcher mods you may have installed as well.)",
+					"Old SenPatcher files found", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+				if (result == DialogResult.Yes) {
+					if (!SenLib.UnpatchGame.Unpatch(path, unpatchFiles, sengame)) {
+						MessageBox.Show("Not all patches could be removed.\n\n" +
+						"You should run a file verification through Steam or GOG Galaxy before proceeding.");
+						return false;
+					}
+					MessageBox.Show("Successfully removed old SenPatcher patches.");
+					return true;
+				} else {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		private void OpenCs1GameDir(string launcherPath) {
@@ -138,6 +162,8 @@ namespace SenPatcherGui {
 				ShowError("Error while checking for CS2 1.4: " + ex.Message);
 				return null;
 			}
+
+			DoUnpatchWithUserConfirmation(path, Sen2UnpatchData.GetFiles(), 2);
 
 			return path;
 		}
@@ -402,6 +428,8 @@ namespace SenPatcherGui {
 				return null;
 			}
 
+			DoUnpatchWithUserConfirmation(path, Sen3UnpatchData.GetFiles(), 3);
+
 			return path;
 		}
 
@@ -449,6 +477,8 @@ namespace SenPatcherGui {
 				ShowError("Error while initializing CS4 patch/game data: " + ex.Message);
 				return null;
 			}
+
+			DoUnpatchWithUserConfirmation(path, Sen4UnpatchData.GetFiles(), 4);
 
 			return path;
 		}
