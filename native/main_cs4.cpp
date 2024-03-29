@@ -170,10 +170,13 @@ static bool OpenModFile(FFile* ffile, const char* path) {
     }
 
     if (s_LoadedModsData.CheckDevFolderForAssets) {
-        std::u8string tmp = u8"dev/";
-        tmp += (char8_t*)path;
+        const size_t path_len = strlen(path);
+        std::string tmp;
+        tmp.reserve(4 + path_len);
+        tmp.append("dev/");
+        tmp.append(path);
 
-        SenPatcher::IO::File file(std::filesystem::path(tmp), SenPatcher::IO::OpenMode::Read);
+        SenPatcher::IO::File file(std::string_view(tmp), SenPatcher::IO::OpenMode::Read);
         if (file.IsOpen()) {
             auto length = file.GetLength();
             if (length && *length < 0x8000'0000) {
@@ -217,10 +220,13 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
     }
 
     if (s_LoadedModsData.CheckDevFolderForAssets) {
-        std::u8string tmp = u8"dev/";
-        tmp += (char8_t*)path;
+        const size_t path_len = strlen(path);
+        std::string tmp;
+        tmp.reserve(4 + path_len);
+        tmp.append("dev/");
+        tmp.append(path);
 
-        SenPatcher::IO::File file(std::filesystem::path(tmp), SenPatcher::IO::OpenMode::Read);
+        SenPatcher::IO::File file(std::string_view(tmp), SenPatcher::IO::OpenMode::Read);
         if (file.IsOpen()) {
             auto length = file.GetLength();
             if (length && *length < 0x8000'0000) {
@@ -391,18 +397,23 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
     }
 
     if (s_LoadedModsData.CheckDevFolderForAssets) {
-        std::u8string tmp = u8"dev/";
-        tmp += (char8_t*)path;
+        auto file = std::make_unique<SenPatcher::IO::File>();
+        if (file) {
+            const size_t path_len = strlen(path);
+            std::string tmp;
+            tmp.reserve(4 + path_len);
+            tmp.append("dev/");
+            tmp.append(path);
 
-        auto file = std::make_unique<SenPatcher::IO::File>(std::filesystem::path(tmp),
-                                                           SenPatcher::IO::OpenMode::Read);
-        if (file && file->IsOpen()) {
-            void* handle = file.release();
-            soundFile->FRead = &SenPatcherFile_FSoundFileRead;
-            soundFile->FSeek = &SenPatcherFile_FSoundFileSeek;
-            soundFile->FTell = &SenPatcherFile_FSoundFileTell;
-            soundFile->FClose = &SenPatcherFile_FSoundFileClose;
-            return handle;
+            file->Open(std::string_view(tmp), SenPatcher::IO::OpenMode::Read);
+            if (file->IsOpen()) {
+                void* handle = file.release();
+                soundFile->FRead = &SenPatcherFile_FSoundFileRead;
+                soundFile->FSeek = &SenPatcherFile_FSoundFileSeek;
+                soundFile->FTell = &SenPatcherFile_FSoundFileTell;
+                soundFile->FClose = &SenPatcherFile_FSoundFileClose;
+                return handle;
+            }
         }
     }
 

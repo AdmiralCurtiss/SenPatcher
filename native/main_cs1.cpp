@@ -174,10 +174,13 @@ static bool OpenModFile(FFile* ffile, const char* path) {
     }
 
     if (s_LoadedModsData.CheckDevFolderForAssets) {
-        std::u8string tmp = u8"dev/";
-        tmp += (char8_t*)path;
+        const size_t path_len = strlen(path);
+        std::string tmp;
+        tmp.reserve(4 + path_len);
+        tmp.append("dev/");
+        tmp.append(path);
 
-        SenPatcher::IO::File file(std::filesystem::path(tmp), SenPatcher::IO::OpenMode::Read);
+        SenPatcher::IO::File file(std::string_view(tmp), SenPatcher::IO::OpenMode::Read);
         if (file.IsOpen()) {
             auto length = file.GetLength();
             if (length && *length < 0x8000'0000) {
@@ -221,10 +224,13 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
     }
 
     if (s_LoadedModsData.CheckDevFolderForAssets) {
-        std::u8string tmp = u8"dev/";
-        tmp += (char8_t*)path;
+        const size_t path_len = strlen(path);
+        std::string tmp;
+        tmp.reserve(4 + path_len);
+        tmp.append("dev/");
+        tmp.append(path);
 
-        SenPatcher::IO::File file(std::filesystem::path(tmp), SenPatcher::IO::OpenMode::Read);
+        SenPatcher::IO::File file(std::string_view(tmp), SenPatcher::IO::OpenMode::Read);
         if (file.IsOpen()) {
             auto length = file.GetLength();
             if (length && *length < 0x8000'0000) {
