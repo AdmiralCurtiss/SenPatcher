@@ -16,18 +16,36 @@ Prerequisites
 -------------
 
 - If you have installed a version of SenPatcher before v1.0, please restore your game before continuing.
-  - Launch the old version of SenPatcher again and click the "Remove Patches / Restore Original" button.
-  - Alternatively, verify the game files in Steam or GoG Galaxy. It will detect and redownload any patches files and replace them with unpatched ones.
+  - The SenPatcherGui.exe provided in here should offer to automatically restore the game for you when you open the relevant game.
+  - Alternatively, verify the game files in Steam or GoG Galaxy. It will detect and redownload any patched files and replace them with unpatched ones.
 - Make sure your game is updated to a supported version (CS1 v1.6, CS2 v1.4.1 or v1.4.2, CS3 v1.06, CS4 v1.2.1). Other versions of the games will not work.
 
-Windows
--------
+
+Windows (guided)
+----------------
+
+- Extract the entire zip file.
+- Launch SenPatcherGui.exe
+- Click the 'Patch game' button for the game you'd like to patch.
+- Navigate to the relevant game folder and open the 
+  - The DINPUT8.dll should end up in the same folder as the game executable, ie. the executables starting with 'ed8'.
+- Adjust configuration to taste.
+- Hit the big 'Patch!' button at the bottom.
+- Run the game as usual.
+
+To uninstall, launch SenPatcherGui.exe again, click 'Patch game' for the relevant game, and use the 'Remove Patches / Restore Original' button at the top.
+
+
+Windows (manual)
+----------------
 
 - Place the contents of the folder for the game you want to patch into your game install directory.
   - The DINPUT8.dll should end up in the same folder as the game executable, ie. the executables starting with 'ed8'.
 - Adjust configuration in senpatcher_settings.ini to taste.
 - Run the game as usual.
-- To uninstall just delete DINPUT8.dll from the folder with the game executable.
+
+To uninstall just delete DINPUT8.dll from the folder with the game executable.
+
 
 Steam Deck
 ----------
@@ -39,7 +57,8 @@ Steam Deck
 - In the General tab, add the following text (without the backticks!) into the advanced Launch Options field at the bottom: `WINEDLLOVERRIDES=DINPUT8=n,b %command%`
 - Adjust configuration in senpatcher_settings.ini to taste.
 - You can switch back to Game mode now.
-- To uninstall just delete DINPUT8.dll from the folder with the game executable.
+
+To uninstall just delete DINPUT8.dll from the folder with the game executable.
 
 ----
 
