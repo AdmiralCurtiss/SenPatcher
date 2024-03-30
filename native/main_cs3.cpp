@@ -1,4 +1,5 @@
 #include <array>
+#include <bit>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -635,8 +636,8 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 }
 
 PDirectInput8Create InjectionDllInitializer() {
-    SenPatcher::Logger logger(
-        SenPatcher::IO::File(L"senpatcher_inject_cs3.log", SenPatcher::IO::OpenMode::Write));
+    SenPatcher::Logger logger(SenPatcher::IO::File(std::string_view("senpatcher_inject_cs3.log"),
+                                                   SenPatcher::IO::OpenMode::Write));
     logger.Log("Initializing CS3 hook from SenPatcher, version " SENPATCHER_VERSION "...\n");
     auto* forwarder = LoadForwarderAddress(logger);
     SetupHacks(logger);
