@@ -91,8 +91,9 @@ void CreateArchiveIfNeeded(
                     packData.Files.begin(),
                     packData.Files.end(),
                     [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                        return memcmp(lhs.Filename.data(), rhs.Filename.data(), lhs.Filename.size())
-                               < 0;
+                        const auto& l = lhs.GetFilename();
+                        const auto& r = rhs.GetFilename();
+                        return memcmp(l.data(), r.data(), l.size()) < 0;
                     });
                 if (SenPatcher::PackP3A(newArchive, packData)) {
                     if (newArchive.Rename(std::string_view(fullArchivePath))) {

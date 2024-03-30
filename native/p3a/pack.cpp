@@ -21,24 +21,75 @@
 #include "file.h"
 
 namespace SenPatcher {
+struct P3APackFile::Impl {
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+    std::variant<std::vector<char>, std::filesystem::path> Data = std::vector<char>();
+#else
+    std::vector<char> Data;
+#endif
+    std::array<char, 0x100> Filename{};
+    P3ACompressionType DesiredCompressionType{};
+
+    Impl(std::vector<char> data,
+         const std::array<char, 0x100>& filename,
+         P3ACompressionType desiredCompressionType)
+      : Data(std::move(data)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
+
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+    Impl(std::filesystem::path path,
+         const std::array<char, 0x100>& filename,
+         P3ACompressionType desiredCompressionType)
+      : Data(std::move(path)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
+#endif
+};
+
 P3APackFile::P3APackFile(std::vector<char> data,
                          const std::array<char, 0x100>& filename,
                          P3ACompressionType desiredCompressionType)
-  : Data(std::move(data)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
+  : Data(std::make_unique<P3APackFile::Impl>(std::move(data), filename, desiredCompressionType)) {}
+
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
 P3APackFile::P3APackFile(std::filesystem::path path,
                          const std::array<char, 0x100>& filename,
                          P3ACompressionType desiredCompressionType)
-  : Data(std::move(path)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
-P3APackFile::P3APackFile(const P3APackFile& other) = default;
+  : Data(std::make_unique<P3APackFile::Impl>(std::move(path), filename, desiredCompressionType)) {}
+#endif
+
 P3APackFile::P3APackFile(P3APackFile&& other) = default;
-P3APackFile& P3APackFile::operator=(const P3APackFile& other) = default;
 P3APackFile& P3APackFile::operator=(P3APackFile&& other) = default;
 P3APackFile::~P3APackFile() = default;
 
+const std::array<char, 0x100>& P3APackFile::GetFilename() const {
+    return Data->Filename;
+}
+P3ACompressionType P3APackFile::GetDesiredCompressionType() const {
+    return Data->DesiredCompressionType;
+}
+
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+bool P3APackFile::HasVectorData() const {
+    return std::holds_alternative<std::vector<char>>(Data->Data);
+}
+const std::vector<char>& P3APackFile::GetVectorData() const {
+    return std::get<std::vector<char>>(Data->Data);
+}
+bool P3APackFile::HasPathData() const {
+    return std::holds_alternative<std::filesystem::path>(Data->Data);
+}
+const std::filesystem::path& P3APackFile::GetPathData() const {
+    return std::get<std::filesystem::path>(Data->Data);
+}
+#else
+bool P3APackFile::HasVectorData() const {
+    return true;
+}
+const std::vector<char>& P3APackFile::GetVectorData() const {
+    return Data->Data;
+}
+#endif
+
 P3APackData::P3APackData() = default;
-P3APackData::P3APackData(const P3APackData& other) = default;
 P3APackData::P3APackData(P3APackData&& other) = default;
-P3APackData& P3APackData::operator=(const P3APackData& other) = default;
 P3APackData& P3APackData::operator=(P3APackData&& other) = default;
 P3APackData::~P3APackData() = default;
 
@@ -152,8 +203,9 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
         uint64_t filesize;
         const char* filedata;
         std::unique_ptr<char[]> filedataHolder;
-        if (std::holds_alternative<std::filesystem::path>(fileinfo.Data)) {
-            IO::File inputfile(std::get<std::filesystem::path>(fileinfo.Data), IO::OpenMode::Read);
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+        if (fileinfo.HasPathData()) {
+            IO::File inputfile(fileinfo.GetPathData(), IO::OpenMode::Read);
             if (!inputfile.IsOpen()) {
                 return false;
             }
@@ -170,15 +222,18 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
                 return false;
             }
             filedata = filedataHolder.get();
-        } else if (std::holds_alternative<std::vector<char>>(fileinfo.Data)) {
-            const auto& vec = std::get<std::vector<char>>(fileinfo.Data);
+        } else
+#endif
+            if (fileinfo.HasVectorData()) {
+            const auto& vec = fileinfo.GetVectorData();
             filesize = vec.size();
             filedata = vec.data();
         } else {
             return false;
         }
 
-        P3ACompressionType compressionType = fileinfo.DesiredCompressionType;
+        const P3ACompressionType desiredCompressionType = fileinfo.GetDesiredCompressionType();
+        P3ACompressionType compressionType = desiredCompressionType;
         uint64_t compressedSize = filesize;
         uint64_t uncompressedSize = filesize;
         uint64_t hash = 0;
@@ -194,7 +249,7 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
             return true;
         };
 
-        switch (fileinfo.DesiredCompressionType) {
+        switch (desiredCompressionType) {
             case P3ACompressionType::LZ4: {
                 if (filesize == 0 || filesize > LZ4_MAX_INPUT_SIZE) {
                     if (!write_uncompressed()) {
@@ -318,7 +373,7 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
 
         // fill in header
         P3AFileInfo tmp{};
-        tmp.Filename = fileinfo.Filename;
+        tmp.Filename = fileinfo.GetFilename();
         tmp.CompressionType = compressionType;
         tmp.CompressedSize = compressedSize;
         tmp.UncompressedSize = uncompressedSize;
