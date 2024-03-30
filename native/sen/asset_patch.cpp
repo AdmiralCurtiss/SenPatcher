@@ -113,11 +113,10 @@ void CreateArchiveIfNeeded(
     }
 }
 
-void CreateVideoIfNeeded(
-    SenPatcher::Logger& logger,
-    std::string_view baseDir,
-    std::string_view videoPath,
-    const std::function<bool(SenPatcher::P3APackData& packData)>& collectAssets) {
+void CreateVideoIfNeeded(SenPatcher::Logger& logger,
+                         std::string_view baseDir,
+                         std::string_view videoPath,
+                         const std::function<bool(std::vector<char>& videoData)>& getVideo) {
     std::string fullVideoPath;
     fullVideoPath.reserve(baseDir.size() + 1 + videoPath.size());
     fullVideoPath.append(baseDir);
@@ -137,22 +136,11 @@ void CreateVideoIfNeeded(
         }
     }
 
-    SenPatcher::P3APackData packData;
-    if (!collectAssets(packData)) {
+    std::vector<char> data;
+    if (!getVideo(data)) {
         logger.Log("Collecting failed.\n");
         return;
     }
-
-    // This should give us exactly one file.
-    if (packData.Files.size() != 1) {
-        logger.Log("Collecting failed (wrong count).\n");
-        return;
-    }
-    if (!std::holds_alternative<std::vector<char>>(packData.Files[0].Data)) {
-        logger.Log("Collecting failed (wrong type).\n");
-        return;
-    }
-    const auto& data = std::get<std::vector<char>>(packData.Files[0].Data);
 
     std::string tmpPath;
     tmpPath.reserve(fullVideoPath.size() + 4);

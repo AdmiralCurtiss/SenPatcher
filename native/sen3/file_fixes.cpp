@@ -40,9 +40,6 @@ DECLARE_STANDARD_FIX(f2000_dat)
 DECLARE_STANDARD_FIX(I_CVIS0061_pkg)
 DECLARE_STANDARD_FIX(I_CVIS1008_pkg)
 DECLARE_STANDARD_FIX(I_JMP009_pkg)
-DECLARE_STANDARD_FIX(insa05)
-DECLARE_STANDARD_FIX(insa08)
-DECLARE_STANDARD_FIX(insa09)
 DECLARE_STANDARD_FIX(m0000_dat)
 DECLARE_STANDARD_FIX(m0100_dat)
 DECLARE_STANDARD_FIX(m0300_dat)
@@ -103,6 +100,19 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result,
               bool allowSwitchToNightmare);
 } // namespace SenLib::Sen3::FileFixes::t_text
+
+namespace SenLib::Sen3::FileFixes::insa05 {
+std::string_view GetDescription();
+bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vector<char>& result);
+} // namespace SenLib::Sen3::FileFixes::insa05
+namespace SenLib::Sen3::FileFixes::insa08 {
+std::string_view GetDescription();
+bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vector<char>& result);
+} // namespace SenLib::Sen3::FileFixes::insa08
+namespace SenLib::Sen3::FileFixes::insa09 {
+std::string_view GetDescription();
+bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vector<char>& result);
+} // namespace SenLib::Sen3::FileFixes::insa09
 
 #define TRY_APPLY(asset, apply)                         \
     do {                                                \
@@ -236,23 +246,20 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseD
     CreateVideoIfNeeded(logger,
                         baseDir,
                         "data/movie_us/webm/insa_f5.webm",
-                        [&](SenPatcher::P3APackData& packData) -> bool {
-                            return SenLib::Sen3::FileFixes::insa05::TryApply(callback,
-                                                                             packData.Files);
+                        [&](std::vector<char>& videoData) -> bool {
+                            return SenLib::Sen3::FileFixes::insa05::TryApply(callback, videoData);
                         });
     CreateVideoIfNeeded(logger,
                         baseDir,
                         "data/movie_us/webm/insa_f8.webm",
-                        [&](SenPatcher::P3APackData& packData) -> bool {
-                            return SenLib::Sen3::FileFixes::insa08::TryApply(callback,
-                                                                             packData.Files);
+                        [&](std::vector<char>& videoData) -> bool {
+                            return SenLib::Sen3::FileFixes::insa08::TryApply(callback, videoData);
                         });
     CreateVideoIfNeeded(logger,
                         baseDir,
                         "data/movie_us/webm/insa_f9.webm",
-                        [&](SenPatcher::P3APackData& packData) -> bool {
-                            return SenLib::Sen3::FileFixes::insa09::TryApply(callback,
-                                                                             packData.Files);
+                        [&](std::vector<char>& videoData) -> bool {
+                            return SenLib::Sen3::FileFixes::insa09::TryApply(callback, videoData);
                         });
 }
 } // namespace SenLib::Sen3
