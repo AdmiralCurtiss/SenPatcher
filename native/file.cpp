@@ -306,12 +306,18 @@ bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t ws
 
     // note that this looks like it has an off-by-one error, but it doesn't, because
     // sizeof(FILE_RENAME_INFO) includes a single WCHAR which accounts for the nullterminator
-    size_t allocationLength = sizeof(FILE_RENAME_INFO) + (wstr_len * sizeof(wchar_t));
+    size_t structLength = sizeof(FILE_RENAME_INFO) + (wstr_len * sizeof(wchar_t));
+    size_t allocationLength = structLength + alignof(FILE_RENAME_INFO);
     auto buffer = std::make_unique<char[]>(allocationLength);
     if (!buffer) {
         return false;
     }
-    FILE_RENAME_INFO* info = reinterpret_cast<FILE_RENAME_INFO*>(buffer.get());
+    void* alignedBuffer = buffer.get();
+    if (std::align(alignof(FILE_RENAME_INFO), structLength, alignedBuffer, allocationLength)
+        == nullptr) {
+        return false;
+    }
+    FILE_RENAME_INFO* info = reinterpret_cast<FILE_RENAME_INFO*>(alignedBuffer);
     info->ReplaceIfExists = TRUE;
     info->RootDirectory = nullptr;
     info->FileNameLength = static_cast<DWORD>(wstr_len * sizeof(wchar_t));
