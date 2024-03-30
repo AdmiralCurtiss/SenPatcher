@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -91,6 +92,16 @@ static bool PathIsAllowed(std::string_view path) {
         return false;
     }
 
+    // check for path starting with C: or similar
+    if (path.size() >= 2) {
+        if (path[1] == ':') {
+            return false;
+        }
+    }
+
+    // the following loop will reject all paths starting with '\' so we don't need to check things
+    // like UNC paths or root-relative paths separately
+
     std::string_view rest = path;
     while (true) {
         size_t nextPathSeparator = rest.find_first_of("/\\");
@@ -120,7 +131,7 @@ static bool PathIsAllowed(std::string_view path) {
     }
 }
 
-static bool LoadOrderTxt(std::vector<std::filesystem::path>& output,
+static bool LoadOrderTxt(std::vector<std::string>& output,
                          SenPatcher::Logger& logger,
                          SenPatcher::IO::File& file) {
     using HyoutaUtils::TextUtils::Trim;
@@ -152,27 +163,20 @@ static bool LoadOrderTxt(std::vector<std::filesystem::path>& output,
         if (!PathIsAllowed(line)) {
             continue;
         }
-        auto& p = output.emplace_back(Utf8ToUtf16(line.data(), line.size()));
-        if (p.is_absolute()) {
-            // don't allow absolute paths either
-            output.pop_back();
-        }
+        output.emplace_back(line.data(), line.size());
     }
 
     return true;
 }
 
-static bool WriteOrderTxt(const std::vector<std::filesystem::path>& paths,
+static bool WriteOrderTxt(const std::vector<std::string>& paths,
                           SenPatcher::Logger& logger,
                           SenPatcher::IO::File& file) {
     if (!file.IsOpen()) {
         return false;
     }
 
-    for (const auto& path : paths) {
-        const auto& string = path.native();
-        const auto utf8 =
-            HyoutaUtils::TextUtils::Utf16ToUtf8((const char16_t*)string.data(), string.size());
+    for (const auto& utf8 : paths) {
         if (file.Write(utf8.data(), utf8.size()) != utf8.size()) {
             return false;
         }
@@ -184,19 +188,17 @@ static bool WriteOrderTxt(const std::vector<std::filesystem::path>& paths,
     return true;
 }
 
-static bool IsEquivalentPath(std::wstring_view lhs, std::wstring_view rhs) {
+static bool IsEquivalentPath(std::string_view lhs, std::string_view rhs) {
     if (lhs.size() != rhs.size()) {
         return false;
     }
     for (size_t i = 0; i < lhs.size(); ++i) {
-        const char cl =
-            (lhs[i] == L'\\'
-                 ? L'/'
-                 : ((lhs[i] >= L'A' && lhs[i] <= L'Z') ? (lhs[i] + (L'a' - L'A')) : lhs[i]));
-        const char cr =
-            (rhs[i] == L'\\'
-                 ? L'/'
-                 : ((rhs[i] >= L'A' && rhs[i] <= L'Z') ? (rhs[i] + (L'a' - L'A')) : rhs[i]));
+        const char cl = static_cast<char>(
+            lhs[i] == '\\' ? '/'
+                           : ((lhs[i] >= 'A' && lhs[i] <= 'Z') ? (lhs[i] + ('a' - 'A')) : lhs[i]));
+        const char cr = static_cast<char>(
+            rhs[i] == '\\' ? '/'
+                           : ((rhs[i] >= 'A' && rhs[i] <= 'Z') ? (rhs[i] + ('a' - 'A')) : rhs[i]));
         if (cl != cr) {
             return false;
         }
@@ -204,42 +206,43 @@ static bool IsEquivalentPath(std::wstring_view lhs, std::wstring_view rhs) {
     return true;
 }
 
-static bool ContainsPath(const std::vector<std::filesystem::path>& paths,
-                         const std::filesystem::path& searchpath) {
+static bool ContainsPath(const std::vector<std::string>& paths, const std::string& searchpath) {
     for (const auto& path : paths) {
-        if (IsEquivalentPath(path.native(), searchpath.native())) {
+        if (IsEquivalentPath(path, searchpath)) {
             return true;
         }
     }
     return false;
 }
 
-static void MoveSenpatcherAssetsToEnd(std::vector<std::filesystem::path>& paths) {
-    std::wstring_view prefix = L"zzz_senpatcher_";
-    const auto is_senpatcher_asset = [&](const std::filesystem::path& p) {
-        const auto& str = p.native();
-        if (str.size() < 15) {
+static void MoveSenpatcherAssetsToEnd(std::vector<std::string>& paths) {
+    static constexpr std::string_view prefix = "zzz_senpatcher_";
+    const auto is_senpatcher_asset = [&](const std::string& str) {
+        if (str.size() < prefix.size()) {
             return false;
         }
-        return IsEquivalentPath(prefix, std::wstring_view(str).substr(0, 15));
+        return IsEquivalentPath(prefix, std::string_view(str).substr(0, prefix.size()));
     };
-    std::stable_sort(paths.begin(),
-                     paths.end(),
-                     [&](const std::filesystem::path& lhs, const std::filesystem::path& rhs) {
-                         int lhsIsSenpatcherAsset = is_senpatcher_asset(lhs) ? 1 : 0;
-                         int rhsIsSenpatcherAsset = is_senpatcher_asset(rhs) ? 1 : 0;
-                         return lhsIsSenpatcherAsset < rhsIsSenpatcherAsset;
-                     });
+    std::stable_sort(
+        paths.begin(), paths.end(), [&](const std::string& lhs, const std::string& rhs) {
+            int lhsIsSenpatcherAsset = is_senpatcher_asset(lhs) ? 1 : 0;
+            int rhsIsSenpatcherAsset = is_senpatcher_asset(rhs) ? 1 : 0;
+            return lhsIsSenpatcherAsset < rhsIsSenpatcherAsset;
+        });
 }
 
-static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& logger,
-                                                          const std::filesystem::path& modsDir) {
-    std::vector<std::filesystem::path> paths;
-    const auto orderPath = modsDir / L"order.txt";
+static std::vector<std::string> CollectModPaths(SenPatcher::Logger& logger,
+                                                const std::string& modsDir) {
+    std::vector<std::string> paths;
+    std::string orderPath;
+    orderPath.reserve(modsDir.size() + 10);
+    orderPath.append(modsDir);
+    orderPath.push_back('/');
+    orderPath.append("order.txt");
 
     // check for order.txt, which may define an order (priority) for the mods
     {
-        SenPatcher::IO::File orderfile(orderPath, SenPatcher::IO::OpenMode::Read);
+        SenPatcher::IO::File orderfile(std::string_view(orderPath), SenPatcher::IO::OpenMode::Read);
         LoadOrderTxt(paths, logger, orderfile);
     }
 
@@ -263,7 +266,9 @@ static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& lo
             && (string[string.size() - 3] == L'P' || string[string.size() - 3] == L'p')
             && string[string.size() - 2] == L'3'
             && (string[string.size() - 1] == L'A' || string[string.size() - 1] == L'a')) {
-            auto filename = path.filename();
+            auto filenamepath = path.filename();
+            std::string filename = HyoutaUtils::TextUtils::WStringToUtf8(
+                filenamepath.native().data(), filenamepath.native().size());
             if (!ContainsPath(paths, filename)) {
                 paths.emplace_back(std::move(filename));
                 modified = true;
@@ -277,9 +282,12 @@ static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& lo
         MoveSenpatcherAssetsToEnd(paths);
 
         // write out the modified file so that the user has an easier time editing the priorities
-        auto orderPathTmp = orderPath;
-        orderPathTmp += L".tmp";
-        SenPatcher::IO::File orderfile(orderPathTmp, SenPatcher::IO::OpenMode::Write);
+        std::string orderPathTmp;
+        orderPathTmp.reserve(orderPath.size() + 4);
+        orderPathTmp.append(orderPath);
+        orderPathTmp.append(".tmp");
+        SenPatcher::IO::File orderfile(std::string_view(orderPathTmp),
+                                       SenPatcher::IO::OpenMode::Write);
         if (WriteOrderTxt(paths, logger, orderfile)) {
             if (!orderfile.Rename(orderPath)) {
                 orderfile.Delete();
@@ -293,10 +301,12 @@ static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& lo
 }
 
 void CreateModDirectory(std::string_view baseDir) {
-    std::filesystem::path baseDirStdFs =
-        HyoutaUtils::TextUtils::Utf8ToWString(baseDir.data(), baseDir.size());
-    std::error_code ec;
-    std::filesystem::create_directory(baseDirStdFs / L"mods", baseDirStdFs / L"data", ec);
+    std::string modsDir;
+    modsDir.reserve(baseDir.size() + 5);
+    modsDir.append(baseDir);
+    modsDir.push_back('/');
+    modsDir.append("mods");
+    SenPatcher::IO::CreateDirectory(std::string_view(modsDir));
 }
 
 void LoadModP3As(SenPatcher::Logger& logger,
@@ -307,25 +317,37 @@ void LoadModP3As(SenPatcher::Logger& logger,
     loadedModsData.P3As.reset();
     loadedModsData.CheckDevFolderForAssets = false;
 
-    std::filesystem::path baseDirStdFs =
-        HyoutaUtils::TextUtils::Utf8ToWString(baseDir.data(), baseDir.size());
-
     {
-        std::error_code ec;
+        std::string devPath;
+        devPath.reserve(baseDir.size() + 4);
+        devPath.append(baseDir);
+        devPath.push_back('/');
+        devPath.append("dev");
         loadedModsData.CheckDevFolderForAssets =
-            std::filesystem::is_directory(baseDirStdFs / L"dev", ec);
+            SenPatcher::IO::DirectoryExists(std::string_view(devPath));
     }
 
     size_t p3acount = 0;
     std::unique_ptr<P3AData[]> p3as;
     {
-        const auto modsDir = baseDirStdFs / L"mods";
+        std::string modsDir;
+        modsDir.reserve(baseDir.size() + 5);
+        modsDir.append(baseDir);
+        modsDir.push_back('/');
+        modsDir.append("mods");
+
         const auto modPaths = CollectModPaths(logger, modsDir);
         std::vector<SenPatcher::P3A> p3avector;
         p3avector.reserve(modPaths.size());
         for (auto const& path : modPaths) {
             SenPatcher::P3A& p3a = p3avector.emplace_back();
-            if (!p3a.Load(modsDir / path)) {
+
+            std::string filepath;
+            filepath.reserve(modsDir.size() + path.size() + 1);
+            filepath.append(modsDir);
+            filepath.push_back('/');
+            filepath.append(path);
+            if (!p3a.Load(std::string_view(filepath))) {
                 p3avector.pop_back();
             }
         }

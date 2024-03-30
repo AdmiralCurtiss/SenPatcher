@@ -1,7 +1,5 @@
 #pragma once
 
-#define FILE_WRAPPER_WITH_STD_FILESYSTEM
-
 #include <cstdint>
 #include <optional>
 #include <string_view>

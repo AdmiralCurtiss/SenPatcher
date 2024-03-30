@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <filesystem>
 #include <memory>
 #include <string_view>
 
@@ -27,7 +26,6 @@ struct P3A {
 
     void Clear();
     bool Load(std::string_view path);
-    bool Load(const std::filesystem::path& path);
 
 private:
     bool Load(IO::File& f);
