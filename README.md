@@ -27,7 +27,7 @@ Windows (guided)
 - Extract the entire zip file.
 - Launch SenPatcherGui.exe
 - Click the 'Patch game' button for the game you'd like to patch.
-- Navigate to the relevant game folder and open the 
+- Navigate to the relevant game folder and open the file requested by the dialog.
   - The DINPUT8.dll should end up in the same folder as the game executable, ie. the executables starting with 'ed8'.
 - Adjust configuration to taste.
 - Hit the big 'Patch!' button at the bottom.
