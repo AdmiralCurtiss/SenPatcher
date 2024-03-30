@@ -3,6 +3,8 @@
 #include <bit>
 #include <cassert>
 
+#include "modload/loaded_mods.h"
+
 #include "x64/emitter.h"
 #include "x64/inject_jump_into.h"
 #include "x64/page_unprotect.h"
@@ -14,7 +16,9 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
-                                 char* codespaceEnd) {
+                                 char* codespaceEnd,
+                                 const SenLib::ModLoad::LoadedModsData& loadedModsData,
+                                 bool assetFixCreatingFailed) {
     using namespace SenPatcher::x64;
     char* entryPoint = GetCodeAddressJpEn(version, textRegion, 0x140421caf, 0x14042d2a2);
     char* rdxLoad = GetCodeAddressJpEn(version, textRegion, 0x140421cc6, 0x14042d2b9);
@@ -38,7 +42,10 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
     }
     constexpr char senpatcherVersionString[] = "  SenPatcher " SENPATCHER_VERSION;
     std::memcpy(codespace, senpatcherVersionString, sizeof(senpatcherVersionString));
-    codespace += sizeof(senpatcherVersionString);
+    codespace += (sizeof(senpatcherVersionString) - 1);
+    SenLib::ModLoad::AppendLoadedModInfo(codespace, loadedModsData, assetFixCreatingFailed);
+    *codespace = 0;
+    ++codespace;
 
     // inject a jump to codespace
     auto injectResult = InjectJumpIntoCode<12>(logger, entryPoint, R64::RDX, codespace);

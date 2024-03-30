@@ -384,8 +384,9 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
+    bool assetCreationSuccess = true;
     if (assetFixes) {
-        SenLib::Sen2::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
+        assetCreationSuccess = SenLib::Sen2::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
     LoadModP3As(logger, s_LoadedModsData, baseDirUtf8);
@@ -406,8 +407,13 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     Align16CodePage(logger, newPage);
     SenLib::Sen2::FixGogGalaxy(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
-    SenLib::Sen2::AddSenPatcherVersionToTitle(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    SenLib::Sen2::AddSenPatcherVersionToTitle(logger,
+                                              static_cast<char*>(codeBase),
+                                              version,
+                                              newPage,
+                                              newPageEnd,
+                                              s_LoadedModsData,
+                                              !assetCreationSuccess);
     Align16CodePage(logger, newPage);
     SenLib::Sen2::AddCS2ToTitleBar(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);

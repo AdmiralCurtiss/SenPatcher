@@ -5,6 +5,9 @@
 namespace SenPatcher {
 struct Logger;
 }
+namespace SenLib::ModLoad {
+struct LoadedModsData;
+}
 
 namespace SenLib::Sen2 {
 enum class GameVersion {
@@ -35,7 +38,9 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
-                                 char* codespaceEnd);
+                                 char* codespaceEnd,
+                                 const SenLib::ModLoad::LoadedModsData& loadedModsData,
+                                 bool assetFixCreatingFailed);
 void AddCS2ToTitleBar(SenPatcher::Logger& logger,
                       char* textRegion,
                       GameVersion version,

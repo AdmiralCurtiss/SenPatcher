@@ -3,6 +3,8 @@
 #include <bit>
 #include <cassert>
 
+#include "modload/loaded_mods.h"
+
 #include "x86/emitter.h"
 #include "x86/inject_jump_into.h"
 #include "x86/page_unprotect.h"
@@ -14,7 +16,9 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
-                                 char* codespaceEnd) {
+                                 char* codespaceEnd,
+                                 const SenLib::ModLoad::LoadedModsData& loadedModsData,
+                                 bool assetFixCreatingFailed) {
     using namespace SenPatcher::x86;
     char* pushAddressVersionTitle = GetCodeAddressJpEn(version, textRegion, 0x62a74c, 0x62a2dc);
     char* pushAddressVersionConsole = GetCodeAddressJpEn(version, textRegion, 0x578911, 0x578c81);
@@ -35,10 +39,25 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
             ++tmp;
         }
     }
-    uint32_t addressNewVersionStringShort = std::bit_cast<uint32_t>(codespace) - 5;
+    char* addressNativeVersion = codespace - 5;
     constexpr char senpatcherVersionString[] = "  SenPatcher " SENPATCHER_VERSION;
     std::memcpy(codespace, senpatcherVersionString, sizeof(senpatcherVersionString));
-    codespace += sizeof(senpatcherVersionString);
+    codespace += (sizeof(senpatcherVersionString) - 1);
+    SenLib::ModLoad::AppendLoadedModInfo(codespace, loadedModsData, assetFixCreatingFailed);
+    *codespace = 0;
+    ++codespace;
+
+    uint32_t addressNewVersionStringShort = std::bit_cast<uint32_t>(codespace);
+    {
+        const char* tmp = std::bit_cast<const char*>(addressNativeVersion);
+        while (*tmp != ' ') {
+            *codespace = *tmp;
+            ++codespace;
+            ++tmp;
+        }
+    }
+    std::memcpy(codespace, senpatcherVersionString + 1, sizeof(senpatcherVersionString) - 1);
+    codespace += (sizeof(senpatcherVersionString) - 1);
 
     {
         PageUnprotect page(logger, pushAddressVersionTitle, 4);
