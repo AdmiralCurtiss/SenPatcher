@@ -2,7 +2,6 @@
 #include <charconv>
 #include <cstdint>
 #include <cstring>
-#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
@@ -302,11 +301,9 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     char* newPageEnd = newPage + newPageLength;
 
     // CS1 should always run in the same directory
-    std::filesystem::path baseDir;
     std::string_view baseDirUtf8;
-    if (std::filesystem::exists(L"Sen1Launcher.exe")) {
+    if (SenPatcher::IO::FileExists(std::string_view("Sen1Launcher.exe"))) {
         logger.Log("Root game dir is current dir.\n");
-        baseDir = L"./";
         baseDirUtf8 = ".";
     } else {
         logger.Log("Failed finding root game directory.\n");
@@ -326,7 +323,12 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     int turboModeButton = 7;
 
     {
-        SenPatcher::IO::File settingsFile(baseDir / L"senpatcher_settings.ini",
+        std::string settingsFilePath;
+        settingsFilePath.reserve(baseDirUtf8.size() + 24);
+        settingsFilePath.append(baseDirUtf8);
+        settingsFilePath.push_back('/');
+        settingsFilePath.append("senpatcher_settings.ini");
+        SenPatcher::IO::File settingsFile(std::string_view(settingsFilePath),
                                           SenPatcher::IO::OpenMode::Read);
         if (settingsFile.IsOpen()) {
             SenPatcher::IniFile ini;
