@@ -128,93 +128,93 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vec
 namespace SenLib::Sen3 {
 static bool CollectAssets(SenPatcher::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
-                          SenPatcher::P3APackData& packData,
+                          std::vector<SenPatcher::P3APackFile>& packFiles,
                           bool allowSwitchToNightmare) {
-    TRY_APPLY(a0417_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(alchr022_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(book05_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(book06_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(book07_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c0000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c0200_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c0250_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c0400_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c0420_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c0430_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c0820_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c0830_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c2430_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c2440_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c2610_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c3000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c3010_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c3210_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(c3610_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(f0010_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(f2000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(I_CVIS0061_pkg, TryApply(callback, packData.Files));
-    TRY_APPLY(I_CVIS1008_pkg, TryApply(callback, packData.Files));
-    TRY_APPLY(I_JMP009_pkg, TryApply(callback, packData.Files));
-    TRY_APPLY(m0000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(m0100_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(m0300_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(m0600_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(m3000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(m3420_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(m3430_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(m4004_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(r0210_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(r2290_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(r3000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(r3090_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(r3200_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(r3430_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(r4200_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(r4290_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t_item, TryApply(callback, packData.Files));
-    TRY_APPLY(t_jump, TryApply(callback, packData.Files));
-    TRY_APPLY(t_magic, TryApply(callback, packData.Files));
-    TRY_APPLY(t_mons, TryApply(callback, packData.Files));
-    TRY_APPLY(t_mstqrt, TryApply(callback, packData.Files));
-    TRY_APPLY(t_name, TryApply(callback, packData.Files));
-    TRY_APPLY(t_notecook, TryApply(callback, packData.Files));
-    TRY_APPLY(t_place, TryApply(callback, packData.Files));
-    TRY_APPLY(t_text, TryApply(callback, packData.Files, allowSwitchToNightmare));
-    TRY_APPLY(t_vctiming_us, TryApply(callback, packData.Files));
-    TRY_APPLY(t0000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0010_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0080_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0100_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0200_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0210_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0250_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0260_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0400_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t0410_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t3000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t3200_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t3220_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t3400_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t3510_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t3600_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(tk_ada_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(tk_linde_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(tk_patrick_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(tk_stark_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(tk_tovar_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(tk_zessica_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(v0010_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(v0030_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(v0050_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(a0417_dat, TryApply(callback, packFiles));
+    TRY_APPLY(alchr022_dat, TryApply(callback, packFiles));
+    TRY_APPLY(book05_dat, TryApply(callback, packFiles));
+    TRY_APPLY(book06_dat, TryApply(callback, packFiles));
+    TRY_APPLY(book07_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0250_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0400_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0420_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0430_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0820_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0830_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2430_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2440_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2610_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c3000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c3010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c3210_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c3610_dat, TryApply(callback, packFiles));
+    TRY_APPLY(f0010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(f2000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(I_CVIS0061_pkg, TryApply(callback, packFiles));
+    TRY_APPLY(I_CVIS1008_pkg, TryApply(callback, packFiles));
+    TRY_APPLY(I_JMP009_pkg, TryApply(callback, packFiles));
+    TRY_APPLY(m0000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(m0100_dat, TryApply(callback, packFiles));
+    TRY_APPLY(m0300_dat, TryApply(callback, packFiles));
+    TRY_APPLY(m0600_dat, TryApply(callback, packFiles));
+    TRY_APPLY(m3000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(m3420_dat, TryApply(callback, packFiles));
+    TRY_APPLY(m3430_dat, TryApply(callback, packFiles));
+    TRY_APPLY(m4004_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r0210_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r2290_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r3000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r3090_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r3200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r3430_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r4200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r4290_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t_item, TryApply(callback, packFiles));
+    TRY_APPLY(t_jump, TryApply(callback, packFiles));
+    TRY_APPLY(t_magic, TryApply(callback, packFiles));
+    TRY_APPLY(t_mons, TryApply(callback, packFiles));
+    TRY_APPLY(t_mstqrt, TryApply(callback, packFiles));
+    TRY_APPLY(t_name, TryApply(callback, packFiles));
+    TRY_APPLY(t_notecook, TryApply(callback, packFiles));
+    TRY_APPLY(t_place, TryApply(callback, packFiles));
+    TRY_APPLY(t_text, TryApply(callback, packFiles, allowSwitchToNightmare));
+    TRY_APPLY(t_vctiming_us, TryApply(callback, packFiles));
+    TRY_APPLY(t0000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0080_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0100_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0210_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0250_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0260_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0400_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0410_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3220_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3400_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3510_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3600_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_ada_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_linde_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_patrick_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_stark_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_tovar_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_zessica_dat, TryApply(callback, packFiles));
+    TRY_APPLY(v0010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(v0030_dat, TryApply(callback, packFiles));
+    TRY_APPLY(v0050_dat, TryApply(callback, packFiles));
     return true;
 }
 
 static bool CollectAudio(SenPatcher::Logger& logger,
                          const SenPatcher::GetCheckedFileCallback& callback,
-                         SenPatcher::P3APackData& packData) {
-    TRY_APPLY(voice_opus_ps4_103, TryApply(callback, packData.Files));
-    TRY_APPLY(voice_opus_v00e0441, TryApply(callback, packData.Files));
-    TRY_APPLY(voice_opus_v00s2728, TryApply(callback, packData.Files));
+                         std::vector<SenPatcher::P3APackFile>& packFiles) {
+    TRY_APPLY(voice_opus_ps4_103, TryApply(callback, packFiles));
+    TRY_APPLY(voice_opus_v00e0441, TryApply(callback, packFiles));
+    TRY_APPLY(voice_opus_v00s2728, TryApply(callback, packFiles));
     return true;
 }
 
@@ -234,14 +234,16 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseD
                           baseDir,
                           "mods/zzz_senpatcher_cs3asset.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
-                              return CollectAssets(
-                                  logger, callback, packData, allowSwitchToNightmare);
+                              return CollectAssets(logger,
+                                                   callback,
+                                                   packData.GetMutableFiles(),
+                                                   allowSwitchToNightmare);
                           });
     CreateArchiveIfNeeded(logger,
                           baseDir,
                           "mods/zzz_senpatcher_cs3audio.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
-                              return CollectAudio(logger, callback, packData);
+                              return CollectAudio(logger, callback, packData.GetMutableFiles());
                           });
     CreateVideoIfNeeded(logger,
                         baseDir,

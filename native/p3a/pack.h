@@ -1,11 +1,8 @@
 #pragma once
 
-#define P3A_PACKER_WITH_STD_FILESYSTEM
-
 #include <array>
 #include <cstdint>
 #include <memory>
-#include <variant>
 #include <vector>
 
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
@@ -52,17 +49,33 @@ private:
 };
 
 struct P3APackData {
-    size_t Alignment = 0;
-    std::variant<std::monostate, std::vector<char>, std::filesystem::path> ZStdDictionary =
-        std::monostate();
-    std::vector<P3APackFile> Files;
-
     P3APackData();
     P3APackData(const P3APackData& other) = delete;
     P3APackData(P3APackData&& other);
     P3APackData& operator=(const P3APackData& other) = delete;
     P3APackData& operator=(P3APackData&& other);
     ~P3APackData();
+
+    size_t GetAlignment() const;
+    void SetAlignment(size_t alignment);
+    const std::vector<P3APackFile>& GetFiles() const;
+    std::vector<P3APackFile>& GetMutableFiles();
+
+    void ClearZStdDictionaryData();
+
+    bool HasZStdDictionaryVectorData() const;
+    const std::vector<char>& GetZStdDictionaryVectorData() const;
+    void SetZStdDictionaryVectorData(std::vector<char> data);
+
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+    bool HasZStdDictionaryPathData() const;
+    const std::filesystem::path& GetZStdDictionaryPathData() const;
+    void SetZStdDictionaryPathData(std::filesystem::path path);
+#endif
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> Data;
 };
 
 bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData);

@@ -52,23 +52,23 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                           P3ACompressionType desiredCompressionType,
                           const std::filesystem::path& dictPath) {
     P3APackData packData;
-    packData.Alignment = 0x40;
+    packData.SetAlignment(0x40);
     std::error_code ec;
-    if (!CollectEntries(packData.Files, directoryPath, directoryPath, ec, desiredCompressionType)) {
+    auto& packFiles = packData.GetMutableFiles();
+    if (!CollectEntries(packFiles, directoryPath, directoryPath, ec, desiredCompressionType)) {
         return false;
     }
 
     // probably not needed but makes the packing order reproduceable
-    std::stable_sort(packData.Files.begin(),
-                     packData.Files.end(),
-                     [](const P3APackFile& lhs, const P3APackFile& rhs) {
-                         const auto& l = lhs.GetFilename();
-                         const auto& r = rhs.GetFilename();
-                         return memcmp(l.data(), r.data(), l.size()) < 0;
-                     });
+    std::stable_sort(
+        packFiles.begin(), packFiles.end(), [](const P3APackFile& lhs, const P3APackFile& rhs) {
+            const auto& l = lhs.GetFilename();
+            const auto& r = rhs.GetFilename();
+            return memcmp(l.data(), r.data(), l.size()) < 0;
+        });
 
     if (!dictPath.empty()) {
-        packData.ZStdDictionary = dictPath;
+        packData.SetZStdDictionaryPathData(dictPath);
     }
 
     return PackP3A(archivePath, packData);

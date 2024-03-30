@@ -60,37 +60,37 @@ DECLARE_STANDARD_FIX(text_dat_us_t_voice_tbl)
 namespace SenLib::Sen2 {
 static bool CollectAssets(SenPatcher::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
-                          SenPatcher::P3APackData& packData) {
-    TRY_APPLY(scripts_book_dat_us_book00_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_book_dat_us_book03_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_book_dat_us_book04_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_book_dat_us_book05_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_e7050_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_e7060_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_e7090_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_e7101_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_e7110_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_r0920_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_r1010_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_system_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t0001_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t0010_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t1010_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t3060_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t3500_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t3740_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t4000_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t4080_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t5501_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_scena_dat_us_t6500_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_talk_dat_us_tk_beryl_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_talk_dat_us_tk_emily_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_talk_dat_us_tk_heinrich_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_talk_dat_us_tk_monica_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(scripts_talk_dat_us_tk_rosine_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(text_dat_us_t_item_tbl_t_magic_tbl, TryApply(callback, packData.Files));
-    TRY_APPLY(text_dat_us_t_notecook_tbl, TryApply(callback, packData.Files));
-    TRY_APPLY(text_dat_us_t_voice_tbl, TryApply(callback, packData.Files));
+                          std::vector<SenPatcher::P3APackFile>& packFiles) {
+    TRY_APPLY(scripts_book_dat_us_book00_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_book_dat_us_book03_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_book_dat_us_book04_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_book_dat_us_book05_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_e7050_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_e7060_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_e7090_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_e7101_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_e7110_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_r0920_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_r1010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_system_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t0001_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t0010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t1010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t3060_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t3500_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t3740_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t4000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t4080_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t5501_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_scena_dat_us_t6500_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_talk_dat_us_tk_beryl_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_talk_dat_us_tk_emily_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_talk_dat_us_tk_heinrich_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_talk_dat_us_tk_monica_dat, TryApply(callback, packFiles));
+    TRY_APPLY(scripts_talk_dat_us_tk_rosine_dat, TryApply(callback, packFiles));
+    TRY_APPLY(text_dat_us_t_item_tbl_t_magic_tbl, TryApply(callback, packFiles));
+    TRY_APPLY(text_dat_us_t_notecook_tbl, TryApply(callback, packFiles));
+    TRY_APPLY(text_dat_us_t_voice_tbl, TryApply(callback, packFiles));
     return true;
 }
 
@@ -106,7 +106,7 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseD
                           baseDir,
                           "mods/zzz_senpatcher_cs2asset.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
-                              return CollectAssets(logger, callback, packData);
+                              return CollectAssets(logger, callback, packData.GetMutableFiles());
                           });
 }
 } // namespace SenLib::Sen2

@@ -3,11 +3,15 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
-#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
+
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+#include <filesystem>
+#include <variant>
+#endif
 
 #include "lz4/lz4.h"
 #include "lz4/lz4hc.h"
@@ -88,10 +92,71 @@ const std::vector<char>& P3APackFile::GetVectorData() const {
 }
 #endif
 
-P3APackData::P3APackData() = default;
+struct P3APackData::Impl {
+    std::vector<P3APackFile> Files;
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+    std::variant<std::monostate, std::vector<char>, std::filesystem::path> ZStdDictionary =
+        std::monostate();
+#else
+    std::optional<std::vector<char>> ZStdDictionary = std::nullopt;
+#endif
+    size_t Alignment = 0;
+};
+
+P3APackData::P3APackData() : Data(std::make_unique<P3APackData::Impl>()) {}
 P3APackData::P3APackData(P3APackData&& other) = default;
 P3APackData& P3APackData::operator=(P3APackData&& other) = default;
 P3APackData::~P3APackData() = default;
+
+size_t P3APackData::GetAlignment() const {
+    return Data->Alignment;
+}
+void P3APackData::SetAlignment(size_t alignment) {
+    Data->Alignment = alignment;
+}
+const std::vector<P3APackFile>& P3APackData::GetFiles() const {
+    return Data->Files;
+}
+std::vector<P3APackFile>& P3APackData::GetMutableFiles() {
+    return Data->Files;
+}
+
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+void P3APackData::ClearZStdDictionaryData() {
+    Data->ZStdDictionary = std::monostate();
+}
+bool P3APackData::HasZStdDictionaryVectorData() const {
+    return std::holds_alternative<std::vector<char>>(Data->ZStdDictionary);
+}
+const std::vector<char>& P3APackData::GetZStdDictionaryVectorData() const {
+    return std::get<std::vector<char>>(Data->ZStdDictionary);
+}
+void P3APackData::SetZStdDictionaryVectorData(std::vector<char> data) {
+    Data->ZStdDictionary = std::move(data);
+}
+bool P3APackData::HasZStdDictionaryPathData() const {
+    return std::holds_alternative<std::filesystem::path>(Data->ZStdDictionary);
+}
+const std::filesystem::path& P3APackData::GetZStdDictionaryPathData() const {
+    return std::get<std::filesystem::path>(Data->ZStdDictionary);
+}
+void P3APackData::SetZStdDictionaryPathData(std::filesystem::path path) {
+    Data->ZStdDictionary = std::move(path);
+}
+#else
+void P3APackData::ClearZStdDictionaryData() {
+    Data->ZStdDictionary = std::nullopt;
+}
+bool P3APackData::HasZStdDictionaryVectorData() const {
+    return Data->ZStdDictionary.has_value();
+}
+const std::vector<char>& P3APackData::GetZStdDictionaryVectorData() const {
+    return *Data->ZStdDictionary;
+}
+void P3APackData::SetZStdDictionaryVectorData(std::vector<char> data) {
+    Data->ZStdDictionary = std::move(data);
+}
+#endif
 
 namespace {
 struct ZSTD_CDict_Deleter {
@@ -121,9 +186,9 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
     std::unique_ptr<uint8_t[]> dict;
     uint64_t dictLength = 0;
     ZSTD_CDict_UniquePtr cdict = nullptr;
-    if (std::holds_alternative<std::filesystem::path>(packData.ZStdDictionary)) {
-        IO::File dictfile(std::get<std::filesystem::path>(packData.ZStdDictionary),
-                          IO::OpenMode::Read);
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+    if (packData.HasZStdDictionaryPathData()) {
+        IO::File dictfile(packData.GetZStdDictionaryPathData(), IO::OpenMode::Read);
         if (!dictfile.IsOpen()) {
             return false;
         }
@@ -143,16 +208,19 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
         if (!cdict) {
             return false;
         }
-    } else if (std::holds_alternative<std::vector<char>>(packData.ZStdDictionary)) {
-        const auto& vec = std::get<std::vector<char>>(packData.ZStdDictionary);
+    } else
+#endif
+        if (packData.HasZStdDictionaryVectorData()) {
+        const auto& vec = packData.GetZStdDictionaryVectorData();
         cdict = ZSTD_CDict_UniquePtr(ZSTD_createCDict(vec.data(), vec.size(), 22));
         if (!cdict) {
             return false;
         }
     }
 
-    const uint64_t alignment = packData.Alignment == 0 ? 0x40 : packData.Alignment;
-    const auto& fileinfos = packData.Files;
+    const size_t packDataAlignment = packData.GetAlignment();
+    const uint64_t alignment = packDataAlignment == 0 ? 0x40 : packDataAlignment;
+    const auto& fileinfos = packData.GetFiles();
 
     uint64_t position = 0;
     {

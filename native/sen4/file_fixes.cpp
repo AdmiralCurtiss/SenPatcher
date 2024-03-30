@@ -42,14 +42,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 namespace SenLib::Sen4 {
 static bool CollectAssets(SenPatcher::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
-                          SenPatcher::P3APackData& packData,
+                          std::vector<SenPatcher::P3APackFile>& packFiles,
                           bool allowSwitchToNightmare) {
-    TRY_APPLY(f4200_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(m9031_dat, TryApply(callback, packData.Files));
-    TRY_APPLY(t_item, TryApply(callback, packData.Files));
-    TRY_APPLY(t_mstqrt, TryApply(callback, packData.Files));
-    TRY_APPLY(t_text, TryApply(callback, packData.Files, allowSwitchToNightmare));
-    TRY_APPLY(t3600_dat, TryApply(callback, packData.Files));
+    TRY_APPLY(f4200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(m9031_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t_item, TryApply(callback, packFiles));
+    TRY_APPLY(t_mstqrt, TryApply(callback, packFiles));
+    TRY_APPLY(t_text, TryApply(callback, packFiles, allowSwitchToNightmare));
+    TRY_APPLY(t3600_dat, TryApply(callback, packFiles));
     return true;
 }
 
@@ -69,8 +69,10 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseD
                           baseDir,
                           "mods/zzz_senpatcher_cs4asset.p3a",
                           [&](SenPatcher::P3APackData& packData) -> bool {
-                              return CollectAssets(
-                                  logger, callback, packData, allowSwitchToNightmare);
+                              return CollectAssets(logger,
+                                                   callback,
+                                                   packData.GetMutableFiles(),
+                                                   allowSwitchToNightmare);
                           });
 }
 } // namespace SenLib::Sen4

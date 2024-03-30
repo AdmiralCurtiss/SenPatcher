@@ -198,6 +198,9 @@ if (SENPATCHER_BUILD_P3A)
 		${SOURCES_ZSTD_DICTBUILDER}
 		${SOURCES_RAPIDJSON}
 	)
+	target_compile_definitions(p3a
+		PUBLIC P3A_PACKER_WITH_STD_FILESYSTEM
+	)
 	target_include_directories(p3a
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 	)

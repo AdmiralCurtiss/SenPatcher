@@ -74,15 +74,16 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
     }
 
     const auto root = json.GetObject();
-    packData.Alignment = ReadUInt64(root, "Alignment").value_or(0);
+    packData.SetAlignment(ReadUInt64(root, "Alignment").value_or(0));
     const auto dictString = ReadString(root, "ZStdDictionaryPath");
-    packData.ZStdDictionary = std::monostate();
+    packData.ClearZStdDictionaryData();
     if (dictString) {
-        packData.ZStdDictionary = jsonPath.parent_path().append(
+        packData.SetZStdDictionaryPathData(jsonPath.parent_path().append(
             std::u8string_view((const char8_t*)dictString->data(),
-                               ((const char8_t*)dictString->data()) + dictString->size()));
+                               ((const char8_t*)dictString->data()) + dictString->size())));
     }
-    packData.Files.clear();
+    auto& packDataFiles = packData.GetMutableFiles();
+    packDataFiles.clear();
     const auto files = root.FindMember("Files");
     if (files != root.MemberEnd() && files->value.IsArray()) {
         for (const auto& file : files->value.GetArray()) {
@@ -113,7 +114,7 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                     return false;
                 }
 
-                packData.Files.emplace_back(
+                packDataFiles.emplace_back(
                     jsonPath.parent_path().append(std::u8string_view(
                         (const char8_t*)pathOnDisk->data(),
                         ((const char8_t*)pathOnDisk->data()) + pathOnDisk->size())),

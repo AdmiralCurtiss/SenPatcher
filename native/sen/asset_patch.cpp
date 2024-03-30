@@ -56,9 +56,10 @@ static bool CheckArchiveExistsAndIsRightVersion(SenPatcher::Logger& logger, std:
 static void AddSenPatcherVersionFile(SenPatcher::P3APackData& packData) {
     std::string_view sv(SENPATCHER_VERSION);
     std::vector<char> bin(sv.begin(), sv.end());
-    packData.Files.emplace_back(std::move(bin),
-                                SenPatcher::InitializeP3AFilename("_senpatcher_version.txt"),
-                                SenPatcher::P3ACompressionType::None);
+    packData.GetMutableFiles().emplace_back(
+        std::move(bin),
+        SenPatcher::InitializeP3AFilename("_senpatcher_version.txt"),
+        SenPatcher::P3ACompressionType::None);
 }
 
 void CreateArchiveIfNeeded(
@@ -84,12 +85,13 @@ void CreateArchiveIfNeeded(
         SenPatcher::IO::File newArchive(std::string_view(tmpPath), SenPatcher::IO::OpenMode::Write);
         if (newArchive.IsOpen()) {
             SenPatcher::P3APackData packData;
-            packData.Alignment = 0x10;
+            packData.SetAlignment(0x10);
             AddSenPatcherVersionFile(packData);
             if (collectAssets(packData)) {
+                auto& packFiles = packData.GetMutableFiles();
                 std::stable_sort(
-                    packData.Files.begin(),
-                    packData.Files.end(),
+                    packFiles.begin(),
+                    packFiles.end(),
                     [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
                         const auto& l = lhs.GetFilename();
                         const auto& r = rhs.GetFilename();
