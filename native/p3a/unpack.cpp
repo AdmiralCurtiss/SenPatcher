@@ -17,11 +17,9 @@
 #include "file.h"
 
 namespace SenPatcher {
-template<typename CharT, typename Traits>
-static std::basic_string_view<CharT, Traits>
-    StripTrailingNull(std::basic_string_view<CharT, Traits> sv) {
-    std::basic_string_view<CharT, Traits> s = sv;
-    while (!s.empty() && s.back() == char8_t(0)) {
+static std::string_view StripTrailingNull(std::string_view sv) {
+    std::string_view s = sv;
+    while (!s.empty() && s.back() == '\0') {
         s = s.substr(0, s.size() - 1);
     }
     return s;
@@ -124,16 +122,17 @@ bool UnpackP3A(const std::filesystem::path& archivePath, const std::filesystem::
         json.StartObject();
 
         const auto& fileinfo = fileinfos[i];
-        auto filename = StripTrailingNull(
-            std::basic_string_view<char8_t>(fileinfo.Filename.begin(), fileinfo.Filename.end()));
-        std::filesystem::path relativePath(filename.begin(), filename.end());
+        auto filename =
+            StripTrailingNull(std::string_view(fileinfo.Filename.begin(), fileinfo.Filename.end()));
+        std::filesystem::path relativePath(
+            std::u8string_view((const char8_t*)filename.data(), filename.size()));
         if (relativePath.is_absolute()) {
             return false; // there's probably a better way to handle this case...
         }
 
         {
             json.Key("NameInArchive");
-            json.String((const char*)filename.data(), filename.size());
+            json.String(filename.data(), filename.size());
 
             auto relPathStr = relativePath.u8string();
             json.Key("PathOnDisk");

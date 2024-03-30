@@ -25,7 +25,7 @@ static_assert(std::is_trivially_copyable_v<P3AHeader>);
 static constexpr uint32_t P3AHeaderFlag_HasZstdDict = 1;
 
 struct P3AFileInfo {
-    std::array<char8_t, 0x100> Filename;
+    std::array<char, 0x100> Filename;
     P3ACompressionType CompressionType;
     uint64_t CompressedSize;
     uint64_t UncompressedSize;

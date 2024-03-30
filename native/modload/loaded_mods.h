@@ -55,7 +55,7 @@ void LoadModP3As(SenPatcher::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir);
 const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
-                                 const std::array<char8_t, 0x100>& filteredPath);
+                                 const std::array<char, 0x100>& filteredPath);
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                             uint64_t filesizeLimit,
                             void*& out_memory,
@@ -64,10 +64,10 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                             PFree free_func);
 
 // so we have a consistent representation: lowercase, singular forward slash as separator
-void FilterP3APath(char8_t* path, size_t length);
+void FilterP3APath(char* path, size_t length);
 
 // same as above, but slightly different because instead of writing in-place we write to a separate
 // array, and also the input is only bounded by nulltermination and not length.
 // returns true if the entire input string fit into out_path, false if not
-bool FilterGamePath(char8_t* out_path, const char* in_path, size_t length);
+bool FilterGamePath(char* out_path, const char* in_path, size_t length);
 } // namespace SenLib::ModLoad

@@ -26,12 +26,12 @@ using ZSTD_DCtx_UniquePtr = std::unique_ptr<ZSTD_DCtx, ZSTD_DCtx_Deleter>;
 } // namespace
 
 namespace SenLib::ModLoad {
-void FilterP3APath(char8_t* path, size_t length) {
+void FilterP3APath(char* path, size_t length) {
     size_t in = 0;
     size_t out = 0;
 
     while (in < length) { // in is always >= out so no need to check out
-        const char8_t c = path[in];
+        const char c = path[in];
         if (c == '\0') {
             break;
         }
@@ -44,7 +44,7 @@ void FilterP3APath(char8_t* path, size_t length) {
             }
         } else {
             if (c >= 'A' && c <= 'Z') {
-                path[out] = static_cast<char8_t>(c + ('a' - 'A'));
+                path[out] = static_cast<char>(c + ('a' - 'A'));
             } else {
                 path[out] = c;
             }
@@ -57,7 +57,7 @@ void FilterP3APath(char8_t* path, size_t length) {
     }
 }
 
-bool FilterGamePath(char8_t* out_path, const char* in_path, size_t length) {
+bool FilterGamePath(char* out_path, const char* in_path, size_t length) {
     size_t in = 0;
     size_t out = 0;
     while (out < length) {
@@ -75,9 +75,9 @@ bool FilterGamePath(char8_t* out_path, const char* in_path, size_t length) {
             }
         } else {
             if (c >= 'A' && c <= 'Z') {
-                out_path[out] = static_cast<char8_t>(c + ('a' - 'A'));
+                out_path[out] = static_cast<char>(c + ('a' - 'A'));
             } else {
-                out_path[out] = static_cast<char8_t>(c);
+                out_path[out] = c;
             }
             ++in;
             ++out;
@@ -361,8 +361,8 @@ void LoadModP3As(SenPatcher::Logger& logger,
         std::stable_sort(combinedFileInfos.get(),
                          combinedFileInfos.get() + totalFileInfoCount,
                          [](const P3AFileRef& lhs, const P3AFileRef& rhs) {
-                             return strncmp((const char*)lhs.FileInfo->Filename.data(),
-                                            (const char*)rhs.FileInfo->Filename.data(),
+                             return strncmp(lhs.FileInfo->Filename.data(),
+                                            rhs.FileInfo->Filename.data(),
                                             lhs.FileInfo->Filename.size())
                                     < 0;
                          });
@@ -375,8 +375,8 @@ void LoadModP3As(SenPatcher::Logger& logger,
             while (in < totalFileInfoCount) {
                 const P3AFileRef& last = combinedFileInfos[out];
                 const P3AFileRef& next = combinedFileInfos[in];
-                if (strncmp((const char*)last.FileInfo->Filename.data(),
-                            (const char*)next.FileInfo->Filename.data(),
+                if (strncmp(last.FileInfo->Filename.data(),
+                            next.FileInfo->Filename.data(),
                             last.FileInfo->Filename.size())
                     == 0) {
                     --remainingFileInfoCount;
@@ -399,23 +399,19 @@ void LoadModP3As(SenPatcher::Logger& logger,
 }
 
 const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
-                                 const std::array<char8_t, 0x100>& filteredPath) {
+                                 const std::array<char, 0x100>& filteredPath) {
     const size_t count = loadedModsData.CombinedFileInfoCount;
     const P3AFileRef* const infos = loadedModsData.CombinedFileInfos.get();
-    auto bound = std::lower_bound(infos,
-                                  infos + count,
-                                  filteredPath,
-                                  [](const P3AFileRef& lhs, const std::array<char8_t, 0x100>& rhs) {
-                                      return strncmp((const char*)lhs.FileInfo->Filename.data(),
-                                                     (const char*)rhs.data(),
-                                                     rhs.size())
-                                             < 0;
-                                  });
+    auto bound = std::lower_bound(
+        infos,
+        infos + count,
+        filteredPath,
+        [](const P3AFileRef& lhs, const std::array<char, 0x100>& rhs) {
+            return strncmp(lhs.FileInfo->Filename.data(), rhs.data(), rhs.size()) < 0;
+        });
 
     if (bound != (infos + count)
-        && strncmp((const char*)bound->FileInfo->Filename.data(),
-                   (const char*)filteredPath.data(),
-                   filteredPath.size())
+        && strncmp(bound->FileInfo->Filename.data(), filteredPath.data(), filteredPath.size())
                == 0) {
         return bound;
     }

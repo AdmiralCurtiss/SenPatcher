@@ -16,14 +16,14 @@ enum class P3ACompressionType : uint64_t;
 
 struct P3APackFile {
     std::variant<std::vector<char>, std::filesystem::path> Data = std::vector<char>();
-    std::array<char8_t, 0x100> Filename{};
+    std::array<char, 0x100> Filename{};
     P3ACompressionType DesiredCompressionType{};
 
     P3APackFile(std::vector<char> data,
-                const std::array<char8_t, 0x100>& filename,
+                const std::array<char, 0x100>& filename,
                 P3ACompressionType desiredCompressionType);
     P3APackFile(std::filesystem::path path,
-                const std::array<char8_t, 0x100>& filename,
+                const std::array<char, 0x100>& filename,
                 P3ACompressionType desiredCompressionType);
     P3APackFile(const P3APackFile& other);
     P3APackFile(P3APackFile&& other);

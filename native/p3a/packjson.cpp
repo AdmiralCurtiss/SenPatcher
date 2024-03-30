@@ -93,7 +93,7 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                 if (!nameInArchive || !pathOnDisk || !compression) {
                     return false;
                 }
-                std::array<char8_t, 0x100> fn{};
+                std::array<char, 0x100> fn{};
                 if (nameInArchive->size() > fn.size()) {
                     return false;
                 }

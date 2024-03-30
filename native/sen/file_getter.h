@@ -12,7 +12,7 @@
 namespace SenPatcher {
 struct CheckedFileResult {
     std::vector<char> Data;
-    std::array<char8_t, 0x100> Filename{};
+    std::array<char, 0x100> Filename{};
 };
 using GetCheckedFileCallback =
     std::function<std::optional<CheckedFileResult>(std::string_view path,

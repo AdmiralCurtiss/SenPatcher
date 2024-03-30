@@ -22,11 +22,11 @@
 
 namespace SenPatcher {
 P3APackFile::P3APackFile(std::vector<char> data,
-                         const std::array<char8_t, 0x100>& filename,
+                         const std::array<char, 0x100>& filename,
                          P3ACompressionType desiredCompressionType)
   : Data(std::move(data)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
 P3APackFile::P3APackFile(std::filesystem::path path,
-                         const std::array<char8_t, 0x100>& filename,
+                         const std::array<char, 0x100>& filename,
                          P3ACompressionType desiredCompressionType)
   : Data(std::move(path)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
 P3APackFile::P3APackFile(const P3APackFile& other) = default;
@@ -85,13 +85,13 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
         const auto filename = relativePath.u8string();
         const char8_t* filenameC = filename.c_str();
 
-        std::array<char8_t, 0x100> fn{};
+        std::array<char, 0x100> fn{};
         for (size_t i = 0; i < fn.size(); ++i) {
-            const char8_t c = filenameC[i];
-            if (c == char8_t(0)) {
+            const char c = static_cast<char>(filenameC[i]);
+            if (c == '\0') {
                 break;
             }
-            fn[i] = (c == char8_t('\\') ? char8_t('/') : c);
+            fn[i] = (c == '\\' ? '/' : c);
         }
         fileinfos.emplace_back(entry.path(), fn, SenPatcher::P3ACompressionType::None);
     }

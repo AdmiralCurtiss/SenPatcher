@@ -191,7 +191,7 @@ static bool OpenModFile(FFile* ffile, const char* path) {
         }
     }
 
-    std::array<char8_t, 0x100> filteredPath;
+    std::array<char, 0x100> filteredPath;
     if (!SenLib::ModLoad::FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
         return false;
     }
@@ -239,7 +239,7 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
         }
     }
 
-    std::array<char8_t, 0x100> filteredPath;
+    std::array<char, 0x100> filteredPath;
     if (!SenLib::ModLoad::FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
         return std::nullopt;
     }
@@ -421,7 +421,7 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
         }
     }
 
-    std::array<char8_t, 0x100> filteredPath;
+    std::array<char, 0x100> filteredPath;
     if (!SenLib::ModLoad::FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
         return nullptr;
     }

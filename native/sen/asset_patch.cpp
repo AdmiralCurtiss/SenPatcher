@@ -22,7 +22,7 @@
 
 namespace SenLib {
 static bool IsSenPatcherVersionFile(const SenPatcher::P3AFileInfo& f) {
-    return strcmp((const char*)f.Filename.data(), "_senpatcher_version.txt") == 0;
+    return strcmp(f.Filename.data(), "_senpatcher_version.txt") == 0;
 }
 
 static bool CheckArchiveExistsAndIsRightVersion(SenPatcher::Logger& logger, std::string_view path) {

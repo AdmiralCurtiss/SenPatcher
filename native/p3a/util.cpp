@@ -5,11 +5,11 @@
 #include <string_view>
 
 namespace SenPatcher {
-bool CopyToP3AFilename(std::array<char8_t, 0x100>& filename, std::string_view path) {
+bool CopyToP3AFilename(std::array<char, 0x100>& filename, std::string_view path) {
     if (path.size() > filename.size()) {
         return false;
     }
-    filename.fill(char8_t(0));
+    filename.fill('\0');
     std::memcpy(filename.data(), path.data(), path.size());
     return true;
 }
