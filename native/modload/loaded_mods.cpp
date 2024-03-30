@@ -667,4 +667,41 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
         default: return false;
     }
 }
+
+void AppendLoadedModInfo(char*& string, const LoadedModsData& loadedModsData) {
+    size_t modfileCountExternal = 0;
+    size_t modfileCountSenPatcher = 0;
+
+    for (size_t i = 0; i < loadedModsData.CombinedFileInfoCount; ++i) {
+        if (loadedModsData.CombinedFileInfos[i].ArchiveData->Flags & P3AFlag_IsSenPatcherAssetMod) {
+            ++modfileCountSenPatcher;
+        } else {
+            ++modfileCountExternal;
+        }
+    }
+
+    char buffer[128];
+    int len;
+    if (modfileCountExternal > 0) {
+        len = sprintf(buffer, "  %zu modded file", modfileCountExternal);
+        strcpy(string, buffer);
+        string += len;
+        if (modfileCountExternal > 1) {
+            *string++ = 's';
+        }
+    }
+    len = sprintf(buffer, "  %zu asset fix", modfileCountSenPatcher);
+    strcpy(string, buffer);
+    string += len;
+    if (modfileCountSenPatcher > 1) {
+        *string++ = 'e';
+        *string++ = 's';
+    }
+
+    if (loadedModsData.CheckDevFolderForAssets) {
+        constexpr char devFolderActive[] = "  'dev' folder active";
+        string = strcpy(string, devFolderActive);
+        string += (sizeof(devFolderActive) - 1);
+    }
+}
 } // namespace SenLib::ModLoad

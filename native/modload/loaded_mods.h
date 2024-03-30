@@ -74,4 +74,6 @@ void FilterP3APath(char* path, size_t length);
 // array, and also the input is only bounded by nulltermination and not length.
 // returns true if the entire input string fit into out_path, false if not
 bool FilterGamePath(char* out_path, const char* in_path, size_t length);
+
+void AppendLoadedModInfo(char*& string, const LoadedModsData& loadedModsData);
 } // namespace SenLib::ModLoad

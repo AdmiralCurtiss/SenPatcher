@@ -415,7 +415,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
     SenLib::Sen1::AddSenPatcherVersionToTitle(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, s_LoadedModsData);
     Align16CodePage(logger, newPage);
     SenLib::Sen1::PatchThorMasterQuartzString(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);

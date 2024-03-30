@@ -3,6 +3,8 @@
 #include <bit>
 #include <cassert>
 
+#include "modload/loaded_mods.h"
+
 #include "x86/emitter.h"
 #include "x86/inject_jump_into.h"
 #include "x86/page_unprotect.h"
@@ -14,7 +16,8 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
-                                 char* codespaceEnd) {
+                                 char* codespaceEnd,
+                                 const SenLib::ModLoad::LoadedModsData& loadedModsData) {
     using namespace SenPatcher::x86;
     char* pushAddressVersionTitle = GetCodeAddressJpEn(version, textRegion, 0x68e93d, 0x69042d);
 
@@ -35,7 +38,10 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
     }
     constexpr char senpatcherVersionString[] = "  SenPatcher " SENPATCHER_VERSION;
     std::memcpy(codespace, senpatcherVersionString, sizeof(senpatcherVersionString));
-    codespace += sizeof(senpatcherVersionString);
+    codespace += (sizeof(senpatcherVersionString) - 1);
+    SenLib::ModLoad::AppendLoadedModInfo(codespace, loadedModsData);
+    *codespace = 0;
+    ++codespace;
 
     {
         PageUnprotect page(logger, pushAddressVersionTitle, 4);
