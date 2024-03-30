@@ -51,6 +51,7 @@ struct LoadedModsData {
     ~LoadedModsData() = default;
 };
 
+void CreateModDirectory(std::string_view baseDir);
 void LoadModP3As(SenPatcher::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir);

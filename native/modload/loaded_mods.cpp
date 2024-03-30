@@ -292,6 +292,13 @@ static std::vector<std::filesystem::path> CollectModPaths(SenPatcher::Logger& lo
     return paths;
 }
 
+void CreateModDirectory(std::string_view baseDir) {
+    std::filesystem::path baseDirStdFs =
+        HyoutaUtils::TextUtils::Utf8ToWString(baseDir.data(), baseDir.size());
+    std::error_code ec;
+    std::filesystem::create_directory(baseDirStdFs / L"mods", baseDirStdFs / L"data", ec);
+}
+
 void LoadModP3As(SenPatcher::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir) {
