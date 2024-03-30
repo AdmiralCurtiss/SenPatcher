@@ -19,6 +19,8 @@
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+#undef CreateDirectory
 #else
 #include <cstdio>
 
@@ -383,6 +385,7 @@ bool FileExists(std::string_view p) noexcept {
 #endif
 }
 
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 bool FileExists(const std::filesystem::path& p) noexcept {
 #ifdef _MSC_VER
     return FileExistsWindows(p.native().data());
@@ -391,5 +394,64 @@ bool FileExists(const std::filesystem::path& p) noexcept {
     return std::filesystem::exists(p, ec);
 #endif
 }
+#endif
+
+#ifdef _MSC_VER
+static bool DirectoryExistsWindows(const wchar_t* path) {
+    const auto attributes = GetFileAttributesW(path);
+    if (attributes == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+    return (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+}
+#endif
+
+bool DirectoryExists(std::string_view p) noexcept {
+#ifdef _MSC_VER
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+    return DirectoryExistsWindows(wstr.data());
+#else
+    // TODO
+    return false;
+#endif
+}
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+bool DirectoryExists(const std::filesystem::path& p) noexcept {
+#ifdef _MSC_VER
+    return DirectoryExistsWindows(p.native().data());
+#else
+    std::error_code ec;
+    return std::filesystem::is_directory(p, ec);
+#endif
+}
+#endif
+
+#ifdef _MSC_VER
+static bool CreateDirectoryWindows(const wchar_t* path) {
+    return CreateDirectoryW(path, nullptr);
+}
+#endif
+
+bool CreateDirectory(std::string_view p) noexcept {
+#ifdef _MSC_VER
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+    return CreateDirectoryWindows(wstr.data());
+#else
+    // TODO
+    return false;
+#endif
+}
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+bool CreateDirectory(const std::filesystem::path& p) noexcept {
+#ifdef _MSC_VER
+    return CreateDirectoryWindows(p.native().data());
+#else
+    std::error_code ec;
+    return std::filesystem::create_directory(p, ec);
+#endif
+}
+#endif
 
 } // namespace SenPatcher::IO
