@@ -46,10 +46,5 @@ struct P3APackData {
     ~P3APackData();
 };
 
-bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
-                          const std::filesystem::path& archivePath,
-                          P3ACompressionType desiredCompressionType,
-                          const std::filesystem::path& dictPath = std::filesystem::path());
-bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packData);
 bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData);
 } // namespace SenPatcher

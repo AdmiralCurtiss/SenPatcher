@@ -4,9 +4,10 @@
 #include <string_view>
 
 #include "p3a/pack.h"
+#include "p3a/packfs.h"
 #include "p3a/packjson.h"
 #include "p3a/structs.h"
-#include "p3a/unpack.h"
+#include "p3a/unpackfs.h"
 
 static void PrintUsage() {
     printf(

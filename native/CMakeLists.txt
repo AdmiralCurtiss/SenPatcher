@@ -184,11 +184,13 @@ if (SENPATCHER_BUILD_P3A)
 
 		p3a/pack.cpp
 		p3a/pack.h
+		p3a/packfs.cpp
+		p3a/packfs.h
 		p3a/packjson.cpp
 		p3a/packjson.h
 		p3a/structs.h
-		p3a/unpack.cpp
-		p3a/unpack.h
+		p3a/unpackfs.cpp
+		p3a/unpackfs.h
 
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}

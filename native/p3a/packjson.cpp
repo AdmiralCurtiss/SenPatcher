@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 
+#include "p3a/packfs.h"
 #include "p3a/structs.h"
 #include "util/text.h"
 
