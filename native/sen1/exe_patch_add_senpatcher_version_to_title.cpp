@@ -17,7 +17,8 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  GameVersion version,
                                  char*& codespace,
                                  char* codespaceEnd,
-                                 const SenLib::ModLoad::LoadedModsData& loadedModsData) {
+                                 const SenLib::ModLoad::LoadedModsData& loadedModsData,
+                                 bool assetFixCreatingFailed) {
     using namespace SenPatcher::x86;
     char* pushAddressVersionTitle = GetCodeAddressJpEn(version, textRegion, 0x68e93d, 0x69042d);
 
@@ -39,7 +40,7 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
     constexpr char senpatcherVersionString[] = "  SenPatcher " SENPATCHER_VERSION;
     std::memcpy(codespace, senpatcherVersionString, sizeof(senpatcherVersionString));
     codespace += (sizeof(senpatcherVersionString) - 1);
-    SenLib::ModLoad::AppendLoadedModInfo(codespace, loadedModsData);
+    SenLib::ModLoad::AppendLoadedModInfo(codespace, loadedModsData, assetFixCreatingFailed);
     *codespace = 0;
     ++codespace;
 

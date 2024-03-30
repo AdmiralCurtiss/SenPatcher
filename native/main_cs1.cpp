@@ -394,8 +394,9 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
+    bool assetCreationSuccess = true;
     if (assetFixes) {
-        SenLib::Sen1::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
+        assetCreationSuccess = SenLib::Sen1::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
     LoadModP3As(logger, s_LoadedModsData, baseDirUtf8);
@@ -414,8 +415,13 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     SenLib::Sen1::DeglobalizeMutexes(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
-    SenLib::Sen1::AddSenPatcherVersionToTitle(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, s_LoadedModsData);
+    SenLib::Sen1::AddSenPatcherVersionToTitle(logger,
+                                              static_cast<char*>(codeBase),
+                                              version,
+                                              newPage,
+                                              newPageEnd,
+                                              s_LoadedModsData,
+                                              !assetCreationSuccess);
     Align16CodePage(logger, newPage);
     SenLib::Sen1::PatchThorMasterQuartzString(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);

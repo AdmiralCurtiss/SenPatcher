@@ -10,5 +10,5 @@ struct P3APackFile;
 } // namespace SenPatcher
 
 namespace SenLib::Sen2 {
-void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir);
+bool CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir);
 }

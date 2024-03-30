@@ -10,12 +10,12 @@
 #include "sha1.h"
 
 namespace SenLib {
-void CreateArchiveIfNeeded(
+bool CreateArchiveIfNeeded(
     SenPatcher::Logger& logger,
     std::string_view baseDir,
     std::string_view archivePath,
     const std::function<bool(SenPatcher::P3APackData& packData)>& collectAssets);
-void CreateVideoIfNeeded(SenPatcher::Logger& logger,
+bool CreateVideoIfNeeded(SenPatcher::Logger& logger,
                          std::string_view baseDir,
                          std::string_view videoPath,
                          const std::function<bool(std::vector<char>& videoData)>& getVideo);

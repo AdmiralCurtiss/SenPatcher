@@ -142,7 +142,7 @@ static bool CollectAudio(SenPatcher::Logger& logger,
     return true;
 }
 
-void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
+bool CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
             size_t size,
@@ -150,17 +150,23 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseD
         return GetCheckedFile(baseDir, path, size, hash);
     };
 
-    CreateArchiveIfNeeded(logger,
-                          baseDir,
-                          "mods/zzz_senpatcher_cs1asset.p3a",
-                          [&](SenPatcher::P3APackData& packData) -> bool {
-                              return CollectAssets(logger, callback, packData.GetMutableFiles());
-                          });
-    CreateArchiveIfNeeded(logger,
-                          baseDir,
-                          "mods/zzz_senpatcher_cs1audio.p3a",
-                          [&](SenPatcher::P3APackData& packData) -> bool {
-                              return CollectAudio(logger, callback, packData.GetMutableFiles());
-                          });
+    bool success = true;
+    success = CreateArchiveIfNeeded(logger,
+                                    baseDir,
+                                    "mods/zzz_senpatcher_cs1asset.p3a",
+                                    [&](SenPatcher::P3APackData& packData) -> bool {
+                                        return CollectAssets(
+                                            logger, callback, packData.GetMutableFiles());
+                                    })
+              && success;
+    success =
+        CreateArchiveIfNeeded(logger,
+                              baseDir,
+                              "mods/zzz_senpatcher_cs1audio.p3a",
+                              [&](SenPatcher::P3APackData& packData) -> bool {
+                                  return CollectAudio(logger, callback, packData.GetMutableFiles());
+                              })
+        && success;
+    return success;
 }
 } // namespace SenLib::Sen1

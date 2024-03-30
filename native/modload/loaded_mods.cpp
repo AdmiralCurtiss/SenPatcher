@@ -668,7 +668,9 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
     }
 }
 
-void AppendLoadedModInfo(char*& string, const LoadedModsData& loadedModsData) {
+void AppendLoadedModInfo(char*& string,
+                         const LoadedModsData& loadedModsData,
+                         bool assetFixCreatingFailed) {
     size_t modfileCountExternal = 0;
     size_t modfileCountSenPatcher = 0;
 
@@ -690,18 +692,24 @@ void AppendLoadedModInfo(char*& string, const LoadedModsData& loadedModsData) {
             *string++ = 's';
         }
     }
-    len = sprintf(buffer, "  %zu asset fix", modfileCountSenPatcher);
-    strcpy(string, buffer);
-    string += len;
-    if (modfileCountSenPatcher > 1) {
-        *string++ = 'e';
-        *string++ = 's';
+    if (modfileCountSenPatcher > 0) {
+        len = sprintf(buffer, "  %zu asset fix", modfileCountSenPatcher);
+        strcpy(string, buffer);
+        string += len;
+        if (modfileCountSenPatcher > 1) {
+            *string++ = 'e';
+            *string++ = 's';
+        }
     }
-
     if (loadedModsData.CheckDevFolderForAssets) {
         constexpr char devFolderActive[] = "  'dev' folder active";
-        string = strcpy(string, devFolderActive);
+        memcpy(string, devFolderActive, sizeof(devFolderActive));
         string += (sizeof(devFolderActive) - 1);
+    }
+    if (assetFixCreatingFailed) {
+        constexpr char failureNotice[] = "  FAILED creating asset fixes!";
+        memcpy(string, failureNotice, sizeof(failureNotice));
+        string += (sizeof(failureNotice) - 1);
     }
 }
 } // namespace SenLib::ModLoad

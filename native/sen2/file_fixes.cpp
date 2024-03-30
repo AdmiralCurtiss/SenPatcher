@@ -94,7 +94,7 @@ static bool CollectAssets(SenPatcher::Logger& logger,
     return true;
 }
 
-void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
+bool CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
             size_t size,
@@ -102,11 +102,12 @@ void CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseD
         return GetCheckedFile(baseDir, path, size, hash);
     };
 
-    CreateArchiveIfNeeded(logger,
-                          baseDir,
-                          "mods/zzz_senpatcher_cs2asset.p3a",
-                          [&](SenPatcher::P3APackData& packData) -> bool {
-                              return CollectAssets(logger, callback, packData.GetMutableFiles());
-                          });
+    return CreateArchiveIfNeeded(logger,
+                                 baseDir,
+                                 "mods/zzz_senpatcher_cs2asset.p3a",
+                                 [&](SenPatcher::P3APackData& packData) -> bool {
+                                     return CollectAssets(
+                                         logger, callback, packData.GetMutableFiles());
+                                 });
 }
 } // namespace SenLib::Sen2

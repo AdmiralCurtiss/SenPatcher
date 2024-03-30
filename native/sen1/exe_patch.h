@@ -34,7 +34,8 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  GameVersion version,
                                  char*& codespace,
                                  char* codespaceEnd,
-                                 const SenLib::ModLoad::LoadedModsData& loadedModsData);
+                                 const SenLib::ModLoad::LoadedModsData& loadedModsData,
+                                 bool assetFixCreatingFailed);
 void RemoveTurboAutoSkip(SenPatcher::Logger& logger,
                          char* textRegion,
                          GameVersion version,

@@ -62,7 +62,7 @@ static void AddSenPatcherVersionFile(SenPatcher::P3APackData& packData) {
         SenPatcher::P3ACompressionType::None);
 }
 
-void CreateArchiveIfNeeded(
+bool CreateArchiveIfNeeded(
     SenPatcher::Logger& logger,
     std::string_view baseDir,
     std::string_view archivePath,
@@ -75,48 +75,55 @@ void CreateArchiveIfNeeded(
 
     // check if the archive already exists and is at the correct version,
     // and if yes don't recreate it
-    if (!CheckArchiveExistsAndIsRightVersion(logger, fullArchivePath)) {
-        logger.Log("Creating new asset archive.\n");
-
-        std::string tmpPath;
-        tmpPath.reserve(fullArchivePath.size() + 4);
-        tmpPath.append(fullArchivePath);
-        tmpPath.append(".tmp");
-        SenPatcher::IO::File newArchive(std::string_view(tmpPath), SenPatcher::IO::OpenMode::Write);
-        if (newArchive.IsOpen()) {
-            SenPatcher::P3APackData packData;
-            packData.SetAlignment(0x10);
-            AddSenPatcherVersionFile(packData);
-            if (collectAssets(packData)) {
-                auto& packFiles = packData.GetMutableFiles();
-                std::stable_sort(
-                    packFiles.begin(),
-                    packFiles.end(),
-                    [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                        const auto& l = lhs.GetFilename();
-                        const auto& r = rhs.GetFilename();
-                        return memcmp(l.data(), r.data(), l.size()) < 0;
-                    });
-                if (SenPatcher::PackP3A(newArchive, packData)) {
-                    if (newArchive.Rename(std::string_view(fullArchivePath))) {
-                        logger.Log("Created archive!\n");
-                    } else {
-                        logger.Log("Renaming failed.\n");
-                        newArchive.Delete();
-                    }
-                } else {
-                    logger.Log("Packing failed.\n");
-                    newArchive.Delete();
-                }
-            } else {
-                logger.Log("Collecting failed.\n");
-                newArchive.Delete();
-            }
-        }
+    if (CheckArchiveExistsAndIsRightVersion(logger, fullArchivePath)) {
+        return true;
     }
+
+    logger.Log("Creating new asset archive.\n");
+    std::string tmpPath;
+    tmpPath.reserve(fullArchivePath.size() + 4);
+    tmpPath.append(fullArchivePath);
+    tmpPath.append(".tmp");
+    SenPatcher::IO::File newArchive(std::string_view(tmpPath), SenPatcher::IO::OpenMode::Write);
+    if (!newArchive.IsOpen()) {
+        logger.Log("Opening new archive failed.\n");
+        return false;
+    }
+
+    SenPatcher::P3APackData packData;
+    packData.SetAlignment(0x10);
+    AddSenPatcherVersionFile(packData);
+    if (!collectAssets(packData)) {
+        logger.Log("Collecting failed.\n");
+        newArchive.Delete();
+        return false;
+    }
+
+    auto& packFiles = packData.GetMutableFiles();
+    std::stable_sort(packFiles.begin(),
+                     packFiles.end(),
+                     [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
+                         const auto& l = lhs.GetFilename();
+                         const auto& r = rhs.GetFilename();
+                         return memcmp(l.data(), r.data(), l.size()) < 0;
+                     });
+    if (!SenPatcher::PackP3A(newArchive, packData)) {
+        logger.Log("Packing failed.\n");
+        newArchive.Delete();
+        return false;
+    }
+
+    if (!newArchive.Rename(std::string_view(fullArchivePath))) {
+        logger.Log("Renaming failed.\n");
+        newArchive.Delete();
+        return false;
+    }
+
+    logger.Log("Created archive!\n");
+    return true;
 }
 
-void CreateVideoIfNeeded(SenPatcher::Logger& logger,
+bool CreateVideoIfNeeded(SenPatcher::Logger& logger,
                          std::string_view baseDir,
                          std::string_view videoPath,
                          const std::function<bool(std::vector<char>& videoData)>& getVideo) {
@@ -135,14 +142,14 @@ void CreateVideoIfNeeded(SenPatcher::Logger& logger,
         if (f.IsOpen()) {
             logger.Log("Video file exists.\n");
             // assume that it's good if it exists...
-            return;
+            return true;
         }
     }
 
     std::vector<char> data;
     if (!getVideo(data)) {
         logger.Log("Collecting failed.\n");
-        return;
+        return false;
     }
 
     std::string tmpPath;
@@ -152,21 +159,23 @@ void CreateVideoIfNeeded(SenPatcher::Logger& logger,
     SenPatcher::IO::File f(std::string_view(tmpPath), SenPatcher::IO::OpenMode::Write);
     if (!f.IsOpen()) {
         logger.Log("Open failed.\n");
-        return;
+        return false;
     }
 
     if (f.Write(data.data(), data.size()) != data.size()) {
         logger.Log("Write failed.\n");
         f.Delete();
-        return;
+        return false;
     }
 
     if (!f.Rename(std::string_view(fullVideoPath))) {
         logger.Log("Rename failed.\n");
         f.Delete();
+        return false;
     }
 
     logger.Log("Created video file.\n");
+    return true;
 }
 
 std::optional<SenPatcher::CheckedFileResult> GetCheckedFile(std::string_view baseDir,
