@@ -312,7 +312,8 @@ void CreateModDirectory(std::string_view baseDir) {
 
 void LoadModP3As(SenPatcher::Logger& logger,
                  LoadedModsData& loadedModsData,
-                 std::string_view baseDir) {
+                 std::string_view baseDir,
+                 bool shouldLoadAssetFixes) {
     loadedModsData.CombinedFileInfoCount = 0;
     loadedModsData.CombinedFileInfos.reset();
     loadedModsData.P3As.reset();
@@ -341,6 +342,11 @@ void LoadModP3As(SenPatcher::Logger& logger,
         std::vector<std::pair<SenPatcher::P3A, size_t>> p3avector;
         p3avector.reserve(modPaths.size());
         for (auto const& path : modPaths) {
+            const bool isSenpatcherAsset = IsSenpatcherAsset(path);
+            if (!shouldLoadAssetFixes && isSenpatcherAsset) {
+                continue;
+            }
+
             auto& p3apair = p3avector.emplace_back();
             SenPatcher::P3A& p3a = p3apair.first;
 
@@ -354,7 +360,7 @@ void LoadModP3As(SenPatcher::Logger& logger,
             }
 
             p3apair.second = 0;
-            if (IsSenpatcherAsset(path)) {
+            if (isSenpatcherAsset) {
                 p3apair.second |= P3AFlag_IsSenPatcherAssetMod;
             }
         }

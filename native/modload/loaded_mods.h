@@ -57,7 +57,8 @@ struct LoadedModsData {
 void CreateModDirectory(std::string_view baseDir);
 void LoadModP3As(SenPatcher::Logger& logger,
                  LoadedModsData& loadedModsData,
-                 std::string_view baseDir);
+                 std::string_view baseDir,
+                 bool shouldLoadAssetFixes);
 const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
                                  const std::array<char, 0x100>& filteredPath);
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,

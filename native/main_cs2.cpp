@@ -389,7 +389,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         assetCreationSuccess = SenLib::Sen2::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
-    LoadModP3As(logger, s_LoadedModsData, baseDirUtf8);
+    LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes);
 
     SenLib::Sen2::InjectAtFFileOpen(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileOpenForwarder);
