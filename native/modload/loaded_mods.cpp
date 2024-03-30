@@ -215,18 +215,19 @@ static bool ContainsPath(const std::vector<std::string>& paths, const std::strin
     return false;
 }
 
-static void MoveSenpatcherAssetsToEnd(std::vector<std::string>& paths) {
+static bool IsSenpatcherAsset(const std::string& str) {
     static constexpr std::string_view prefix = "zzz_senpatcher_";
-    const auto is_senpatcher_asset = [&](const std::string& str) {
-        if (str.size() < prefix.size()) {
-            return false;
-        }
-        return IsEquivalentPath(prefix, std::string_view(str).substr(0, prefix.size()));
-    };
+    if (str.size() < prefix.size()) {
+        return false;
+    }
+    return IsEquivalentPath(prefix, std::string_view(str).substr(0, prefix.size()));
+}
+
+static void MoveSenpatcherAssetsToEnd(std::vector<std::string>& paths) {
     std::stable_sort(
         paths.begin(), paths.end(), [&](const std::string& lhs, const std::string& rhs) {
-            int lhsIsSenpatcherAsset = is_senpatcher_asset(lhs) ? 1 : 0;
-            int rhsIsSenpatcherAsset = is_senpatcher_asset(rhs) ? 1 : 0;
+            int lhsIsSenpatcherAsset = IsSenpatcherAsset(lhs) ? 1 : 0;
+            int rhsIsSenpatcherAsset = IsSenpatcherAsset(rhs) ? 1 : 0;
             return lhsIsSenpatcherAsset < rhsIsSenpatcherAsset;
         });
 }
@@ -337,10 +338,11 @@ void LoadModP3As(SenPatcher::Logger& logger,
         modsDir.append("mods");
 
         const auto modPaths = CollectModPaths(logger, modsDir);
-        std::vector<SenPatcher::P3A> p3avector;
+        std::vector<std::pair<SenPatcher::P3A, size_t>> p3avector;
         p3avector.reserve(modPaths.size());
         for (auto const& path : modPaths) {
-            SenPatcher::P3A& p3a = p3avector.emplace_back();
+            auto& p3apair = p3avector.emplace_back();
+            SenPatcher::P3A& p3a = p3apair.first;
 
             std::string filepath;
             filepath.reserve(modsDir.size() + path.size() + 1);
@@ -350,12 +352,18 @@ void LoadModP3As(SenPatcher::Logger& logger,
             if (!p3a.Load(std::string_view(filepath))) {
                 p3avector.pop_back();
             }
+
+            p3apair.second = 0;
+            if (IsSenpatcherAsset(path)) {
+                p3apair.second |= P3AFlag_IsSenPatcherAssetMod;
+            }
         }
 
         p3acount = p3avector.size();
         p3as = std::make_unique<P3AData[]>(p3acount);
         for (size_t i = 0; i < p3acount; ++i) {
-            p3as[i].Archive = std::move(p3avector[i]);
+            p3as[i].Archive = std::move(p3avector[i].first);
+            p3as[i].Flags = p3avector[i].second;
         }
     }
 
