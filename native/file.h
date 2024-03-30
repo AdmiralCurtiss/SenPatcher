@@ -54,4 +54,10 @@ public:
 private:
     void* Filehandle;
 };
+
+bool FileExists(std::string_view p) noexcept;
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+bool FileExists(const std::filesystem::path& p) noexcept;
+#endif
 } // namespace SenPatcher::IO

@@ -363,4 +363,33 @@ void* File::ReleaseHandle() noexcept {
     return h;
 }
 
+#ifdef _MSC_VER
+static bool FileExistsWindows(const wchar_t* path) {
+    const auto attributes = GetFileAttributesW(path);
+    if (attributes == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+    return (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+}
+#endif
+
+bool FileExists(std::string_view p) noexcept {
+#ifdef _MSC_VER
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+    return FileExistsWindows(wstr.data());
+#else
+    // TODO
+    return false;
+#endif
+}
+
+bool FileExists(const std::filesystem::path& p) noexcept {
+#ifdef _MSC_VER
+    return FileExistsWindows(p.native().data());
+#else
+    std::error_code ec;
+    return std::filesystem::exists(p, ec);
+#endif
+}
+
 } // namespace SenPatcher::IO
