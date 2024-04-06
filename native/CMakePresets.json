@@ -19,8 +19,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
-        "CMAKE_C_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
-        "CMAKE_CXX_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
+        "SENPATCHER_BUILDFLAGS": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
         "SENPATCHER_BUILD_P3A": "OFF",
         "SENPATCHER_BUILD_CS1HOOK": "ON",
         "SENPATCHER_BUILD_CS2HOOK": "ON",
@@ -30,7 +29,7 @@
         "SENPATCHER_BUILD_CS2TEST": "ON",
         "SENPATCHER_BUILD_CS3TEST": "OFF",
         "SENPATCHER_BUILD_CS4TEST": "OFF",
-        "SENPATCHER_BUILD_SHA1TEST": "OFF"
+        "SENPATCHER_BUILD_GTESTS": "ON"
       }
     },
     {
@@ -46,8 +45,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
-        "CMAKE_C_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
-        "CMAKE_CXX_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
+        "SENPATCHER_BUILDFLAGS": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
         "SENPATCHER_BUILD_P3A": "ON",
         "SENPATCHER_BUILD_CS1HOOK": "ON",
         "SENPATCHER_BUILD_CS2HOOK": "ON",
@@ -57,7 +55,7 @@
         "SENPATCHER_BUILD_CS2TEST": "OFF",
         "SENPATCHER_BUILD_CS3TEST": "OFF",
         "SENPATCHER_BUILD_CS4TEST": "OFF",
-        "SENPATCHER_BUILD_SHA1TEST": "OFF"
+        "SENPATCHER_BUILD_GTESTS": "ON"
       }
     },
     {
@@ -73,8 +71,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
-        "CMAKE_C_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
-        "CMAKE_CXX_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
+        "SENPATCHER_BUILDFLAGS": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
         "SENPATCHER_BUILD_P3A": "OFF",
         "SENPATCHER_BUILD_CS1HOOK": "OFF",
         "SENPATCHER_BUILD_CS2HOOK": "OFF",
@@ -84,7 +81,7 @@
         "SENPATCHER_BUILD_CS2TEST": "OFF",
         "SENPATCHER_BUILD_CS3TEST": "ON",
         "SENPATCHER_BUILD_CS4TEST": "ON",
-        "SENPATCHER_BUILD_SHA1TEST": "OFF"
+        "SENPATCHER_BUILD_GTESTS": "ON"
       }
     },
     {
@@ -100,8 +97,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
-        "CMAKE_C_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
-        "CMAKE_CXX_FLAGS_INIT": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
+        "SENPATCHER_BUILDFLAGS": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
         "SENPATCHER_BUILD_P3A": "ON",
         "SENPATCHER_BUILD_CS1HOOK": "OFF",
         "SENPATCHER_BUILD_CS2HOOK": "OFF",
@@ -111,7 +107,7 @@
         "SENPATCHER_BUILD_CS2TEST": "OFF",
         "SENPATCHER_BUILD_CS3TEST": "OFF",
         "SENPATCHER_BUILD_CS4TEST": "OFF",
-        "SENPATCHER_BUILD_SHA1TEST": "OFF"
+        "SENPATCHER_BUILD_GTESTS": "ON"
       }
     }
   ],

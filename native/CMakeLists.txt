@@ -14,7 +14,9 @@ option(SENPATCHER_BUILD_CS1TEST "build CS1 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS2TEST "build CS2 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS3TEST "build CS3 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS4TEST "build CS4 asset builder executable" OFF)
-option(SENPATCHER_BUILD_SHA1TEST "build SHA1 test executable" OFF)
+option(SENPATCHER_BUILD_GTESTS "build tests" ON)
+
+separate_arguments(SENPATCHER_BUILDFLAGS NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS}")
 
 function(senpatcher_generate_embeddable_file SOURCE_PATH TARGET_NAME)
 	file(READ "${SOURCE_PATH}" TMP_SENPATCHER_FILE HEX)
@@ -201,6 +203,7 @@ if (SENPATCHER_BUILD_P3A)
 	target_compile_definitions(p3a
 		PUBLIC P3A_PACKER_WITH_STD_FILESYSTEM FILE_WRAPPER_WITH_STD_FILESYSTEM
 	)
+	target_compile_options(p3a PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(p3a
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 	)
@@ -513,6 +516,7 @@ if (SENPATCHER_BUILD_CS1TEST)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_options(cs1test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs1test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -559,6 +563,7 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_options(cs1hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs1hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -577,6 +582,7 @@ if (SENPATCHER_BUILD_CS2TEST)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_options(cs2test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs2test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -626,6 +632,7 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_options(cs2hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs2hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -644,6 +651,7 @@ if (SENPATCHER_BUILD_CS3TEST)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_options(cs3test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs3test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -686,6 +694,7 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_options(cs3hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs3hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -704,6 +713,7 @@ if (SENPATCHER_BUILD_CS4TEST)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_options(cs4test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs4test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -744,24 +754,14 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_options(cs4hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs4hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
 	add_dependencies(cs4hook GenerateGitRevisionHeader)
 endif()
 
-if (SENPATCHER_BUILD_SHA1TEST)
-	add_executable(sha1_test)
-	target_sources(sha1_test PRIVATE
-		main_sha1_test.cpp
-		sha1.cpp
-		sha1.h
-		file.cpp
-		file.h
-		util/text.cpp
-		util/text.h
-	)
-	target_include_directories(sha1_test
-		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-	)
+if (SENPATCHER_BUILD_GTESTS)
+	enable_testing()
+	add_subdirectory(test)
 endif()

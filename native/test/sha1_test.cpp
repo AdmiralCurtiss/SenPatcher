@@ -2,6 +2,8 @@
 #include <filesystem>
 #include <vector>
 
+#include "gtest/gtest.h"
+
 #include "file.h"
 #include "sha1.h"
 
@@ -1033,66 +1035,14 @@ constexpr std::array<SenPatcher::SHA1, 1025> reference = {
     SenPatcher::SHA1FromHexString("5b00669c480d5cffbdfa8bdba99561160f2d1b77"),
 };
 
-int main(int argc, char** argv) {
+TEST(SHA1, ZeroTo1024) {
     std::vector<char> tmp;
 
-    int errors = 0;
     for (int i = 0; i <= 1024; ++i) {
         auto hash = SenPatcher::CalculateSHA1(tmp.data(), tmp.size());
 
-        if (hash != reference[i]) {
-            ++errors;
-            printf(
-                "error on loop %04d, got "
-                "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x "
-                "instead of "
-                "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%"
-                "02x\n",
-                i,
-                ((int)hash.Hash[0]) & 0xff,
-                ((int)hash.Hash[1]) & 0xff,
-                ((int)hash.Hash[2]) & 0xff,
-                ((int)hash.Hash[3]) & 0xff,
-                ((int)hash.Hash[4]) & 0xff,
-                ((int)hash.Hash[5]) & 0xff,
-                ((int)hash.Hash[6]) & 0xff,
-                ((int)hash.Hash[7]) & 0xff,
-                ((int)hash.Hash[8]) & 0xff,
-                ((int)hash.Hash[9]) & 0xff,
-                ((int)hash.Hash[10]) & 0xff,
-                ((int)hash.Hash[11]) & 0xff,
-                ((int)hash.Hash[12]) & 0xff,
-                ((int)hash.Hash[13]) & 0xff,
-                ((int)hash.Hash[14]) & 0xff,
-                ((int)hash.Hash[15]) & 0xff,
-                ((int)hash.Hash[16]) & 0xff,
-                ((int)hash.Hash[17]) & 0xff,
-                ((int)hash.Hash[18]) & 0xff,
-                ((int)hash.Hash[19]) & 0xff,
-                ((int)reference[i].Hash[0]) & 0xff,
-                ((int)reference[i].Hash[1]) & 0xff,
-                ((int)reference[i].Hash[2]) & 0xff,
-                ((int)reference[i].Hash[3]) & 0xff,
-                ((int)reference[i].Hash[4]) & 0xff,
-                ((int)reference[i].Hash[5]) & 0xff,
-                ((int)reference[i].Hash[6]) & 0xff,
-                ((int)reference[i].Hash[7]) & 0xff,
-                ((int)reference[i].Hash[8]) & 0xff,
-                ((int)reference[i].Hash[9]) & 0xff,
-                ((int)reference[i].Hash[10]) & 0xff,
-                ((int)reference[i].Hash[11]) & 0xff,
-                ((int)reference[i].Hash[12]) & 0xff,
-                ((int)reference[i].Hash[13]) & 0xff,
-                ((int)reference[i].Hash[14]) & 0xff,
-                ((int)reference[i].Hash[15]) & 0xff,
-                ((int)reference[i].Hash[16]) & 0xff,
-                ((int)reference[i].Hash[17]) & 0xff,
-                ((int)reference[i].Hash[18]) & 0xff,
-                ((int)reference[i].Hash[19]) & 0xff);
-        }
+        EXPECT_EQ(reference[i], hash);
 
         tmp.push_back((char)i);
     }
-
-    return errors;
 }
