@@ -763,5 +763,32 @@ endif()
 
 if (SENPATCHER_BUILD_GTESTS)
 	enable_testing()
-	add_subdirectory(test)
+	set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+	set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+	set(GTEST_HAS_ABSL OFF CACHE BOOL "" FORCE)
+	add_subdirectory(gtest)
+
+	add_executable(tests)
+	target_sources(tests PRIVATE
+		${SOURCES_BASE_FIXES}
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+		xorshift.h
+
+		test/p3a_lookup_test.cpp
+		test/sha1_test.cpp
+	)
+	target_include_directories(tests
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds" "gtest/googletest/include"
+	)
+	target_link_libraries(
+		tests
+		GTest::gtest_main
+	)
+
+	include(GoogleTest)
+	gtest_discover_tests(tests)
 endif()
