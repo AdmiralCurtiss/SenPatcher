@@ -70,3 +70,8 @@ Public domain
 == native/lzma2301 ==
 The LZMA SDK is public domain
 https://www.7-zip.org/sdk.html
+
+== native/gtest ==
+Licensed under a BSD 3-Clause license
+Copyright 2008, Google Inc. All rights reserved.
+See the native/gtest/LICENSE for details.
