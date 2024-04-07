@@ -59,8 +59,13 @@ void LoadModP3As(SenPatcher::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
                  bool shouldLoadAssetFixes);
+
+// Searches a file with name filteredPath (assumed to be pre-filtered) in
+// [CombinedFileInfos, CombinedFileInfos + CombinedFileInfoCount)
+// which is assumed to be sorted and without duplicates.
 const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
                                  const std::array<char, 0x100>& filteredPath);
+
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                             uint64_t filesizeLimit,
                             void*& out_memory,

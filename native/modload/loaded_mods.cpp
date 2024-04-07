@@ -443,23 +443,26 @@ void LoadModP3As(SenPatcher::Logger& logger,
 
 const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
                                  const std::array<char, 0x100>& filteredPath) {
-    const size_t count = loadedModsData.CombinedFileInfoCount;
-    const P3AFileRef* const infos = loadedModsData.CombinedFileInfos.get();
-    auto bound = std::lower_bound(
-        infos,
-        infos + count,
-        filteredPath,
-        [](const P3AFileRef& lhs, const std::array<char, 0x100>& rhs) {
-            return strncmp(lhs.FileInfo->Filename.data(), rhs.data(), rhs.size()) < 0;
-        });
+    const P3AFileRef* infos = loadedModsData.CombinedFileInfos.get();
+    size_t count = loadedModsData.CombinedFileInfoCount;
+    while (true) {
+        if (count == 0) {
+            return nullptr;
+        }
 
-    if (bound != (infos + count)
-        && strncmp(bound->FileInfo->Filename.data(), filteredPath.data(), filteredPath.size())
-               == 0) {
-        return bound;
+        const size_t countHalf = count / 2;
+        const P3AFileRef* middle = infos + countHalf;
+        const int cmp =
+            strncmp(middle->FileInfo->Filename.data(), filteredPath.data(), filteredPath.size());
+        if (cmp == 0) {
+            return middle;
+        } else if (cmp < 0) {
+            infos = middle + 1;
+            count = count - (countHalf + 1);
+        } else {
+            count = countHalf;
+        }
     }
-
-    return nullptr;
 }
 
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,
