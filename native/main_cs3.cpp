@@ -256,9 +256,7 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
     return std::nullopt;
 }
 
-static int64_t __fastcall FFileOpenForwarder(FFile* ffile,
-                                             const char* path,
-                                             int unknownThirdParameter) {
+static int64_t __fastcall FFileOpenForwarder(FFile* ffile, const char* path) {
     if (OpenModFile(ffile, path)) {
         return 1;
     }
