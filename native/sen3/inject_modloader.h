@@ -19,12 +19,6 @@ void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
                               char*& codespace,
                               char* codespaceEnd,
                               void* ffileGetFilesizeForwarder);
-void InjectAtFreestandingGetFilesize(SenPatcher::Logger& logger,
-                                     char* textRegion,
-                                     GameVersion version,
-                                     char*& codespace,
-                                     char* codespaceEnd,
-                                     void* freestandingGetFilesizeForwarder);
 void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
                             char* textRegion,
                             GameVersion version,
