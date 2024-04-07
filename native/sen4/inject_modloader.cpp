@@ -18,54 +18,46 @@ void InjectAtFFileOpen(SenPatcher::Logger& logger,
     using namespace SenPatcher::x64;
 
     char* const entryPoint = textRegion
-                             + (version == GameVersion::Japanese ? (0x1400af780 - 0x140001000)
-                                                                 : (0x1400af7a0 - 0x140001000));
+                             + (version == GameVersion::Japanese ? (0x1400ed273 - 0x140001000)
+                                                                 : (0x1400ef333 - 0x140001000));
     char* const exitPoint = textRegion
-                            + (version == GameVersion::Japanese ? (0x1400af89d - 0x140001000)
-                                                                : (0x1400af8bd - 0x140001000));
+                            + (version == GameVersion::Japanese ? (0x1400ed2d4 - 0x140001000)
+                                                                : (0x1400ef394 - 0x140001000));
 
 
     char* codespaceBegin = codespace;
-    auto injectResult = InjectJumpIntoCode<12>(logger, entryPoint, R64::RAX, codespaceBegin);
+    auto injectResult = InjectJumpIntoCode<12>(logger, entryPoint, R64::RDX, codespaceBegin);
     char* inject = injectResult.JumpBackAddress;
     const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
 
-    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
-    codespace += overwrittenInstructions.size();
-
-    Emit_PUSH_R64(codespace, R64::RAX);
-    Emit_PUSH_R64(codespace, R64::RCX);
-    Emit_PUSH_R64(codespace, R64::RDX);
-    Emit_PUSH_R64(codespace, R64::R8);
-
+    Emit_PUSH_R64(codespace, R64::R10);
+    Emit_PUSH_R64(codespace, R64::R11);
     Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x20);
 
+    Emit_MOV_R64_R64(codespace, R64::RDX, R64::RDI);
+    Emit_MOV_R64_R64(codespace, R64::RCX, R64::RBX);
     Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(ffileOpenForwarder));
     Emit_CALL_R64(codespace, R64::RAX);
 
     Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
-
-    Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
-    Emit_POP_R64(codespace, R64::R8);
-    Emit_POP_R64(codespace, R64::RDX);
-    Emit_POP_R64(codespace, R64::RCX);
-    Emit_POP_R64(codespace, R64::RAX);
+    Emit_POP_R64(codespace, R64::R11);
+    Emit_POP_R64(codespace, R64::R10);
 
     // check for success
+    Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
     BranchHelper1Byte success;
     success.WriteJump(codespace, JumpCondition::JNZ);
 
     // go back to function and pretend nothing happened
-    Emit_MOV_R64_IMM64(codespace, R64::RDI, std::bit_cast<uint64_t>(inject));
-    Emit_JMP_R64(codespace, R64::RDI);
+    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+    codespace += overwrittenInstructions.size();
+    Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(inject));
+    Emit_JMP_R64(codespace, R64::RDX);
 
-    // return that we succeeded
+    // jump to exit point (success is set by code at exit point)
     success.SetTarget(codespace);
-    Emit_MOV_R64_IMM64(codespace, R64::RAX, 1);
-
-    // jump to exit point
-    Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPoint));
-    Emit_JMP_R64(codespace, R64::RCX);
+    Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(exitPoint));
+    Emit_JMP_R64(codespace, R64::RDX);
 }
 
 void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
