@@ -19,7 +19,10 @@ void InjectAtFFileOpen(SenPatcher::Logger& logger,
 
     char* const entryPoint =
         textRegion
-        + (version == GameVersion::Japanese ? (0x43ffe0 - 0x401000) : (0x440130 - 0x401000));
+        + (version == GameVersion::Japanese ? (0x4825ea - 0x401000) : (0x483e5a - 0x401000));
+    char* const exitPoint =
+        textRegion
+        + (version == GameVersion::Japanese ? (0x48262e - 0x401000) : (0x483e9e - 0x401000));
 
     char* codespaceBegin = codespace;
     auto injectResult = InjectJumpIntoCode<5>(logger, entryPoint, codespaceBegin);
@@ -30,11 +33,10 @@ void InjectAtFFileOpen(SenPatcher::Logger& logger,
     BranchHelper4Byte ffile_open_forwarder;
     ffile_open_forwarder.SetTarget(static_cast<char*>(ffileOpenForwarder));
 
-    // call forwarder while preserving ecx
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::ESP, 4);
-    Emit_PUSH_R32(codespace, R32::ECX);
+    // call forwarder
+    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::EBP, 8);
+    Emit_MOV_R32_R32(codespace, R32::ECX, R32::ESI);
     ffile_open_forwarder.WriteJump(codespace, JumpCondition::CALL);
-    Emit_POP_R32(codespace, R32::ECX);
 
     // check result
     Emit_TEST_R32_R32(codespace, R32::EAX, R32::EAX);
@@ -46,9 +48,11 @@ void InjectAtFFileOpen(SenPatcher::Logger& logger,
     codespace += overwrittenInstructions.size();
     jump_back.WriteJump(codespace, JumpCondition::JMP);
 
-    // on success just return immediately
+    // on success go to return code
     success.SetTarget(codespace);
-    Emit_RET_IMM16(codespace, 8);
+    BranchHelper4Byte success_exit;
+    success_exit.SetTarget(exitPoint);
+    success_exit.WriteJump(codespace, JumpCondition::JMP);
 }
 
 void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
@@ -61,10 +65,11 @@ void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
 
     char* const entryPoint =
         textRegion
-        + (version == GameVersion::Japanese ? (0x440130 - 0x401000) : (0x440280 - 0x401000));
+        + (version == GameVersion::Japanese ? (0x482780 - 0x401000) : (0x483ff0 - 0x401000));
 
     char* codespaceBegin = codespace;
-    auto injectResult = InjectJumpIntoCode<5>(logger, entryPoint, codespaceBegin);
+    auto injectResult =
+        InjectJumpIntoCode<6, PaddingInstruction::Nop>(logger, entryPoint, codespaceBegin);
     BranchHelper4Byte jump_back;
     jump_back.SetTarget(injectResult.JumpBackAddress);
     const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
@@ -72,12 +77,10 @@ void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
     BranchHelper4Byte ffile_get_size_forwarder;
     ffile_get_size_forwarder.SetTarget(static_cast<char*>(ffileGetFilesizeForwarder));
 
-    // call forwarder while preserving ecx
-    Emit_PUSH_R32(codespace, R32::ECX);
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::ESP, 8);
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::ESP, 16);
+    // call forwarder
+    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::ESP, 4);
+    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::ESP, 12);
     ffile_get_size_forwarder.WriteJump(codespace, JumpCondition::CALL);
-    Emit_POP_R32(codespace, R32::ECX);
 
     // check result
     Emit_TEST_R32_R32(codespace, R32::EAX, R32::EAX);
