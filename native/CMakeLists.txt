@@ -784,6 +784,7 @@ if (SENPATCHER_BUILD_GTESTS)
 	target_include_directories(tests
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds" "gtest/googletest/include"
 	)
+	add_dependencies(tests GenerateGitRevisionHeader)
 	target_link_libraries(
 		tests
 		GTest::gtest_main
