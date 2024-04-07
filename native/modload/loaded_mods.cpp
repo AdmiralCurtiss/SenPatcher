@@ -684,6 +684,12 @@ void AppendLoadedModInfo(char*& string,
     size_t modfileCountSenPatcher = 0;
 
     for (size_t i = 0; i < loadedModsData.CombinedFileInfoCount; ++i) {
+        const auto& filename = loadedModsData.CombinedFileInfos[i].FileInfo->Filename;
+        if (memcmp("data/", filename.data(), 5) != 0) {
+            // ignore files that are not in the data directory, the file injection ignores them too
+            continue;
+        }
+
         if (loadedModsData.CombinedFileInfos[i].ArchiveData->Flags & P3AFlag_IsSenPatcherAssetMod) {
             ++modfileCountSenPatcher;
         } else {
