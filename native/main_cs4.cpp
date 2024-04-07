@@ -259,23 +259,7 @@ static int64_t __fastcall FFileOpenForwarder(FFile* ffile, const char* path) {
     return 0;
 }
 
-static int64_t __fastcall FFileGetFilesizeForwarder(FFile* ffile,
-                                                    const char* path,
-                                                    int unknownThirdParameter,
-                                                    uint32_t* out_filesize) {
-    auto result = GetFilesizeOfModFile(path);
-    if (result) {
-        if (out_filesize) {
-            *out_filesize = static_cast<uint32_t>(*result);
-        }
-        return 1;
-    }
-    return 0;
-}
-
-static int64_t __fastcall FreestandingGetFilesizeForwarder(const char* path,
-                                                           int unknownThirdParameter,
-                                                           uint32_t* out_filesize) {
+static int64_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* out_filesize) {
     auto result = GetFilesizeOfModFile(path);
     if (result) {
         if (out_filesize) {
@@ -560,13 +544,6 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                                            newPage,
                                            newPageEnd,
                                            &FFileGetFilesizeForwarder);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen4::InjectAtFreestandingGetFilesize(logger,
-                                                  static_cast<char*>(codeBase),
-                                                  version,
-                                                  newPage,
-                                                  newPageEnd,
-                                                  &FreestandingGetFilesizeForwarder);
     Align16CodePage(logger, newPage);
     SenLib::Sen4::InjectAtOpenFSoundFile(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FSoundOpenForwarder);
