@@ -15,6 +15,8 @@
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
 
+DECLARE_STANDARD_FIX(t_text)
+
 #define TRY_APPLY(asset, apply)                         \
     do {                                                \
         logger.Log("Applying: ");                       \
@@ -30,6 +32,7 @@ namespace SenLib::Sen5 {
 static bool CollectAssets(SenPatcher::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           std::vector<SenPatcher::P3APackFile>& packFiles) {
+    TRY_APPLY(t_text, TryApply(callback, packFiles));
     return true;
 }
 

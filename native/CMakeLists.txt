@@ -461,8 +461,11 @@ set(SOURCES_CS4_FIXES
 )
 
 set(SOURCES_REVERIE_FIXES
+	sen5/file_fixes/t_text.cpp
 	sen5/file_fixes.cpp
 	sen5/file_fixes.h
+	sen5/tbl.cpp
+	sen5/tbl.h
 )
 
 set(SOURCES_BASE_FIXES
