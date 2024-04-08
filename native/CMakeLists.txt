@@ -10,10 +10,12 @@ option(SENPATCHER_BUILD_CS1HOOK "build CS1 injection dll" OFF)
 option(SENPATCHER_BUILD_CS2HOOK "build CS2 injection dll" OFF)
 option(SENPATCHER_BUILD_CS3HOOK "build CS3 injection dll" OFF)
 option(SENPATCHER_BUILD_CS4HOOK "build CS4 injection dll" OFF)
+option(SENPATCHER_BUILD_REVHOOK "build Reverie injection dll" OFF)
 option(SENPATCHER_BUILD_CS1TEST "build CS1 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS2TEST "build CS2 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS3TEST "build CS3 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS4TEST "build CS4 asset builder executable" OFF)
+option(SENPATCHER_BUILD_REVTEST "build Reverie asset builder executable" OFF)
 option(SENPATCHER_BUILD_GTESTS "build tests" ON)
 
 separate_arguments(SENPATCHER_BUILDFLAGS NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS}")
@@ -458,6 +460,11 @@ set(SOURCES_CS4_FIXES
 	sen4/tbl.h
 )
 
+set(SOURCES_REVERIE_FIXES
+	sen5/file_fixes.cpp
+	sen5/file_fixes.h
+)
+
 set(SOURCES_BASE_FIXES
 	align.h
 	align.cpp
@@ -759,6 +766,59 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
 	add_dependencies(cs4hook GenerateGitRevisionHeader)
+endif()
+
+if (SENPATCHER_BUILD_REVTEST)
+	add_executable(reverietest)
+	target_sources(reverietest PRIVATE
+		main_reverie_test.cpp
+
+		${SOURCES_BASE_FIXES}
+		${SOURCES_REVERIE_FIXES}
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_compile_options(reverietest PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_include_directories(reverietest
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(reverietest GenerateGitRevisionHeader)
+endif()
+
+if (SENPATCHER_BUILD_REVHOOK)
+	add_library(reveriehook SHARED)
+	target_sources(reveriehook PRIVATE
+		dsound.def
+		main_reverie.cpp
+		ini.cpp
+		ini.h
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+		x64/emitter.cpp
+		x64/emitter.h
+		x64/inject_jump_into.h
+		x64/page_unprotect.cpp
+		x64/page_unprotect.h
+
+		sen5/exe_patch.h
+		sen5/exe_patch_add_senpatcher_version_to_title.cpp
+		sen5/inject_modloader.cpp
+		sen5/inject_modloader.h
+
+		${SOURCES_BASE_FIXES}
+		${SOURCES_REVERIE_FIXES}
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_compile_options(reveriehook PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_include_directories(reveriehook
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(reveriehook GenerateGitRevisionHeader)
 endif()
 
 if (SENPATCHER_BUILD_GTESTS)
