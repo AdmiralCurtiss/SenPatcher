@@ -1,9 +1,9 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "sha1.h"
 
@@ -27,6 +27,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         SenScriptPatcher patcher(bin);
 
+        // 'writing deep within the abyss' -> 'writhing deep within the abyss'
         patcher.ExtendPartialCommand(0xfdd, 0xac, 0xffb, {{0x68}});
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);

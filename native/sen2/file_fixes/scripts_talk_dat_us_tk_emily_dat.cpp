@@ -1,9 +1,9 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "sha1.h"
 
@@ -27,6 +27,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         SenScriptPatcher patcher(bin);
 
+        // 'Class VIII' -> 'Class VII'
         patcher.RemovePartialCommand(0x1199, 0x6c, 0x11f7, 0x1);
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);

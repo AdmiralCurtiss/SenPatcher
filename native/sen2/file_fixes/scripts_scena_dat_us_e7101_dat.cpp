@@ -1,9 +1,9 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "sha1.h"
 
@@ -26,7 +26,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto& bin = file->Data;
 
         SenScriptPatcher patcher(bin);
+
+        // remove stray space at start of textbox
         patcher.RemovePartialCommand(0x107b, 0x18, 0x1083, 1);
+
+        // remove incorrect 'Your Lordship!' clip from Rean
+        // this texbox has two voice clips assigned to, the remaining one is the correct one
         patcher.RemovePartialCommand(0x64e9, 0x22, 0x64f4, 5);
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);

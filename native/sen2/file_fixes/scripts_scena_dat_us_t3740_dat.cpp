@@ -1,9 +1,9 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "sha1.h"
 
@@ -27,6 +27,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         SenScriptPatcher patcher(bin);
 
+        // All of these fix Gregor's name from 'Grego' to 'Gregor'
         patcher.ExtendPartialCommand(0x36bb, 0x141, 0x36ce, {{0x72}});
         patcher.ExtendPartialCommand(0x3815, 0x73, 0x382f, {{0x72}});
         patcher.ExtendPartialCommand(0x38cd, 0xbe, 0x3916, {{0x72}});
