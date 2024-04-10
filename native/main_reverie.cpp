@@ -249,6 +249,14 @@ static int64_t __fastcall FFileOpenForwarder(FFile* ffile, const char* path) {
     return 0;
 }
 
+static int64_t __fastcall FFileExistsForwarder(const char* path) {
+    auto result = GetFilesizeOfModFile(path);
+    if (result) {
+        return 1;
+    }
+    return 0;
+}
+
 static int64_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* out_filesize) {
     auto result = GetFilesizeOfModFile(path);
     if (result) {
@@ -508,6 +516,25 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     SenLib::Sen5::InjectAtFFileOpen(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileOpenForwarder);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen5::InjectAtBattleScriptExists(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileExistsForwarder);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen5::InjectAtFileExists1(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileExistsForwarder);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen5::InjectAtFileExists2(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileExistsForwarder);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen5::InjectAtFFileGetFilesize(logger,
+                                           static_cast<char*>(codeBase),
+                                           version,
+                                           newPage,
+                                           newPageEnd,
+                                           &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, newPage);
+    SenLib::Sen5::InjectAtOpenFSoundFile(
+        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FSoundOpenForwarder);
     Align16CodePage(logger, newPage);
 
     AddSenPatcherVersionToTitle(logger,
