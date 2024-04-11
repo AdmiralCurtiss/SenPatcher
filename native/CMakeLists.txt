@@ -560,6 +560,7 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		sen1/exe_patch_fix_voice_tables.cpp
 		sen1/exe_patch_force_no_kerning.cpp
 		sen1/exe_patch_force_xinput.cpp
+		sen1/exe_patch_patch_music_queueing.cpp
 		sen1/exe_patch_remove_turbo_auto_skip.cpp
 		sen1/exe_patch_show_mouse_cursor.cpp
 		sen1/exe_patch_thor_mq_string.cpp

@@ -322,6 +322,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     bool forceXInput = false;
     bool allowR2NotebookShortcut = false;
     int turboModeButton = 7;
+    bool fixBgmEnqueue = true;
 
     {
         std::string settingsFilePath;
@@ -388,6 +389,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                 check_boolean("CS1", "ForceXInput", forceXInput);
                 check_boolean("CS1", "AlwaysUseNotebookR2", allowR2NotebookShortcut);
                 check_integer("CS1", "TurboModeButton", turboModeButton);
+                check_boolean("CS1", "FixBgmEnqueue", fixBgmEnqueue);
             }
         }
     }
@@ -478,6 +480,10 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     if (forceXInput) {
         SenLib::Sen1::PatchForceXInput(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (fixBgmEnqueue) {
+        PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
 
