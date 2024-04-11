@@ -203,4 +203,8 @@ inline void WriteInstruction16(char*& codepos, uint32_t instr) {
     *codepos++ = (char)((instr >> 8) & 0xff);
     *codepos++ = (char)(instr & 0xff);
 }
+
+inline void WriteInstruction8(char*& codepos, uint32_t instr) {
+    *codepos++ = (char)(instr & 0xff);
+}
 } // namespace SenPatcher::x64

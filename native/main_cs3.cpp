@@ -486,6 +486,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     bool disablePauseOnFocusLoss = false;
     bool forceXInput = false;
     bool swapBrokenMasterQuartzValuesForDisplay = true;
+    bool fixBgmEnqueue = true;
 
     {
         std::string settingsFilePath;
@@ -528,6 +529,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                 check_boolean("CS3", "ShowMouseCursor", showMouseCursor);
                 check_boolean("CS3", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
                 check_boolean("CS3", "ForceXInput", forceXInput);
+                check_boolean("CS3", "FixBgmEnqueue", fixBgmEnqueue);
             }
         }
     }
@@ -601,6 +603,10 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     if (fixControllerMapping) {
         PatchFixControllerMappings(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (fixBgmEnqueue) {
+        PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
 
