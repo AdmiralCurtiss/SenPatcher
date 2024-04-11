@@ -466,6 +466,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     }
 
     bool assetFixes = true;
+    bool fixBgmEnqueue = true;
 
     {
         std::string settingsFilePath;
@@ -501,6 +502,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                         }
                     };
                 check_boolean("Reverie", "AssetFixes", assetFixes);
+                check_boolean("Reverie", "FixBgmEnqueue", fixBgmEnqueue);
             }
         }
     }
@@ -545,6 +547,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                                 s_LoadedModsData,
                                 !assetCreationSuccess);
     Align16CodePage(logger, newPage);
+
+    if (fixBgmEnqueue) {
+        PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
 
     // mark newly allocated page as executable
     {

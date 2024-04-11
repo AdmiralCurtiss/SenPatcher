@@ -26,4 +26,10 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  char* codespaceEnd,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
+
+void PatchMusicQueueing(SenPatcher::Logger& logger,
+                        char* textRegion,
+                        GameVersion version,
+                        char*& codespace,
+                        char* codespaceEnd);
 } // namespace SenLib::Sen5

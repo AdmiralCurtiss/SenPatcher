@@ -481,6 +481,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     bool showMouseCursor = false;
     bool disablePauseOnFocusLoss = false;
     bool fixSwappedButtonsWhenDynamicPromptsOff = true;
+    bool fixBgmEnqueue = true;
 
     {
         std::string settingsFilePath;
@@ -522,6 +523,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                 check_boolean("CS4", "DisableMouseCapture", disableMouseCapture);
                 check_boolean("CS4", "ShowMouseCursor", showMouseCursor);
                 check_boolean("CS4", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
+                check_boolean("CS4", "FixBgmEnqueue", fixBgmEnqueue);
             }
         }
     }
@@ -590,6 +592,10 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     if (fixSwappedButtonsWhenDynamicPromptsOff) {
         PatchFixPcConfirmCancelWhenSwapped(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (fixBgmEnqueue) {
+        PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
 

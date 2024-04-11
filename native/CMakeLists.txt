@@ -754,6 +754,7 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		sen4/exe_patch_disable_pause_on_focus_loss.cpp
 		sen4/exe_patch_fix_pc_confirm_cancel_when_swapped.cpp
 		sen4/exe_patch_force_swap_confirm_cancel.cpp
+		sen4/exe_patch_patch_music_queueing.cpp
 		sen4/exe_patch_show_mouse_cursor.cpp
 		sen4/inject_modloader.cpp
 		sen4/inject_modloader.h
@@ -808,6 +809,7 @@ if (SENPATCHER_BUILD_REVHOOK)
 
 		sen5/exe_patch.h
 		sen5/exe_patch_add_senpatcher_version_to_title.cpp
+		sen5/exe_patch_patch_music_queueing.cpp
 		sen5/inject_modloader.cpp
 		sen5/inject_modloader.h
 
