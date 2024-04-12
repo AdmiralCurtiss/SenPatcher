@@ -2,10 +2,9 @@
 
 #include <array>
 #include <cstdint>
-#include <vector>
+#include <memory>
 
 #include "util/endian.h"
-#include "util/stream.h"
 
 namespace SenLib {
 struct PkgFile {
@@ -18,20 +17,31 @@ struct PkgFile {
     uint32_t Flags;
 
     // Pointer to the data stream. Must contain at least CompressedSize bytes!
-    const char* Data = nullptr;
-
-    PkgFile(SenLib::ReadStream& s, HyoutaUtils::EndianUtils::Endianness e);
+    const char* Data;
 };
 
-struct Pkg {
-    uint32_t Unknown; // seems like a unique index or something, at least in CS1/2?
-    std::vector<PkgFile> Files;
+struct PkgHeader {
+    std::unique_ptr<PkgFile[]> Files;
+    uint32_t FileCount = 0;
+    uint32_t Unknown = 0; // seems like a unique index or something, at least in CS1/2?
 
-    Pkg(const char* buffer,
-        size_t length,
-        HyoutaUtils::EndianUtils::Endianness e =
-            HyoutaUtils::EndianUtils::Endianness::LittleEndian);
-
-    void WriteToStream(SenLib::WriteStream& s, HyoutaUtils::EndianUtils::Endianness e) const;
+    PkgHeader();
+    PkgHeader(const PkgHeader& other) = delete;
+    PkgHeader(PkgHeader&& other);
+    PkgHeader& operator=(const PkgHeader& other) = delete;
+    PkgHeader& operator=(PkgHeader&& other);
+    ~PkgHeader();
 };
+
+bool ReadPkgFromMemory(
+    PkgHeader& pkg,
+    const char* buffer,
+    size_t length,
+    HyoutaUtils::EndianUtils::Endianness e = HyoutaUtils::EndianUtils::Endianness::LittleEndian);
+
+bool CreatePkgInMemory(std::unique_ptr<char[]>& buffer,
+                       size_t& bufferLength,
+                       const PkgHeader& pkg,
+                       HyoutaUtils::EndianUtils::Endianness e);
+
 } // namespace SenLib

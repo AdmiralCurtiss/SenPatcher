@@ -13,8 +13,14 @@ std::vector<char> PatchSingleTexturePkg(const char* file,
                                         size_t fileLength,
                                         const char* patch,
                                         size_t patchLength) {
-    Pkg pkg(file, fileLength, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
-    if (pkg.Files.size() < 2 || !pkg.Files[1].Data) {
+    PkgHeader pkg;
+
+    if (!SenLib::ReadPkgFromMemory(
+            pkg, file, fileLength, HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+        throw "failed to read pkg";
+    }
+
+    if (pkg.FileCount < 2 || !pkg.Files[1].Data) {
         throw "invalid single texture pkg";
     }
     auto& f1 = pkg.Files[1];
@@ -45,8 +51,13 @@ std::vector<char> PatchSingleTexturePkg(const char* file,
 
     std::vector<char> ms;
     {
-        MemoryStream mss(ms);
-        pkg.WriteToStream(mss, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
+        std::unique_ptr<char[]> buffer;
+        size_t bufferLength;
+        if (!SenLib::CreatePkgInMemory(
+                buffer, bufferLength, pkg, HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+            throw "pkg creation error";
+        }
+        ms.assign(buffer.get(), buffer.get() + bufferLength);
     }
 
     return ms;

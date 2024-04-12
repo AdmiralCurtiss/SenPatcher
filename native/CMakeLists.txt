@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 option(SENPATCHER_BUILD_P3A "build P3A packer/extractor executable" ON)
+option(SENPATCHER_BUILD_PKG "build PKG/PKA packer/extractor executable" ON)
 option(SENPATCHER_BUILD_CS1HOOK "build CS1 injection dll" OFF)
 option(SENPATCHER_BUILD_CS2HOOK "build CS2 injection dll" OFF)
 option(SENPATCHER_BUILD_CS3HOOK "build CS3 injection dll" OFF)
@@ -207,6 +208,46 @@ if (SENPATCHER_BUILD_P3A)
 	)
 	target_compile_options(p3a PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(p3a
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+	)
+endif()
+
+if (SENPATCHER_BUILD_PKG)
+	add_executable(pkg)
+	target_sources(pkg PRIVATE
+		main_pkg_archiver.cpp
+
+		align.h
+		align.cpp
+		file.h
+		file.cpp
+		util/endian.h
+		util/memread.h
+		util/memwrite.h
+		util/stream.cpp
+		util/stream.h
+		util/text.cpp
+		util/text.h
+		util/vector.h
+
+		sen/pka.cpp
+		sen/pka.h
+		sen/pka_to_pkg.cpp
+		sen/pka_to_pkg.h
+		sen/pkg.cpp
+		sen/pkg.h
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+		${SOURCES_ZSTD_DICTBUILDER}
+		${SOURCES_RAPIDJSON}
+	)
+	target_compile_definitions(pkg
+		PUBLIC FILE_WRAPPER_WITH_STD_FILESYSTEM
+	)
+	target_compile_options(pkg PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_include_directories(pkg
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 	)
 endif()
