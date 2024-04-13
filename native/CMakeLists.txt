@@ -219,6 +219,8 @@ if (SENPATCHER_BUILD_PKG)
 
 		align.h
 		align.cpp
+		crc32.h
+		crc32.c
 		file.h
 		file.cpp
 		util/endian.h
@@ -236,8 +238,11 @@ if (SENPATCHER_BUILD_PKG)
 		sen/pka_to_pkg.h
 		sen/pkg.cpp
 		sen/pkg.h
+		sen/pkg_extract.cpp
+		sen/pkg_extract.h
 
 		${SOURCES_LZ4}
+		${SOURCES_LZMA}
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 		${SOURCES_ZSTD_DICTBUILDER}
