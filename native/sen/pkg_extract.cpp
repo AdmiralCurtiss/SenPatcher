@@ -109,7 +109,7 @@ bool ExtractAndDecompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
     }
 
     const bool hasChecksum = (pkgFile.Flags & static_cast<uint32_t>(0x2)) != 0;
-    uint32_t checksum;
+    uint32_t checksum = 0;
     if (hasChecksum) {
         if (compressedLength < 4) {
             return false;

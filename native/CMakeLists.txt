@@ -238,6 +238,8 @@ if (SENPATCHER_BUILD_PKG)
 		sen/pka_to_pkg.h
 		sen/pkg.cpp
 		sen/pkg.h
+		sen/pkg_compress.cpp
+		sen/pkg_compress.h
 		sen/pkg_extract.cpp
 		sen/pkg_extract.h
 

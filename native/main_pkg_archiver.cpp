@@ -2,11 +2,13 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "file.h"
 #include "sen/pka.h"
 #include "sen/pka_to_pkg.h"
 #include "sen/pkg.h"
+#include "sen/pkg_compress.h"
 #include "sen/pkg_extract.h"
 #include "util/stream.h"
 
@@ -21,6 +23,10 @@ static void PrintUsage() {
         "  pkg pkaconvert (path to pka file) [path to directory to extract to]\n"
         "Output directory will be input file + '.ex' if not given.\n"
         "Any existing files in the output directory may be overwritten!\n"
+        "\n"
+        "Usage for packing a PKG:\n"
+        "  pkg pkgpack [options] (path to directory to pack) (path to new archive)\n"
+        "Any existing file at the new archive location will be overwritten!\n"
         "\n"
         "\n");
 }
@@ -189,6 +195,107 @@ int main(int argc, char** argv) {
                 printf("Failed to write to output file.\n");
                 return -1;
             }
+        }
+
+        return 0;
+    } else if (strcmp("pkgpack", argv[1]) == 0) {
+        int idx = 2;
+        if (argc - 2 < idx) {
+            PrintUsage();
+            return -1;
+        }
+
+        std::string_view source(argv[idx]);
+        std::string_view target(argv[idx + 1]);
+
+        std::vector<SenLib::PkgFile> fileinfos;
+        std::vector<std::unique_ptr<char[]>> filedatas;
+        {
+            std::filesystem::path rootDir(source);
+            std::error_code ec;
+            std::filesystem::directory_iterator iterator(rootDir, ec);
+            if (ec) {
+                return false;
+            }
+            for (auto const& entry : iterator) {
+                if (entry.is_directory()) {
+                    continue;
+                }
+
+                const auto relativePath = std::filesystem::relative(entry.path(), rootDir, ec);
+                if (relativePath.empty()) {
+                    printf("Error while collecting files.\n");
+                    return -1;
+                }
+                const auto filename = relativePath.u8string();
+                const char8_t* filenameC = filename.c_str();
+
+                std::array<char, 0x40> fn{};
+                for (size_t i = 0; i < fn.size(); ++i) {
+                    const char c = static_cast<char>(filenameC[i]);
+                    if (c == '\0') {
+                        break;
+                    }
+                    fn[i] = c;
+                }
+                auto& fi = fileinfos.emplace_back(SenLib::PkgFile{.Filename = fn});
+                auto& fd = filedatas.emplace_back();
+
+                SenPatcher::IO::File infile(entry.path(), SenPatcher::IO::OpenMode::Read);
+                if (!infile.IsOpen()) {
+                    printf("Failed opening file.\n");
+                    return -1;
+                }
+                const auto uncompressedLength = infile.GetLength();
+                if (!uncompressedLength) {
+                    printf("Failed getting size of file.\n");
+                    return -1;
+                }
+                if (*uncompressedLength > UINT32_MAX) {
+                    printf("File too big to put into pkg.\n");
+                    return -1;
+                }
+                auto uncompressedData = std::make_unique_for_overwrite<char[]>(*uncompressedLength);
+                if (infile.Read(uncompressedData.get(), *uncompressedLength)
+                    != *uncompressedLength) {
+                    printf("Failed to read file.\n");
+                    return -1;
+                }
+
+                if (!SenLib::CompressPkgFile(fd,
+                                             fi,
+                                             uncompressedData.get(),
+                                             static_cast<uint32_t>(*uncompressedLength),
+                                             0,
+                                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+                    printf("Failed adding file to pkg.\n");
+                    return -1;
+                }
+            }
+        }
+
+        std::unique_ptr<char[]> ms;
+        size_t msSize;
+        if (!SenLib::CreatePkgInMemory(ms,
+                                       msSize,
+                                       fileinfos.data(),
+                                       static_cast<uint32_t>(fileinfos.size()),
+                                       0,
+                                       HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+            printf("Failed to create pkg.\n");
+            return -1;
+        }
+
+        SenPatcher::IO::File outfile(std::filesystem::path(target),
+                                     SenPatcher::IO::OpenMode::Write);
+        if (!outfile.IsOpen()) {
+            printf("Failed to open output file.\n");
+            return -1;
+        }
+
+        if (outfile.Write(ms.get(), msSize) != msSize) {
+            printf("Failed to write to output file.\n");
+            return -1;
         }
 
         return 0;

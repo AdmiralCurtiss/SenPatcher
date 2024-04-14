@@ -43,5 +43,11 @@ bool CreatePkgInMemory(std::unique_ptr<char[]>& buffer,
                        size_t& bufferLength,
                        const PkgHeader& pkg,
                        HyoutaUtils::EndianUtils::Endianness e);
+bool CreatePkgInMemory(std::unique_ptr<char[]>& buffer,
+                       size_t& bufferLength,
+                       const PkgFile* pkgFiles,
+                       uint32_t pkgFileCount,
+                       uint32_t unknownValue,
+                       HyoutaUtils::EndianUtils::Endianness e);
 
 } // namespace SenLib

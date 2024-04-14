@@ -59,13 +59,22 @@ bool CreatePkgInMemory(std::unique_ptr<char[]>& buffer,
                        size_t& bufferLength,
                        const PkgHeader& pkg,
                        HyoutaUtils::EndianUtils::Endianness e) {
+    return CreatePkgInMemory(buffer, bufferLength, pkg.Files.get(), pkg.FileCount, pkg.Unknown, e);
+}
+
+bool CreatePkgInMemory(std::unique_ptr<char[]>& buffer,
+                       size_t& bufferLength,
+                       const PkgFile* pkgFiles,
+                       uint32_t pkgFileCount,
+                       uint32_t unknownValue,
+                       HyoutaUtils::EndianUtils::Endianness e) {
     using namespace HyoutaUtils::MemWrite;
     using HyoutaUtils::EndianUtils::ToEndian;
 
-    const size_t headerSize = 8 + (static_cast<size_t>(pkg.FileCount) * 0x50);
+    const size_t headerSize = 8 + (static_cast<size_t>(pkgFileCount) * 0x50);
     size_t totalFileSize = 0;
-    for (size_t i = 0; i < pkg.FileCount; ++i) {
-        const auto& f = pkg.Files[i];
+    for (size_t i = 0; i < pkgFileCount; ++i) {
+        const auto& f = pkgFiles[i];
         if (!f.Data) {
             return false;
         }
@@ -77,11 +86,11 @@ bool CreatePkgInMemory(std::unique_ptr<char[]>& buffer,
     auto data = std::make_unique_for_overwrite<char[]>(dataLength);
     size_t currentFileSize = 0;
 
-    WriteUInt32(&data[0], ToEndian(pkg.Unknown, e));
-    WriteUInt32(&data[4], ToEndian(pkg.FileCount, e));
+    WriteUInt32(&data[0], ToEndian(unknownValue, e));
+    WriteUInt32(&data[4], ToEndian(pkgFileCount, e));
     size_t pos = 8;
-    for (size_t i = 0; i < pkg.FileCount; ++i) {
-        const auto& f = pkg.Files[i];
+    for (size_t i = 0; i < pkgFileCount; ++i) {
+        const auto& f = pkgFiles[i];
         WriteArray(&data[pos], f.Filename);
         WriteUInt32(&data[pos + 0x40], ToEndian(f.UncompressedSize, e));
         WriteUInt32(&data[pos + 0x44], ToEndian(f.CompressedSize, e));
@@ -93,8 +102,8 @@ bool CreatePkgInMemory(std::unique_ptr<char[]>& buffer,
         currentFileSize += f.CompressedSize;
     }
 
-    for (size_t i = 0; i < pkg.FileCount; ++i) {
-        auto& f = pkg.Files[i];
+    for (size_t i = 0; i < pkgFileCount; ++i) {
+        auto& f = pkgFiles[i];
         std::memcpy(&data[pos], f.Data, f.CompressedSize);
         pos += f.CompressedSize;
     }
