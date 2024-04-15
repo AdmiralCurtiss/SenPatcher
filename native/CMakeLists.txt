@@ -5,8 +5,7 @@ project(SenPatcher LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-option(SENPATCHER_BUILD_P3A "build P3A packer/extractor executable" ON)
-option(SENPATCHER_BUILD_PKG "build PKG/PKA packer/extractor executable" ON)
+option(SENPATCHER_BUILD_TOOLS "build tools executable" ON)
 option(SENPATCHER_BUILD_CS1HOOK "build CS1 injection dll" OFF)
 option(SENPATCHER_BUILD_CS2HOOK "build CS2 injection dll" OFF)
 option(SENPATCHER_BUILD_CS3HOOK "build CS3 injection dll" OFF)
@@ -175,47 +174,10 @@ set(SOURCES_RAPIDJSON
 	rapidjson/msinttypes/stdint.h
 )
 
-if (SENPATCHER_BUILD_P3A)
-	add_executable(p3a)
-	target_sources(p3a PRIVATE
-		main_p3a_archiver.cpp
-
-		align.h
-		align.cpp
-		file.h
-		file.cpp
-		util/text.cpp
-		util/text.h
-
-		p3a/pack.cpp
-		p3a/pack.h
-		p3a/packfs.cpp
-		p3a/packfs.h
-		p3a/packjson.cpp
-		p3a/packjson.h
-		p3a/structs.h
-		p3a/unpackfs.cpp
-		p3a/unpackfs.h
-
-		${SOURCES_LZ4}
-		${SOURCES_ZSTD_BASE}
-		${SOURCES_ZSTD_COMPRESSION}
-		${SOURCES_ZSTD_DICTBUILDER}
-		${SOURCES_RAPIDJSON}
-	)
-	target_compile_definitions(p3a
-		PUBLIC P3A_PACKER_WITH_STD_FILESYSTEM FILE_WRAPPER_WITH_STD_FILESYSTEM
-	)
-	target_compile_options(p3a PRIVATE ${SENPATCHER_BUILDFLAGS})
-	target_include_directories(p3a
-		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-	)
-endif()
-
-if (SENPATCHER_BUILD_PKG)
-	add_executable(pkg)
-	target_sources(pkg PRIVATE
-		main_pkg_archiver.cpp
+if (SENPATCHER_BUILD_TOOLS)
+	add_executable(sentools)
+	target_sources(sentools PRIVATE
+		main_sentools.cpp
 
 		align.h
 		align.cpp
@@ -231,6 +193,16 @@ if (SENPATCHER_BUILD_PKG)
 		util/text.cpp
 		util/text.h
 		util/vector.h
+
+		p3a/pack.cpp
+		p3a/pack.h
+		p3a/packfs.cpp
+		p3a/packfs.h
+		p3a/packjson.cpp
+		p3a/packjson.h
+		p3a/structs.h
+		p3a/unpackfs.cpp
+		p3a/unpackfs.h
 
 		sen/pka.cpp
 		sen/pka.h
@@ -250,11 +222,11 @@ if (SENPATCHER_BUILD_PKG)
 		${SOURCES_ZSTD_DICTBUILDER}
 		${SOURCES_RAPIDJSON}
 	)
-	target_compile_definitions(pkg
-		PUBLIC FILE_WRAPPER_WITH_STD_FILESYSTEM
+	target_compile_definitions(sentools
+		PUBLIC P3A_PACKER_WITH_STD_FILESYSTEM FILE_WRAPPER_WITH_STD_FILESYSTEM
 	)
-	target_compile_options(pkg PRIVATE ${SENPATCHER_BUILDFLAGS})
-	target_include_directories(pkg
+	target_compile_options(sentools PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_include_directories(sentools
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 	)
 endif()
