@@ -227,8 +227,9 @@ if (SENPATCHER_BUILD_TOOLS)
 	)
 	target_compile_options(sentools PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(sentools
-		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
+	add_dependencies(sentools GenerateGitRevisionHeader)
 endif()
 
 if (SENPATCHER_BUILD_CS1HOOK OR SENPATCHER_BUILD_CS1TEST)
