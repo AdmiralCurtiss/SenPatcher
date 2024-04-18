@@ -215,6 +215,9 @@ if (SENPATCHER_BUILD_TOOLS)
 		sen/pkg_extract.cpp
 		sen/pkg_extract.h
 
+		cpp-optparse/OptionParser.cpp
+		cpp-optparse/OptionParser.h
+
 		${SOURCES_LZ4}
 		${SOURCES_LZMA}
 		${SOURCES_ZSTD_BASE}

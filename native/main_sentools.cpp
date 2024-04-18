@@ -5,6 +5,8 @@
 #include <string_view>
 #include <vector>
 
+#include "cpp-optparse/OptionParser.h"
+
 #include "file.h"
 #include "p3a/pack.h"
 #include "p3a/packfs.h"
@@ -28,33 +30,38 @@ struct CliTool {
     CliToolFunctionT Function;
 };
 
-static constexpr const char* P3A_Extract_Name = "P3A.Extract";
-static constexpr const char* P3A_Extract_ShortDescription =
-    "Extract a *.p3a archive to a directory.";
-static void P3A_Extract_PrintUsage() {
-    printf(
-        "Usage for extracting an archive:\n"
-        "  p3a extract (path to p3a file) [path to directory to extract to]\n"
-        "Output directory will be input file + '.ex' if not given.\n"
-        "Any existing files in the output directory may be overwritten!\n"
-        "\n");
-}
+#define P3A_Extract_Name "P3A.Extract"
+#define P3A_Extract_ShortDescription "Extract a *.p3a archive to a directory."
 static int P3A_Extract_Function(int argc, char** argv) {
-    if (argc < 3) {
-        P3A_Extract_PrintUsage();
+    optparse::OptionParser parser;
+    parser.description(P3A_Extract_ShortDescription);
+
+    parser.usage("sentools " P3A_Extract_Name " [options] archive.p3a");
+    parser.add_option("-o", "--output")
+        .dest("output")
+        .metavar("DIRECTORY")
+        .help(
+            "The output directory to extract to. Will be derived from input filename if not "
+            "given.");
+
+    const auto& options = parser.parse_args(argc, argv);
+    const auto& args = parser.args();
+    if (args.size() != 1) {
+        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
         return -1;
     }
 
-    std::string_view source(argv[2]);
+    std::string_view source(args[0]);
     std::string_view target;
     std::string tmp;
-    if (argc < 4) {
+    if (options.is_set("output")) {
+        target = std::string_view(options["output"]);
+    } else {
         tmp = std::string(source);
         tmp += ".ex";
         target = tmp;
-    } else {
-        target = std::string_view(argv[3]);
     }
+
 
     if (!SenPatcher::UnpackP3A(std::filesystem::path(source.begin(), source.end()),
                                std::filesystem::path(target.begin(), target.end()))) {
@@ -64,53 +71,56 @@ static int P3A_Extract_Function(int argc, char** argv) {
     return 0;
 }
 
-static constexpr const char* P3A_Pack_Name = "P3A.Pack";
-static constexpr const char* P3A_Pack_ShortDescription =
-    "Pack a *.p3a archive from the contents of a directory.";
-static void P3A_Pack_PrintUsage() {
-    printf(
-        "Usage for packing an archive (simple):\n"
-        "  p3a pack [options] (path to directory to pack) (path to new archive)\n"
-        "  options are:\n"
-        "    --compression none/lz4/zstd\n"
-        "Any existing file at the new archive location will be overwritten!\n"
-        "\n");
-}
+#define P3A_Pack_Name "P3A.Pack"
+#define P3A_Pack_ShortDescription "Pack a *.p3a archive from the contents of a directory."
 static int P3A_Pack_Function(int argc, char** argv) {
-    SenPatcher::P3ACompressionType compressionType = SenPatcher::P3ACompressionType::None;
-    int idx = 2;
-    while (idx < argc) {
-        if (strcmp("--compression", argv[idx]) == 0) {
-            ++idx;
-            if (idx < argc) {
-                if (strcmp("none", argv[idx]) == 0) {
-                    compressionType = SenPatcher::P3ACompressionType::None;
-                } else if (strcmp("lz4", argv[idx]) == 0) {
-                    compressionType = SenPatcher::P3ACompressionType::LZ4;
-                } else if (strcmp("zstd", argv[idx]) == 0) {
-                    compressionType = SenPatcher::P3ACompressionType::ZSTD;
-                } else {
-                    printf("Invalid compression type.\n");
-                    return -1;
-                }
-            } else {
-                P3A_Pack_PrintUsage();
-                return -1;
-            }
-            ++idx;
-            continue;
-        }
+    optparse::OptionParser parser;
+    parser.description(P3A_Pack_ShortDescription);
 
-        break;
-    }
+    parser.usage("sentools " P3A_Pack_Name " [options] directory");
+    parser.add_option("-o", "--output")
+        .dest("output")
+        .metavar("FILENAME")
+        .help("The output filename. Must be given.");
+    parser.add_option("-c", "--compression")
+        .dest("compression")
+        .metavar("TYPE")
+        .help("Which compression to use for the files packed into the archive.")
+        .choices({"none", "lz4", "zstd"})
+        .set_default("none");
 
-    if (argc - 2 < idx) {
-        P3A_Pack_PrintUsage();
+    const auto& options = parser.parse_args(argc, argv);
+    const auto& args = parser.args();
+    if (args.size() != 1) {
+        parser.error(args.size() == 0 ? "No input directory given."
+                                      : "More than 1 input directory given.");
         return -1;
     }
 
-    std::string_view source(argv[idx]);
-    std::string_view target(argv[idx + 1]);
+    if (!options.is_set("output")) {
+        parser.error("No output filename given.");
+        return -1;
+    }
+
+    std::string_view source(args[0]);
+    std::string_view target(options["output"]);
+
+    SenPatcher::P3ACompressionType compressionType = SenPatcher::P3ACompressionType::None;
+    if (options.is_set("compression")) {
+        const auto& compressionString = options["compression"];
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
+            compressionType = SenPatcher::P3ACompressionType::None;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("lz4", compressionString)) {
+            compressionType = SenPatcher::P3ACompressionType::LZ4;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("zstd", compressionString)) {
+            compressionType = SenPatcher::P3ACompressionType::ZSTD;
+        } else {
+            parser.error("Invalid compression type.");
+            return -1;
+        }
+    }
+
+
     if (!SenPatcher::PackP3AFromDirectory(std::filesystem::path(source.begin(), source.end()),
                                           std::filesystem::path(target.begin(), target.end()),
                                           compressionType)) {
@@ -120,27 +130,43 @@ static int P3A_Pack_Function(int argc, char** argv) {
     return 0;
 }
 
-static constexpr const char* P3A_PackJSON_Name = "P3A.PackJSON";
-static constexpr const char* P3A_PackJSON_ShortDescription =
-    "Pack a *.p3a archive from a *.json file describing its contents.";
-static void P3A_PackJSON_PrintUsage() {
-    printf(
-        "Usage for packing an archive (advanced):\n"
-        "  p3a packjson (path to json) (path to new archive)\n"
-        "The json file should describe all files to be packed.\n"
-        "For a reference, pack an archive with the simple variant, then extract it.\n"
-        "A json file that can be used to re-pack the archive will be generated in\n"
-        "the output directory.\n"
-        "\n");
-}
-static int P3A_PackJSON_Function(int argc, char** argv) {
-    if (argc < 4) {
-        P3A_PackJSON_PrintUsage();
+#define P3A_Repack_Name "P3A.Repack"
+#define P3A_Repack_ShortDescription "Repack a previously extracted *.p3a archive."
+static int P3A_Repack_Function(int argc, char** argv) {
+    optparse::OptionParser parser;
+    parser.description(
+        P3A_Repack_ShortDescription
+        "\n\n"
+        "This re-packages a previously extracted achive and keeps all the metadata "
+        "as best as possible. For example, the file order will be preserved, and "
+        "the same compression type will be used for each file.\n\n"
+        "To use this, point the program at the __p3a.json that was generated during "
+        "the archive extraction. You can also modify this file for some advanced packing features "
+        "that are not available through the standard directory packing interface.");
+
+    parser.usage("sentools " P3A_Repack_Name " [options] __p3a.json");
+    parser.add_option("-o", "--output")
+        .dest("output")
+        .metavar("FILENAME")
+        .help("The output filename. Must be given.");
+
+    const auto& options = parser.parse_args(argc, argv);
+    const auto& args = parser.args();
+    if (args.size() != 1) {
+        parser.error(args.size() == 0 ? "No input directory given."
+                                      : "More than 1 input directory given.");
         return -1;
     }
 
-    std::string_view source(argv[2]);
-    std::string_view target(argv[3]);
+    if (!options.is_set("output")) {
+        parser.error("No output filename given.");
+        return -1;
+    }
+
+    std::string_view source(args[0]);
+    std::string_view target(options["output"]);
+
+
     if (!SenPatcher::PackP3AFromJsonFile(std::filesystem::path(source.begin(), source.end()),
                                          std::filesystem::path(target.begin(), target.end()))) {
         printf("Packing failed.\n");
@@ -149,33 +175,38 @@ static int P3A_PackJSON_Function(int argc, char** argv) {
     return 0;
 }
 
-static constexpr const char* PKG_Extract_Name = "PKG.Extract";
-static constexpr const char* PKG_Extract_ShortDescription =
-    "Extract a *.pkg archive to a directory.";
-static void PKG_Extract_PrintUsage() {
-    printf(
-        "Usage for extracting a PKG:\n"
-        "  pkg pkgextract (path to pkg file) [path to directory to extract to]\n"
-        "Output directory will be input file + '.ex' if not given.\n"
-        "Any existing files in the output directory may be overwritten!\n"
-        "\n");
-}
+#define PKG_Extract_Name "PKG.Extract"
+#define PKG_Extract_ShortDescription "Extract a *.pkg archive to a directory."
 static int PKG_Extract_Function(int argc, char** argv) {
-    if (argc < 3) {
-        PKG_Extract_PrintUsage();
+    optparse::OptionParser parser;
+    parser.description(PKG_Extract_ShortDescription);
+
+    parser.usage("sentools " PKG_Extract_Name " [options] archive.pkg");
+    parser.add_option("-o", "--output")
+        .dest("output")
+        .metavar("DIRECTORY")
+        .help(
+            "The output directory to extract to. Will be derived from input filename if not "
+            "given.");
+
+    const auto& options = parser.parse_args(argc, argv);
+    const auto& args = parser.args();
+    if (args.size() != 1) {
+        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
         return -1;
     }
 
-    std::string_view source(argv[2]);
+    std::string_view source(args[0]);
     std::string_view target;
     std::string tmp;
-    if (argc < 4) {
+    if (options.is_set("output")) {
+        target = std::string_view(options["output"]);
+    } else {
         tmp = std::string(source);
         tmp += ".ex";
         target = tmp;
-    } else {
-        target = std::string_view(argv[3]);
     }
+
 
     std::filesystem::path sourcepath(source.begin(), source.end());
     std::filesystem::path targetpath(target.begin(), target.end());
@@ -247,33 +278,44 @@ static int PKG_Extract_Function(int argc, char** argv) {
     return 0;
 }
 
-static constexpr const char* PKA_Convert_Name = "PKA.Convert";
-static constexpr const char* PKA_Convert_ShortDescription =
-    "Convert a *.pka archive to the individual *.pkg files stored within.";
-static void PKA_Convert_PrintUsage() {
-    printf(
-        "Usage for extracting a PKA to individual PKGs:\n"
-        "  pkg pkaconvert (path to pka file) [path to directory to extract to]\n"
-        "Output directory will be input file + '.ex' if not given.\n"
-        "Any existing files in the output directory may be overwritten!\n"
-        "\n");
-}
+#define PKA_Convert_Name "PKA.Convert"
+#define PKA_Convert_ShortDescription \
+    "Convert a *.pka archive to the individual *.pkg files stored within."
 static int PKA_Convert_Function(int argc, char** argv) {
-    if (argc < 3) {
-        PKA_Convert_PrintUsage();
+    optparse::OptionParser parser;
+    parser.description(
+        PKA_Convert_ShortDescription
+        "\n\n"
+        "Note that this will duplicate every file that is stored in more than one "
+        "pkg into every single of those pkg files. The converted archives will likely be much "
+        "bigger than the input pka, so make sure you have enough disk space available.");
+
+    parser.usage("sentools " PKA_Convert_Name " [options] assets.pka");
+    parser.add_option("-o", "--output")
+        .dest("output")
+        .metavar("DIRECTORY")
+        .help(
+            "The output directory to convert to. Will be derived from input filename if not "
+            "given.");
+
+    const auto& options = parser.parse_args(argc, argv);
+    const auto& args = parser.args();
+    if (args.size() != 1) {
+        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
         return -1;
     }
 
-    std::string_view source(argv[2]);
+    std::string_view source(args[0]);
     std::string_view target;
     std::string tmp;
-    if (argc < 4) {
+    if (options.is_set("output")) {
+        target = std::string_view(options["output"]);
+    } else {
         tmp = std::string(source);
         tmp += ".ex";
         target = tmp;
-    } else {
-        target = std::string_view(argv[3]);
     }
+
 
     std::filesystem::path sourcepath(source.begin(), source.end());
     std::filesystem::path targetpath(target.begin(), target.end());
@@ -334,25 +376,34 @@ static int PKA_Convert_Function(int argc, char** argv) {
     return 0;
 }
 
-static constexpr const char* PKG_Pack_Name = "PKG.Pack";
-static constexpr const char* PKG_Pack_ShortDescription =
-    "Pack a *.pkg archive from the contents of a directory.";
-static void PKG_Pack_PrintUsage() {
-    printf(
-        "Usage for packing a PKG:\n"
-        "  pkg pkgpack [options] (path to directory to pack) (path to new archive)\n"
-        "Any existing file at the new archive location will be overwritten!\n"
-        "\n");
-}
+#define PKG_Pack_Name "PKG.Pack"
+#define PKG_Pack_ShortDescription "Pack a *.pkg archive from the contents of a directory."
 static int PKG_Pack_Function(int argc, char** argv) {
-    int idx = 2;
-    if (argc - 2 < idx) {
-        PKG_Pack_PrintUsage();
+    optparse::OptionParser parser;
+    parser.description(PKG_Pack_ShortDescription);
+
+    parser.usage("sentools " PKG_Pack_Name " [options] directory");
+    parser.add_option("-o", "--output")
+        .dest("output")
+        .metavar("FILENAME")
+        .help("The output filename. Must be given.");
+
+    const auto& options = parser.parse_args(argc, argv);
+    const auto& args = parser.args();
+    if (args.size() != 1) {
+        parser.error(args.size() == 0 ? "No input directory given."
+                                      : "More than 1 input directory given.");
         return -1;
     }
 
-    std::string_view source(argv[idx]);
-    std::string_view target(argv[idx + 1]);
+    if (!options.is_set("output")) {
+        parser.error("No output filename given.");
+        return -1;
+    }
+
+    std::string_view source(args[0]);
+    std::string_view target(options["output"]);
+
 
     std::vector<SenLib::PkgFile> fileinfos;
     std::vector<std::unique_ptr<char[]>> filedatas;
@@ -452,9 +503,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = P3A_Pack_Name,
             .ShortDescription = P3A_Pack_ShortDescription,
             .Function = P3A_Pack_Function},
-    CliTool{.Name = P3A_PackJSON_Name,
-            .ShortDescription = P3A_PackJSON_ShortDescription,
-            .Function = P3A_PackJSON_Function},
+    CliTool{.Name = P3A_Repack_Name,
+            .ShortDescription = P3A_Repack_ShortDescription,
+            .Function = P3A_Repack_Function},
     CliTool{.Name = PKG_Extract_Name,
             .ShortDescription = PKG_Extract_ShortDescription,
             .Function = PKG_Extract_Function},
@@ -483,7 +534,7 @@ int main(int argc, char** argv) {
     const std::string_view name = argv[1];
     for (const auto& tool : CliTools) {
         if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(name, tool.Name)) {
-            return tool.Function(argc, argv);
+            return tool.Function(argc - 1, argv + 1);
         }
     }
 
