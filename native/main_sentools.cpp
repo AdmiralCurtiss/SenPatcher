@@ -700,7 +700,7 @@ static int PKG_Repack_Function(int argc, char** argv) {
                                    msSize,
                                    fileinfos.data(),
                                    static_cast<uint32_t>(fileinfos.size()),
-                                   0,
+                                   unknownValue,
                                    HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
         printf("Failed to create pkg.\n");
         return -1;
