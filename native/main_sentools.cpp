@@ -47,6 +47,13 @@ static int P3A_Extract_Function(int argc, char** argv) {
         .help(
             "The output directory to extract to. Will be derived from input filename if not "
             "given.");
+    parser.add_option("-j", "--json")
+        .dest("json")
+        .action("store_true")
+        .help(
+            "If set, a __p3a.json will be generated that contains information about the files in "
+            "the archive. This file can be used to repack the archive with the P3A.Repack option "
+            "while preserving compression types and file order within the archive.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -68,7 +75,8 @@ static int P3A_Extract_Function(int argc, char** argv) {
 
 
     if (!SenPatcher::UnpackP3A(std::filesystem::path(source.begin(), source.end()),
-                               std::filesystem::path(target.begin(), target.end()))) {
+                               std::filesystem::path(target.begin(), target.end()),
+                               options.is_set("json"))) {
         printf("Unpacking failed.\n");
         return -1;
     }
@@ -144,9 +152,10 @@ static int P3A_Repack_Function(int argc, char** argv) {
         "This re-packages a previously extracted achive and keeps all the metadata "
         "as best as possible. For example, the file order will be preserved, and "
         "the same compression type will be used for each file.\n\n"
-        "To use this, point the program at the __p3a.json that was generated during "
-        "the archive extraction. You can also modify this file for some advanced packing features "
-        "that are not available through the standard directory packing interface.");
+        "To use this, extract with the -j option, then point this program at the __p3a.json that "
+        "was generated during the archive extraction. You can also modify this file for some "
+        "advanced packing features that are not available through the standard directory packing "
+        "interface.");
 
     parser.usage("sentools " P3A_Repack_Name " [options] __p3a.json");
     parser.add_option("-o", "--output")
@@ -192,6 +201,13 @@ static int PKG_Extract_Function(int argc, char** argv) {
         .help(
             "The output directory to extract to. Will be derived from input filename if not "
             "given.");
+    parser.add_option("-j", "--json")
+        .dest("json")
+        .action("store_true")
+        .help(
+            "If set, a __pkg.json will be generated that contains information about the files in "
+            "the archive. This file can be used to repack the archive with the PKG.Repack option "
+            "while preserving compression types and file order within the archive.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -200,6 +216,7 @@ static int PKG_Extract_Function(int argc, char** argv) {
         return -1;
     }
 
+    const bool generateJson = options.is_set("json");
     std::string_view source(args[0]);
     std::string_view target;
     std::string tmp;
@@ -302,7 +319,7 @@ static int PKG_Extract_Function(int argc, char** argv) {
     json.EndArray();
     json.EndObject();
 
-    {
+    if (generateJson) {
         SenPatcher::IO::File f2(targetpath / L"__pkg.json", SenPatcher::IO::OpenMode::Write);
         if (!f2.IsOpen()) {
             return false;
@@ -600,9 +617,10 @@ static int PKG_Repack_Function(int argc, char** argv) {
         "This re-packages a previously extracted achive and keeps all the metadata "
         "as best as possible. For example, the file order will be preserved, and "
         "the same compression type will be used for each file.\n\n"
-        "To use this, point the program at the __pkg.json that was generated during "
-        "the archive extraction. You can also modify this file for some advanced packing features "
-        "that are not available through the standard directory packing interface.");
+        "To use this, extract with the -j option, then point this program at the __pkg.json that "
+        "was generated during the archive extraction. You can also modify this file for some "
+        "advanced packing features that are not available through the standard directory packing "
+        "interface.");
 
     parser.usage("sentools " PKG_Repack_Name " [options] __pkg.json");
     parser.add_option("-o", "--output")

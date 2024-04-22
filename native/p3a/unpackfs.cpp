@@ -45,7 +45,9 @@ struct ZSTD_DCtx_Deleter {
 using ZSTD_DCtx_UniquePtr = std::unique_ptr<ZSTD_DCtx, ZSTD_DCtx_Deleter>;
 } // namespace
 
-bool UnpackP3A(const std::filesystem::path& archivePath, const std::filesystem::path& extractPath) {
+bool UnpackP3A(const std::filesystem::path& archivePath,
+               const std::filesystem::path& extractPath,
+               bool generateJson) {
     rapidjson::StringBuffer jsonbuffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> json(jsonbuffer);
     json.StartObject();
@@ -236,7 +238,7 @@ bool UnpackP3A(const std::filesystem::path& archivePath, const std::filesystem::
     json.EndArray();
     json.EndObject();
 
-    {
+    if (generateJson) {
         IO::File f2(extractPath / L"__p3a.json", IO::OpenMode::Write);
         if (!f2.IsOpen()) {
             return false;
