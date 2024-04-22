@@ -8,6 +8,8 @@
 #include "lz4/lz4.h"
 #include "lz4/lz4hc.h"
 
+#include "zstd/zstd.h"
+
 #include "crc32.h"
 #include "sen/pkg.h"
 #include "util/memwrite.h"
@@ -307,8 +309,29 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
         return false;
     } else if (flags & static_cast<uint32_t>(0x10)) {
         // ZSTD
-        // TODO: implement
-        return false;
+        size_t bound = ZSTD_compressBound(uncompressedLength);
+        if (uncompressedLength == 0 || ZSTD_isError(bound)) {
+            if (!write_uncompressed()) {
+                return false;
+            }
+        } else {
+            auto compressedData = std::make_unique_for_overwrite<char[]>(bound + offset);
+            if (!compressedData) {
+                return false;
+            }
+            const size_t zstdReturn = ZSTD_compress(
+                compressedData.get() + offset, bound, uncompressedData, uncompressedLength, 22);
+            if (ZSTD_isError(zstdReturn)) {
+                compressedData.reset();
+                if (!write_uncompressed()) {
+                    return false;
+                }
+            } else {
+                length = zstdReturn + offset;
+                data = std::move(compressedData);
+                resultFlags = (wantsChecksum ? 2u : 0u) | 0x10u;
+            }
+        }
     } else {
         // no compression
         if (!write_uncompressed()) {
