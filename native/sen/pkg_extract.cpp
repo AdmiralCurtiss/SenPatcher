@@ -59,6 +59,9 @@ static bool DecompressType1(std::unique_ptr<char[]>& dataBuffer,
                 if (backrefByte < backrefOffset) {
                     --backrefOffset;
                 }
+                if (backrefOffset == 0) {
+                    return false;
+                }
                 if (sourcePosition >= compressedSize) {
                     return false;
                 }
