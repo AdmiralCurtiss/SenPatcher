@@ -427,6 +427,14 @@ static int PKG_Pack_Function(int argc, char** argv) {
         .dest("output")
         .metavar("FILENAME")
         .help("The output filename. Must be given.");
+    parser.add_option("-c", "--compression")
+        .dest("compression")
+        .metavar("TYPE")
+        .help(
+            "Which compression to use for the files packed into the archive. Note that lz4 and "
+            "zstd are not supported by all games!")
+        .choices({"none", "type1", "lz4", "zstd"})
+        .set_default("none");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -443,6 +451,23 @@ static int PKG_Pack_Function(int argc, char** argv) {
 
     std::string_view source(args[0]);
     std::string_view target(options["output"]);
+
+    uint32_t flags = 0;
+    if (options.is_set("compression")) {
+        const auto& compressionString = options["compression"];
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
+            flags = 0;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("type1", compressionString)) {
+            flags = 1;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("lz4", compressionString)) {
+            flags = 4;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("zstd", compressionString)) {
+            flags = 0x10;
+        } else {
+            parser.error("Invalid compression type.");
+            return -1;
+        }
+    }
 
 
     std::vector<SenLib::PkgFile> fileinfos;
@@ -502,7 +527,7 @@ static int PKG_Pack_Function(int argc, char** argv) {
                                          fi,
                                          uncompressedData.get(),
                                          static_cast<uint32_t>(*uncompressedLength),
-                                         0,
+                                         flags,
                                          HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
                 printf("Failed adding file to pkg.\n");
                 return -1;
