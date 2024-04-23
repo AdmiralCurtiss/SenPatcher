@@ -185,6 +185,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		crc32.c
 		file.h
 		file.cpp
+		sha256.h
+		sha256.cpp
 		util/endian.h
 		util/memread.h
 		util/memwrite.h
@@ -867,10 +869,13 @@ if (SENPATCHER_BUILD_GTESTS)
 		${SOURCES_ZSTD_COMPRESSION}
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		sha256.h
+		sha256.cpp
 		xorshift.h
 
 		test/p3a_lookup_test.cpp
 		test/sha1_test.cpp
+		test/sha256_test.cpp
 	)
 	target_include_directories(tests
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds" "gtest/googletest/include"
