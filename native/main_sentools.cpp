@@ -335,24 +335,23 @@ static int PKG_Extract_Function(int argc, char** argv) {
     return 0;
 }
 
-#define PKA_Convert_Name "PKA.Convert"
-#define PKA_Convert_ShortDescription \
-    "Convert a *.pka archive to the individual *.pkg files stored within."
-static int PKA_Convert_Function(int argc, char** argv) {
+#define PKA_Extract_Name "PKA.Extract"
+#define PKA_Extract_ShortDescription "Extract a *.pka archive to a directory."
+static int PKA_Extract_Function(int argc, char** argv) {
     optparse::OptionParser parser;
     parser.description(
-        PKA_Convert_ShortDescription
+        PKA_Extract_ShortDescription
         "\n\n"
-        "Note that this will duplicate every file that is stored in more than one "
-        "pkg into every single of those pkg files. The converted archives will likely be much "
-        "bigger than the input pka, so make sure you have enough disk space available.");
+        "Note that this will duplicate every file that is stored in more than one pkg into every "
+        "single of those pkg files. The extracted files will likely be much bigger than the input "
+        "pka, so make sure you have enough disk space available.");
 
-    parser.usage("sentools " PKA_Convert_Name " [options] assets.pka");
+    parser.usage("sentools " PKA_Extract_Name " [options] assets.pka");
     parser.add_option("-o", "--output")
         .dest("output")
         .metavar("DIRECTORY")
         .help(
-            "The output directory to convert to. Will be derived from input filename if not "
+            "The output directory to extract to. Will be derived from input filename if not "
             "given.");
 
     const auto& options = parser.parse_args(argc, argv);
@@ -782,9 +781,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = PKG_Repack_Name,
             .ShortDescription = PKG_Repack_ShortDescription,
             .Function = PKG_Repack_Function},
-    CliTool{.Name = PKA_Convert_Name,
-            .ShortDescription = PKA_Convert_ShortDescription,
-            .Function = PKA_Convert_Function},
+    CliTool{.Name = PKA_Extract_Name,
+            .ShortDescription = PKA_Extract_ShortDescription,
+            .Function = PKA_Extract_Function},
 };
 
 static void PrintUsage() {
