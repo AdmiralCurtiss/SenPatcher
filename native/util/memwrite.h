@@ -47,7 +47,7 @@ inline void WriteAdvUInt8(char*& target, uint8_t data) {
     target += 1;
 }
 
-inline void WriteAdvArray(char* target, std::span<const char> data) {
+inline void WriteAdvArray(char*& target, std::span<const char> data) {
     std::memcpy(target, data.data(), data.size());
     target += data.size();
 }

@@ -67,7 +67,7 @@ inline uint8_t ReadAdvUInt8(const char*& source) {
 }
 
 template<size_t Size>
-inline std::array<char, Size> ReadAdvArray(const char* source) {
+inline std::array<char, Size> ReadAdvArray(const char*& source) {
     std::array<char, Size> data;
     std::memcpy(data.data(), source, Size);
     source += Size;
