@@ -467,6 +467,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     bool assetFixes = true;
     bool fixBgmEnqueue = true;
+    bool disableFpsLimitOnFocusLoss = false;
 
     {
         std::string settingsFilePath;
@@ -503,6 +504,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                     };
                 check_boolean("Reverie", "AssetFixes", assetFixes);
                 check_boolean("Reverie", "FixBgmEnqueue", fixBgmEnqueue);
+                check_boolean("Reverie", "DisableFpsLimitOnFocusLoss", disableFpsLimitOnFocusLoss);
             }
         }
     }
@@ -550,6 +552,12 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     if (fixBgmEnqueue) {
         PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+
+    if (disableFpsLimitOnFocusLoss) {
+        PatchDisableFpsLimitOnFocusLoss(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
 

@@ -32,4 +32,11 @@ void PatchMusicQueueing(SenPatcher::Logger& logger,
                         GameVersion version,
                         char*& codespace,
                         char* codespaceEnd);
+
+void PatchDisableFpsLimitOnFocusLoss(SenPatcher::Logger& logger,
+                                     char* textRegion,
+                                     GameVersion version,
+                                     char*& codespace,
+                                     char* codespaceEnd);
+
 } // namespace SenLib::Sen5
