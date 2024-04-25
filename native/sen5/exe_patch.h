@@ -39,6 +39,12 @@ void PatchDisableMouseCapture(SenPatcher::Logger& logger,
                               char*& codespace,
                               char* codespaceEnd);
 
+void PatchShowMouseCursor(SenPatcher::Logger& logger,
+                          char* textRegion,
+                          GameVersion version,
+                          char*& codespace,
+                          char* codespaceEnd);
+
 void PatchDisableFpsLimitOnFocusLoss(SenPatcher::Logger& logger,
                                      char* textRegion,
                                      GameVersion version,
