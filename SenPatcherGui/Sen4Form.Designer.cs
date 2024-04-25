@@ -36,6 +36,7 @@
 			this.comboBoxButtonLayout = new System.Windows.Forms.ComboBox();
 			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
 			this.buttonAssetFixDetails = new System.Windows.Forms.Button();
+			this.checkBoxBgmEnqueueingLogic = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label2
@@ -69,7 +70,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 238);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 267);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 12;
@@ -116,7 +117,7 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 168);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 191);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
 			this.checkBoxDisableMouseCam.TabIndex = 9;
@@ -126,7 +127,7 @@
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 211);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 234);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
 			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 11;
@@ -136,7 +137,7 @@
 			// checkBoxButtonLayout
 			// 
 			this.checkBoxButtonLayout.AutoSize = true;
-			this.checkBoxButtonLayout.Location = new System.Drawing.Point(97, 145);
+			this.checkBoxButtonLayout.Location = new System.Drawing.Point(97, 168);
 			this.checkBoxButtonLayout.Name = "checkBoxButtonLayout";
 			this.checkBoxButtonLayout.Size = new System.Drawing.Size(208, 17);
 			this.checkBoxButtonLayout.TabIndex = 7;
@@ -150,7 +151,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.comboBoxButtonLayout.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboBoxButtonLayout.FormattingEnabled = true;
-			this.comboBoxButtonLayout.Location = new System.Drawing.Point(303, 142);
+			this.comboBoxButtonLayout.Location = new System.Drawing.Point(303, 165);
 			this.comboBoxButtonLayout.Name = "comboBoxButtonLayout";
 			this.comboBoxButtonLayout.Size = new System.Drawing.Size(219, 21);
 			this.comboBoxButtonLayout.TabIndex = 8;
@@ -158,7 +159,7 @@
 			// checkBoxShowMouseCursor
 			// 
 			this.checkBoxShowMouseCursor.AutoSize = true;
-			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(97, 190);
+			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(97, 213);
 			this.checkBoxShowMouseCursor.Name = "checkBoxShowMouseCursor";
 			this.checkBoxShowMouseCursor.Size = new System.Drawing.Size(121, 17);
 			this.checkBoxShowMouseCursor.TabIndex = 10;
@@ -176,11 +177,24 @@
 			this.buttonAssetFixDetails.UseVisualStyleBackColor = true;
 			this.buttonAssetFixDetails.Click += new System.EventHandler(this.buttonAssetFixDetails_Click);
 			// 
+			// checkBoxBgmEnqueueingLogic
+			// 
+			this.checkBoxBgmEnqueueingLogic.AutoSize = true;
+			this.checkBoxBgmEnqueueingLogic.Checked = true;
+			this.checkBoxBgmEnqueueingLogic.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 145);
+			this.checkBoxBgmEnqueueingLogic.Name = "checkBoxBgmEnqueueingLogic";
+			this.checkBoxBgmEnqueueingLogic.Size = new System.Drawing.Size(323, 17);
+			this.checkBoxBgmEnqueueingLogic.TabIndex = 21;
+			this.checkBoxBgmEnqueueingLogic.Text = "Fix wrong BGM when BGM is changed while track is fading out";
+			this.checkBoxBgmEnqueueingLogic.UseVisualStyleBackColor = true;
+			// 
 			// Sen4Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 292);
+			this.ClientSize = new System.Drawing.Size(534, 321);
+			this.Controls.Add(this.checkBoxBgmEnqueueingLogic);
 			this.Controls.Add(this.checkBoxShowMouseCursor);
 			this.Controls.Add(this.comboBoxButtonLayout);
 			this.Controls.Add(this.checkBoxButtonLayout);
@@ -215,5 +229,6 @@
 		private System.Windows.Forms.ComboBox comboBoxButtonLayout;
 		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
 		private System.Windows.Forms.Button buttonAssetFixDetails;
+		private System.Windows.Forms.CheckBox checkBoxBgmEnqueueingLogic;
 	}
 }

@@ -30,19 +30,6 @@ namespace SenPatcherGui {
 		private void buttonPatch_Click(object sender, EventArgs e) {
 			try {
 				SenLib.Logging.Log("Patching CS2.");
-				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
-				bool patchAudioThread = checkBoxPatchAudioThread.Checked;
-				bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
-				bool patchBgmQueueing = checkBoxBgmEnqueueingLogic.Checked;
-				bool patchAssets = checkBoxAssetPatches.Checked;
-				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
-				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
-				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
-				bool fixArtsSupport = checkBoxArtsSupport.Checked;
-				bool fixControllerMapping = checkBoxControllerMapping.Checked;
-				bool force0Kerning = checkBoxForce0Kerning.Checked;
-				bool fixBattleScopeCrash = checkBoxFixBattleScopeCrash.Checked;
-				bool forceXInput = checkBoxForceXInput.Checked;
 				WriteToIni();
 
 				string dllpath = System.IO.Path.Combine(Path, RelativeDllPath);

@@ -36,13 +36,6 @@ namespace SenPatcherGui {
 		private void buttonPatch_Click(object sender, EventArgs e) {
 			try {
 				SenLib.Logging.Log("Patching CS4.");
-				bool allowNightmare = checkBoxAllowNightmare.Checked;
-				bool patchAssets = checkBoxAssetPatches.Checked;
-				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
-				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
-				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
-				bool confirmCancelOption = checkBoxButtonLayout.Checked;
-				bool defaultJpLayout = confirmCancelOption && comboBoxButtonLayout.SelectedIndex == 1;
 				WriteToIni();
 
 				string dllpath = System.IO.Path.Combine(Path, RelativeDllPath);
@@ -60,6 +53,7 @@ namespace SenPatcherGui {
 				ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
 				checkBoxAssetPatches.Checked = ini.GetBool("CS4", "AssetFixes", true);
 				checkBoxAllowNightmare.Checked = ini.GetBool("CS4", "AllowSwitchToNightmare", true);
+				checkBoxBgmEnqueueingLogic.Checked = ini.GetBool("CS4", "FixBgmEnqueue", true);
 				checkBoxButtonLayout.Checked = ini.GetBool("CS4", "ForceConfirmCancel", false);
 				bool forceJp = ini.GetBool("CS4", "ForceConfirmJp", true);
 				comboBoxButtonLayout.SelectedIndex = forceJp ? 1 : 0;
@@ -78,6 +72,7 @@ namespace SenPatcherGui {
 				ini.LoadIniFromString(Properties.Resources.senpatcher_settings_cs4, overwriteExistingValues: true);
 				ini.SetBool("CS4", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetBool("CS4", "AllowSwitchToNightmare", checkBoxAllowNightmare.Checked);
+				ini.SetBool("CS4", "FixBgmEnqueue", checkBoxBgmEnqueueingLogic.Checked);
 				ini.SetBool("CS4", "ForceConfirmCancel", checkBoxButtonLayout.Checked);
 				ini.SetBool("CS4", "ForceConfirmJp", comboBoxButtonLayout.SelectedIndex == 1);
 				ini.SetBool("CS4", "DisableMouseCapture", checkBoxDisableMouseCam.Checked);

@@ -30,14 +30,6 @@ namespace SenPatcherGui {
 		private void buttonPatch_Click(object sender, EventArgs e) {
 			try {
 				SenLib.Logging.Log("Patching CS3.");
-				bool fixButtonRemapping = checkBoxFixButtonRemapping.Checked;
-				bool allowNightmare = checkBoxAllowNightmare.Checked;
-				bool patchAssets = checkBoxAssetPatches.Checked;
-				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
-				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
-				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
-				bool fixControllerMapping = checkBoxControllerMapping.Checked;
-				bool forceXInput = checkBoxForceXInput.Checked;
 				WriteToIni();
 
 				string dllpath = System.IO.Path.Combine(Path, RelativeDllPath);
@@ -56,6 +48,7 @@ namespace SenPatcherGui {
 				checkBoxAssetPatches.Checked = ini.GetBool("CS3", "AssetFixes", true);
 				checkBoxFixButtonRemapping.Checked = ini.GetBool("CS3", "FixInGameButtonRemapping", true);
 				checkBoxAllowNightmare.Checked = ini.GetBool("CS3", "AllowSwitchToNightmare", true);
+				checkBoxBgmEnqueueingLogic.Checked = ini.GetBool("CS3", "FixBgmEnqueue", true);
 				checkBoxControllerMapping.Checked = ini.GetBool("CS3", "FixControllerMapping", true);
 				checkBoxDisableMouseCam.Checked = ini.GetBool("CS3", "DisableMouseCapture", false);
 				checkBoxShowMouseCursor.Checked = ini.GetBool("CS3", "ShowMouseCursor", false);
@@ -74,6 +67,7 @@ namespace SenPatcherGui {
 				ini.SetBool("CS3", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetBool("CS3", "FixInGameButtonRemapping", checkBoxFixButtonRemapping.Checked);
 				ini.SetBool("CS3", "AllowSwitchToNightmare", checkBoxAllowNightmare.Checked);
+				ini.SetBool("CS3", "FixBgmEnqueue", checkBoxBgmEnqueueingLogic.Checked);
 				ini.SetBool("CS3", "FixControllerMapping", checkBoxControllerMapping.Checked);
 				ini.SetBool("CS3", "DisableMouseCapture", checkBoxDisableMouseCam.Checked);
 				ini.SetBool("CS3", "ShowMouseCursor", checkBoxShowMouseCursor.Checked);

@@ -49,17 +49,6 @@ namespace SenPatcherGui {
 		private void buttonPatch_Click(object sender, EventArgs e) {
 			try {
 				SenLib.Logging.Log("Patching CS1.");
-				bool removeTurboSkip = checkBoxBattleAutoSkip.Checked;
-				bool allowR2NotebookShortcut = checkBoxAllowR2InTurboMode.Checked;
-				int turboKey = comboBoxTurboModeKey.SelectedIndex;
-				bool fixVoiceTables = checkBoxFixVoiceFileLang.Checked;
-				bool patchAssets = checkBoxAssetPatches.Checked;
-				bool disableMouseCapture = checkBoxDisableMouseCam.Checked;
-				bool showMouseCursor = checkBoxShowMouseCursor.Checked;
-				bool disablePauseOnFocusLoss = checkBoxDisablePauseOnFocusLoss.Checked;
-				bool fixArtsSupport = checkBoxArtsSupport.Checked;
-				bool force0Kerning = checkBoxForce0Kerning.Checked;
-				bool forceXInput = checkBoxForceXInput.Checked;
 				WriteToIni();
 
 				string dllpath = System.IO.Path.Combine(Path, RelativeDllPath);
@@ -78,6 +67,7 @@ namespace SenPatcherGui {
 				checkBoxAssetPatches.Checked = ini.GetBool("CS1", "AssetFixes", true);
 				checkBoxBattleAutoSkip.Checked = ini.GetBool("CS1", "RemoveTurboSkip", true);
 				checkBoxFixVoiceFileLang.Checked = ini.GetBool("CS1", "CorrectLanguageVoiceTables", true);
+				checkBoxBgmEnqueueingLogic.Checked = ini.GetBool("CS1", "FixBgmEnqueue", true);
 				checkBoxArtsSupport.Checked = ini.GetBool("CS1", "FixArtsSupportCutin", true);
 				checkBoxForce0Kerning.Checked = ini.GetBool("CS1", "Force0Kerning", false);
 				checkBoxDisableMouseCam.Checked = ini.GetBool("CS1", "DisableMouseCapture", false);
@@ -102,6 +92,7 @@ namespace SenPatcherGui {
 				ini.SetBool("CS1", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetBool("CS1", "RemoveTurboSkip", checkBoxBattleAutoSkip.Checked);
 				ini.SetBool("CS1", "CorrectLanguageVoiceTables", checkBoxFixVoiceFileLang.Checked);
+				ini.SetBool("CS1", "FixBgmEnqueue", checkBoxBgmEnqueueingLogic.Checked);
 				ini.SetBool("CS1", "FixArtsSupportCutin", checkBoxArtsSupport.Checked);
 				ini.SetBool("CS1", "Force0Kerning", checkBoxForce0Kerning.Checked);
 				ini.SetBool("CS1", "DisableMouseCapture", checkBoxDisableMouseCam.Checked);
