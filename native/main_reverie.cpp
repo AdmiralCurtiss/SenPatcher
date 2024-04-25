@@ -467,6 +467,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     bool assetFixes = true;
     bool fixBgmEnqueue = true;
+    bool disableMouseCapture = false;
     bool disableFpsLimitOnFocusLoss = false;
 
     {
@@ -504,6 +505,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                     };
                 check_boolean("Reverie", "AssetFixes", assetFixes);
                 check_boolean("Reverie", "FixBgmEnqueue", fixBgmEnqueue);
+                check_boolean("Reverie", "DisableMouseCapture", disableMouseCapture);
                 check_boolean("Reverie", "DisableFpsLimitOnFocusLoss", disableFpsLimitOnFocusLoss);
             }
         }
@@ -555,6 +557,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         Align16CodePage(logger, newPage);
     }
 
+    if (disableMouseCapture) {
+        PatchDisableMouseCapture(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
     if (disableFpsLimitOnFocusLoss) {
         PatchDisableFpsLimitOnFocusLoss(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
