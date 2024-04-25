@@ -117,20 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="senpatcher_settings_cs1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\SenLib\Sen1\senpatcher_settings.ini;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="senpatcher_settings_cs2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\SenLib\Sen2\senpatcher_settings.ini;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="senpatcher_settings_cs3" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\SenLib\Sen3\senpatcher_settings.ini;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="senpatcher_settings_cs4" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\SenLib\Sen4\senpatcher_settings.ini;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="senpatcher_settings_reverie" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\SenLib\Sen5\senpatcher_settings.ini;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
 </root>

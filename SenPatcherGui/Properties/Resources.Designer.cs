@@ -147,5 +147,25 @@ namespace SenPatcherGui.Properties {
                 return ResourceManager.GetString("senpatcher_settings_cs4", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Reverie]
+        ///
+        ///; Whether to apply fixes for errors in the game files.
+        ///; This includes all kinds of errors such as typos, incorrect descriptions, incorrect voice clips, etc.
+        ///; &apos;true&apos; to enable (default)
+        ///; &apos;false&apos; to disable
+        ///; You generally want to keep this enabled.
+        ///AssetFixes=true
+        ///
+        ///; This fixes a behavior of the unpatched game where it will fail to enqueue the same music track that is
+        ///; currently fading out, which can break various audio transitions if your loading times are too fast.
+        ///; &apos;true&apos; to fix [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string senpatcher_settings_reverie {
+            get {
+                return ResourceManager.GetString("senpatcher_settings_reverie", resourceCulture);
+            }
+        }
     }
 }

@@ -70,5 +70,17 @@ namespace SenPatcherGui.Properties {
                 this["Sen4Path"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Sen5Path {
+            get {
+                return ((string)(this["Sen5Path"]));
+            }
+            set {
+                this["Sen5Path"] = value;
+            }
+        }
     }
 }

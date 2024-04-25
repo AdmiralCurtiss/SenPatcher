@@ -41,6 +41,8 @@
 			this.menuItemExtractPka = new System.Windows.Forms.MenuItem();
 			this.menuItemFixSaveChecksumCS4 = new System.Windows.Forms.MenuItem();
 			this.menuItemDecompressType2LE = new System.Windows.Forms.MenuItem();
+			this.buttonReveriePatch = new System.Windows.Forms.Button();
+			this.label5 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// buttonCS1Patch
@@ -201,11 +203,34 @@
 			this.menuItemDecompressType2LE.Text = "Decompress PKG Type 1 (little endian)...";
 			this.menuItemDecompressType2LE.Click += new System.EventHandler(this.menuItemDecompressType1LE);
 			// 
+			// buttonReveriePatch
+			// 
+			this.buttonReveriePatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonReveriePatch.Location = new System.Drawing.Point(12, 313);
+			this.buttonReveriePatch.Name = "buttonReveriePatch";
+			this.buttonReveriePatch.Size = new System.Drawing.Size(328, 21);
+			this.buttonReveriePatch.TabIndex = 12;
+			this.buttonReveriePatch.Text = "Patch game";
+			this.buttonReveriePatch.UseVisualStyleBackColor = true;
+			this.buttonReveriePatch.Click += new System.EventHandler(this.buttonReveriePatch_Click);
+			// 
+			// label5
+			// 
+			this.label5.AutoSize = true;
+			this.label5.Location = new System.Drawing.Point(9, 297);
+			this.label5.Name = "label5";
+			this.label5.Size = new System.Drawing.Size(247, 13);
+			this.label5.TabIndex = 11;
+			this.label5.Text = "Trails into Reverie: (NISA PC release version 1.1.4)";
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(352, 295);
+			this.ClientSize = new System.Drawing.Size(352, 348);
+			this.Controls.Add(this.buttonReveriePatch);
+			this.Controls.Add(this.label5);
 			this.Controls.Add(this.buttonCS4Patch);
 			this.Controls.Add(this.label4);
 			this.Controls.Add(this.buttonCS3Patch);
@@ -243,6 +268,8 @@
 		private System.Windows.Forms.MenuItem menuItemExtractPka;
 		private System.Windows.Forms.MenuItem menuItemFixSaveChecksumCS4;
 		private System.Windows.Forms.MenuItem menuItemDecompressType2LE;
+		private System.Windows.Forms.Button buttonReveriePatch;
+		private System.Windows.Forms.Label label5;
 	}
 }
 

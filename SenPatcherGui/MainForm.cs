@@ -492,6 +492,41 @@ namespace SenPatcherGui {
 			}
 		}
 
+		private void buttonReveriePatch_Click(object sender, EventArgs e) {
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.CheckFileExists = false;
+				d.ValidateNames = false;
+				string reveriePath = GamePaths.GetDefaultPathReverie();
+				d.InitialDirectory = (reveriePath == null || reveriePath == "") ? "" : (reveriePath + "/bin/Win64");
+				d.FileName = "hnk.exe";
+				d.Filter = "Reverie game directory (hnk.exe)|hnk.exe|All files (*.*)|*.*";
+				if (d.ShowDialog() == DialogResult.OK) {
+					OpenReverieGameDir(d.FileName);
+				}
+			}
+		}
+
+		public string ReverieGameInit(string launcherPath) {
+			string path;
+			try {
+				path = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(launcherPath)));
+			} catch (Exception ex) {
+				ShowError("Error while initializing Reverie patch/game data: " + ex.Message);
+				return null;
+			}
+
+			return path;
+		}
+
+		private void OpenReverieGameDir(string launcherPath) {
+			var path = ReverieGameInit(launcherPath);
+			if (path != null) {
+				Logging.Log("Launching Reverie patch window at " + path);
+				Properties.Settings.Default.Sen5Path = path;
+				new Sen5Form(path).ShowDialog();
+			}
+		}
+
 		private static string LastToolboxDirectory = null;
 		private static string InitialToolboxDirectory => LastToolboxDirectory ?? Directory.GetCurrentDirectory();
 

@@ -253,6 +253,7 @@
     <None Include="Sen2\senpatcher_settings.ini" />
     <None Include="Sen3\senpatcher_settings.ini" />
     <None Include="Sen4\senpatcher_settings.ini" />
+    <None Include="Sen5\senpatcher_settings.ini" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
