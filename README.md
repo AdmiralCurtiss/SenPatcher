@@ -6,6 +6,7 @@ SenPatcher is a collection of fixes and customizations for several PC ports of g
 - The XSEED PC release of The Legend of Heroes: Trails of Cold Steel II
 - The NISA PC release of The Legend of Heroes: Trails of Cold Steel III
 - The NISA PC release of The Legend of Heroes: Trails of Cold Steel IV
+- The NISA PC release of The Legend of Heroes: Trails into Reverie
 
 It also acts as a mod loader so file-based mods can be distributed and installed without modifying the base game files.
 
@@ -26,7 +27,7 @@ Prerequisites
 - If you have installed a version of SenPatcher before v1.0, please restore your game before continuing.
   - The `SenPatcherGui.exe` provided in the release binary package should offer to automatically restore the game for you when you open the relevant game.
   - Alternatively, verify the game files in Steam or GoG Galaxy. It will detect and redownload any patched files and replace them with unpatched ones.
-- Make sure your game is updated to a supported version (CS1 v1.6, CS2 v1.4.1 or v1.4.2, CS3 v1.06, CS4 v1.2.1). Other versions of the games will not work.
+- Make sure your game is updated to a supported version (CS1 v1.6, CS2 v1.4.1 or v1.4.2, CS3 v1.06, CS4 v1.2.1, Reverie v1.1.4). Other versions of the games will not work.
 
 
 Windows (using the GUI)
@@ -54,8 +55,13 @@ Windows (manual)
 
 - Place the contents of the folder for the game you want to patch into your game install directory.
   - The provided layout in the release binary package for each game should be correct, but to be specific:
-  - `senpatcher_settings.ini` should end up in the root directory of the game.
-  - `DINPUT8.dll` should end up in the same folder as the game's main executable. The exact location for this differs depending on the game, but for CS1 it's in the root and for the other games it's two levels down in `bin` followed by either `Win32`, `x64`, or `Win64`.
+  - `senpatcher_settings.ini` should end up in the root directory of the game (next to the `data` directory).
+  - The `.dll` file's name and location changes depending on the game:
+    - For CS1 it's `DINPUT8.dll` in the root of the game folder, next to `ed8.exe`.
+    - For CS2 it's `DINPUT8.dll` in `bin/Win32`, next to `ed8_2_PC_US.exe`.
+    - For CS3 it's `DINPUT8.dll` in `bin/x64`, next to `ed8_3_PC.exe`.
+    - For CS4 it's `DINPUT8.dll` in `bin/Win64`, next to `ed8_4_PC.exe`.
+    - For Reverie it's `DSOUND.dll` in `bin/Win64`, next to `hnk.exe`.
 - Adjust the active patches as desired by modifiying `senpatcher_settings.ini`.
 - Run the game as usual.
 
@@ -69,14 +75,21 @@ Steam Deck
 - Place the contents of the folder for the game you want to patch into your game install directory.
   - You can find this folder by selecting the game in the Library, opening its Properties, and going to 'Installed Files' -> 'Browse...'
   - The provided layout in the release binary package for each game should be correct, but to be specific:
-  - `senpatcher_settings.ini` should end up in the root directory of the game.
-  - `DINPUT8.dll` should end up in the same folder as the game's main executable. The exact location for this differs depending on the game, but for CS1 it's in the root and for the other games it's two levels down in `bin` followed by either `Win32`, `x64`, or `Win64`.
+  - `senpatcher_settings.ini` should end up in the root directory of the game (next to the `data` directory).
+  - The `.dll` file's name and location changes depending on the game:
+    - For CS1 it's `DINPUT8.dll` in the root of the game folder, next to `ed8.exe`.
+    - For CS2 it's `DINPUT8.dll` in `bin/Win32`, next to `ed8_2_PC_US.exe`.
+    - For CS3 it's `DINPUT8.dll` in `bin/x64`, next to `ed8_3_PC.exe`.
+    - For CS4 it's `DINPUT8.dll` in `bin/Win64`, next to `ed8_4_PC.exe`.
+    - For Reverie it's `DSOUND.dll` in `bin/Win64`, next to `hnk.exe`.
 - Right-click the game in the Steam game list and select 'Properties'.
-- In the General tab, add the following text (without the backticks!) into the advanced Launch Options field at the bottom: `WINEDLLOVERRIDES=DINPUT8=n,b %command%`
+- In the General tab, add the following text (without the backticks!) into the advanced Launch Options field at the bottom:
+  - For CS1-4: `WINEDLLOVERRIDES=DINPUT8=n,b %command%`
+  - For Reverie: `WINEDLLOVERRIDES=DSOUND=n,b %command%`
 - Adjust the active patches as desired by modifiying `senpatcher_settings.ini`.
 - You can switch back to Gaming mode now and run the game as usual.
 
-To uninstall, just delete `DINPUT8.dll` from the folder with the game executable.
+To uninstall, just delete `DINPUT8.dll` or `DSOUND.dll` from the folder with the game executable.
 
 
 Feature Set for Trails of Cold Steel
@@ -90,6 +103,7 @@ Feature Set for Trails of Cold Steel
 * Option to keep the game running while in background.
 * Option to fix a bug that makes the game load the English lipflap data when playing with Japanese voices and vice-versa.
 * Option to fix a bug that displays the Arts Support cut-in incorrectly at resolutions other than 1280x720.
+* Option to fix a bug that causes incorrect music playback when you switch areas too quickly.
 * Option to use CS3 font spacing when using the high-res font from CS3.
 * Option to force XInput for controllers (this supposedly fixes newer Xbox controllers)
 * Option to edit the vestigial System Data button mapping from the PS3 version.
@@ -121,6 +135,7 @@ Feature Set for Trails of Cold Steel III
 
 * Option to fix various minor script and asset file errors, such as incorrect textures, incorrect voice clips, item description errors, broken Master Quartz effects, etc.
 * Option to fix the in-game button remapping options being incorrectly enabled/disabled, disallowing various sensible mappings.
+* Option to fix a bug that causes incorrect music playback when you switch areas too quickly.
 * Option to allow changing difficulty to Nightmare mid-playthrough.
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to fix a bug that applies complicated button mappings incorrectly, causing the actual button actions and the displayed button prompts to mismatch.
@@ -133,11 +148,21 @@ Feature Set for Trails of Cold Steel IV
 =======================================
 
 * Option to allow changing difficulty to Nightmare mid-playthrough.
+* Option to fix a bug that causes incorrect music playback when you switch areas too quickly.
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to keep the game running while in background.
 * Option to force the controller button Confirm/Cancel layout to English/Xbox or Japanese/Nintendo style.
 
 Note: Compatible with version 1.2.1 of the game only.
+
+Feature Set for Trails into Reverie
+===================================
+
+* Option to fix a bug that causes incorrect music playback when you switch areas too quickly.
+* Option to disable the mouse being captured by the game and its movement being used for the game camera.
+* Option to remove the 30 FPS limit when the game is in the background.
+
+Note: Compatible with version 1.1.4 of the game only.
 
 
 Information for people wanting to create file-based mods
@@ -149,11 +174,12 @@ This feature comes in two flavors:
 
 For development, you can create a `dev` directory in the base game directory and put your replacement files in there. Files in this folder will have priority over everything else, so eg. if you want to replace the t_magic table in CS4, you can place your modified copy at `The Legend of Heroes Trails of Cold Steel IV\dev\data\text\dat_en\t_magic.tbl`. This should work for all game files *except* the FMVs and the big `assets.pka`. Note that the `dev` directory must exist when the game is booted in order for this replacement to take effect. You will see a notice on the title screen (next to the version info) if the `dev` folder is active and being scanned.
 
-Once you're ready to release your mod into the world, you can pack it into a convenient archive file for distribution. In order to do that, take the included `p3a.exe` and pack the `dev` directory with it, so for example `p3a.exe pack --compression lz4 "The Legend of Heroes Trails of Cold Steel IV\dev" mymod.p3a`. The generated `mymod.p3a` can be placed in the `mods` directory that is created by SenPatcher, where it will act exactly like the freestanding `dev` directory, replacing the files as seen by the game. (Yes, this is the same file format used by the PH3 Daybreak PC port. You may choose to use their tool instead if you prefer it.)
+Once you're ready to release your mod into the world, you can pack it into a convenient archive file for distribution. In order to do that, take the included `sentools.exe` and pack the `dev` directory with it, so for example `sentools.exe P3A.Pack -c lz4 "The Legend of Heroes Trails of Cold Steel IV\dev" mymod.p3a`. The generated `mymod.p3a` can be placed in the `mods` directory that is created by SenPatcher, where it will act exactly like the freestanding `dev` directory, replacing the files as seen by the game. (Yes, this is the same file format used by the PH3 Daybreak PC port. You may choose to use their tool instead if you prefer it.)
 
 If there are multiple copies of a single file across multiple mods, only the highest priority one will be seen by the game. The priority list is:
 
 - Files in the `dev` directory (highest priority)
 - Files contained in the p3a archives in the `mods` directory.
   - The `order.txt` in there can be used to change which mods have priority over which other mods, closer to the top of the list has higher priority.
+  - If there is a p3a archive in the `mods` directory that is not in `order.txt`, SenPatcher will update `order.txt` automatically to include it below any previously existing mods but above its own asset fixes.
 - Base game files (lowest priority)
