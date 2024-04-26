@@ -493,6 +493,12 @@ static int PKA_Pack_Function(int argc, char** argv) {
             if (entry.is_directory()) {
                 continue;
             }
+            const auto ext = entry.path().extension().generic_u8string();
+            if (!HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                    ".pkg",
+                    std::string_view(reinterpret_cast<const char*>(ext.data()), ext.size()))) {
+                continue;
+            }
 
             const auto relativePath = std::filesystem::relative(entry.path(), rootDir, ec);
             if (relativePath.empty()) {
