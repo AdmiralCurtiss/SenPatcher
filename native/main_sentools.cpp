@@ -1140,18 +1140,26 @@ static void PrintUsage() {
 }
 
 int main(int argc, char** argv) {
-    if (argc < 2) {
+    try {
+        if (argc < 2) {
+            PrintUsage();
+            return -1;
+        }
+
+        const std::string_view name = argv[1];
+        for (const auto& tool : CliTools) {
+            if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(name, tool.Name)) {
+                return tool.Function(argc - 1, argv + 1);
+            }
+        }
+
         PrintUsage();
         return -1;
+    } catch (const std::exception& ex) {
+        printf("Exception occurred: %s\n", ex.what());
+        return -3;
+    } catch (...) {
+        printf("Unknown error occurred.\n");
+        return -4;
     }
-
-    const std::string_view name = argv[1];
-    for (const auto& tool : CliTools) {
-        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(name, tool.Name)) {
-            return tool.Function(argc - 1, argv + 1);
-        }
-    }
-
-    PrintUsage();
-    return -1;
 }
