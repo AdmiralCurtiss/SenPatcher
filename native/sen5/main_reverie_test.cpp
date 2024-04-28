@@ -1,6 +1,6 @@
 #include "sen5/file_fixes.h"
 
-#include "logger.h"
+#include "util/logger.h"
 
 int main(int argc, char** argv) {
     SenPatcher::Logger logger;

@@ -5,7 +5,7 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/sen_script_patcher.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 #include "util/memread.h"
 
 namespace SenLib::Sen2::FileFixes::scripts_talk_dat_us_tk_monica_dat {

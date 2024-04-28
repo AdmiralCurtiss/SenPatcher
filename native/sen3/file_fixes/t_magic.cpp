@@ -6,7 +6,7 @@
 #include "p3a/structs.h"
 #include "sen3/file_fixes.h"
 #include "sen3/tbl.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 #include "util/text.h"
 
 namespace SenLib::Sen3::FileFixes::t_magic {

@@ -7,15 +7,15 @@
 #include <string>
 #include <string_view>
 
-#include "crc32.h"
-#include "file.h"
-#include "ini.h"
-#include "logger.h"
+#include "util/hash/crc32.h"
+#include "util/file.h"
+#include "util/ini.h"
+#include "util/logger.h"
 
 #include "modload/loaded_mods.h"
-#include "sen4/exe_patch.h"
-#include "sen4/file_fixes.h"
-#include "sen4/inject_modloader.h"
+#include "sen3/exe_patch.h"
+#include "sen3/file_fixes.h"
+#include "sen3/inject_modloader.h"
 #include "util/text.h"
 
 #include "senpatcher_version.h"
@@ -23,7 +23,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-using SenLib::Sen4::GameVersion;
+using SenLib::Sen3::GameVersion;
 
 using PDirectInput8Create =
     HRESULT (*)(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, void* punkOuter);
@@ -89,24 +89,24 @@ static GameVersion FindImageBase(SenPatcher::Logger& logger, void** code) {
             .Log(".\n");
         if (gameVersion == GameVersion::Unknown && info.State == MEM_COMMIT
             && info.Type == MEM_IMAGE) {
-            if (info.RegionSize == 0x872000 && info.Protect == PAGE_EXECUTE_READ) {
+            if (info.RegionSize == 0x7e9000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
-                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xae7a0, 0x3d);
-                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x844780, 0x21);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xf48f0, 0x3d);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x7c51d8, 0x24);
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
-                if (crc == 0x300c7e9f) {
+                if (crc == 0x19068487) {
                     logger.Log("Appears to be the EN version.\n");
                     *code = info.BaseAddress;
                     gameVersion = GameVersion::English;
                 }
-            } else if (info.RegionSize == 0x86f000 && info.Protect == PAGE_EXECUTE_READ) {
+            } else if (info.RegionSize == 0x7dc000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
-                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xae780, 0x3d);
-                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x842120, 0x21);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xf4270, 0x3d);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x7b82bc, 0x24);
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
-                if (crc == 0x300c7e9f) {
+                if (crc == 0x19068487) {
                     logger.Log("Appears to be the JP version.\n");
                     *code = info.BaseAddress;
                     gameVersion = GameVersion::Japanese;
@@ -139,7 +139,7 @@ struct FFile {
     void* MemoryPointer;
 
     // if nonzero it will be free'd when the struct is released
-    // should be allocated with s_TrackedMalloc -- warning this one has less parameters than CS3's
+    // should be allocated with the tracking malloc at 0x1405e03f0 (size, 4, 0, 0, 0)
     void* MemoryPointerForFreeing;
 
     uint32_t MemoryPosition;
@@ -150,7 +150,11 @@ static_assert(offsetof(FFile, MemoryPointer) == 0x18);
 static_assert(offsetof(FFile, MemoryPointerForFreeing) == 0x20);
 static_assert(offsetof(FFile, MemoryPosition) == 0x28);
 
-using PTrackedMalloc = void*(__fastcall*)(uint64_t size, uint64_t alignment);
+using PTrackedMalloc = void*(__fastcall*)(uint64_t size,
+                                          uint64_t alignment,
+                                          const char* file,
+                                          uint64_t line,
+                                          uint64_t unknown);
 using PTrackedFree = void(__fastcall*)(void* memory);
 
 static PTrackedMalloc s_TrackedMalloc = nullptr;
@@ -201,7 +205,7 @@ static bool OpenModFile(FFile* ffile, const char* path) {
                 0x8000'0000,
                 memory,
                 filesize,
-                [](size_t length) { return s_TrackedMalloc(length, 8); },
+                [](size_t length) { return s_TrackedMalloc(length, 8, nullptr, 0, 0); },
                 [](void* memory) { s_TrackedFree(memory); })) {
             ffile->Filesize = static_cast<uint32_t>(filesize);
             ffile->MemoryPointer = memory;
@@ -434,18 +438,18 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     void* codeBase = nullptr;
     GameVersion version = FindImageBase(logger, &codeBase);
     if (version == GameVersion::Unknown || !codeBase) {
-        logger.Log("Failed finding CS4 executable in memory -- wrong game or version?\n");
+        logger.Log("Failed finding CS3 executable in memory -- wrong game or version?\n");
         return nullptr;
     }
 
     s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(static_cast<char*>(codeBase)
                                                        + (version == GameVersion::Japanese
-                                                              ? (0x14052ed00 - 0x140001000)
-                                                              : (0x140531280 - 0x140001000)));
+                                                              ? (0x1405d3fa0 - 0x140001000)
+                                                              : (0x1405e03f0 - 0x140001000)));
     s_TrackedFree = reinterpret_cast<PTrackedFree>(static_cast<char*>(codeBase)
                                                    + (version == GameVersion::Japanese
-                                                          ? (0x14052ece0 - 0x140001000)
-                                                          : (0x140531260 - 0x140001000)));
+                                                          ? (0x1405d3ed0 - 0x140001000)
+                                                          : (0x1405e0320 - 0x140001000)));
 
     // allocate extra page for code
     const size_t newPageLength = 0x1000;
@@ -462,10 +466,10 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     // figure out whether we're running in the root game directory or in the bin/x64 subdirectory
     // and get a relative path to the root game directory
     std::string_view baseDirUtf8;
-    if (SenPatcher::IO::FileExists(std::string_view("Sen4Launcher.exe"))) {
+    if (SenPatcher::IO::FileExists(std::string_view("Sen3Launcher.exe"))) {
         logger.Log("Root game dir is current dir.\n");
         baseDirUtf8 = ".";
-    } else if (SenPatcher::IO::FileExists(std::string_view("../../Sen4Launcher.exe"))) {
+    } else if (SenPatcher::IO::FileExists(std::string_view("../../Sen3Launcher.exe"))) {
         logger.Log("Root game dir is ../..\n");
         baseDirUtf8 = "../..";
     } else {
@@ -474,13 +478,14 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     }
 
     bool assetFixes = true;
+    bool fixInGameButtonMappingValidity = true;
     bool allowSwitchToNightmare = true;
-    bool forceSwapConfirmCancel = false;
-    bool forceSwapConfirmCancelToJp = false;
+    bool fixControllerMapping = true;
     bool disableMouseCapture = false;
     bool showMouseCursor = false;
     bool disablePauseOnFocusLoss = false;
-    bool fixSwappedButtonsWhenDynamicPromptsOff = true;
+    bool forceXInput = false;
+    bool swapBrokenMasterQuartzValuesForDisplay = true;
     bool fixBgmEnqueue = true;
 
     {
@@ -516,14 +521,15 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                             }
                         }
                     };
-                check_boolean("CS4", "AssetFixes", assetFixes);
-                check_boolean("CS4", "AllowSwitchToNightmare", allowSwitchToNightmare);
-                check_boolean("CS4", "ForceConfirmCancel", forceSwapConfirmCancel);
-                check_boolean("CS4", "ForceConfirmJp", forceSwapConfirmCancelToJp);
-                check_boolean("CS4", "DisableMouseCapture", disableMouseCapture);
-                check_boolean("CS4", "ShowMouseCursor", showMouseCursor);
-                check_boolean("CS4", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
-                check_boolean("CS4", "FixBgmEnqueue", fixBgmEnqueue);
+                check_boolean("CS3", "AssetFixes", assetFixes);
+                check_boolean("CS3", "FixInGameButtonRemapping", fixInGameButtonMappingValidity);
+                check_boolean("CS3", "AllowSwitchToNightmare", allowSwitchToNightmare);
+                check_boolean("CS3", "FixControllerMapping", fixControllerMapping);
+                check_boolean("CS3", "DisableMouseCapture", disableMouseCapture);
+                check_boolean("CS3", "ShowMouseCursor", showMouseCursor);
+                check_boolean("CS3", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
+                check_boolean("CS3", "ForceXInput", forceXInput);
+                check_boolean("CS3", "FixBgmEnqueue", fixBgmEnqueue);
             }
         }
     }
@@ -532,22 +538,22 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     bool assetCreationSuccess = true;
     if (assetFixes) {
-        assetCreationSuccess = SenLib::Sen4::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
+        assetCreationSuccess = SenLib::Sen3::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
     LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes);
 
-    SenLib::Sen4::InjectAtFFileOpen(
+    SenLib::Sen3::InjectAtFFileOpen(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileOpenForwarder);
     Align16CodePage(logger, newPage);
-    SenLib::Sen4::InjectAtFFileGetFilesize(logger,
+    SenLib::Sen3::InjectAtFFileGetFilesize(logger,
                                            static_cast<char*>(codeBase),
                                            version,
                                            newPage,
                                            newPageEnd,
                                            &FFileGetFilesizeForwarder);
     Align16CodePage(logger, newPage);
-    SenLib::Sen4::InjectAtOpenFSoundFile(
+    SenLib::Sen3::InjectAtOpenFSoundFile(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FSoundOpenForwarder);
     Align16CodePage(logger, newPage);
 
@@ -562,8 +568,18 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                                 !assetCreationSuccess);
     Align16CodePage(logger, newPage);
 
+    if (fixInGameButtonMappingValidity) {
+        FixInGameButtonMappingValidity(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
     if (allowSwitchToNightmare) {
         AllowSwitchToNightmare(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (swapBrokenMasterQuartzValuesForDisplay) {
+        SwapBrokenMasterQuartzValuesForDisplay(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
     if (disableMouseCapture) {
@@ -580,17 +596,12 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
-    if (forceSwapConfirmCancel) {
-        PatchForceSwapConfirmCancel(logger,
-                                    static_cast<char*>(codeBase),
-                                    version,
-                                    newPage,
-                                    newPageEnd,
-                                    forceSwapConfirmCancelToJp);
+    if (forceXInput) {
+        PatchForceXInput(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
-    if (fixSwappedButtonsWhenDynamicPromptsOff) {
-        PatchFixPcConfirmCancelWhenSwapped(
+    if (fixControllerMapping) {
+        PatchFixControllerMappings(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
@@ -598,6 +609,7 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
+
 
     // mark newly allocated page as executable
     {
@@ -612,9 +624,9 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 }
 
 PDirectInput8Create InjectionDllInitializer() {
-    SenPatcher::Logger logger(SenPatcher::IO::File(std::string_view("senpatcher_inject_cs4.log"),
+    SenPatcher::Logger logger(SenPatcher::IO::File(std::string_view("senpatcher_inject_cs3.log"),
                                                    SenPatcher::IO::OpenMode::Write));
-    logger.Log("Initializing CS4 hook from SenPatcher, version " SENPATCHER_VERSION "...\n");
+    logger.Log("Initializing CS3 hook from SenPatcher, version " SENPATCHER_VERSION "...\n");
     auto* forwarder = LoadForwarderAddress(logger);
     SetupHacks(logger);
     return forwarder;

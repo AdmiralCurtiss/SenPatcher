@@ -7,7 +7,7 @@
 #include <string_view>
 #include <vector>
 
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace SenPatcher {
 struct CheckedFileResult {

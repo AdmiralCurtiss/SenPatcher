@@ -5,7 +5,7 @@
 #include "p3a/structs.h"
 #include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace SenLib::Sen2::FileFixes::scripts_talk_dat_us_tk_beryl_dat {
 std::string_view GetDescription() {

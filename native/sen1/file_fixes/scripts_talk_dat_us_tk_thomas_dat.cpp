@@ -4,7 +4,7 @@
 #include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace SenLib::Sen1::FileFixes::scripts_talk_dat_us_tk_thomas_dat {
 std::string_view GetDescription() {

@@ -6,7 +6,7 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen1/tbl.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 #include "util/text.h"
 
 #include "text_dat_us_t_item_tbl_t_magic_tbl.h"

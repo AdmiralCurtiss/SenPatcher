@@ -6,7 +6,7 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/book_table.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 #include "util/memwrite.h"
 #include "util/stream.h"
 #include "util/text.h"

@@ -4,10 +4,10 @@
 #include <string_view>
 #include <vector>
 
-#include "logger.h"
+#include "util/logger.h"
 #include "p3a/pack.h"
 #include "sen/file_getter.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace SenLib {
 bool CreateArchiveIfNeeded(

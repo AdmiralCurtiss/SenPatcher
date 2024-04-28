@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "crc32.h"
+#include "util/hash/crc32.h"
 #include "util/endian.h"
 #include "util/stream.h"
 

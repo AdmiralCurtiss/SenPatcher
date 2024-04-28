@@ -7,10 +7,10 @@
 #include <string>
 #include <string_view>
 
-#include "crc32.h"
-#include "file.h"
-#include "ini.h"
-#include "logger.h"
+#include "util/hash/crc32.h"
+#include "util/file.h"
+#include "util/ini.h"
+#include "util/logger.h"
 
 #include "modload/loaded_mods.h"
 #include "sen5/exe_patch.h"

@@ -21,8 +21,8 @@
 
 #include "p3a/structs.h"
 
-#include "align.h"
-#include "file.h"
+#include "util/align.h"
+#include "util/file.h"
 
 namespace SenPatcher {
 struct P3APackFile::Impl {

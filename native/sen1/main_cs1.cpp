@@ -1,5 +1,6 @@
 #include <array>
 #include <bit>
+#include <charconv>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -7,15 +8,15 @@
 #include <string>
 #include <string_view>
 
-#include "crc32.h"
-#include "file.h"
-#include "ini.h"
-#include "logger.h"
+#include "util/hash/crc32.h"
+#include "util/file.h"
+#include "util/ini.h"
+#include "util/logger.h"
 
 #include "modload/loaded_mods.h"
-#include "sen2/exe_patch.h"
-#include "sen2/file_fixes.h"
-#include "sen2/inject_modloader.h"
+#include "sen1/exe_patch.h"
+#include "sen1/file_fixes.h"
+#include "sen1/inject_modloader.h"
 #include "util/text.h"
 
 #include "senpatcher_version.h"
@@ -23,7 +24,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-using SenLib::Sen2::GameVersion;
+using SenLib::Sen1::GameVersion;
 
 using PDirectInput8Create = HRESULT(
     __stdcall*)(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, void* punkOuter);
@@ -89,32 +90,28 @@ static GameVersion FindImageBase(SenPatcher::Logger& logger, void** code) {
             .Log(".\n");
         if (gameVersion == GameVersion::Unknown && info.State == MEM_COMMIT
             && info.Type == MEM_IMAGE) {
-            if (info.RegionSize == 0x4e9000 && info.Protect == PAGE_EXECUTE_READ) {
+            if (info.RegionSize == 0x737000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
                 crc = crc_update(
-                    crc, static_cast<char*>(info.BaseAddress) + (0x4112bc - 0x401000), 0x31);
+                    crc, static_cast<char*>(info.BaseAddress) + (0x44014c - 0x401000), 0x24);
                 crc = crc_update(
-                    crc, static_cast<char*>(info.BaseAddress) + (0x881620 - 0x401000), 0x25);
-                crc = crc_update(
-                    crc, static_cast<char*>(info.BaseAddress) + (0x881649 - 0x401000), 0x4d);
+                    crc, static_cast<char*>(info.BaseAddress) + (0xb32f56 - 0x401000), 0x10);
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
-                if (crc == 0x77d5af45) {
+                if (crc == 0x26477c77) {
                     logger.Log("Appears to be the EN version.\n");
                     *code = info.BaseAddress;
                     gameVersion = GameVersion::English;
                 }
-            } else if (info.RegionSize == 0x4e8000 && info.Protect == PAGE_EXECUTE_READ) {
+            } else if (info.RegionSize == 0x735000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
                 crc = crc_update(
-                    crc, static_cast<char*>(info.BaseAddress) + (0x41124c - 0x401000), 0x31);
+                    crc, static_cast<char*>(info.BaseAddress) + (0x43fffc - 0x401000), 0x24);
                 crc = crc_update(
-                    crc, static_cast<char*>(info.BaseAddress) + (0x8805c0 - 0x401000), 0x25);
-                crc = crc_update(
-                    crc, static_cast<char*>(info.BaseAddress) + (0x8805e9 - 0x401000), 0x4d);
+                    crc, static_cast<char*>(info.BaseAddress) + (0xb31326 - 0x401000), 0x10);
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
-                if (crc == 0x77d5af45) {
+                if (crc == 0x26477c77) {
                     logger.Log("Appears to be the JP version.\n");
                     *code = info.BaseAddress;
                     gameVersion = GameVersion::Japanese;
@@ -281,16 +278,16 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     void* codeBase = nullptr;
     GameVersion version = FindImageBase(logger, &codeBase);
     if (version == GameVersion::Unknown || !codeBase) {
-        logger.Log("Failed finding CS2 executable in memory -- wrong game or version?\n");
+        logger.Log("Failed finding CS1 executable in memory -- wrong game or version?\n");
         return nullptr;
     }
 
     s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(
         static_cast<char*>(codeBase)
-        + (version == GameVersion::Japanese ? (0x6b0450 - 0x401000) : (0x6b14a0 - 0x401000)));
+        + (version == GameVersion::Japanese ? (0x70fb70 - 0x401000) : (0x711440 - 0x401000)));
     s_TrackedFree = reinterpret_cast<PTrackedFree>(
         static_cast<char*>(codeBase)
-        + (version == GameVersion::Japanese ? (0x6b03e0 - 0x401000) : (0x6b1430 - 0x401000)));
+        + (version == GameVersion::Japanese ? (0x70fb20 - 0x401000) : (0x7113f0 - 0x401000)));
 
     // allocate extra page for code
     const size_t newPageLength = 0x1000;
@@ -304,15 +301,11 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     char* newPageStart = newPage;
     char* newPageEnd = newPage + newPageLength;
 
-    // figure out whether we're running in the root game directory or in the bin/x64 subdirectory
-    // and get a relative path to the root game directory
+    // CS1 should always run in the same directory
     std::string_view baseDirUtf8;
-    if (SenPatcher::IO::FileExists(std::string_view("Sen2Launcher.exe"))) {
+    if (SenPatcher::IO::FileExists(std::string_view("Sen1Launcher.exe"))) {
         logger.Log("Root game dir is current dir.\n");
         baseDirUtf8 = ".";
-    } else if (SenPatcher::IO::FileExists(std::string_view("../../Sen2Launcher.exe"))) {
-        logger.Log("Root game dir is ../..\n");
-        baseDirUtf8 = "../..";
     } else {
         logger.Log("Failed finding root game directory.\n");
         return nullptr;
@@ -321,16 +314,15 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     bool assetFixes = true;
     bool removeTurboSkip = true;
     bool correctLanguageVoiceTables = true;
-    bool fixBgmEnqueue = true;
-    bool replaceAudioTimingThread = true;
-    bool fixControllerMapping = true;
     bool fixArtsSupportCutin = true;
     bool force0Kerning = false;
     bool disableMouseCapture = false;
     bool showMouseCursor = false;
     bool disablePauseOnFocusLoss = false;
     bool forceXInput = false;
-    bool fixBattleScopeCrash = true;
+    bool allowR2NotebookShortcut = false;
+    int turboModeButton = 7;
+    bool fixBgmEnqueue = true;
 
     {
         std::string settingsFilePath;
@@ -365,19 +357,39 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                             }
                         }
                     };
-                check_boolean("CS2", "AssetFixes", assetFixes);
-                check_boolean("CS2", "RemoveTurboSkip", removeTurboSkip);
-                check_boolean("CS2", "CorrectLanguageVoiceTables", correctLanguageVoiceTables);
-                check_boolean("CS2", "FixBgmEnqueue", fixBgmEnqueue);
-                check_boolean("CS2", "ReplaceAudioTimingThread", replaceAudioTimingThread);
-                check_boolean("CS2", "FixControllerMapping", fixControllerMapping);
-                check_boolean("CS2", "FixArtsSupportCutin", fixArtsSupportCutin);
-                check_boolean("CS2", "Force0Kerning", force0Kerning);
-                check_boolean("CS2", "DisableMouseCapture", disableMouseCapture);
-                check_boolean("CS2", "ShowMouseCursor", showMouseCursor);
-                check_boolean("CS2", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
-                check_boolean("CS2", "ForceXInput", forceXInput);
-                check_boolean("CS2", "FixBattleScopeCrash", fixBattleScopeCrash);
+                const auto check_integer =
+                    [&](std::string_view section, std::string_view key, int& i) {
+                        const auto* kvp = ini.FindValue(section, key);
+                        if (kvp) {
+                            int intval = 0;
+                            const auto [_, ec] = std::from_chars(
+                                kvp->Value.data(), kvp->Value.data() + kvp->Value.size(), intval);
+                            if (ec == std::errc()) {
+                                logger.Log("Value ");
+                                logger.Log(key);
+                                logger.Log(" set to ");
+                                logger.LogInt(intval);
+                                logger.Log(".\n");
+                                i = intval;
+                            } else {
+                                logger.Log("Value ");
+                                logger.Log(key);
+                                logger.Log(" not found in ini, leaving default.\n");
+                            }
+                        }
+                    };
+                check_boolean("CS1", "AssetFixes", assetFixes);
+                check_boolean("CS1", "RemoveTurboSkip", removeTurboSkip);
+                check_boolean("CS1", "CorrectLanguageVoiceTables", correctLanguageVoiceTables);
+                check_boolean("CS1", "FixArtsSupportCutin", fixArtsSupportCutin);
+                check_boolean("CS1", "Force0Kerning", force0Kerning);
+                check_boolean("CS1", "DisableMouseCapture", disableMouseCapture);
+                check_boolean("CS1", "ShowMouseCursor", showMouseCursor);
+                check_boolean("CS1", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
+                check_boolean("CS1", "ForceXInput", forceXInput);
+                check_boolean("CS1", "AlwaysUseNotebookR2", allowR2NotebookShortcut);
+                check_integer("CS1", "TurboModeButton", turboModeButton);
+                check_boolean("CS1", "FixBgmEnqueue", fixBgmEnqueue);
             }
         }
     }
@@ -386,15 +398,15 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 
     bool assetCreationSuccess = true;
     if (assetFixes) {
-        assetCreationSuccess = SenLib::Sen2::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
+        assetCreationSuccess = SenLib::Sen1::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
     LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes);
 
-    SenLib::Sen2::InjectAtFFileOpen(
+    SenLib::Sen1::InjectAtFFileOpen(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileOpenForwarder);
     Align16CodePage(logger, newPage);
-    SenLib::Sen2::InjectAtFFileGetFilesize(logger,
+    SenLib::Sen1::InjectAtFFileGetFilesize(logger,
                                            static_cast<char*>(codeBase),
                                            version,
                                            newPage,
@@ -402,12 +414,10 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                                            &FFileGetFilesizeForwarder);
     Align16CodePage(logger, newPage);
 
-    SenLib::Sen2::DeglobalizeMutexes(
+    SenLib::Sen1::DeglobalizeMutexes(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
-    SenLib::Sen2::FixGogGalaxy(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen2::AddSenPatcherVersionToTitle(logger,
+    SenLib::Sen1::AddSenPatcherVersionToTitle(logger,
                                               static_cast<char*>(codeBase),
                                               version,
                                               newPage,
@@ -415,71 +425,65 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
                                               s_LoadedModsData,
                                               !assetCreationSuccess);
     Align16CodePage(logger, newPage);
-    SenLib::Sen2::AddCS2ToTitleBar(
+    SenLib::Sen1::PatchThorMasterQuartzString(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
-    SenLib::Sen2::PatchRemoveDebugLeftovers(
+    SenLib::Sen1::FixTextboxAdvancePrompt(
         logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
     Align16CodePage(logger, newPage);
 
     if (removeTurboSkip) {
-        SenLib::Sen2::RemoveTurboAutoSkip(
+        SenLib::Sen1::RemoveTurboAutoSkip(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
-    if (replaceAudioTimingThread) {
-        SenLib::Sen2::PatchMusicFadeTiming(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, 1000);
+    if (allowR2NotebookShortcut) {
+        SenLib::Sen1::AllowR2NotebookShortcut(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
-    if (fixBgmEnqueue) {
-        SenLib::Sen2::PatchMusicQueueingOnSoundThreadSide(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+    if (turboModeButton >= 0 && turboModeButton <= 0xF) {
+        SenLib::Sen1::ChangeTurboModeButton(
+            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, turboModeButton);
         Align16CodePage(logger, newPage);
     }
     if (correctLanguageVoiceTables) {
-        SenLib::Sen2::PatchLanguageAppropriateVoiceTables(
+        SenLib::Sen1::PatchLanguageAppropriateVoiceTables(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
     if (disableMouseCapture) {
-        SenLib::Sen2::PatchDisableMouseCapture(
+        SenLib::Sen1::PatchDisableMouseCapture(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
     if (showMouseCursor) {
-        SenLib::Sen2::PatchShowMouseCursor(
+        SenLib::Sen1::PatchShowMouseCursor(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
     if (disablePauseOnFocusLoss) {
-        SenLib::Sen2::PatchDisablePauseOnFocusLoss(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
-    }
-    if (fixControllerMapping) {
-        SenLib::Sen2::PatchFixControllerMappings(
+        SenLib::Sen1::PatchDisablePauseOnFocusLoss(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
     if (fixArtsSupportCutin) {
-        SenLib::Sen2::PatchFixArtsSupportCutin(
+        SenLib::Sen1::PatchFixArtsSupportCutin(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
     if (force0Kerning) {
-        SenLib::Sen2::PatchForce0Kerning(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
-    }
-    if (fixBattleScopeCrash) {
-        SenLib::Sen2::PatchAddNullCheckBattleScopeCrashMaybe(
+        SenLib::Sen1::PatchForce0Kerning(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
     if (forceXInput) {
-        SenLib::Sen2::PatchForceXInput(
+        SenLib::Sen1::PatchForceXInput(
             logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
+    }
+    if (fixBgmEnqueue) {
+        PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
     }
 
@@ -496,9 +500,9 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 }
 
 PDirectInput8Create InjectionDllInitializer() {
-    SenPatcher::Logger logger(SenPatcher::IO::File(std::string_view("senpatcher_inject_cs2.log"),
+    SenPatcher::Logger logger(SenPatcher::IO::File(std::string_view("senpatcher_inject_cs1.log"),
                                                    SenPatcher::IO::OpenMode::Write));
-    logger.Log("Initializing CS2 hook from SenPatcher, version " SENPATCHER_VERSION "...\n");
+    logger.Log("Initializing CS1 hook from SenPatcher, version " SENPATCHER_VERSION "...\n");
     auto* forwarder = LoadForwarderAddress(logger);
     SetupHacks(logger);
     return forwarder;

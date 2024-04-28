@@ -7,7 +7,7 @@
 #include "modload/loaded_mods.h"
 #include "p3a/p3a.h"
 #include "p3a/structs.h"
-#include "xorshift.h"
+#include "util/xorshift.h"
 
 TEST(P3A, BinarySearchLookup) {
     using namespace SenLib::ModLoad;

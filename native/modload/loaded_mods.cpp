@@ -12,7 +12,7 @@
 #include "zstd/zdict.h"
 #include "zstd/zstd.h"
 
-#include "file.h"
+#include "util/file.h"
 #include "util/text.h"
 
 namespace {

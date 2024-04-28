@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "bps.h"
+#include "util/bps.h"
 #include "lz4/lz4.h"
 #include "sen/pkg.h"
 #include "util/stream.h"

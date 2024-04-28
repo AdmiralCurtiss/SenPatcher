@@ -177,16 +177,16 @@ set(SOURCES_RAPIDJSON
 if (SENPATCHER_BUILD_TOOLS)
 	add_executable(sentools)
 	target_sources(sentools PRIVATE
-		main_sentools.cpp
+		sentools/main_sentools.cpp
 
-		align.h
-		align.cpp
-		crc32.h
-		crc32.c
-		file.h
-		file.cpp
-		sha256.h
-		sha256.cpp
+		util/align.h
+		util/align.cpp
+		util/hash/crc32.h
+		util/hash/crc32.c
+		util/file.h
+		util/file.cpp
+		util/hash/sha256.h
+		util/hash/sha256.cpp
 		util/endian.h
 		util/memread.h
 		util/memwrite.h
@@ -495,20 +495,20 @@ set(SOURCES_REVERIE_FIXES
 )
 
 set(SOURCES_BASE_FIXES
-	align.h
-	align.cpp
-	bps.h
-	bps.cpp
-	crc32.c
-	crc32.h
-	decompress_helper.cpp
-	decompress_helper.h
-	file.h
-	file.cpp
-	logger.cpp
-	logger.h
-	sha1.cpp
-	sha1.h
+	util/align.h
+	util/align.cpp
+	util/bps.h
+	util/bps.cpp
+	util/hash/crc32.c
+	util/hash/crc32.h
+	sen/decompress_helper.cpp
+	sen/decompress_helper.h
+	util/file.h
+	util/file.cpp
+	util/logger.cpp
+	util/logger.h
+	util/hash/sha1.cpp
+	util/hash/sha1.h
 
 	util/endian.h
 	util/memread.h
@@ -543,7 +543,7 @@ set(SOURCES_BASE_FIXES
 if (SENPATCHER_BUILD_CS1TEST)
 	add_executable(cs1test)
 	target_sources(cs1test PRIVATE
-		main_cs1_test.cpp
+		sen1/main_cs1_test.cpp
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS1_FIXES}
@@ -563,9 +563,9 @@ if (SENPATCHER_BUILD_CS1HOOK)
 	add_library(cs1hook SHARED)
 	target_sources(cs1hook PRIVATE
 		dinput8.def
-		main_cs1.cpp
-		ini.cpp
-		ini.h
+		sen1/main_cs1.cpp
+		util/ini.cpp
+		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		x86/emitter.cpp
@@ -610,7 +610,7 @@ endif()
 if (SENPATCHER_BUILD_CS2TEST)
 	add_executable(cs2test)
 	target_sources(cs2test PRIVATE
-		main_cs2_test.cpp
+		sen2/main_cs2_test.cpp
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS2_FIXES}
@@ -630,9 +630,9 @@ if (SENPATCHER_BUILD_CS2HOOK)
 	add_library(cs2hook SHARED)
 	target_sources(cs2hook PRIVATE
 		dinput8.def
-		main_cs2.cpp
-		ini.cpp
-		ini.h
+		sen2/main_cs2.cpp
+		util/ini.cpp
+		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		x86/emitter.cpp
@@ -679,7 +679,7 @@ endif()
 if (SENPATCHER_BUILD_CS3TEST)
 	add_executable(cs3test)
 	target_sources(cs3test PRIVATE
-		main_cs3_test.cpp
+		sen3/main_cs3_test.cpp
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS3_FIXES}
@@ -699,9 +699,9 @@ if (SENPATCHER_BUILD_CS3HOOK)
 	add_library(cs3hook SHARED)
 	target_sources(cs3hook PRIVATE
 		dinput8.def
-		main_cs3.cpp
-		ini.cpp
-		ini.h
+		sen3/main_cs3.cpp
+		util/ini.cpp
+		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		x64/emitter.cpp
@@ -742,7 +742,7 @@ endif()
 if (SENPATCHER_BUILD_CS4TEST)
 	add_executable(cs4test)
 	target_sources(cs4test PRIVATE
-		main_cs4_test.cpp
+		sen4/main_cs4_test.cpp
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS4_FIXES}
@@ -762,9 +762,9 @@ if (SENPATCHER_BUILD_CS4HOOK)
 	add_library(cs4hook SHARED)
 	target_sources(cs4hook PRIVATE
 		dinput8.def
-		main_cs4.cpp
-		ini.cpp
-		ini.h
+		sen4/main_cs4.cpp
+		util/ini.cpp
+		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		x64/emitter.cpp
@@ -803,7 +803,7 @@ endif()
 if (SENPATCHER_BUILD_REVTEST)
 	add_executable(reverietest)
 	target_sources(reverietest PRIVATE
-		main_reverie_test.cpp
+		sen5/main_reverie_test.cpp
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_REVERIE_FIXES}
@@ -823,9 +823,9 @@ if (SENPATCHER_BUILD_REVHOOK)
 	add_library(reveriehook SHARED)
 	target_sources(reveriehook PRIVATE
 		dsound.def
-		main_reverie.cpp
-		ini.cpp
-		ini.h
+		sen5/main_reverie.cpp
+		util/ini.cpp
+		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		x64/emitter.cpp
@@ -872,9 +872,9 @@ if (SENPATCHER_BUILD_GTESTS)
 		${SOURCES_ZSTD_COMPRESSION}
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
-		sha256.h
-		sha256.cpp
-		xorshift.h
+		util/hash/sha256.h
+		util/hash/sha256.cpp
+		util/xorshift.h
 
 		test/p3a_lookup_test.cpp
 		test/sha1_test.cpp

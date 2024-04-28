@@ -1,6 +1,6 @@
 #pragma once
 
-#include "logger.h"
+#include "util/logger.h"
 
 namespace SenPatcher::x64 {
 struct PageUnprotect {

@@ -10,7 +10,7 @@
 
 #include "zstd/zstd.h"
 
-#include "crc32.h"
+#include "util/hash/crc32.h"
 #include "sen/pkg.h"
 #include "util/memwrite.h"
 

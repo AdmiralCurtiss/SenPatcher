@@ -4,7 +4,7 @@
 #include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace SenLib::Sen4::FileFixes::m9031_dat {
 std::string_view GetDescription() {

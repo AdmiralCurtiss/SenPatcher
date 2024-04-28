@@ -13,7 +13,7 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "file.h"
+#include "util/file.h"
 #include "p3a/pack.h"
 #include "p3a/packfs.h"
 #include "p3a/packjson.h"
@@ -24,7 +24,7 @@
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
 #include "sen/pkg_extract.h"
-#include "sha256.h"
+#include "util/hash/sha256.h"
 #include "util/memread.h"
 #include "util/memwrite.h"
 #include "util/stream.h"

@@ -1,9 +1,9 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "bps.h"
+#include "util/bps.h"
 #include "sen/file_getter.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 #include "util/stream.h"
 
 namespace {

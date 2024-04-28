@@ -2,7 +2,7 @@
 
 #include <bit>
 
-#include "logger.h"
+#include "util/logger.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

@@ -2,11 +2,11 @@
 #include <vector>
 
 #include "sen/file_getter.h"
-#include "decompress_helper.h"
+#include "sen/decompress_helper.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "p3a/util.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace {
 static constexpr char PatchData_v00_e0427[] = {

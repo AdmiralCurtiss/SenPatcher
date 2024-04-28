@@ -5,7 +5,7 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "p3a/util.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace SenLib::Sen1::FileFixes::se_wav_ed8m2123_wav {
 std::string_view GetDescription() {

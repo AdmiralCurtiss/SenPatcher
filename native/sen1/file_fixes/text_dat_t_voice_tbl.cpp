@@ -2,13 +2,13 @@
 #include <vector>
 
 #include "sen/file_getter.h"
-#include "bps.h"
-#include "decompress_helper.h"
+#include "util/bps.h"
+#include "sen/decompress_helper.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "p3a/util.h"
 #include "sen1/tbl.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace {
 static constexpr char PatchData3[] = {

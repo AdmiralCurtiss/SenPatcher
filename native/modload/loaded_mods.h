@@ -6,7 +6,7 @@
 #include <mutex>
 #include <string_view>
 
-#include "logger.h"
+#include "util/logger.h"
 #include "p3a/p3a.h"
 
 namespace SenLib::ModLoad {

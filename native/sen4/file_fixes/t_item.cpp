@@ -5,7 +5,7 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen4/tbl.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 #include "util/text.h"
 
 namespace SenLib::Sen4::FileFixes::t_item {

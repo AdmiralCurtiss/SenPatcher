@@ -8,9 +8,9 @@
 #include <string_view>
 #include <vector>
 
-#include "file.h"
-#include "logger.h"
-#include "sha1.h"
+#include "util/file.h"
+#include "util/logger.h"
+#include "util/hash/sha1.h"
 
 #include "p3a/p3a.h"
 #include "p3a/pack.h"

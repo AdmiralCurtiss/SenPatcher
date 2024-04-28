@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdint>
 
-#include "file.h"
+#include "util/file.h"
 
 namespace SenPatcher {
 bool AlignFile(SenPatcher::IO::File& file, uint64_t& position, uint64_t alignment) {

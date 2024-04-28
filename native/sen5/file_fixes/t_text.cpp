@@ -6,7 +6,7 @@
 #include "p3a/structs.h"
 #include "sen/file_getter.h"
 #include "sen5/tbl.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace SenLib::Sen5::FileFixes::t_text {
 std::string_view GetDescription() {

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "crc32.h"
+#include "util/hash/crc32.h"
 #include "lzma2301/LzmaDec.h"
 
 namespace SenLib {

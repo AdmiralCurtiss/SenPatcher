@@ -1,13 +1,13 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "decompress_helper.h"
+#include "sen/decompress_helper.h"
 #include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen3/file_fixes.h"
 #include "sen3/patch_pkg.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace {
 static constexpr char PatchData[] = {

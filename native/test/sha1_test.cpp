@@ -4,8 +4,8 @@
 
 #include "gtest/gtest.h"
 
-#include "file.h"
-#include "sha1.h"
+#include "util/file.h"
+#include "util/hash/sha1.h"
 
 constexpr std::array<SenPatcher::SHA1, 1025> reference = {
     SenPatcher::SHA1FromHexString("da39a3ee5e6b4b0d3255bfef95601890afd80709"),

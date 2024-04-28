@@ -4,7 +4,7 @@
 #include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 
 namespace SenLib::Sen3::FileFixes::t_jump {
 std::string_view GetDescription() {

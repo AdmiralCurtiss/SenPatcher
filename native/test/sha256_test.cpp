@@ -4,8 +4,8 @@
 
 #include "gtest/gtest.h"
 
-#include "file.h"
-#include "sha256.h"
+#include "util/file.h"
+#include "util/hash/sha256.h"
 
 using SenPatcher::SHA256FromHexString;
 constexpr std::array<SenPatcher::SHA256, 1025> reference = {

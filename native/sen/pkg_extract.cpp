@@ -8,7 +8,7 @@
 #include "lzma2301/LzmaDec.h"
 #include "zstd/zstd.h"
 
-#include "crc32.h"
+#include "util/hash/crc32.h"
 #include "pkg.h"
 #include "util/endian.h"
 #include "util/memread.h"

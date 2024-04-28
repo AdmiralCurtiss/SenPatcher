@@ -5,7 +5,7 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/book_table.h"
-#include "sha1.h"
+#include "util/hash/sha1.h"
 #include "util/stream.h"
 
 namespace SenLib::Sen3::FileFixes::book06_dat {
