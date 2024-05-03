@@ -18,12 +18,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/f0010.dat",
             18905,
-            SenPatcher::SHA1FromHexString("1c5d1ffde19b3fe0b14ce4b4d8c29ebae850b8cb"));
+            HyoutaUtils::Hash::SHA1FromHexString("1c5d1ffde19b3fe0b14ce4b4d8c29ebae850b8cb"));
         if (!file) {
             return false;
         }
 
         auto& bin = file->Data;
+        using namespace HyoutaUtils::Vector;
 
         // General Aurelia -> General Le Guin
         WriteAt(bin, 0x2330, {{0x4c, 0x65, 0x20, 0x47, 0x75, 0x69, 0x6e}});

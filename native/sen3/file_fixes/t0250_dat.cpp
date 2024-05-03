@@ -26,7 +26,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/t0250.dat",
             224041,
-            SenPatcher::SHA1FromHexString("1ba8784695ed86309b72a3104c7b0b81b67b503b"));
+            HyoutaUtils::Hash::SHA1FromHexString("1ba8784695ed86309b72a3104c7b0b81b67b503b"));
         if (!file) {
             return false;
         }
@@ -39,8 +39,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // pain we'll just patch it directly.
 
         std::vector<char> patchdata = SenLib::DecompressFromBuffer(PatchData, PatchLength);
-        SenLib::DuplicatableByteArrayStream source(bin.data(), bin.size());
-        SenLib::DuplicatableByteArrayStream patch(patchdata.data(), patchdata.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream source(bin.data(), bin.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream patch(patchdata.data(), patchdata.size());
         std::vector<char> target;
         HyoutaUtils::Bps::ApplyPatchToStream(source, patch, target);
 

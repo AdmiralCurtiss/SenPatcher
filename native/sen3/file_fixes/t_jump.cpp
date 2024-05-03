@@ -17,7 +17,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_en/t_jump.tbl",
             22928,
-            SenPatcher::SHA1FromHexString("57dd3ac63f52d21b677d5e1e7c20a7f255d0689f"));
+            HyoutaUtils::Hash::SHA1FromHexString("57dd3ac63f52d21b677d5e1e7c20a7f255d0689f"));
         if (!file) {
             return false;
         }

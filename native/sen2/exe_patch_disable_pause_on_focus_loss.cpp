@@ -7,7 +7,7 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
+void PatchDisablePauseOnFocusLoss(HyoutaUtils::Logger& logger,
                                   char* textRegion,
                                   GameVersion version,
                                   char*& codespace,

@@ -11,7 +11,7 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
                            std::unique_ptr<char[]>& dataBuffer,
                            const PkaHeader& pka,
                            size_t index,
-                           SenPatcher::IO::File& file) {
+                           HyoutaUtils::IO::File& file) {
     if (index >= pka.PkgCount) {
         return false;
     }

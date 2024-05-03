@@ -12,7 +12,7 @@ void SenScriptPatcher::ReplaceCommand(uint32_t originalLocation,
                                       std::span<const char> newCommand) {
     uint32_t nextCommandLocation = originalLocation + originalLength;
 
-    MemoryStream bin(Bin);
+    HyoutaUtils::Stream::MemoryStream bin(Bin);
 
     if (newCommand.size() <= originalLength) {
         // this is simple, just put the new command and fill the rest with NOP

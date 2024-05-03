@@ -15,7 +15,7 @@ Tbl::Tbl(const char* buffer,
          size_t length,
          HyoutaUtils::EndianUtils::Endianness e,
          HyoutaUtils::TextUtils::GameTextEncoding encoding) {
-    SenLib::DuplicatableByteArrayStream stream(buffer, length);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(buffer, length);
     uint16_t entryCount = stream.ReadUInt16(e);
     uint32_t definitionCount = stream.ReadUInt32(e);
     std::vector<TblDefinition> definitions;
@@ -53,7 +53,7 @@ void Tbl::RecalcNumberOfEntries() {
     }
 }
 
-void Tbl::WriteToStream(WriteStream& s,
+void Tbl::WriteToStream(HyoutaUtils::Stream::WriteStream& s,
                         HyoutaUtils::EndianUtils::Endianness e,
                         HyoutaUtils::TextUtils::GameTextEncoding encoding) {
     s.WriteUInt16((uint16_t)Entries.size(), e);
@@ -70,7 +70,7 @@ void Tbl::WriteToStream(WriteStream& s,
 }
 
 uint16_t Tbl::GetLength(const std::string& name,
-                        ReadStream& stream,
+                        HyoutaUtils::Stream::ReadStream& stream,
                         HyoutaUtils::EndianUtils::Endianness e,
                         HyoutaUtils::TextUtils::GameTextEncoding encoding) const {
     if (name == "QSTitle") {
@@ -105,7 +105,7 @@ uint16_t Tbl::GetLength(const std::string& name,
 }
 
 TextTableData::TextTableData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     str = stream.ReadUTF8Nullterm();
     const size_t dlen = dataLength - stream.GetPosition();
@@ -116,7 +116,7 @@ TextTableData::TextTableData(const char* data, size_t dataLength) {
 std::vector<char> TextTableData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUTF8Nullterm(str);
         ms.Write(d.data(), d.size());
@@ -126,7 +126,7 @@ std::vector<char> TextTableData::ToBinary() const {
 
 template<size_t length>
 static std::array<uint16_t, length>
-    ReadUInt16Array(DuplicatableByteArrayStream& s,
+    ReadUInt16Array(HyoutaUtils::Stream::DuplicatableByteArrayStream& s,
                     HyoutaUtils::EndianUtils::Endianness endianness =
                         HyoutaUtils::EndianUtils::Endianness::LittleEndian) {
     std::array<uint16_t, length> data;
@@ -136,7 +136,7 @@ static std::array<uint16_t, length>
     return data;
 }
 
-static void WriteUInt16Array(MemoryStream& s,
+static void WriteUInt16Array(HyoutaUtils::Stream::MemoryStream& s,
                              const uint16_t* data,
                              size_t dataLength,
                              HyoutaUtils::EndianUtils::Endianness endianness =
@@ -147,7 +147,7 @@ static void WriteUInt16Array(MemoryStream& s,
 }
 
 ItemData::ItemData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     character = stream.ReadUInt16();
     flags = stream.ReadUTF8Nullterm();
@@ -170,7 +170,7 @@ ItemData::ItemData(const char* data, size_t dataLength) {
 std::vector<char> ItemData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUInt16(character);
         ms.WriteUTF8Nullterm(flags);
@@ -191,7 +191,7 @@ std::vector<char> ItemData::ToBinary() const {
 }
 
 ItemHelpData::ItemHelpData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     str = stream.ReadUTF8Nullterm();
     const size_t dlen = dataLength - stream.GetPosition();
@@ -202,7 +202,7 @@ ItemHelpData::ItemHelpData(const char* data, size_t dataLength) {
 std::vector<char> ItemHelpData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUTF8Nullterm(str);
         ms.Write(d.data(), d.size());
@@ -211,7 +211,7 @@ std::vector<char> ItemHelpData::ToBinary() const {
 }
 
 CompHelpData::CompHelpData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     str = stream.ReadUTF8Nullterm();
     const size_t dlen = dataLength - stream.GetPosition();
@@ -222,7 +222,7 @@ CompHelpData::CompHelpData(const char* data, size_t dataLength) {
 std::vector<char> CompHelpData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUTF8Nullterm(str);
         ms.Write(d.data(), d.size());
@@ -231,7 +231,7 @@ std::vector<char> CompHelpData::ToBinary() const {
 }
 
 MagicData::MagicData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     d0 = stream.ReadArray<4>();
     flags = stream.ReadUTF8Nullterm();
     d1 = stream.ReadArray<0x66>();
@@ -246,7 +246,7 @@ MagicData::MagicData(const char* data, size_t dataLength) {
 std::vector<char> MagicData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.Write(d0.data(), d0.size());
         ms.WriteUTF8Nullterm(flags);
         ms.Write(d1.data(), d1.size());
@@ -259,7 +259,7 @@ std::vector<char> MagicData::ToBinary() const {
 }
 
 MonsterData::MonsterData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     file1 = stream.ReadUTF8Nullterm();
     file2 = stream.ReadUTF8Nullterm();
     file3 = stream.ReadUTF8Nullterm();
@@ -272,7 +272,7 @@ MonsterData::MonsterData(const char* data, size_t dataLength) {
 std::vector<char> MonsterData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUTF8Nullterm(file1);
         ms.WriteUTF8Nullterm(file2);
         ms.WriteUTF8Nullterm(file3);
@@ -285,7 +285,7 @@ std::vector<char> MonsterData::ToBinary() const {
 }
 
 MasterQuartzMemo::MasterQuartzMemo(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     mqidx = stream.ReadUInt16();
     stridx = stream.ReadUInt16();
     str = stream.ReadUTF8Nullterm();
@@ -294,7 +294,7 @@ MasterQuartzMemo::MasterQuartzMemo(const char* data, size_t dataLength) {
 std::vector<char> MasterQuartzMemo::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(mqidx);
         ms.WriteUInt16(stridx);
         ms.WriteUTF8Nullterm(str);
@@ -303,7 +303,7 @@ std::vector<char> MasterQuartzMemo::ToBinary() const {
 }
 
 NameData::NameData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     name = stream.ReadUTF8Nullterm();
     str2 = stream.ReadUTF8Nullterm();
@@ -319,7 +319,7 @@ NameData::NameData(const char* data, size_t dataLength) {
 std::vector<char> NameData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUTF8Nullterm(name);
         ms.WriteUTF8Nullterm(str2);
@@ -333,7 +333,7 @@ std::vector<char> NameData::ToBinary() const {
 }
 
 CookData::CookData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     name = stream.ReadUTF8Nullterm();
     d1 = stream.ReadArray<0x22>();
     item1 = stream.ReadUInt16();
@@ -356,7 +356,7 @@ CookData::CookData(const char* data, size_t dataLength) {
 std::vector<char> CookData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUTF8Nullterm(name);
         ms.Write(d1.data(), d1.size());
         ms.WriteUInt16(item1);
@@ -380,7 +380,7 @@ VoiceTimingData::VoiceTimingData(const char* data,
                                  size_t dataLength,
                                  HyoutaUtils::EndianUtils::Endianness e,
                                  HyoutaUtils::TextUtils::GameTextEncoding encoding) {
-    DuplicatableByteArrayStream s(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream s(data, dataLength);
     Index = s.ReadUInt16(e);
     const size_t dlen = dataLength - s.GetPosition();
     Unknown.resize(dlen);
@@ -392,7 +392,7 @@ std::vector<char>
                               HyoutaUtils::TextUtils::GameTextEncoding encoding) const {
     std::vector<char> rv;
     {
-        MemoryStream s(rv);
+        HyoutaUtils::Stream::MemoryStream s(rv);
         s.WriteUInt16(Index, e);
         s.Write(Unknown.data(), Unknown.size());
     }

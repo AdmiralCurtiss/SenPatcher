@@ -75,7 +75,7 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
 }
 
 bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packData) {
-    IO::File file(archivePath, IO::OpenMode::Write);
+    HyoutaUtils::IO::File file(archivePath, HyoutaUtils::IO::OpenMode::Write);
     return PackP3A(file, packData);
 }
 } // namespace SenPatcher

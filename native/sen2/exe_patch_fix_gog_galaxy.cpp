@@ -7,12 +7,12 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-static void WriteByte(SenPatcher::Logger& logger, char* ptr, int byte) {
+static void WriteByte(HyoutaUtils::Logger& logger, char* ptr, int byte) {
     SenPatcher::x86::PageUnprotect page(logger, ptr, 1);
     *ptr = static_cast<char>(byte);
 }
 
-void FixGogGalaxy(SenPatcher::Logger& logger,
+void FixGogGalaxy(HyoutaUtils::Logger& logger,
                   char* textRegion,
                   GameVersion version,
                   char*& codespace,

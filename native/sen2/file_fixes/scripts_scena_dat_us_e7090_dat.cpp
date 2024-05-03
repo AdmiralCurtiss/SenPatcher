@@ -18,7 +18,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_us/e7090.dat",
             132521,
-            SenPatcher::SHA1FromHexString("34005eaf8e8f7823f5079700cf130b2b3b73d047"));
+            HyoutaUtils::Hash::SHA1FromHexString("34005eaf8e8f7823f5079700cf130b2b3b73d047"));
         if (!file) {
             return false;
         }

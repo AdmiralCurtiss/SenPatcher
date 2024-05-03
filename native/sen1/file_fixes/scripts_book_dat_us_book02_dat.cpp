@@ -1,10 +1,10 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/book_table.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 #include "util/stream.h"
 #include "util/text.h"
@@ -20,7 +20,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/book/dat_us/book02.dat",
             189917,
-            SenPatcher::SHA1FromHexString("ec509088c67eb02b279e132894f68986591d41af"));
+            HyoutaUtils::Hash::SHA1FromHexString("ec509088c67eb02b279e132894f68986591d41af"));
         if (!file) {
             return false;
         }
@@ -29,7 +29,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         using namespace HyoutaUtils::TextUtils;
 
-        DuplicatableByteArrayStream s(bin.data(), bin.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream s(bin.data(), bin.size());
         BookTable book(s, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         // fix double apostrophes
@@ -60,7 +60,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         book.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);

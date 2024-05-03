@@ -19,12 +19,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/t0210.dat",
             534945,
-            SenPatcher::SHA1FromHexString("c45eb8312b11f6a87476165fe69d646789d5e48b"));
+            HyoutaUtils::Hash::SHA1FromHexString("c45eb8312b11f6a87476165fe69d646789d5e48b"));
         if (!file) {
             return false;
         }
 
         auto& bin = file->Data;
+        using namespace HyoutaUtils::Vector;
 
         SenScriptPatcher patcher(bin);
 

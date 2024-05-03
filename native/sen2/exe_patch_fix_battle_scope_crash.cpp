@@ -7,7 +7,7 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchAddNullCheckBattleScopeCrashMaybe(SenPatcher::Logger& logger,
+void PatchAddNullCheckBattleScopeCrashMaybe(HyoutaUtils::Logger& logger,
                                             char* textRegion,
                                             GameVersion version,
                                             char*& codespace,

@@ -19,7 +19,7 @@ TEST(P3A, BinarySearchLookup) {
     p3a.Archive.FileCount = maxFileCount;
     mods.CombinedFileInfos = std::make_unique<P3AFileRef[]>(maxFileCount);
 
-    xorshift rng;
+    HyoutaUtils::RNG::xorshift rng;
     for (size_t i = 0; i < maxFileCount; ++i) {
         mods.CombinedFileInfos[i].ArchiveData = &p3a;
         mods.CombinedFileInfos[i].FileInfo = &p3a.Archive.FileInfo[i];

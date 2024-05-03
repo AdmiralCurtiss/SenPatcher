@@ -32,14 +32,14 @@ struct Tbl {
 
     void RecalcNumberOfEntries();
 
-    void WriteToStream(WriteStream& s,
+    void WriteToStream(HyoutaUtils::Stream::WriteStream& s,
                        HyoutaUtils::EndianUtils::Endianness e,
                        HyoutaUtils::TextUtils::GameTextEncoding encoding =
                            HyoutaUtils::TextUtils::GameTextEncoding::UTF8);
 
 private:
     uint16_t GetLength(const std::string& name,
-                       ReadStream& stream,
+                       HyoutaUtils::Stream::ReadStream& stream,
                        HyoutaUtils::EndianUtils::Endianness e,
                        HyoutaUtils::TextUtils::GameTextEncoding encoding) const;
 };

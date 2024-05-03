@@ -13,7 +13,7 @@ PkaHeader& PkaHeader::operator=(PkaHeader&& other) = default;
 PkaHeader::~PkaHeader() = default;
 
 bool ReadPkaFromFile(PkaHeader& pka,
-                     SenPatcher::IO::File& file,
+                     HyoutaUtils::IO::File& file,
                      HyoutaUtils::EndianUtils::Endianness e) {
     std::optional<uint64_t> pos = file.GetPosition();
     if (!pos.has_value()) {
@@ -39,7 +39,7 @@ bool ReadPkaFromFile(PkaHeader& pka,
     uint64_t headerLength = 8;
     const uint32_t pkgCount = HyoutaUtils::EndianUtils::FromEndian(header1[1], e);
     for (size_t i = 0; i < pkgCount; ++i) {
-        if (!file.SetPosition(0x20, SenPatcher::IO::SetPositionMode::Current)) {
+        if (!file.SetPosition(0x20, HyoutaUtils::IO::SetPositionMode::Current)) {
             return false;
         }
         uint32_t pkgFileCount;
@@ -48,7 +48,7 @@ bool ReadPkaFromFile(PkaHeader& pka,
         }
         int64_t offset =
             static_cast<int64_t>(HyoutaUtils::EndianUtils::FromEndian(pkgFileCount, e)) * 0x60;
-        if (!file.SetPosition(offset, SenPatcher::IO::SetPositionMode::Current)) {
+        if (!file.SetPosition(offset, HyoutaUtils::IO::SetPositionMode::Current)) {
             return false;
         }
 

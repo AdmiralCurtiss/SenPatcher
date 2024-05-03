@@ -47,7 +47,7 @@ struct PkaHeader {
 
 bool ReadPkaFromFile(
     PkaHeader& pka,
-    SenPatcher::IO::File& file,
+    HyoutaUtils::IO::File& file,
     HyoutaUtils::EndianUtils::Endianness e = HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 bool ReadPkaFromMemory(
     PkaHeader& pka,

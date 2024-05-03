@@ -55,7 +55,7 @@ struct LoadedModsData {
 };
 
 void CreateModDirectory(std::string_view baseDir);
-void LoadModP3As(SenPatcher::Logger& logger,
+void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
                  bool shouldLoadAssetFixes);

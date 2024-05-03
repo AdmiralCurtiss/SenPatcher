@@ -28,7 +28,7 @@
 #define DWORD unsigned int
 #endif
 
-namespace SenPatcher::IO {
+namespace HyoutaUtils::IO {
 File::File() noexcept : Filehandle(INVALID_HANDLE_VALUE) {}
 
 File::File(std::string_view p, OpenMode mode) noexcept : Filehandle(INVALID_HANDLE_VALUE) {
@@ -454,4 +454,4 @@ bool CreateDirectory(const std::filesystem::path& p) noexcept {
 }
 #endif
 
-} // namespace SenPatcher::IO
+} // namespace HyoutaUtils::IO

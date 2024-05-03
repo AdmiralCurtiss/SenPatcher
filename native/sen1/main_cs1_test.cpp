@@ -3,7 +3,7 @@
 #include "util/logger.h"
 
 int main(int argc, char** argv) {
-    SenPatcher::Logger logger;
+    HyoutaUtils::Logger logger;
     SenLib::Sen1::CreateAssetPatchIfNeeded(
         logger, "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel");
     return 0;

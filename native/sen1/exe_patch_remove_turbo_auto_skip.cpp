@@ -10,7 +10,7 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen1 {
-void RemoveTurboAutoSkip(SenPatcher::Logger& logger,
+void RemoveTurboAutoSkip(HyoutaUtils::Logger& logger,
                          char* textRegion,
                          GameVersion version,
                          char*& codespace,

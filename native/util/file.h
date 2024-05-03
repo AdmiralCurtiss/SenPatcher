@@ -8,7 +8,7 @@
 #include <filesystem>
 #endif
 
-namespace SenPatcher::IO {
+namespace HyoutaUtils::IO {
 enum class OpenMode {
     Read,
     Write,
@@ -62,4 +62,4 @@ bool FileExists(const std::filesystem::path& p) noexcept;
 bool DirectoryExists(const std::filesystem::path& p) noexcept;
 bool CreateDirectory(std::string_view p) noexcept;
 #endif
-} // namespace SenPatcher::IO
+} // namespace HyoutaUtils::IO

@@ -187,6 +187,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/file.cpp
 		util/hash/sha256.h
 		util/hash/sha256.cpp
+		util/hash/util.h
 		util/endian.h
 		util/memread.h
 		util/memwrite.h
@@ -509,6 +510,7 @@ set(SOURCES_BASE_FIXES
 	util/logger.h
 	util/hash/sha1.cpp
 	util/hash/sha1.h
+	util/hash/util.h
 
 	util/endian.h
 	util/memread.h
@@ -874,6 +876,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		modload/loaded_mods.h
 		util/hash/sha256.h
 		util/hash/sha256.cpp
+		util/hash/util.h
 		util/xorshift.h
 
 		test/p3a_lookup_test.cpp

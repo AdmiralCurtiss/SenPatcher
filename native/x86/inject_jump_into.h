@@ -22,7 +22,7 @@ constexpr bool IsValidPaddingInstruction = paddingInstruction == PaddingInstruct
 
 template<size_t length, PaddingInstruction paddingInstruction = PaddingInstruction::Interrupt>
 static InjectJumpIntoCodeResult<length>
-    InjectJumpIntoCode(SenPatcher::Logger& logger, char* injectAt, char* jumpTarget) {
+    InjectJumpIntoCode(HyoutaUtils::Logger& logger, char* injectAt, char* jumpTarget) {
     static_assert(length >= 5);
 
     InjectJumpIntoCodeResult<length> rv;

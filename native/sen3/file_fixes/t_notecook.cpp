@@ -69,19 +69,19 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file_en = getCheckedFile(
             "data/text/dat_en/t_notecook.tbl",
             6778,
-            SenPatcher::SHA1FromHexString("9155e5158bb3e333654dd761072a04e0a8be6728"));
+            HyoutaUtils::Hash::SHA1FromHexString("9155e5158bb3e333654dd761072a04e0a8be6728"));
         auto file_text_en = getCheckedFile(
             "data/text/dat_en/t_text.tbl",
             32728,
-            SenPatcher::SHA1FromHexString("a2720e94f597640decd1d978b6b8f731147578a6"));
+            HyoutaUtils::Hash::SHA1FromHexString("a2720e94f597640decd1d978b6b8f731147578a6"));
         auto file_item_en = getCheckedFile(
             "data/text/dat_en/t_item_en.tbl",
             311891,
-            SenPatcher::SHA1FromHexString("5deee9b833b2bb93b0a326f586943f3d2e2424b9"));
+            HyoutaUtils::Hash::SHA1FromHexString("5deee9b833b2bb93b0a326f586943f3d2e2424b9"));
         auto file_itemhelp_en = getCheckedFile(
             "data/text/dat_en/t_itemhelp.tbl",
             9902,
-            SenPatcher::SHA1FromHexString("cb9135407b8264ac813e921329374a844f55036b"));
+            HyoutaUtils::Hash::SHA1FromHexString("cb9135407b8264ac813e921329374a844f55036b"));
         if (!file_en || !file_text_en || !file_item_en || !file_itemhelp_en) {
             return false;
         }
@@ -373,7 +373,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> result_en_vec;
-        MemoryStream result_en(result_en_vec);
+        HyoutaUtils::Stream::MemoryStream result_en(result_en_vec);
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(

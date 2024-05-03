@@ -8,7 +8,7 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen3 {
-void FixInGameButtonMappingValidity(SenPatcher::Logger& logger,
+void FixInGameButtonMappingValidity(HyoutaUtils::Logger& logger,
                                     char* textRegion,
                                     GameVersion version,
                                     char*& codespace,

@@ -79,7 +79,7 @@ DECLARE_STANDARD_FIX(text_dat_us_t_voice_tbl)
     } while (false)
 
 namespace SenLib::Sen1 {
-static bool CollectAssets(SenPatcher::Logger& logger,
+static bool CollectAssets(HyoutaUtils::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           std::vector<SenPatcher::P3APackFile>& packFiles) {
     TRY_APPLY(scripts_book_dat_us_book00_dat, TryApply(callback, packFiles));
@@ -134,7 +134,7 @@ static bool CollectAssets(SenPatcher::Logger& logger,
     return true;
 }
 
-static bool CollectAudio(SenPatcher::Logger& logger,
+static bool CollectAudio(HyoutaUtils::Logger& logger,
                          const SenPatcher::GetCheckedFileCallback& callback,
                          std::vector<SenPatcher::P3APackFile>& packFiles) {
     TRY_APPLY(missing_audio_files, TryApply(callback, packFiles));
@@ -142,11 +142,11 @@ static bool CollectAudio(SenPatcher::Logger& logger,
     return true;
 }
 
-bool CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
+bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger, std::string_view baseDir) {
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
             size_t size,
-            const SenPatcher::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
+            const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
         return GetCheckedFile(baseDir, path, size, hash);
     };
 

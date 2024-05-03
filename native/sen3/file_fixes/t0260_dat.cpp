@@ -19,12 +19,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/t0260.dat",
             122593,
-            SenPatcher::SHA1FromHexString("f00fc1a818c84469fd34cfb593d03ad424393ace"));
+            HyoutaUtils::Hash::SHA1FromHexString("f00fc1a818c84469fd34cfb593d03ad424393ace"));
         if (!file) {
             return false;
         }
 
         auto& bin = file->Data;
+        using namespace HyoutaUtils::Vector;
+
         SenScriptPatcher patcher(bin);
 
         // switch gender in line from Tita

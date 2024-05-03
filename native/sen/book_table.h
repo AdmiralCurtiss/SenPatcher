@@ -27,8 +27,8 @@ struct BookDataStruct {
     uint16_t Unknown10;
     uint16_t Unknown11;
 
-    BookDataStruct(ReadStream& s, HyoutaUtils::EndianUtils::Endianness e);
-    void WriteToStream(WriteStream& s, HyoutaUtils::EndianUtils::Endianness e);
+    BookDataStruct(HyoutaUtils::Stream::ReadStream& s, HyoutaUtils::EndianUtils::Endianness e);
+    void WriteToStream(HyoutaUtils::Stream::WriteStream& s, HyoutaUtils::EndianUtils::Endianness e);
 };
 
 struct BookEntry {
@@ -44,11 +44,11 @@ struct BookTable {
     uint32_t UnknownHeaderBytes;
     std::vector<BookEntry> Entries;
 
-    BookTable(ReadStream& s,
+    BookTable(HyoutaUtils::Stream::ReadStream& s,
               std::optional<HyoutaUtils::EndianUtils::Endianness> endian = std::nullopt,
               HyoutaUtils::TextUtils::GameTextEncoding encoding =
                   HyoutaUtils::TextUtils::GameTextEncoding::UTF8);
 
-    void WriteToStream(WriteStream& s, HyoutaUtils::EndianUtils::Endianness e);
+    void WriteToStream(HyoutaUtils::Stream::WriteStream& s, HyoutaUtils::EndianUtils::Endianness e);
 };
 } // namespace SenLib

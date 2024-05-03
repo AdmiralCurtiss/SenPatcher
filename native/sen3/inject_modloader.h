@@ -1,25 +1,25 @@
 #pragma once
 
-namespace SenPatcher {
+namespace HyoutaUtils {
 struct Logger;
 }
 
 namespace SenLib::Sen3 {
 enum class GameVersion;
 
-void InjectAtFFileOpen(SenPatcher::Logger& logger,
+void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
                        char* textRegion,
                        GameVersion version,
                        char*& codespace,
                        char* codespaceEnd,
                        void* ffileOpenForwarder);
-void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
+void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
                               char* codespaceEnd,
                               void* ffileGetFilesizeForwarder);
-void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
+void InjectAtOpenFSoundFile(HyoutaUtils::Logger& logger,
                             char* textRegion,
                             GameVersion version,
                             char*& codespace,

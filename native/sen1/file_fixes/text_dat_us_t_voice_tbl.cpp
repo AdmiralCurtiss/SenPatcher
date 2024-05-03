@@ -31,11 +31,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_us/t_voice.tbl",
             475328,
-            SenPatcher::SHA1FromHexString("dc8fa92820abc1b46a646b4d75ba5d239bd22ee9"));
+            HyoutaUtils::Hash::SHA1FromHexString("dc8fa92820abc1b46a646b4d75ba5d239bd22ee9"));
         auto file_timing = getCheckedFile(
             "data/text/dat_us/t_vctiming.tbl",
             122568,
-            SenPatcher::SHA1FromHexString("f4b9ff78474452aac44f4b0c07c5a3cc1ce27359"));
+            HyoutaUtils::Hash::SHA1FromHexString("f4b9ff78474452aac44f4b0c07c5a3cc1ce27359"));
         if (!file || !file_timing) {
             return false;
         }
@@ -77,19 +77,19 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // necessary.
         std::vector<char> vctiming4;
         {
-            SenLib::DuplicatableByteArrayStream vctiming(file_timing->Data.data(),
+            HyoutaUtils::Stream::DuplicatableByteArrayStream vctiming(file_timing->Data.data(),
                                                          file_timing->Data.size());
             auto p3d = DecompressFromBuffer(PatchData3, PatchLength3);
-            SenLib::DuplicatableByteArrayStream patch3(p3d.data(), p3d.size());
-            SenLib::DuplicatableByteArrayStream patch4(PatchData4, PatchLength4);
+            HyoutaUtils::Stream::DuplicatableByteArrayStream patch3(p3d.data(), p3d.size());
+            HyoutaUtils::Stream::DuplicatableByteArrayStream patch4(PatchData4, PatchLength4);
             std::vector<char> vctiming3;
             HyoutaUtils::Bps::ApplyPatchToStream(vctiming, patch3, vctiming3);
-            SenLib::DuplicatableByteArrayStream tmp(vctiming3.data(), vctiming3.size());
+            HyoutaUtils::Stream::DuplicatableByteArrayStream tmp(vctiming3.data(), vctiming3.size());
             HyoutaUtils::Bps::ApplyPatchToStream(tmp, patch4, vctiming4);
         }
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         tbl.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
         result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);
         result.emplace_back(

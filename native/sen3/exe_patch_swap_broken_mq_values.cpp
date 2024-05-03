@@ -8,7 +8,7 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen3 {
-void SwapBrokenMasterQuartzValuesForDisplay(SenPatcher::Logger& logger,
+void SwapBrokenMasterQuartzValuesForDisplay(HyoutaUtils::Logger& logger,
                                             char* textRegion,
                                             GameVersion version,
                                             char*& codespace,

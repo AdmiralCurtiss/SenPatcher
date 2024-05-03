@@ -23,7 +23,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/book/dat_us/book00.dat",
             51128,
-            SenPatcher::SHA1FromHexString("7a68747acbd132c5215ea9c7543c37f146b39d63"));
+            HyoutaUtils::Hash::SHA1FromHexString("7a68747acbd132c5215ea9c7543c37f146b39d63"));
         if (!file) {
             return false;
         }
@@ -31,7 +31,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         using namespace HyoutaUtils::TextUtils;
 
         auto& bin = file->Data;
-        DuplicatableByteArrayStream s(bin.data(), bin.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream s(bin.data(), bin.size());
         BookTable book(s, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         // weirdly formatted sub-headline
@@ -60,7 +60,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         Sen1::FileFixes::scripts_book_dat_us_book00_dat::PostSyncFixes(book);
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         book.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);

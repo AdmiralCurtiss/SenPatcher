@@ -9,7 +9,7 @@
 #include <filesystem>
 #endif
 
-namespace SenPatcher::IO {
+namespace HyoutaUtils::IO {
 struct File;
 }
 
@@ -78,5 +78,5 @@ private:
     std::unique_ptr<Impl> Data;
 };
 
-bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData);
+bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData);
 } // namespace SenPatcher

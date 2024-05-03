@@ -226,7 +226,7 @@ static void SHA1_All(word32* digest, const char* data, size_t length)
 
 }
 
-namespace SenPatcher {
+namespace HyoutaUtils::Hash {
 SHA1 CalculateSHA1(void* data, size_t length) {
     word32 state[5];
     SHA1_All(state, ((const char*)data), length);
@@ -240,4 +240,4 @@ SHA1 CalculateSHA1(void* data, size_t length) {
     }
     return rv;
 }
-} // namespace SenPatcher
+} // namespace HyoutaUtils::Hash

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace SenPatcher {
+namespace HyoutaUtils {
 struct Logger;
 }
 namespace SenLib::ModLoad {
@@ -19,7 +19,7 @@ inline char* GetCodeAddressEn(GameVersion version, char* textRegion, uint64_t ad
     return textRegion + (addressEn - 0x140001000u);
 }
 
-void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
+void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
@@ -27,25 +27,25 @@ void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
 
-void PatchMusicQueueing(SenPatcher::Logger& logger,
+void PatchMusicQueueing(HyoutaUtils::Logger& logger,
                         char* textRegion,
                         GameVersion version,
                         char*& codespace,
                         char* codespaceEnd);
 
-void PatchDisableMouseCapture(SenPatcher::Logger& logger,
+void PatchDisableMouseCapture(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
                               char* codespaceEnd);
 
-void PatchShowMouseCursor(SenPatcher::Logger& logger,
+void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
                           char* textRegion,
                           GameVersion version,
                           char*& codespace,
                           char* codespaceEnd);
 
-void PatchDisableFpsLimitOnFocusLoss(SenPatcher::Logger& logger,
+void PatchDisableFpsLimitOnFocusLoss(HyoutaUtils::Logger& logger,
                                      char* textRegion,
                                      GameVersion version,
                                      char*& codespace,

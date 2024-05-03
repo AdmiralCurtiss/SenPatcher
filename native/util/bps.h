@@ -5,7 +5,7 @@
 #include "util/stream.h"
 
 namespace HyoutaUtils::Bps {
-void ApplyPatchToStream(SenLib::ReadStream& source,
-                        SenLib::ReadStream& patch,
+void ApplyPatchToStream(HyoutaUtils::Stream::ReadStream& source,
+                        HyoutaUtils::Stream::ReadStream& patch,
                         std::vector<char>& target);
 } // namespace HyoutaUtils::Bps

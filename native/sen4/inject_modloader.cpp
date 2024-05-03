@@ -9,7 +9,7 @@
 #include "x64/inject_jump_into.h"
 
 namespace SenLib::Sen4 {
-void InjectAtFFileOpen(SenPatcher::Logger& logger,
+void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
                        char* textRegion,
                        GameVersion version,
                        char*& codespace,
@@ -60,7 +60,7 @@ void InjectAtFFileOpen(SenPatcher::Logger& logger,
     Emit_JMP_R64(codespace, R64::RDX);
 }
 
-void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
+void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
@@ -117,7 +117,7 @@ void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
-void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
+void InjectAtOpenFSoundFile(HyoutaUtils::Logger& logger,
                             char* textRegion,
                             GameVersion version,
                             char*& codespace,

@@ -19,7 +19,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/r3430.dat",
             161769,
-            SenPatcher::SHA1FromHexString("3efbd8764d61274a8750342972e75143131d7721"));
+            HyoutaUtils::Hash::SHA1FromHexString("3efbd8764d61274a8750342972e75143131d7721"));
         if (!file) {
             return false;
         }
@@ -30,6 +30,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // A-rank bracer -> A-rank level bracer
         {
+            using namespace HyoutaUtils::Vector;
             std::vector<char> ms;
             std::swap(bin[0x17c53], bin[0x17c60]);
             auto data = GetSpan(bin, 0x17c2f, 0x54);

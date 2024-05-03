@@ -1,9 +1,9 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 #include "util/memread.h"
@@ -21,7 +21,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_us/t0000.dat",
             683998,
-            SenPatcher::SHA1FromHexString("83fc174bcce22201fe2053f855e8879b3091e649"));
+            HyoutaUtils::Hash::SHA1FromHexString("83fc174bcce22201fe2053f855e8879b3091e649"));
         if (!file) {
             return false;
         }
@@ -131,7 +131,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             const auto data = ReadArray<0x78>(&bin[0x21b9b]);
             std::vector<char> msData;
-            MemoryStream ms(msData);
+            HyoutaUtils::Stream::MemoryStream ms(msData);
             ms.Write(&data[0], 0x4f);
             ms.Write(&data[0x50], 0x4);
             ms.WriteByte(0x01);

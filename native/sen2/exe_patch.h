@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace SenPatcher {
+namespace HyoutaUtils {
 struct Logger;
 }
 namespace SenLib::ModLoad {
@@ -24,90 +24,90 @@ inline char* GetCodeAddressJpEn(GameVersion version,
            + (version == GameVersion::Japanese ? (addressJp - 0x401000u) : (addressEn - 0x401000u));
 }
 
-void DeglobalizeMutexes(SenPatcher::Logger& logger,
+void DeglobalizeMutexes(HyoutaUtils::Logger& logger,
                         char* textRegion,
                         GameVersion version,
                         char*& codespace,
                         char* codespaceEnd);
-void FixGogGalaxy(SenPatcher::Logger& logger,
+void FixGogGalaxy(HyoutaUtils::Logger& logger,
                   char* textRegion,
                   GameVersion version,
                   char*& codespace,
                   char* codespaceEnd);
-void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
+void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
                                  char* codespaceEnd,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
-void AddCS2ToTitleBar(SenPatcher::Logger& logger,
+void AddCS2ToTitleBar(HyoutaUtils::Logger& logger,
                       char* textRegion,
                       GameVersion version,
                       char*& codespace,
                       char* codespaceEnd);
-void RemoveTurboAutoSkip(SenPatcher::Logger& logger,
+void RemoveTurboAutoSkip(HyoutaUtils::Logger& logger,
                          char* textRegion,
                          GameVersion version,
                          char*& codespace,
                          char* codespaceEnd);
-void PatchMusicFadeTiming(SenPatcher::Logger& logger,
+void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
                           char* textRegion,
                           GameVersion version,
                           char*& codespace,
                           char* codespaceEnd,
                           uint32_t divisor);
-void PatchMusicQueueingOnSoundThreadSide(SenPatcher::Logger& logger,
+void PatchMusicQueueingOnSoundThreadSide(HyoutaUtils::Logger& logger,
                                          char* textRegion,
                                          GameVersion version,
                                          char*& codespace,
                                          char* codespaceEnd);
-void PatchDisableMouseCapture(SenPatcher::Logger& logger,
+void PatchDisableMouseCapture(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
                               char* codespaceEnd);
-void PatchShowMouseCursor(SenPatcher::Logger& logger,
+void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
                           char* textRegion,
                           GameVersion version,
                           char*& codespace,
                           char* codespaceEnd);
-void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
+void PatchDisablePauseOnFocusLoss(HyoutaUtils::Logger& logger,
                                   char* textRegion,
                                   GameVersion version,
                                   char*& codespace,
                                   char* codespaceEnd);
-void PatchRemoveDebugLeftovers(SenPatcher::Logger& logger,
+void PatchRemoveDebugLeftovers(HyoutaUtils::Logger& logger,
                                char* textRegion,
                                GameVersion version,
                                char*& codespace,
                                char* codespaceEnd);
-void PatchLanguageAppropriateVoiceTables(SenPatcher::Logger& logger,
+void PatchLanguageAppropriateVoiceTables(HyoutaUtils::Logger& logger,
                                          char* textRegion,
                                          GameVersion version,
                                          char*& codespace,
                                          char* codespaceEnd);
-void PatchFixControllerMappings(SenPatcher::Logger& logger,
+void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
                                 char* textRegion,
                                 GameVersion version,
                                 char*& codespace,
                                 char* codespaceEnd);
-void PatchFixArtsSupportCutin(SenPatcher::Logger& logger,
+void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
                               char* codespaceEnd);
-void PatchForce0Kerning(SenPatcher::Logger& logger,
+void PatchForce0Kerning(HyoutaUtils::Logger& logger,
                         char* textRegion,
                         GameVersion version,
                         char*& codespace,
                         char* codespaceEnd);
-void PatchAddNullCheckBattleScopeCrashMaybe(SenPatcher::Logger& logger,
+void PatchAddNullCheckBattleScopeCrashMaybe(HyoutaUtils::Logger& logger,
                                             char* textRegion,
                                             GameVersion version,
                                             char*& codespace,
                                             char* codespaceEnd);
-void PatchForceXInput(SenPatcher::Logger& logger,
+void PatchForceXInput(HyoutaUtils::Logger& logger,
                       char* textRegion,
                       GameVersion version,
                       char*& codespace,

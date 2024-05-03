@@ -12,7 +12,7 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen5 {
-void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
+void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,

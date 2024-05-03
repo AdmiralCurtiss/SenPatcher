@@ -4,24 +4,14 @@
 #include <cstdint>
 #include <string_view>
 
-namespace SenPatcher {
+#include "util/hash/util.h"
+
+namespace HyoutaUtils::Hash {
 struct SHA1 {
     std::array<char, 20> Hash;
 };
 
 SHA1 CalculateSHA1(void* data, size_t length);
-
-consteval char ParseHexDigit(char c) {
-    if (c >= '0' && c <= '9') {
-        return (c - '0');
-    } else if (c >= 'a' && c <= 'f') {
-        return ((c - 'a') + 10);
-    } else if (c >= 'A' && c <= 'F') {
-        return ((c - 'A') + 10);
-    } else {
-        throw -1; // invalid hex digit
-    }
-}
 
 consteval SHA1 SHA1FromHexString(std::string_view sv) {
     if (sv.size() != 40) {
@@ -44,4 +34,4 @@ inline bool operator==(const SHA1& lhs, const SHA1& rhs) {
 inline bool operator!=(const SHA1& lhs, const SHA1& rhs) {
     return !(lhs == rhs);
 }
-} // namespace SenPatcher
+} // namespace HyoutaUtils::Hash

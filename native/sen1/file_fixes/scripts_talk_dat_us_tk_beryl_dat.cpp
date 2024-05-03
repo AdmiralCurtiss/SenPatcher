@@ -18,7 +18,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/talk/dat_us/tk_beryl.dat",
             24349,
-            SenPatcher::SHA1FromHexString("af8f356c80083c028824fd41332b003fec834cb1"));
+            HyoutaUtils::Hash::SHA1FromHexString("af8f356c80083c028824fd41332b003fec834cb1"));
         if (!file) {
             return false;
         }

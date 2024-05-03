@@ -2,10 +2,10 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/book_table.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 #include "util/memwrite.h"
 #include "util/stream.h"
@@ -31,7 +31,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/book/dat_us/book01.dat",
             71733,
-            SenPatcher::SHA1FromHexString("4243329ec1dd127cbf68a7f68d8ce6042225e1eb"));
+            HyoutaUtils::Hash::SHA1FromHexString("4243329ec1dd127cbf68a7f68d8ce6042225e1eb"));
         if (!file) {
             return false;
         }
@@ -44,7 +44,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // missing hyphen
         WriteUInt8(&bin[0x1866], 0x2d);
 
-        DuplicatableByteArrayStream s(bin.data(), bin.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream s(bin.data(), bin.size());
         BookTable book(s, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         // fix the really ugly (and inconsistent with other books) position of the chapter title
@@ -62,7 +62,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         book.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);

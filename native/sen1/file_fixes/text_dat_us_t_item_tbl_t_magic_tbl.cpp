@@ -750,11 +750,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file_item = getCheckedFile(
             "data/text/dat_us/t_item.tbl",
             136541,
-            SenPatcher::SHA1FromHexString("b64ec4d8b62042166e97e60c575552039c49c465"));
+            HyoutaUtils::Hash::SHA1FromHexString("b64ec4d8b62042166e97e60c575552039c49c465"));
         auto file_magic = getCheckedFile(
             "data/text/dat_us/t_magic.tbl",
             24136,
-            SenPatcher::SHA1FromHexString("d5f7bf4c4c575efd5699e8bbd4040b81276a7284"));
+            HyoutaUtils::Hash::SHA1FromHexString("d5f7bf4c4c575efd5699e8bbd4040b81276a7284"));
         if (!file_item || !file_magic) {
             return false;
         }
@@ -772,14 +772,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         {
             std::vector<char> bin2;
-            MemoryStream ms(bin2);
+            HyoutaUtils::Stream::MemoryStream ms(bin2);
             tbl_item.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
             result.emplace_back(
                 std::move(bin2), file_item->Filename, SenPatcher::P3ACompressionType::LZ4);
         }
         {
             std::vector<char> bin2;
-            MemoryStream ms(bin2);
+            HyoutaUtils::Stream::MemoryStream ms(bin2);
             tbl_magic.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
             result.emplace_back(
                 std::move(bin2), file_magic->Filename, SenPatcher::P3ACompressionType::LZ4);

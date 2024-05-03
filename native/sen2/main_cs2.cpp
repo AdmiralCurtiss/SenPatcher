@@ -7,8 +7,8 @@
 #include <string>
 #include <string_view>
 
-#include "util/hash/crc32.h"
 #include "util/file.h"
+#include "util/hash/crc32.h"
 #include "util/ini.h"
 #include "util/logger.h"
 
@@ -27,7 +27,7 @@ using SenLib::Sen2::GameVersion;
 
 using PDirectInput8Create = HRESULT(
     __stdcall*)(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, void* punkOuter);
-static PDirectInput8Create LoadForwarderAddress(SenPatcher::Logger& logger) {
+static PDirectInput8Create LoadForwarderAddress(HyoutaUtils::Logger& logger) {
     constexpr int total = 5000;
     WCHAR tmp[total];
     UINT count = GetSystemDirectoryW(tmp, sizeof(tmp) / sizeof(WCHAR));
@@ -51,7 +51,7 @@ static PDirectInput8Create LoadForwarderAddress(SenPatcher::Logger& logger) {
     return (PDirectInput8Create)addr;
 }
 
-static void Align16CodePage(SenPatcher::Logger& logger, char*& new_page) {
+static void Align16CodePage(HyoutaUtils::Logger& logger, char*& new_page) {
     logger.Log("Aligning ").LogPtr(new_page).Log(" to 16 bytes.\n");
     char* p = new_page;
     while ((std::bit_cast<uint32_t>(p) & 0xf) != 0) {
@@ -60,7 +60,7 @@ static void Align16CodePage(SenPatcher::Logger& logger, char*& new_page) {
     new_page = p;
 }
 
-static GameVersion FindImageBase(SenPatcher::Logger& logger, void** code) {
+static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
     GameVersion gameVersion = GameVersion::Unknown;
     MEMORY_BASIC_INFORMATION info;
     std::memset(&info, 0, sizeof(info));
@@ -183,7 +183,7 @@ static bool OpenModFile(FFile* ffile, const char* path) {
         tmp.append("dev/");
         tmp.append(path);
 
-        SenPatcher::IO::File file(std::string_view(tmp), SenPatcher::IO::OpenMode::Read);
+        HyoutaUtils::IO::File file(std::string_view(tmp), HyoutaUtils::IO::OpenMode::Read);
         if (file.IsOpen()) {
             auto length = file.GetLength();
             if (length && *length < 0x8000'0000) {
@@ -233,7 +233,7 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
         tmp.append("dev/");
         tmp.append(path);
 
-        SenPatcher::IO::File file(std::string_view(tmp), SenPatcher::IO::OpenMode::Read);
+        HyoutaUtils::IO::File file(std::string_view(tmp), HyoutaUtils::IO::OpenMode::Read);
         if (file.IsOpen()) {
             auto length = file.GetLength();
             if (length && *length < 0x8000'0000) {
@@ -277,7 +277,7 @@ static int32_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* 
     return 0;
 }
 
-static void* SetupHacks(SenPatcher::Logger& logger) {
+static void* SetupHacks(HyoutaUtils::Logger& logger) {
     void* codeBase = nullptr;
     GameVersion version = FindImageBase(logger, &codeBase);
     if (version == GameVersion::Unknown || !codeBase) {
@@ -307,10 +307,10 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
     // figure out whether we're running in the root game directory or in the bin/x64 subdirectory
     // and get a relative path to the root game directory
     std::string_view baseDirUtf8;
-    if (SenPatcher::IO::FileExists(std::string_view("Sen2Launcher.exe"))) {
+    if (HyoutaUtils::IO::FileExists(std::string_view("Sen2Launcher.exe"))) {
         logger.Log("Root game dir is current dir.\n");
         baseDirUtf8 = ".";
-    } else if (SenPatcher::IO::FileExists(std::string_view("../../Sen2Launcher.exe"))) {
+    } else if (HyoutaUtils::IO::FileExists(std::string_view("../../Sen2Launcher.exe"))) {
         logger.Log("Root game dir is ../..\n");
         baseDirUtf8 = "../..";
     } else {
@@ -338,10 +338,10 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
         settingsFilePath.append(baseDirUtf8);
         settingsFilePath.push_back('/');
         settingsFilePath.append("senpatcher_settings.ini");
-        SenPatcher::IO::File settingsFile(std::string_view(settingsFilePath),
-                                          SenPatcher::IO::OpenMode::Read);
+        HyoutaUtils::IO::File settingsFile(std::string_view(settingsFilePath),
+                                           HyoutaUtils::IO::OpenMode::Read);
         if (settingsFile.IsOpen()) {
-            SenPatcher::IniFile ini;
+            HyoutaUtils::Ini::IniFile ini;
             if (ini.ParseFile(settingsFile)) {
                 const auto check_boolean =
                     [&](std::string_view section, std::string_view key, bool& b) {
@@ -496,8 +496,8 @@ static void* SetupHacks(SenPatcher::Logger& logger) {
 }
 
 PDirectInput8Create InjectionDllInitializer() {
-    SenPatcher::Logger logger(SenPatcher::IO::File(std::string_view("senpatcher_inject_cs2.log"),
-                                                   SenPatcher::IO::OpenMode::Write));
+    HyoutaUtils::Logger logger(HyoutaUtils::IO::File(std::string_view("senpatcher_inject_cs2.log"),
+                                                    HyoutaUtils::IO::OpenMode::Write));
     logger.Log("Initializing CS2 hook from SenPatcher, version " SENPATCHER_VERSION "...\n");
     auto* forwarder = LoadForwarderAddress(logger);
     SetupHacks(logger);

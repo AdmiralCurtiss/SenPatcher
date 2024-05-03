@@ -7,7 +7,7 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen5 {
-void PatchDisableMouseCapture(SenPatcher::Logger& logger,
+void PatchDisableMouseCapture(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,

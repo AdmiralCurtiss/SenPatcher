@@ -7,7 +7,7 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen1 {
-void PatchThorMasterQuartzString(SenPatcher::Logger& logger,
+void PatchThorMasterQuartzString(HyoutaUtils::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,

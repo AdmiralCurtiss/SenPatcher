@@ -1,9 +1,9 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 #include "util/vector.h"
@@ -19,12 +19,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/r4200.dat",
             123489,
-            SenPatcher::SHA1FromHexString("d6dcc55f71cf2e6193c6a33b53b8879c0d4d5958"));
+            HyoutaUtils::Hash::SHA1FromHexString("d6dcc55f71cf2e6193c6a33b53b8879c0d4d5958"));
         if (!file) {
             return false;
         }
 
         auto& bin = file->Data;
+        using namespace HyoutaUtils::Vector;
 
         SenScriptPatcher patcher(bin);
 

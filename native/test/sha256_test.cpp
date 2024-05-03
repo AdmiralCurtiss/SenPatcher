@@ -7,8 +7,8 @@
 #include "util/file.h"
 #include "util/hash/sha256.h"
 
-using SenPatcher::SHA256FromHexString;
-constexpr std::array<SenPatcher::SHA256, 1025> reference = {
+using HyoutaUtils::Hash::SHA256FromHexString;
+constexpr std::array<HyoutaUtils::Hash::SHA256, 1025> reference = {
     SHA256FromHexString("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
     SHA256FromHexString("6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"),
     SHA256FromHexString("b413f47d13ee2fe6c845b2ee141af81de858df4ec549a58b7970bb96645bc8d2"),
@@ -1040,7 +1040,7 @@ TEST(SHA256, ZeroTo1024) {
     std::vector<char> tmp;
 
     for (int i = 0; i <= 1024; ++i) {
-        auto hash = SenPatcher::CalculateSHA256(tmp.data(), tmp.size());
+        auto hash = HyoutaUtils::Hash::CalculateSHA256(tmp.data(), tmp.size());
 
         EXPECT_EQ(reference[i], hash);
 

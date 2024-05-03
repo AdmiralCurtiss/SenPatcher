@@ -3,7 +3,7 @@
 #include "util/logger.h"
 
 int main(int argc, char** argv) {
-    SenPatcher::Logger logger;
+    HyoutaUtils::Logger logger;
     SenLib::Sen3::CreateAssetPatchIfNeeded(
         logger,
         "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel III");

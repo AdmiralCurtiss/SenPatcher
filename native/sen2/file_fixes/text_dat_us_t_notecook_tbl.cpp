@@ -20,7 +20,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_us/t_notecook.tbl",
             6841,
-            SenPatcher::SHA1FromHexString("42419bfb7e473d177b088716276180500c5d76f5"));
+            HyoutaUtils::Hash::SHA1FromHexString("42419bfb7e473d177b088716276180500c5d76f5"));
         if (!file) {
             return false;
         }
@@ -46,7 +46,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         tbl.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
         result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 

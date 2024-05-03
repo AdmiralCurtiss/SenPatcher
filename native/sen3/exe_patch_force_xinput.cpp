@@ -7,7 +7,7 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen3 {
-void PatchForceXInput(SenPatcher::Logger& logger,
+void PatchForceXInput(HyoutaUtils::Logger& logger,
                       char* textRegion,
                       GameVersion version,
                       char*& codespace,

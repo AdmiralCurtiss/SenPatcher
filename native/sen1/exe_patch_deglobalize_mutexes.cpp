@@ -7,7 +7,7 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen1 {
-void DeglobalizeMutexes(SenPatcher::Logger& logger,
+void DeglobalizeMutexes(HyoutaUtils::Logger& logger,
                         char* textRegion,
                         GameVersion version,
                         char*& codespace,

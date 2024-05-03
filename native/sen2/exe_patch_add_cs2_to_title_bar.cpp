@@ -10,7 +10,7 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen2 {
-void AddCS2ToTitleBar(SenPatcher::Logger& logger,
+void AddCS2ToTitleBar(HyoutaUtils::Logger& logger,
                       char* textRegion,
                       GameVersion version,
                       char*& codespace,

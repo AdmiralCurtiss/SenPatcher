@@ -8,11 +8,11 @@
 #include "util/file.h"
 #include "util/text.h"
 
-namespace SenPatcher {
+namespace HyoutaUtils::Ini {
 IniFile::IniFile() = default;
 IniFile::~IniFile() = default;
 
-bool IniFile::ParseFile(SenPatcher::IO::File& file) {
+bool IniFile::ParseFile(HyoutaUtils::IO::File& file) {
     using HyoutaUtils::TextUtils::Trim;
 
     if (!file.IsOpen()) {
@@ -112,4 +112,4 @@ const IniKeyValueView* IniFile::FindValue(std::string_view section, std::string_
     }
     return nullptr;
 }
-} // namespace SenPatcher
+} // namespace HyoutaUtils::Ini

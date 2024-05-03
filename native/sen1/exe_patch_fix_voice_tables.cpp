@@ -10,7 +10,7 @@ namespace SenLib::Sen1 {
 static const char FormattingStringJp[] = "%s/text/dat/%s.tbl";
 static const char FormattingStringEn[] = "%s/text/dat_us/%s.tbl";
 
-void PatchLanguageAppropriateVoiceTables(SenPatcher::Logger& logger,
+void PatchLanguageAppropriateVoiceTables(HyoutaUtils::Logger& logger,
                                          char* textRegion,
                                          GameVersion version,
                                          char*& codespace,

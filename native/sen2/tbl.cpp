@@ -15,7 +15,7 @@ Tbl::Tbl(const char* buffer,
          size_t length,
          HyoutaUtils::EndianUtils::Endianness e,
          HyoutaUtils::TextUtils::GameTextEncoding encoding) {
-    SenLib::DuplicatableByteArrayStream stream(buffer, length);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(buffer, length);
     uint16_t entryCount = stream.ReadUInt16(e);
     uint32_t definitionCount = stream.ReadUInt32(e);
     std::vector<TblDefinition> definitions;
@@ -53,7 +53,7 @@ void Tbl::RecalcNumberOfEntries() {
     }
 }
 
-void Tbl::WriteToStream(WriteStream& s,
+void Tbl::WriteToStream(HyoutaUtils::Stream::WriteStream& s,
                         HyoutaUtils::EndianUtils::Endianness e,
                         HyoutaUtils::TextUtils::GameTextEncoding encoding) {
     s.WriteUInt16((uint16_t)Entries.size(), e);
@@ -70,14 +70,14 @@ void Tbl::WriteToStream(WriteStream& s,
 }
 
 uint16_t Tbl::GetLength(const std::string& name,
-                        ReadStream& stream,
+                        HyoutaUtils::Stream::ReadStream& stream,
                         HyoutaUtils::EndianUtils::Endianness e,
                         HyoutaUtils::TextUtils::GameTextEncoding encoding) const {
     return stream.ReadUInt16(e);
 }
 
 ItemData::ItemData(const char* data, size_t dataLength, bool isQuartz) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     Idx = stream.ReadUInt16();
     Unknown0 = stream.ReadUInt16();
     Flags = stream.ReadUTF8Nullterm();
@@ -94,7 +94,7 @@ ItemData::ItemData(const char* data, size_t dataLength, bool isQuartz) {
 std::vector<char> ItemData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(Idx);
         ms.WriteUInt16(Unknown0);
         ms.WriteUTF8Nullterm(Flags);
@@ -110,7 +110,7 @@ std::vector<char> ItemData::ToBinary() const {
 }
 
 MagicData::MagicData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     Idx = stream.ReadUInt16();
     Unknown0 = stream.ReadUInt16();
     Flags = stream.ReadUTF8Nullterm();
@@ -148,7 +148,7 @@ MagicData::MagicData(const char* data, size_t dataLength) {
 std::vector<char> MagicData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(Idx);
         ms.WriteUInt16(Unknown0);
         ms.WriteUTF8Nullterm(Flags);
@@ -186,7 +186,7 @@ std::vector<char> MagicData::ToBinary() const {
 }
 
 CookData::CookData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     name = stream.ReadUTF8Nullterm();
     d1 = stream.ReadArray<0x22>();
     item1 = stream.ReadUInt16();
@@ -209,7 +209,7 @@ CookData::CookData(const char* data, size_t dataLength) {
 std::vector<char> CookData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUTF8Nullterm(name);
         ms.Write(d1.data(), d1.size());
         ms.WriteUInt16(item1);
@@ -230,7 +230,7 @@ std::vector<char> CookData::ToBinary() const {
 }
 
 VoiceData::VoiceData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     name = stream.ReadUTF8Nullterm();
     unknown1 = stream.ReadUInt64();
@@ -241,7 +241,7 @@ VoiceData::VoiceData(const char* data, size_t dataLength) {
 std::vector<char> VoiceData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUTF8Nullterm(name);
         ms.WriteUInt64(unknown1);

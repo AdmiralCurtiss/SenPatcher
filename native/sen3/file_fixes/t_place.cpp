@@ -17,7 +17,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_en/t_place.tbl",
             30026,
-            SenPatcher::SHA1FromHexString("6f74b48ecea8b47ec2d951d0cdc29f313ec82738"));
+            HyoutaUtils::Hash::SHA1FromHexString("6f74b48ecea8b47ec2d951d0cdc29f313ec82738"));
         if (!file) {
             return false;
         }

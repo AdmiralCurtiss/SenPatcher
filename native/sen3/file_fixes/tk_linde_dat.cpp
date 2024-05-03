@@ -18,7 +18,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/talk/dat_en/tk_linde.dat",
             10685,
-            SenPatcher::SHA1FromHexString("65aa739d1b7a5f3ff91e7fcf4840a5db26bfcdfb"));
+            HyoutaUtils::Hash::SHA1FromHexString("65aa739d1b7a5f3ff91e7fcf4840a5db26bfcdfb"));
         if (!file) {
             return false;
         }

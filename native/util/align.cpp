@@ -5,8 +5,8 @@
 
 #include "util/file.h"
 
-namespace SenPatcher {
-bool AlignFile(SenPatcher::IO::File& file, uint64_t& position, uint64_t alignment) {
+namespace HyoutaUtils {
+bool AlignFile(HyoutaUtils::IO::File& file, uint64_t& position, uint64_t alignment) {
     const uint64_t newPos = AlignUp(position, alignment);
     uint64_t nullBytesToWrite = newPos - position;
     if (nullBytesToWrite == 0) {
@@ -25,4 +25,4 @@ bool AlignFile(SenPatcher::IO::File& file, uint64_t& position, uint64_t alignmen
 
     return true;
 }
-} // namespace SenPatcher
+} // namespace HyoutaUtils

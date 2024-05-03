@@ -27,7 +27,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/asset/D3D11_us/I_CVIS1008.pkg",
             44196,
-            SenPatcher::SHA1FromHexString("3721996e74336af0133f096b1f717e83b9bdc075"));
+            HyoutaUtils::Hash::SHA1FromHexString("3721996e74336af0133f096b1f717e83b9bdc075"));
         if (!file) {
             return false;
         }

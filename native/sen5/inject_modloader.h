@@ -1,43 +1,43 @@
 #pragma once
 
-namespace SenPatcher {
+namespace HyoutaUtils {
 struct Logger;
 }
 
 namespace SenLib::Sen5 {
 enum class GameVersion;
 
-void InjectAtFFileOpen(SenPatcher::Logger& logger,
+void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
                        char* textRegion,
                        GameVersion version,
                        char*& codespace,
                        char* codespaceEnd,
                        void* ffileOpenForwarder);
-void InjectAtBattleScriptExists(SenPatcher::Logger& logger,
+void InjectAtBattleScriptExists(HyoutaUtils::Logger& logger,
                                 char* textRegion,
                                 GameVersion version,
                                 char*& codespace,
                                 char* codespaceEnd,
                                 void* ffileExistsForwarder);
-void InjectAtFileExists1(SenPatcher::Logger& logger,
+void InjectAtFileExists1(HyoutaUtils::Logger& logger,
                          char* textRegion,
                          GameVersion version,
                          char*& codespace,
                          char* codespaceEnd,
                          void* ffileExistsForwarder);
-void InjectAtFileExists2(SenPatcher::Logger& logger,
+void InjectAtFileExists2(HyoutaUtils::Logger& logger,
                          char* textRegion,
                          GameVersion version,
                          char*& codespace,
                          char* codespaceEnd,
                          void* ffileExistsForwarder);
-void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
+void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
                               char* codespaceEnd,
                               void* ffileGetFilesizeForwarder);
-void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
+void InjectAtOpenFSoundFile(HyoutaUtils::Logger& logger,
                             char* textRegion,
                             GameVersion version,
                             char*& codespace,

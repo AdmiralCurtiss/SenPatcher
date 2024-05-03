@@ -52,7 +52,7 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
     rapidjson::PrettyWriter<rapidjson::StringBuffer> json(jsonbuffer);
     json.StartObject();
 
-    IO::File f(archivePath, IO::OpenMode::Read);
+    HyoutaUtils::IO::File f(archivePath, HyoutaUtils::IO::OpenMode::Read);
     if (!f.IsOpen()) {
         return false;
     }
@@ -105,7 +105,8 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             return false;
         }
 
-        IO::File f2(extractPath / L"__zstd_dictionary.bin", IO::OpenMode::Write);
+        HyoutaUtils::IO::File f2(extractPath / L"__zstd_dictionary.bin",
+                                 HyoutaUtils::IO::OpenMode::Write);
         if (!f2.IsOpen()) {
             return false;
         }
@@ -146,7 +147,7 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
         if (ec) {
             return false;
         }
-        IO::File f2(fullPath, IO::OpenMode::Write);
+        HyoutaUtils::IO::File f2(fullPath, HyoutaUtils::IO::OpenMode::Write);
         if (!f2.IsOpen()) {
             return false;
         }
@@ -239,7 +240,7 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
     json.EndObject();
 
     if (generateJson) {
-        IO::File f2(extractPath / L"__p3a.json", IO::OpenMode::Write);
+        HyoutaUtils::IO::File f2(extractPath / L"__p3a.json", HyoutaUtils::IO::OpenMode::Write);
         if (!f2.IsOpen()) {
             return false;
         }

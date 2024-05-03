@@ -15,7 +15,7 @@ Tbl::Tbl(const char* buffer,
          size_t length,
          HyoutaUtils::EndianUtils::Endianness e,
          HyoutaUtils::TextUtils::GameTextEncoding encoding) {
-    SenLib::DuplicatableByteArrayStream stream(buffer, length);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(buffer, length);
     uint16_t entryCount = stream.ReadUInt16(e);
 
     std::vector<TblEntry> entries;
@@ -30,7 +30,7 @@ Tbl::Tbl(const char* buffer,
     Entries = std::move(entries);
 }
 
-void Tbl::WriteToStream(WriteStream& s,
+void Tbl::WriteToStream(HyoutaUtils::Stream::WriteStream& s,
                         HyoutaUtils::EndianUtils::Endianness e,
                         HyoutaUtils::TextUtils::GameTextEncoding encoding) {
     s.WriteUInt16((uint16_t)Entries.size(), e);
@@ -42,7 +42,7 @@ void Tbl::WriteToStream(WriteStream& s,
 }
 
 uint16_t Tbl::GetLength(const std::string& name,
-                        ReadStream& stream,
+                        HyoutaUtils::Stream::ReadStream& stream,
                         HyoutaUtils::EndianUtils::Endianness e,
                         HyoutaUtils::TextUtils::GameTextEncoding encoding) const {
     if (name == "item") {
@@ -76,7 +76,7 @@ ItemData::ItemData(const char* data,
                    size_t dataLength,
                    HyoutaUtils::EndianUtils::Endianness endian,
                    HyoutaUtils::TextUtils::GameTextEncoding encoding) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     Idx = stream.ReadUInt16(endian);
     Usability = stream.ReadUInt16(endian);
     Flags = stream.ReadNulltermString(encoding);
@@ -114,7 +114,7 @@ std::vector<char> ItemData::ToBinary(HyoutaUtils::EndianUtils::Endianness endian
                                      HyoutaUtils::TextUtils::GameTextEncoding encoding) const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(Idx, endian);
         ms.WriteUInt16(Usability, endian);
         ms.WriteNulltermString(Flags, encoding);
@@ -154,7 +154,7 @@ MagicData::MagicData(const char* data,
                      size_t dataLength,
                      HyoutaUtils::EndianUtils::Endianness endian,
                      HyoutaUtils::TextUtils::GameTextEncoding encoding) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     Idx = stream.ReadUInt16(endian);
     Unknown0 = stream.ReadUInt16(endian);
     Flags = stream.ReadNulltermString(encoding);
@@ -184,7 +184,7 @@ MagicData::MagicData(const char* data,
 std::vector<char> MagicData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(Idx);
         ms.WriteUInt16(Unknown0);
         ms.WriteUTF8Nullterm(Flags);
@@ -214,7 +214,7 @@ std::vector<char> MagicData::ToBinary() const {
 }
 
 CookData::CookData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     name = stream.ReadUTF8Nullterm();
     d1 = stream.ReadArray<0x22>();
     item1 = stream.ReadUInt16();
@@ -237,7 +237,7 @@ CookData::CookData(const char* data, size_t dataLength) {
 std::vector<char> CookData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUTF8Nullterm(name);
         ms.Write(d1.data(), d1.size());
         ms.WriteUInt16(item1);
@@ -261,7 +261,7 @@ VoiceData::VoiceData(const char* data,
                      size_t dataLength,
                      HyoutaUtils::EndianUtils::Endianness e,
                      HyoutaUtils::TextUtils::GameTextEncoding encoding) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     Index = stream.ReadUInt16(e);
     Name = stream.ReadNulltermString(encoding);
     Unknown1 = stream.ReadUInt64(e);
@@ -273,7 +273,7 @@ std::vector<char> VoiceData::ToBinary(HyoutaUtils::EndianUtils::Endianness e,
                                       HyoutaUtils::TextUtils::GameTextEncoding encoding) const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(Index, e);
         ms.WriteNulltermString(Name, encoding);
         ms.WriteUInt64(Unknown1, e);

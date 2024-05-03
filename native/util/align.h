@@ -2,15 +2,15 @@
 
 #include <cstdint>
 
-namespace SenPatcher::IO {
+namespace HyoutaUtils::IO {
 struct File;
 }
 
-namespace SenPatcher {
+namespace HyoutaUtils {
 inline uint64_t AlignUp(uint64_t value, uint64_t alignment) {
     const uint64_t rest = value % alignment;
     return rest == 0 ? value : (value + (alignment - rest));
 }
 
-bool AlignFile(SenPatcher::IO::File& file, uint64_t& position, uint64_t alignment);
-} // namespace SenPatcher
+bool AlignFile(HyoutaUtils::IO::File& file, uint64_t& position, uint64_t alignment);
+} // namespace HyoutaUtils

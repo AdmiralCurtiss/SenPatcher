@@ -19,7 +19,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/talk/dat_us/tk_monica.dat",
             24009,
-            SenPatcher::SHA1FromHexString("836140611baf2149c7ac1a28182762b25354b54f"));
+            HyoutaUtils::Hash::SHA1FromHexString("836140611baf2149c7ac1a28182762b25354b54f"));
         if (!file) {
             return false;
         }

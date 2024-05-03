@@ -1,9 +1,9 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen4/tbl.h"
 #include "util/hash/sha1.h"
 
@@ -19,7 +19,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_en/t_text.tbl",
             41747,
-            SenPatcher::SHA1FromHexString("ed242395ee9b5aa15f11bf83138b161bb116d20a"));
+            HyoutaUtils::Hash::SHA1FromHexString("ed242395ee9b5aa15f11bf83138b161bb116d20a"));
         if (!file) {
             return false;
         }
@@ -80,7 +80,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> result_en_vec;
-        MemoryStream result_en(result_en_vec);
+        HyoutaUtils::Stream::MemoryStream result_en(result_en_vec);
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(

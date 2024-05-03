@@ -7,7 +7,7 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen5 {
-void PatchMusicQueueing(SenPatcher::Logger& logger,
+void PatchMusicQueueing(HyoutaUtils::Logger& logger,
                         char* textRegion,
                         GameVersion version,
                         char*& codespace,

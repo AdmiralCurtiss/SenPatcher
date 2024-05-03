@@ -21,7 +21,7 @@ constexpr bool IsValidPaddingInstruction = paddingInstruction == PaddingInstruct
                                            || paddingInstruction == PaddingInstruction::Nop;
 
 template<size_t length, PaddingInstruction paddingInstruction = PaddingInstruction::Interrupt>
-static InjectJumpIntoCodeResult<length> InjectJumpIntoCode(SenPatcher::Logger& logger,
+static InjectJumpIntoCodeResult<length> InjectJumpIntoCode(HyoutaUtils::Logger& logger,
                                                            char* injectAt,
                                                            SenPatcher::x64::R64 reg,
                                                            char* jumpTarget) {
@@ -59,7 +59,7 @@ template<size_t lengthStep1,
          size_t lengthStep2,
          PaddingInstruction paddingInstructionStep1 = PaddingInstruction::Interrupt,
          PaddingInstruction paddingInstructionStep2 = PaddingInstruction::Interrupt>
-static InjectJumpIntoCodeResult<lengthStep1> InjectJumpIntoCode2Step(SenPatcher::Logger& logger,
+static InjectJumpIntoCodeResult<lengthStep1> InjectJumpIntoCode2Step(HyoutaUtils::Logger& logger,
                                                                      char* injectAtStep1,
                                                                      char* injectAtStep2,
                                                                      SenPatcher::x64::R64 reg,

@@ -1,9 +1,9 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 #include "util/vector.h"
@@ -19,7 +19,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/r4290.dat",
             98145,
-            SenPatcher::SHA1FromHexString("871c9c02460dde4acbb7712111af384ed76a3bdc"));
+            HyoutaUtils::Hash::SHA1FromHexString("871c9c02460dde4acbb7712111af384ed76a3bdc"));
         if (!file) {
             return false;
         }
@@ -28,6 +28,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // General Aurelia -> General Le Guin
+        using namespace HyoutaUtils::Vector;
         WriteAt(bin, 0x15ef0, {{0x4c, 0x65, 0x20, 0x47, 0x75, 0x69, 0x6e}});
 
         // General Aurelia -> Aurelia

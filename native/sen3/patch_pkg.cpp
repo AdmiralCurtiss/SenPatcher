@@ -31,9 +31,9 @@ std::vector<char> PatchSingleTexturePkg(const char* file,
         throw "decompression error";
     }
 
-    SenLib::DuplicatableByteArrayStream originalStream(decompressedOriginal.get(),
+    HyoutaUtils::Stream::DuplicatableByteArrayStream originalStream(decompressedOriginal.get(),
                                                        f1.UncompressedSize);
-    SenLib::DuplicatableByteArrayStream patchStream(patch, patchLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream patchStream(patch, patchLength);
     std::vector<char> modified;
     HyoutaUtils::Bps::ApplyPatchToStream(originalStream, patchStream, modified);
 

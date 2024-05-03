@@ -7,7 +7,7 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void PatchForceSwapConfirmCancel(SenPatcher::Logger& logger,
+void PatchForceSwapConfirmCancel(HyoutaUtils::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,

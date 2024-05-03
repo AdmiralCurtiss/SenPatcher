@@ -13,7 +13,6 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "util/file.h"
 #include "p3a/pack.h"
 #include "p3a/packfs.h"
 #include "p3a/packjson.h"
@@ -24,6 +23,7 @@
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
 #include "sen/pkg_extract.h"
+#include "util/file.h"
 #include "util/hash/sha256.h"
 #include "util/memread.h"
 #include "util/memwrite.h"
@@ -236,7 +236,7 @@ static int PKG_Extract_Function(int argc, char** argv) {
 
     std::filesystem::path sourcepath(source.begin(), source.end());
     std::filesystem::path targetpath(target.begin(), target.end());
-    SenPatcher::IO::File infile(sourcepath, SenPatcher::IO::OpenMode::Read);
+    HyoutaUtils::IO::File infile(sourcepath, HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
         printf("Failed to open input file.\n");
         return -1;
@@ -301,8 +301,8 @@ static int PKG_Extract_Function(int argc, char** argv) {
         const size_t pkgFilenameLength = (pkgFilenameFirstNull == std::u8string_view::npos)
                                              ? pkgName.size()
                                              : pkgFilenameFirstNull;
-        SenPatcher::IO::File outfile(targetpath / pkgNameSv.substr(0, pkgFilenameLength),
-                                     SenPatcher::IO::OpenMode::Write);
+        HyoutaUtils::IO::File outfile(targetpath / pkgNameSv.substr(0, pkgFilenameLength),
+                                     HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
             printf("Failed to open output file.\n");
             return -1;
@@ -325,7 +325,7 @@ static int PKG_Extract_Function(int argc, char** argv) {
     json.EndObject();
 
     if (generateJson) {
-        SenPatcher::IO::File f2(targetpath / L"__pkg.json", SenPatcher::IO::OpenMode::Write);
+        HyoutaUtils::IO::File f2(targetpath / L"__pkg.json", HyoutaUtils::IO::OpenMode::Write);
         if (!f2.IsOpen()) {
             return false;
         }
@@ -380,7 +380,7 @@ static int PKA_Extract_Function(int argc, char** argv) {
 
     std::filesystem::path sourcepath(source.begin(), source.end());
     std::filesystem::path targetpath(target.begin(), target.end());
-    SenPatcher::IO::File infile(sourcepath, SenPatcher::IO::OpenMode::Read);
+    HyoutaUtils::IO::File infile(sourcepath, HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
         printf("Failed to open input file.\n");
         return -1;
@@ -420,9 +420,9 @@ static int PKA_Extract_Function(int argc, char** argv) {
         const auto& pkgName = pkaHeader.Pkgs[i].PkgName;
         std::u8string_view pkgNameSv(reinterpret_cast<const char8_t*>(pkgName.data()),
                                      pkgName.size());
-        SenPatcher::IO::File outfile(targetpath
+        HyoutaUtils::IO::File outfile(targetpath
                                          / pkgNameSv.substr(0, pkgNameSv.find_first_of(u8'\0')),
-                                     SenPatcher::IO::OpenMode::Write);
+                                     HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
             printf("Failed to open output file.\n");
             return -1;
@@ -470,14 +470,14 @@ static int PKA_Pack_Function(int argc, char** argv) {
     // first collect info about every file in every pkg
     struct PkgPackFile {
         std::array<char, 0x40> Filename;
-        SenPatcher::SHA256 Hash;
+        HyoutaUtils::Hash::SHA256 Hash;
         uint32_t OffsetInPkg;
         uint32_t CompressedSize;
         uint32_t UncompressedSize;
         uint32_t Flags;
     };
     struct PkgPackArchive {
-        SenPatcher::IO::File FileHandle;
+        HyoutaUtils::IO::File FileHandle;
         std::array<char, 0x20> PkgName;
         std::vector<PkgPackFile> Files;
     };
@@ -517,10 +517,10 @@ static int PKA_Pack_Function(int argc, char** argv) {
                 fn[i] = c;
             }
             auto& fi = pkgPackFiles.emplace_back(PkgPackArchive{
-                .FileHandle = SenPatcher::IO::File(entry.path(), SenPatcher::IO::OpenMode::Read),
+                .FileHandle = HyoutaUtils::IO::File(entry.path(), HyoutaUtils::IO::OpenMode::Read),
                 .PkgName = fn});
 
-            SenPatcher::IO::File& infile = fi.FileHandle;
+            HyoutaUtils::IO::File& infile = fi.FileHandle;
             if (!infile.IsOpen()) {
                 printf("Failed opening pkg.\n");
                 return -1;
@@ -581,7 +581,7 @@ static int PKA_Pack_Function(int argc, char** argv) {
                 }
                 fi.Files.emplace_back(PkgPackFile{
                     .Filename = f.Filename,
-                    .Hash = SenPatcher::CalculateSHA256(dataBuffer.get(), dataLength),
+                    .Hash = HyoutaUtils::Hash::CalculateSHA256(dataBuffer.get(), dataLength),
                     .OffsetInPkg = f.DataPosition,
                     .CompressedSize = f.CompressedSize,
                     .UncompressedSize = f.UncompressedSize,
@@ -641,13 +641,14 @@ static int PKA_Pack_Function(int argc, char** argv) {
         bool AlreadyWritten = false;
     };
     struct SHA256Sorter {
-        bool operator()(const SenPatcher::SHA256& lhs, const SenPatcher::SHA256& rhs) const {
+        bool operator()(const HyoutaUtils::Hash::SHA256& lhs,
+                        const HyoutaUtils::Hash::SHA256& rhs) const {
             const auto& l = lhs.Hash;
             const auto& r = rhs.Hash;
             return std::memcmp(l.data(), r.data(), l.size()) < 0;
         }
     };
-    std::map<SenPatcher::SHA256, FileReference, SHA256Sorter> filesByHash;
+    std::map<HyoutaUtils::Hash::SHA256, FileReference, SHA256Sorter> filesByHash;
     for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
         const PkgPackArchive& archive = pkgPackFiles[i];
         for (size_t j = 0; j < archive.Files.size(); ++j) {
@@ -731,7 +732,7 @@ static int PKA_Pack_Function(int argc, char** argv) {
     assert(pkaHeaderWritePtr == (pkaHeader.get() + pkaHeaderLength));
 
     // write file
-    SenPatcher::IO::File outfile(std::filesystem::path(target), SenPatcher::IO::OpenMode::Write);
+    HyoutaUtils::IO::File outfile(std::filesystem::path(target), HyoutaUtils::IO::OpenMode::Write);
     if (!outfile.IsOpen()) {
         printf("Failed to open output file.\n");
         return -1;
@@ -867,7 +868,7 @@ static int PKG_Pack_Function(int argc, char** argv) {
             auto& fi = fileinfos.emplace_back(SenLib::PkgFile{.Filename = fn});
             auto& fd = filedatas.emplace_back();
 
-            SenPatcher::IO::File infile(entry.path(), SenPatcher::IO::OpenMode::Read);
+            HyoutaUtils::IO::File infile(entry.path(), HyoutaUtils::IO::OpenMode::Read);
             if (!infile.IsOpen()) {
                 printf("Failed opening file.\n");
                 return -1;
@@ -911,7 +912,7 @@ static int PKG_Pack_Function(int argc, char** argv) {
         return -1;
     }
 
-    SenPatcher::IO::File outfile(std::filesystem::path(target), SenPatcher::IO::OpenMode::Write);
+    HyoutaUtils::IO::File outfile(std::filesystem::path(target), HyoutaUtils::IO::OpenMode::Write);
     if (!outfile.IsOpen()) {
         printf("Failed to open output file.\n");
         return -1;
@@ -993,7 +994,7 @@ static int PKG_Repack_Function(int argc, char** argv) {
 
 
     std::filesystem::path sourcepath(source.begin(), source.end());
-    SenPatcher::IO::File f(sourcepath, SenPatcher::IO::OpenMode::Read);
+    HyoutaUtils::IO::File f(sourcepath, HyoutaUtils::IO::OpenMode::Read);
     if (!f.IsOpen()) {
         return -1;
     }
@@ -1042,11 +1043,11 @@ static int PKG_Repack_Function(int argc, char** argv) {
                 auto& fi = fileinfos.emplace_back(SenLib::PkgFile{.Filename = fn});
                 auto& fd = filedatas.emplace_back();
 
-                SenPatcher::IO::File infile(
+                HyoutaUtils::IO::File infile(
                     sourcepath.parent_path().append(std::u8string_view(
                         (const char8_t*)pathOnDisk->data(),
                         ((const char8_t*)pathOnDisk->data()) + pathOnDisk->size())),
-                    SenPatcher::IO::OpenMode::Read);
+                    HyoutaUtils::IO::OpenMode::Read);
                 if (!infile.IsOpen()) {
                     printf("Failed opening file.\n");
                     return -1;
@@ -1096,7 +1097,7 @@ static int PKG_Repack_Function(int argc, char** argv) {
         return -1;
     }
 
-    SenPatcher::IO::File outfile(std::filesystem::path(target), SenPatcher::IO::OpenMode::Write);
+    HyoutaUtils::IO::File outfile(std::filesystem::path(target), HyoutaUtils::IO::OpenMode::Write);
     if (!outfile.IsOpen()) {
         printf("Failed to open output file.\n");
         return -1;

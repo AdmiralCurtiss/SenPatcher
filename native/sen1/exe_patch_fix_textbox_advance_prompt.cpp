@@ -8,7 +8,7 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen1 {
-void FixTextboxAdvancePrompt(SenPatcher::Logger& logger,
+void FixTextboxAdvancePrompt(HyoutaUtils::Logger& logger,
                              char* textRegion,
                              GameVersion version,
                              char*& codespace,

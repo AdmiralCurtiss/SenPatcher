@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace SenPatcher {
+namespace HyoutaUtils {
 struct Logger;
 }
 namespace SenLib::ModLoad {
@@ -24,80 +24,80 @@ inline char* GetCodeAddressJpEn(GameVersion version,
            + (version == GameVersion::Japanese ? (addressJp - 0x401000u) : (addressEn - 0x401000u));
 }
 
-void DeglobalizeMutexes(SenPatcher::Logger& logger,
+void DeglobalizeMutexes(HyoutaUtils::Logger& logger,
                         char* textRegion,
                         GameVersion version,
                         char*& codespace,
                         char* codespaceEnd);
-void AddSenPatcherVersionToTitle(SenPatcher::Logger& logger,
+void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
                                  char* codespaceEnd,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
-void RemoveTurboAutoSkip(SenPatcher::Logger& logger,
+void RemoveTurboAutoSkip(HyoutaUtils::Logger& logger,
                          char* textRegion,
                          GameVersion version,
                          char*& codespace,
                          char* codespaceEnd);
-void AllowR2NotebookShortcut(SenPatcher::Logger& logger,
+void AllowR2NotebookShortcut(HyoutaUtils::Logger& logger,
                              char* textRegion,
                              GameVersion version,
                              char*& codespace,
                              char* codespaceEnd);
-void ChangeTurboModeButton(SenPatcher::Logger& logger,
+void ChangeTurboModeButton(HyoutaUtils::Logger& logger,
                            char* textRegion,
                            GameVersion version,
                            char*& codespace,
                            char* codespaceEnd,
                            int turboModeButton);
-void PatchThorMasterQuartzString(SenPatcher::Logger& logger,
+void PatchThorMasterQuartzString(HyoutaUtils::Logger& logger,
                                  char* textRegion,
                                  GameVersion version,
                                  char*& codespace,
                                  char* codespaceEnd);
-void FixTextboxAdvancePrompt(SenPatcher::Logger& logger,
+void FixTextboxAdvancePrompt(HyoutaUtils::Logger& logger,
                              char* textRegion,
                              GameVersion version,
                              char*& codespace,
                              char* codespaceEnd);
-void PatchDisableMouseCapture(SenPatcher::Logger& logger,
+void PatchDisableMouseCapture(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
                               char* codespaceEnd);
-void PatchShowMouseCursor(SenPatcher::Logger& logger,
+void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
                           char* textRegion,
                           GameVersion version,
                           char*& codespace,
                           char* codespaceEnd);
-void PatchDisablePauseOnFocusLoss(SenPatcher::Logger& logger,
+void PatchDisablePauseOnFocusLoss(HyoutaUtils::Logger& logger,
                                   char* textRegion,
                                   GameVersion version,
                                   char*& codespace,
                                   char* codespaceEnd);
-void PatchLanguageAppropriateVoiceTables(SenPatcher::Logger& logger,
+void PatchLanguageAppropriateVoiceTables(HyoutaUtils::Logger& logger,
                                          char* textRegion,
                                          GameVersion version,
                                          char*& codespace,
                                          char* codespaceEnd);
-void PatchFixArtsSupportCutin(SenPatcher::Logger& logger,
+void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
                               char* codespaceEnd);
-void PatchForce0Kerning(SenPatcher::Logger& logger,
+void PatchForce0Kerning(HyoutaUtils::Logger& logger,
                         char* textRegion,
                         GameVersion version,
                         char*& codespace,
                         char* codespaceEnd);
-void PatchForceXInput(SenPatcher::Logger& logger,
+void PatchForceXInput(HyoutaUtils::Logger& logger,
                       char* textRegion,
                       GameVersion version,
                       char*& codespace,
                       char* codespaceEnd);
-void PatchMusicQueueing(SenPatcher::Logger& logger,
+void PatchMusicQueueing(HyoutaUtils::Logger& logger,
                         char* textRegion,
                         GameVersion version,
                         char*& codespace,

@@ -73,11 +73,11 @@ void P3A::Clear() {
 bool P3A::Load(std::string_view path) {
     this->Clear();
 
-    IO::File f(path, IO::OpenMode::Read);
+    HyoutaUtils::IO::File f(path, HyoutaUtils::IO::OpenMode::Read);
     return Load(f);
 }
 
-bool P3A::Load(IO::File& f) {
+bool P3A::Load(HyoutaUtils::IO::File& f) {
     if (!f.IsOpen()) {
         return false;
     }

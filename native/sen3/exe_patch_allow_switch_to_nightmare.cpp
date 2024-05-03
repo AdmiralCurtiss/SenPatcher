@@ -7,7 +7,7 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen3 {
-void AllowSwitchToNightmare(SenPatcher::Logger& logger,
+void AllowSwitchToNightmare(HyoutaUtils::Logger& logger,
                             char* textRegion,
                             GameVersion version,
                             char*& codespace,

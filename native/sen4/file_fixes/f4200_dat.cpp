@@ -18,12 +18,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/f4200.dat",
             329609,
-            SenPatcher::SHA1FromHexString("d1cd26a05828553bb7bf03e370717226f28353a0"));
+            HyoutaUtils::Hash::SHA1FromHexString("d1cd26a05828553bb7bf03e370717226f28353a0"));
         if (!file) {
             return false;
         }
 
         auto& bin = file->Data;
+        using namespace HyoutaUtils::Vector;
 
         // astrology -> astronomy in cocktail with Towa
         WriteAt(bin, 0x39b68, {{0x6e, 0x6f, 0x6d}});

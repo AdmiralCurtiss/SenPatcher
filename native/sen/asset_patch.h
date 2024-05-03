@@ -11,16 +11,16 @@
 
 namespace SenLib {
 bool CreateArchiveIfNeeded(
-    SenPatcher::Logger& logger,
+    HyoutaUtils::Logger& logger,
     std::string_view baseDir,
     std::string_view archivePath,
     const std::function<bool(SenPatcher::P3APackData& packData)>& collectAssets);
-bool CreateVideoIfNeeded(SenPatcher::Logger& logger,
+bool CreateVideoIfNeeded(HyoutaUtils::Logger& logger,
                          std::string_view baseDir,
                          std::string_view videoPath,
                          const std::function<bool(std::vector<char>& videoData)>& getVideo);
 std::optional<SenPatcher::CheckedFileResult> GetCheckedFile(std::string_view baseDir,
                                                             std::string_view path,
                                                             size_t size,
-                                                            const SenPatcher::SHA1& hash);
+                                                            const HyoutaUtils::Hash::SHA1& hash);
 } // namespace SenLib

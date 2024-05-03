@@ -18,7 +18,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/talk/dat_en/tk_tovar.dat",
             536,
-            SenPatcher::SHA1FromHexString("5f392e50537f7ef779cb276c8d04c4eb7b7198d4"));
+            HyoutaUtils::Hash::SHA1FromHexString("5f392e50537f7ef779cb276c8d04c4eb7b7198d4"));
         if (!file) {
             return false;
         }

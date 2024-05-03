@@ -1,9 +1,9 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 #include "util/vector.h"
@@ -19,7 +19,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/c2610.dat",
             23265,
-            SenPatcher::SHA1FromHexString("d89a6f84a665a650f32269931c874bf3d1cb0b1b"));
+            HyoutaUtils::Hash::SHA1FromHexString("d89a6f84a665a650f32269931c874bf3d1cb0b1b"));
         if (!file) {
             return false;
         }
@@ -30,6 +30,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // Fisherman, 2nd Class -> 2nd Class Fisherman
         {
+            using namespace HyoutaUtils::Vector;
             std::vector<char> ms;
             WriteAtEnd(ms, GetSpan(bin, 0x4c83, 9));
             WriteAtEnd(ms, GetSpan(bin, 0x4c77, 10));

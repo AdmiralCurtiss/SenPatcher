@@ -44,7 +44,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_en/t_vctiming_us.tbl",
             307678,
-            SenPatcher::SHA1FromHexString("82c78ea6050e064869f7428b92788e8aa22dbac1"));
+            HyoutaUtils::Hash::SHA1FromHexString("82c78ea6050e064869f7428b92788e8aa22dbac1"));
         if (!file) {
             return false;
         }
@@ -168,7 +168,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // clang-format on
 
         std::vector<char> result_en_vec;
-        MemoryStream result_en(result_en_vec);
+        HyoutaUtils::Stream::MemoryStream result_en(result_en_vec);
         tbl_pc.RecalcNumberOfEntries();
         tbl_pc.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 

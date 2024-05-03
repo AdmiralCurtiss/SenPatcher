@@ -10,7 +10,7 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen1 {
-void ChangeTurboModeButton(SenPatcher::Logger& logger,
+void ChangeTurboModeButton(HyoutaUtils::Logger& logger,
                            char* textRegion,
                            GameVersion version,
                            char*& codespace,

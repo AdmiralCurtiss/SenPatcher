@@ -8,7 +8,7 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchFixControllerMappings(SenPatcher::Logger& logger,
+void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
                                 char* textRegion,
                                 GameVersion version,
                                 char*& codespace,

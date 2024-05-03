@@ -27,7 +27,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_us/t_voice.tbl",
             543081,
-            SenPatcher::SHA1FromHexString("9019e12bf1d93039254892c87f70a572d2ffc248"));
+            HyoutaUtils::Hash::SHA1FromHexString("9019e12bf1d93039254892c87f70a572d2ffc248"));
         if (!file) {
             return false;
         }
@@ -106,7 +106,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         tbl.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
         result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 

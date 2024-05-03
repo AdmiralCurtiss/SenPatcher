@@ -15,7 +15,7 @@ struct P3A {
     uint64_t FileCount = 0;
     std::unique_ptr<SenPatcher::P3AFileInfo[]> FileInfo{};
     ZSTD_DDict* Dict = nullptr;
-    SenPatcher::IO::File FileHandle{};
+    HyoutaUtils::IO::File FileHandle{};
 
     P3A();
     P3A(const P3A& other) = delete;
@@ -28,7 +28,7 @@ struct P3A {
     bool Load(std::string_view path);
 
 private:
-    bool Load(IO::File& f);
+    bool Load(HyoutaUtils::IO::File& f);
 };
 
 } // namespace SenPatcher

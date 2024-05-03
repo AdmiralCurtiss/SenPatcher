@@ -5,10 +5,10 @@
 
 #include "util/file.h"
 
-namespace SenPatcher {
+namespace HyoutaUtils {
 struct Logger {
     explicit Logger();
-    explicit Logger(SenPatcher::IO::File file);
+    explicit Logger(HyoutaUtils::IO::File file);
     Logger(const Logger& other) = delete;
     Logger(Logger&& other) = delete;
     Logger& operator=(const Logger& other) = delete;
@@ -22,6 +22,6 @@ struct Logger {
     Logger& LogFloat(float v);
 
 private:
-    SenPatcher::IO::File Handle;
+    HyoutaUtils::IO::File Handle;
 };
-} // namespace SenPatcher
+} // namespace HyoutaUtils

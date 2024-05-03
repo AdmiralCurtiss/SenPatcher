@@ -50,7 +50,7 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                          const std::filesystem::path& archivePath) {
     P3APackData packData;
 
-    SenPatcher::IO::File f(jsonPath, SenPatcher::IO::OpenMode::Read);
+    HyoutaUtils::IO::File f(jsonPath, HyoutaUtils::IO::OpenMode::Read);
     if (!f.IsOpen()) {
         return false;
     }

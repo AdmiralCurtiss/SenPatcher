@@ -15,7 +15,7 @@ Tbl::Tbl(const char* buffer,
          size_t length,
          HyoutaUtils::EndianUtils::Endianness e,
          HyoutaUtils::TextUtils::GameTextEncoding encoding) {
-    SenLib::DuplicatableByteArrayStream stream(buffer, length);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(buffer, length);
     uint16_t entryCount = stream.ReadUInt16(e);
     uint32_t definitionCount = stream.ReadUInt32(e);
     std::vector<TblDefinition> definitions;
@@ -53,7 +53,7 @@ void Tbl::RecalcNumberOfEntries() {
     }
 }
 
-void Tbl::WriteToStream(WriteStream& s,
+void Tbl::WriteToStream(HyoutaUtils::Stream::WriteStream& s,
                         HyoutaUtils::EndianUtils::Endianness e,
                         HyoutaUtils::TextUtils::GameTextEncoding encoding) {
     s.WriteUInt16((uint16_t)Entries.size(), e);
@@ -70,7 +70,7 @@ void Tbl::WriteToStream(WriteStream& s,
 }
 
 uint16_t Tbl::GetLength(const std::string& name,
-                        ReadStream& stream,
+                        HyoutaUtils::Stream::ReadStream& stream,
                         HyoutaUtils::EndianUtils::Endianness e,
                         HyoutaUtils::TextUtils::GameTextEncoding encoding) const {
     if (name == "QSTitle") {
@@ -90,7 +90,7 @@ uint16_t Tbl::GetLength(const std::string& name,
 }
 
 TextTableData::TextTableData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     str = stream.ReadUTF8Nullterm();
     const size_t dlen = dataLength - stream.GetPosition();
@@ -101,7 +101,7 @@ TextTableData::TextTableData(const char* data, size_t dataLength) {
 std::vector<char> TextTableData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUTF8Nullterm(str);
         ms.Write(d.data(), d.size());
@@ -110,7 +110,7 @@ std::vector<char> TextTableData::ToBinary() const {
 }
 
 ItemData::ItemData(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     character = stream.ReadUInt16();
     flags = stream.ReadUTF8Nullterm();
@@ -125,7 +125,7 @@ ItemData::ItemData(const char* data, size_t dataLength) {
 std::vector<char> ItemData::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUInt16(character);
         ms.WriteUTF8Nullterm(flags);
@@ -138,7 +138,7 @@ std::vector<char> ItemData::ToBinary() const {
 }
 
 MasterQuartzMemo::MasterQuartzMemo(const char* data, size_t dataLength) {
-    DuplicatableByteArrayStream stream(data, dataLength);
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     mqidx = stream.ReadUInt16();
     stridx = stream.ReadUInt16();
     str = stream.ReadUTF8Nullterm();
@@ -147,7 +147,7 @@ MasterQuartzMemo::MasterQuartzMemo(const char* data, size_t dataLength) {
 std::vector<char> MasterQuartzMemo::ToBinary() const {
     std::vector<char> rv;
     {
-        MemoryStream ms(rv);
+        HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(mqidx);
         ms.WriteUInt16(stridx);
         ms.WriteUTF8Nullterm(str);

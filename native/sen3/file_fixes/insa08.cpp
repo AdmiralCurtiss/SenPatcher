@@ -23,15 +23,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vec
         auto file = getCheckedFile(
             "data/movie_us/webm/insa_08.webm",
             9103875,
-            SenPatcher::SHA1FromHexString("97b37cb0d324014d8db6b2965f1836effdb1ce01"));
+            HyoutaUtils::Hash::SHA1FromHexString("97b37cb0d324014d8db6b2965f1836effdb1ce01"));
         if (!file) {
             return false;
         }
 
         auto& bin = file->Data;
 
-        SenLib::DuplicatableByteArrayStream source(bin.data(), bin.size());
-        SenLib::DuplicatableByteArrayStream patch(PatchData, PatchLength);
+        HyoutaUtils::Stream::DuplicatableByteArrayStream source(bin.data(), bin.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream patch(PatchData, PatchLength);
         std::vector<char> target;
         HyoutaUtils::Bps::ApplyPatchToStream(source, patch, target);
 

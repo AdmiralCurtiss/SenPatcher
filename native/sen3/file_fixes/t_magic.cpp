@@ -22,7 +22,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_en/t_magic.tbl",
             85506,
-            SenPatcher::SHA1FromHexString("c0b07b04d56268a7c42471d6671dc5cb6243286f"));
+            HyoutaUtils::Hash::SHA1FromHexString("c0b07b04d56268a7c42471d6671dc5cb6243286f"));
         if (!file) {
             return false;
         }
@@ -113,7 +113,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> result_en_vec;
-        MemoryStream result_en(result_en_vec);
+        HyoutaUtils::Stream::MemoryStream result_en(result_en_vec);
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(

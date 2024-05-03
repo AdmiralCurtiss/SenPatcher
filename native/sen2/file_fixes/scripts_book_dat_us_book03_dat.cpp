@@ -20,7 +20,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/book/dat_us/book03.dat",
             17969,
-            SenPatcher::SHA1FromHexString("da6f79f56616cb073cc7205f895b1c0d389c0e2d"));
+            HyoutaUtils::Hash::SHA1FromHexString("da6f79f56616cb073cc7205f895b1c0d389c0e2d"));
         if (!file) {
             return false;
         }
@@ -28,7 +28,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         using namespace HyoutaUtils::TextUtils;
 
         auto& bin = file->Data;
-        DuplicatableByteArrayStream s(bin.data(), bin.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream s(bin.data(), bin.size());
         BookTable book(s, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         // misplaced hyphen
@@ -59,7 +59,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             ReplaceSubstring(*book.Entries[37].Text, 620, 15, "Then and Now", 0, 12);
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         book.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);

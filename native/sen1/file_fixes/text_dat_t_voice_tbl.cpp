@@ -32,7 +32,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat/t_voice.tbl",
             470388,
-            SenPatcher::SHA1FromHexString("90a5c55ed954d77111563b9f3bb62ce7c534135a"));
+            HyoutaUtils::Hash::SHA1FromHexString("90a5c55ed954d77111563b9f3bb62ce7c534135a"));
         if (!file) {
             return false;
         }
@@ -49,13 +49,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             std::vector<char> vctiming4 = DecompressFromBuffer(PatchData4, PatchLength4);
             auto p3d = DecompressFromBuffer(PatchData3, PatchLength3);
-            SenLib::DuplicatableByteArrayStream tmp(vctiming4.data(), vctiming4.size());
-            SenLib::DuplicatableByteArrayStream patch3(p3d.data(), p3d.size());
+            HyoutaUtils::Stream::DuplicatableByteArrayStream tmp(vctiming4.data(), vctiming4.size());
+            HyoutaUtils::Stream::DuplicatableByteArrayStream patch3(p3d.data(), p3d.size());
             HyoutaUtils::Bps::ApplyPatchToStream(tmp, patch3, vctiming3);
         }
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         tbl.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
         result.emplace_back(std::move(bin2), file->Filename, SenPatcher::P3ACompressionType::LZ4);
         result.emplace_back(std::move(vctiming3),

@@ -14,7 +14,8 @@
 // warning: ported from C#, contains C#-isms
 
 namespace SenLib {
-BookDataStruct::BookDataStruct(ReadStream& s, HyoutaUtils::EndianUtils::Endianness e) {
+BookDataStruct::BookDataStruct(HyoutaUtils::Stream::ReadStream& s,
+                               HyoutaUtils::EndianUtils::Endianness e) {
     Unknown1 = s.ReadUInt16(e);
     Name = s.ReadArray<0x10>();
     Unknown2 = s.ReadUInt16(e);
@@ -29,7 +30,8 @@ BookDataStruct::BookDataStruct(ReadStream& s, HyoutaUtils::EndianUtils::Endianne
     Unknown11 = s.ReadUInt16(e);
 }
 
-void BookDataStruct::WriteToStream(WriteStream& s, HyoutaUtils::EndianUtils::Endianness e) {
+void BookDataStruct::WriteToStream(HyoutaUtils::Stream::WriteStream& s,
+                                   HyoutaUtils::EndianUtils::Endianness e) {
     s.WriteUInt16(Unknown1, e);
     s.WriteArray(Name);
     s.WriteUInt16(Unknown2, e);
@@ -44,7 +46,7 @@ void BookDataStruct::WriteToStream(WriteStream& s, HyoutaUtils::EndianUtils::End
     s.WriteUInt16(Unknown11, e);
 }
 
-BookTable::BookTable(ReadStream& s,
+BookTable::BookTable(HyoutaUtils::Stream::ReadStream& s,
                      std::optional<HyoutaUtils::EndianUtils::Endianness> endian,
                      HyoutaUtils::TextUtils::GameTextEncoding encoding) {
     uint32_t headerLengthLittleEndian =
@@ -124,7 +126,8 @@ BookTable::BookTable(ReadStream& s,
     Entries = funcs;
 }
 
-void BookTable::WriteToStream(WriteStream& s, HyoutaUtils::EndianUtils::Endianness e) {
+void BookTable::WriteToStream(HyoutaUtils::Stream::WriteStream& s,
+                              HyoutaUtils::EndianUtils::Endianness e) {
     s.Clear();
 
     // header, fill in once we know the offsets

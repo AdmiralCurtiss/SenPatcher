@@ -8,7 +8,7 @@
 #include <Windows.h>
 
 namespace SenPatcher::x86 {
-PageUnprotect::PageUnprotect(SenPatcher::Logger& logger, void* addr, size_t length) : Log(logger) {
+PageUnprotect::PageUnprotect(HyoutaUtils::Logger& logger, void* addr, size_t length) : Log(logger) {
     // FIXME: check length/alignment, this might span multiple pages!
     Length = 0x1000;
     Address = std::bit_cast<void*>(std::bit_cast<uint32_t>(addr) & (~(Length - 1)));

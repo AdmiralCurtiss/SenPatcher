@@ -42,11 +42,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file_item = getCheckedFile(
             "data/text/dat/t_item.tbl",
             129908,
-            SenPatcher::SHA1FromHexString("8a735f256c69b0b2cd2b663820953fb49523723e"));
+            HyoutaUtils::Hash::SHA1FromHexString("8a735f256c69b0b2cd2b663820953fb49523723e"));
         auto file_magic = getCheckedFile(
             "data/text/dat/t_magic.tbl",
             24434,
-            SenPatcher::SHA1FromHexString("2bb6ead07062528187e75724d828ab0fc8336708"));
+            HyoutaUtils::Hash::SHA1FromHexString("2bb6ead07062528187e75724d828ab0fc8336708"));
         if (!file_item || !file_magic) {
             return false;
         }
@@ -121,7 +121,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> bin2;
-        MemoryStream ms(bin2);
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
         tbl_item.WriteToStream(ms,
                                HyoutaUtils::EndianUtils::Endianness::LittleEndian,
                                HyoutaUtils::TextUtils::GameTextEncoding::ShiftJIS);

@@ -29,15 +29,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file_jp = getCheckedFile(
             "data/text/dat/t_mstqrt.tbl",
             31455,
-            SenPatcher::SHA1FromHexString("86c4d62ac6efc4ab5dbfdc7f5bf36c4eaef64c3b"));
+            HyoutaUtils::Hash::SHA1FromHexString("86c4d62ac6efc4ab5dbfdc7f5bf36c4eaef64c3b"));
         auto file_en = getCheckedFile(
             "data/text/dat_en/t_mstqrt.tbl",
             30155,
-            SenPatcher::SHA1FromHexString("494b68fcbc463581f79f7dd1f6444df9c4ad6204"));
+            HyoutaUtils::Hash::SHA1FromHexString("494b68fcbc463581f79f7dd1f6444df9c4ad6204"));
         auto file_fr = getCheckedFile(
             "data/text/dat_fr/t_mstqrt.tbl",
             30932,
-            SenPatcher::SHA1FromHexString("b8022803ece579b5342e5143dc91ae4706fd7f7c"));
+            HyoutaUtils::Hash::SHA1FromHexString("b8022803ece579b5342e5143dc91ae4706fd7f7c"));
         if (!file_jp || !file_en || !file_fr) {
             return false;
         }
@@ -138,11 +138,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> result_en_vec;
-        MemoryStream result_en(result_en_vec);
+        HyoutaUtils::Stream::MemoryStream result_en(result_en_vec);
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         std::vector<char> result_fr_vec;
-        MemoryStream result_fr(result_fr_vec);
+        HyoutaUtils::Stream::MemoryStream result_fr(result_fr_vec);
         tbl_fr.WriteToStream(result_fr, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(

@@ -17,5 +17,5 @@ struct CheckedFileResult {
 using GetCheckedFileCallback =
     std::function<std::optional<CheckedFileResult>(std::string_view path,
                                                    size_t size,
-                                                   const SenPatcher::SHA1& hash)>;
+                                                   const HyoutaUtils::Hash::SHA1& hash)>;
 } // namespace SenPatcher

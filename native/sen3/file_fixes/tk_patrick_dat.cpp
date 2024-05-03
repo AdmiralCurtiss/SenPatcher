@@ -17,7 +17,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/talk/dat_en/tk_patrick.dat",
             2761,
-            SenPatcher::SHA1FromHexString("6ed1ba8558121db318927df8771712233f41fcce"));
+            HyoutaUtils::Hash::SHA1FromHexString("6ed1ba8558121db318927df8771712233f41fcce"));
         if (!file) {
             return false;
         }

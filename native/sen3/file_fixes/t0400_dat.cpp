@@ -18,12 +18,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/t0400.dat",
             37289,
-            SenPatcher::SHA1FromHexString("05ebfadeed23981b39da835f2eb179877003492a"));
+            HyoutaUtils::Hash::SHA1FromHexString("05ebfadeed23981b39da835f2eb179877003492a"));
         if (!file) {
             return false;
         }
 
         auto& bin = file->Data;
+        using namespace HyoutaUtils::Vector;
 
         // grandpa -> old man
         // This is an editing error. The previous line (from Millium) said Grandpa Schmidt on PS4

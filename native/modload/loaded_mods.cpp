@@ -132,8 +132,8 @@ static bool PathIsAllowed(std::string_view path) {
 }
 
 static bool LoadOrderTxt(std::vector<std::string>& output,
-                         SenPatcher::Logger& logger,
-                         SenPatcher::IO::File& file) {
+                         HyoutaUtils::Logger& logger,
+                         HyoutaUtils::IO::File& file) {
     using HyoutaUtils::TextUtils::Trim;
     using HyoutaUtils::TextUtils::Utf8ToUtf16;
 
@@ -170,8 +170,8 @@ static bool LoadOrderTxt(std::vector<std::string>& output,
 }
 
 static bool WriteOrderTxt(const std::vector<std::string>& paths,
-                          SenPatcher::Logger& logger,
-                          SenPatcher::IO::File& file) {
+                          HyoutaUtils::Logger& logger,
+                          HyoutaUtils::IO::File& file) {
     if (!file.IsOpen()) {
         return false;
     }
@@ -232,7 +232,7 @@ static void MoveSenpatcherAssetsToEnd(std::vector<std::string>& paths) {
         });
 }
 
-static std::vector<std::string> CollectModPaths(SenPatcher::Logger& logger,
+static std::vector<std::string> CollectModPaths(HyoutaUtils::Logger& logger,
                                                 const std::string& modsDir) {
     std::vector<std::string> paths;
     std::string orderPath;
@@ -243,7 +243,7 @@ static std::vector<std::string> CollectModPaths(SenPatcher::Logger& logger,
 
     // check for order.txt, which may define an order (priority) for the mods
     {
-        SenPatcher::IO::File orderfile(std::string_view(orderPath), SenPatcher::IO::OpenMode::Read);
+        HyoutaUtils::IO::File orderfile(std::string_view(orderPath), HyoutaUtils::IO::OpenMode::Read);
         LoadOrderTxt(paths, logger, orderfile);
     }
 
@@ -287,8 +287,8 @@ static std::vector<std::string> CollectModPaths(SenPatcher::Logger& logger,
         orderPathTmp.reserve(orderPath.size() + 4);
         orderPathTmp.append(orderPath);
         orderPathTmp.append(".tmp");
-        SenPatcher::IO::File orderfile(std::string_view(orderPathTmp),
-                                       SenPatcher::IO::OpenMode::Write);
+        HyoutaUtils::IO::File orderfile(std::string_view(orderPathTmp),
+                                       HyoutaUtils::IO::OpenMode::Write);
         if (WriteOrderTxt(paths, logger, orderfile)) {
             if (!orderfile.Rename(orderPath)) {
                 orderfile.Delete();
@@ -307,10 +307,10 @@ void CreateModDirectory(std::string_view baseDir) {
     modsDir.append(baseDir);
     modsDir.push_back('/');
     modsDir.append("mods");
-    SenPatcher::IO::CreateDirectory(std::string_view(modsDir));
+    HyoutaUtils::IO::CreateDirectory(std::string_view(modsDir));
 }
 
-void LoadModP3As(SenPatcher::Logger& logger,
+void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
                  bool shouldLoadAssetFixes) {
@@ -326,7 +326,7 @@ void LoadModP3As(SenPatcher::Logger& logger,
         devPath.push_back('/');
         devPath.append("dev");
         loadedModsData.CheckDevFolderForAssets =
-            SenPatcher::IO::DirectoryExists(std::string_view(devPath));
+            HyoutaUtils::IO::DirectoryExists(std::string_view(devPath));
     }
 
     size_t p3acount = 0;

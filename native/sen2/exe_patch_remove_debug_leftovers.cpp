@@ -7,7 +7,7 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchRemoveDebugLeftovers(SenPatcher::Logger& logger,
+void PatchRemoveDebugLeftovers(HyoutaUtils::Logger& logger,
                                char* textRegion,
                                GameVersion version,
                                char*& codespace,

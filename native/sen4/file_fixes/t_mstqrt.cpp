@@ -21,7 +21,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file_en = getCheckedFile(
             "data/text/dat_en/t_mstqrt.tbl",
             40683,
-            SenPatcher::SHA1FromHexString("40ae4f525021b550b77e045a00841a42bc460a77"));
+            HyoutaUtils::Hash::SHA1FromHexString("40ae4f525021b550b77e045a00841a42bc460a77"));
         if (!file_en) {
             return false;
         }
@@ -41,7 +41,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         std::vector<char> result_en_vec;
-        MemoryStream result_en(result_en_vec);
+        HyoutaUtils::Stream::MemoryStream result_en(result_en_vec);
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         result.emplace_back(

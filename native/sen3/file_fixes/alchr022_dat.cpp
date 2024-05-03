@@ -17,7 +17,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
     auto file =
         getCheckedFile("data/scripts/battle/dat_en/alchr022.dat",
                        2341,
-                       SenPatcher::SHA1FromHexString("2c6088c4f1e8847e49f5f5f48b410fe2aec3ef54"));
+                       HyoutaUtils::Hash::SHA1FromHexString("2c6088c4f1e8847e49f5f5f48b410fe2aec3ef54"));
     if (!file) {
         return false;
     }

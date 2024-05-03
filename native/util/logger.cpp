@@ -7,9 +7,9 @@
 
 #include "util/file.h"
 
-namespace SenPatcher {
+namespace HyoutaUtils {
 Logger::Logger() = default;
-Logger::Logger(SenPatcher::IO::File file) : Handle(std::move(file)) {}
+Logger::Logger(HyoutaUtils::IO::File file) : Handle(std::move(file)) {}
 
 Logger::~Logger() = default;
 
@@ -55,4 +55,4 @@ Logger& Logger::LogFloat(float v) {
     }
     return *this;
 }
-} // namespace SenPatcher
+} // namespace HyoutaUtils

@@ -11,7 +11,7 @@
 #include "endian.h"
 #include "text.h"
 
-namespace SenLib {
+namespace HyoutaUtils::Stream {
 // this mostly exists so I can copy-paste code from C# not have to change too much...
 struct ReadStream {
     virtual ~ReadStream();
@@ -183,4 +183,4 @@ public:
 };
 
 void CopyStream(ReadStream& input, WriteStream& output, uint64_t count);
-} // namespace SenLib
+} // namespace HyoutaUtils::Stream

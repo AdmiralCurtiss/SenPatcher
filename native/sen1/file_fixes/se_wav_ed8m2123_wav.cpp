@@ -25,7 +25,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // the Steam/GoG/Humble releases don't agree on the filename encoding, hence the multiple
         // checks here...
         static constexpr auto sha =
-            SenPatcher::SHA1FromHexString("684cc74b0837ff1408124f8b8a05cfd9c9a09195");
+            HyoutaUtils::Hash::SHA1FromHexString("684cc74b0837ff1408124f8b8a05cfd9c9a09195");
         auto file = getCheckedFile(
             "data/se/wav/ed8"
             "\xef\xbd\x8d"

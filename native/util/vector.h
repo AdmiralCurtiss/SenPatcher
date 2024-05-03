@@ -1,7 +1,9 @@
+#pragma once
+
 #include <span>
 #include <vector>
 
-namespace SenLib {
+namespace HyoutaUtils::Vector {
 // writes 'data' to [&vector[offset], &vector[offset+data.size()]), overwriting any existing data
 // and expanding the vector if necessary
 template<typename T>
@@ -36,4 +38,4 @@ inline std::vector<char> GetVector(std::span<const char> data) {
 inline std::vector<char> GetVector(std::span<const char> data, size_t offset, size_t length) {
     return GetVector(GetSpan(data, offset, length));
 }
-} // namespace SenLib
+} // namespace HyoutaUtils::Vector

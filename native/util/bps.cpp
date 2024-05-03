@@ -19,7 +19,7 @@ enum class Action {
     TargetCopy,
 };
 
-uint64_t ReadUnsignedNumber(SenLib::ReadStream& s) {
+uint64_t ReadUnsignedNumber(HyoutaUtils::Stream::ReadStream& s) {
     uint64_t data = 0;
     uint64_t shift = 1;
     while (true) {
@@ -37,13 +37,13 @@ uint64_t ReadUnsignedNumber(SenLib::ReadStream& s) {
     return data;
 }
 
-int64_t ReadSignedNumber(SenLib::ReadStream& s) {
+int64_t ReadSignedNumber(HyoutaUtils::Stream::ReadStream& s) {
     uint64_t n = ReadUnsignedNumber(s);
     int64_t v = (int64_t)(n >> 1);
     return ((n & 1) != 0) ? -v : v;
 }
 
-std::pair<Action, uint64_t> ReadAction(SenLib::ReadStream& s) {
+std::pair<Action, uint64_t> ReadAction(HyoutaUtils::Stream::ReadStream& s) {
     uint64_t n = ReadUnsignedNumber(s);
     uint64_t command = n & 3;
     uint64_t length = (n >> 2) + 1;
@@ -56,7 +56,7 @@ std::pair<Action, uint64_t> ReadAction(SenLib::ReadStream& s) {
     throw "should never reach here";
 }
 
-uint32_t CalculateCRC32FromCurrentPosition(SenLib::ReadStream& s, uint64_t bytecount) {
+uint32_t CalculateCRC32FromCurrentPosition(HyoutaUtils::Stream::ReadStream& s, uint64_t bytecount) {
     uint32_t crc32 = crc_init();
     std::array<char, 4096> buffer;
     size_t read;
@@ -87,14 +87,14 @@ uint32_t CalculateCRC32(const char* data, size_t length) {
 }
 
 struct BpsPatcher {
-    SenLib::ReadStream& Source;
-    SenLib::ReadStream& Patch;
-    SenLib::MemoryStream& Target;
+    HyoutaUtils::Stream::ReadStream& Source;
+    HyoutaUtils::Stream::ReadStream& Patch;
+    HyoutaUtils::Stream::MemoryStream& Target;
 
     uint64_t SourceRelativeOffset = 0;
     uint64_t TargetRelativeOffset = 0;
 
-    BpsPatcher(SenLib::ReadStream& source, SenLib::ReadStream& patch, SenLib::MemoryStream& target)
+    BpsPatcher(HyoutaUtils::Stream::ReadStream& source, HyoutaUtils::Stream::ReadStream& patch, HyoutaUtils::Stream::MemoryStream& target)
       : Source(source), Patch(patch), Target(target) {}
 
     BpsPatcher(const BpsPatcher& other) = delete;
@@ -188,14 +188,14 @@ struct BpsPatcher {
         if (((uint64_t)Source.GetPosition()) + length > (uint64_t)Source.GetLength()) {
             throw "Invalid length in SourceRead.";
         }
-        SenLib::CopyStream(Source, Target, length);
+        HyoutaUtils::Stream::CopyStream(Source, Target, length);
     }
 
     void DoTargetRead(uint64_t length) {
         if (((uint64_t)Patch.GetPosition()) + length > (uint64_t)Patch.GetLength()) {
             throw "Invalid length in TargetRead.";
         }
-        SenLib::CopyStream(Patch, Target, length);
+        HyoutaUtils::Stream::CopyStream(Patch, Target, length);
     }
 
     void AddChecked(uint64_t& pos, int64_t d, uint64_t length) {
@@ -224,7 +224,7 @@ struct BpsPatcher {
             throw "Invalid length in SourceCopy.";
         }
         Source.SetPosition(SourceRelativeOffset);
-        SenLib::CopyStream(Source, Target, length);
+        HyoutaUtils::Stream::CopyStream(Source, Target, length);
         SourceRelativeOffset += length;
     }
 
@@ -243,11 +243,11 @@ struct BpsPatcher {
 };
 } // namespace
 
-void ApplyPatchToStream(SenLib::ReadStream& source,
-                        SenLib::ReadStream& patch,
+void ApplyPatchToStream(HyoutaUtils::Stream::ReadStream& source,
+                        HyoutaUtils::Stream::ReadStream& patch,
                         std::vector<char>& target) {
     target.clear();
-    SenLib::MemoryStream ms(target);
+    HyoutaUtils::Stream::MemoryStream ms(target);
     BpsPatcher patcher(source, patch, ms);
     patcher.ApplyPatchToStreamInternal();
 }

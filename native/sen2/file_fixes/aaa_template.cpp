@@ -16,7 +16,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "",
             0,
-            SenPatcher::SHA1FromHexString(""));
+            HyoutaUtils::Hash::SHA1FromHexString(""));
         if (!file) {
             return false;
         }

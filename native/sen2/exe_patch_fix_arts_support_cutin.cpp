@@ -9,7 +9,7 @@
 namespace SenLib::Sen2 {
 static char Flag = 0;
 
-void PatchFixArtsSupportCutin(SenPatcher::Logger& logger,
+void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,

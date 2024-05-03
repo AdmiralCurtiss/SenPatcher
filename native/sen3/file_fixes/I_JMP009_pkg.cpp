@@ -27,7 +27,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/asset/D3D11_us/I_JMP009.pkg",
             6144541,
-            SenPatcher::SHA1FromHexString("05f162efc3d880e94398ae4e10108aa018f30fee"));
+            HyoutaUtils::Hash::SHA1FromHexString("05f162efc3d880e94398ae4e10108aa018f30fee"));
         if (!file) {
             return false;
         }

@@ -4,11 +4,6 @@
 
 #include "util/logger.h"
 
-namespace SenPatcher {
-struct Logger;
-struct P3APackFile;
-} // namespace SenPatcher
-
 namespace SenLib::Sen3 {
-bool CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir);
+bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger, std::string_view baseDir);
 }

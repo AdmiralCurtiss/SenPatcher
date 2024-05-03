@@ -18,12 +18,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/scena/dat_en/t3200.dat",
             50273,
-            SenPatcher::SHA1FromHexString("11f838467868bad61623e965fbc3c0607d2a3356"));
+            HyoutaUtils::Hash::SHA1FromHexString("11f838467868bad61623e965fbc3c0607d2a3356"));
         if (!file) {
             return false;
         }
 
         auto& bin = file->Data;
+        using namespace HyoutaUtils::Vector;
 
         // Brigadier General Wallace -> Brigadier General Bardias
         WriteAt(bin, 0x6057, {{0x42, 0x61, 0x72, 0x64, 0x69, 0x61, 0x73}});

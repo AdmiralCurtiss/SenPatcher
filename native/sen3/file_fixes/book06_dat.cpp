@@ -19,12 +19,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/book/dat_en/book06.dat",
             18830,
-            SenPatcher::SHA1FromHexString("fa7e69755a3592cdb5196cd45ac861671798384c"));
+            HyoutaUtils::Hash::SHA1FromHexString("fa7e69755a3592cdb5196cd45ac861671798384c"));
         if (!file) {
             return false;
         }
 
-        DuplicatableByteArrayStream bin(file->Data.data(), file->Data.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream bin(file->Data.data(), file->Data.size());
         BookTable book(bin, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         // provincal -> provincial
@@ -33,7 +33,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         std::vector<char> bin2;
         {
-            MemoryStream ms(bin2);
+            HyoutaUtils::Stream::MemoryStream ms(bin2);
             book.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
         }
 

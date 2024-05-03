@@ -23,7 +23,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/text/dat_en/t_item_en.tbl",
             311891,
-            SenPatcher::SHA1FromHexString("5deee9b833b2bb93b0a326f586943f3d2e2424b9"));
+            HyoutaUtils::Hash::SHA1FromHexString("5deee9b833b2bb93b0a326f586943f3d2e2424b9"));
         if (!file) {
             return false;
         }
@@ -175,7 +175,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
 
         std::vector<char> result_en_vec;
-        MemoryStream result_en(result_en_vec);
+        HyoutaUtils::Stream::MemoryStream result_en(result_en_vec);
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
         // there's two identical copies in the game files

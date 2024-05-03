@@ -178,7 +178,7 @@ struct ZSTD_CCtx_Deleter {
 using ZSTD_CCtx_UniquePtr = std::unique_ptr<ZSTD_CCtx, ZSTD_CCtx_Deleter>;
 } // namespace
 
-bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
+bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
     if (!file.IsOpen()) {
         return false;
     }
@@ -188,7 +188,8 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
     ZSTD_CDict_UniquePtr cdict = nullptr;
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
     if (packData.HasZStdDictionaryPathData()) {
-        IO::File dictfile(packData.GetZStdDictionaryPathData(), IO::OpenMode::Read);
+        HyoutaUtils::IO::File dictfile(packData.GetZStdDictionaryPathData(),
+                                       HyoutaUtils::IO::OpenMode::Read);
         if (!dictfile.IsOpen()) {
             return false;
         }
@@ -264,7 +265,7 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
 
     for (size_t i = 0; i < fileinfos.size(); ++i) {
         const auto& fileinfo = fileinfos[i];
-        if (!AlignFile(file, position, alignment)) {
+        if (!HyoutaUtils::AlignFile(file, position, alignment)) {
             return false;
         }
 
@@ -273,7 +274,8 @@ bool PackP3A(SenPatcher::IO::File& file, const P3APackData& packData) {
         std::unique_ptr<char[]> filedataHolder;
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
         if (fileinfo.HasPathData()) {
-            IO::File inputfile(fileinfo.GetPathData(), IO::OpenMode::Read);
+            HyoutaUtils::IO::File inputfile(fileinfo.GetPathData(),
+                                            HyoutaUtils::IO::OpenMode::Read);
             if (!inputfile.IsOpen()) {
                 return false;
             }

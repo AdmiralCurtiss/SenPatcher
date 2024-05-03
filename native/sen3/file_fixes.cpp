@@ -126,7 +126,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vec
     } while (false)
 
 namespace SenLib::Sen3 {
-static bool CollectAssets(SenPatcher::Logger& logger,
+static bool CollectAssets(HyoutaUtils::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           std::vector<SenPatcher::P3APackFile>& packFiles,
                           bool allowSwitchToNightmare) {
@@ -209,7 +209,7 @@ static bool CollectAssets(SenPatcher::Logger& logger,
     return true;
 }
 
-static bool CollectAudio(SenPatcher::Logger& logger,
+static bool CollectAudio(HyoutaUtils::Logger& logger,
                          const SenPatcher::GetCheckedFileCallback& callback,
                          std::vector<SenPatcher::P3APackFile>& packFiles) {
     TRY_APPLY(voice_opus_ps4_103, TryApply(callback, packFiles));
@@ -218,7 +218,7 @@ static bool CollectAudio(SenPatcher::Logger& logger,
     return true;
 }
 
-bool CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseDir) {
+bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger, std::string_view baseDir) {
     // TODO: handle this flag somehow?
     bool allowSwitchToNightmare = true;
 
@@ -226,7 +226,7 @@ bool CreateAssetPatchIfNeeded(SenPatcher::Logger& logger, std::string_view baseD
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
             size_t size,
-            const SenPatcher::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
+            const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
         return GetCheckedFile(baseDir, path, size, hash);
     };
 

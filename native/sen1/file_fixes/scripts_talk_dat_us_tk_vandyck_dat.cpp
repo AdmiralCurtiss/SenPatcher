@@ -18,7 +18,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto file = getCheckedFile(
             "data/scripts/talk/dat_us/tk_vandyck.dat",
             17811,
-            SenPatcher::SHA1FromHexString("b838141d25f707a7c95191db2f8c324a3e0a34c0"));
+            HyoutaUtils::Hash::SHA1FromHexString("b838141d25f707a7c95191db2f8c324a3e0a34c0"));
         if (!file) {
             return false;
         }

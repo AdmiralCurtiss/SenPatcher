@@ -6,7 +6,7 @@
 
 #include "util/file.h"
 
-namespace SenPatcher {
+namespace HyoutaUtils::Ini {
 struct IniKeyValueView {
     std::string_view Section;
     std::string_view Key;
@@ -21,7 +21,7 @@ struct IniFile {
     IniFile& operator=(IniFile&& other) = delete;
     ~IniFile();
 
-    bool ParseFile(SenPatcher::IO::File& file);
+    bool ParseFile(HyoutaUtils::IO::File& file);
 
     std::span<const IniKeyValueView> GetValues() const;
     const IniKeyValueView* FindValue(std::string_view section, std::string_view key) const;
@@ -35,4 +35,4 @@ private:
     std::unique_ptr<IniKeyValueView[]> Values = nullptr;
     size_t ValueCount = 0;
 };
-} // namespace SenPatcher
+} // namespace HyoutaUtils::Ini

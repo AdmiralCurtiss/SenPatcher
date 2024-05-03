@@ -4,6 +4,7 @@
 // Originally from: https://gamedev.stackexchange.com/a/25746
 // Public domain.
 
+namespace HyoutaUtils::RNG {
 struct xorshift {
     // Simple shift-and-xor random number generator. This
     // implementation provides an optimal period for its storage size,
@@ -105,3 +106,4 @@ inline bool operator==(const xorshift& lhs, const xorshift& rhs) {
 inline bool operator!=(const xorshift& lhs, const xorshift& rhs) {
     return !(lhs == rhs);
 }
+} // namespace HyoutaUtils::RNG

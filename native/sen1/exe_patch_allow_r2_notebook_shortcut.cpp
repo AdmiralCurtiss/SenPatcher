@@ -10,7 +10,7 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen1 {
-void AllowR2NotebookShortcut(SenPatcher::Logger& logger,
+void AllowR2NotebookShortcut(HyoutaUtils::Logger& logger,
                              char* textRegion,
                              GameVersion version,
                              char*& codespace,

@@ -242,7 +242,7 @@ static void SHA256_All(word32* digest, const char* data, size_t length)
 
 }
 
-namespace SenPatcher {
+namespace HyoutaUtils::Hash {
 SHA256 CalculateSHA256(void* data, size_t length) {
     word32 state[8];
     SHA256_All(state, ((const char*)data), length);
@@ -256,4 +256,4 @@ SHA256 CalculateSHA256(void* data, size_t length) {
     }
     return rv;
 }
-} // namespace SenPatcher
+} // namespace HyoutaUtils::Hash

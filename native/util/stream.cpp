@@ -9,7 +9,7 @@
 
 #include "text.h"
 
-namespace SenLib {
+namespace HyoutaUtils::Stream {
 ReadStream::~ReadStream() = default;
 
 int ReadStream::ReadByte() {
@@ -635,4 +635,4 @@ void CopyStream(ReadStream& input, WriteStream& output, uint64_t count) {
         throw "Failed to read enough bytes for copy";
     }
 }
-} // namespace SenLib
+} // namespace HyoutaUtils::Stream

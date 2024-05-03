@@ -9,7 +9,7 @@
 #include "x64/inject_jump_into.h"
 
 namespace SenLib::Sen5 {
-void InjectAtFFileOpen(SenPatcher::Logger& logger,
+void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
                        char* textRegion,
                        GameVersion version,
                        char*& codespace,
@@ -56,7 +56,7 @@ void InjectAtFFileOpen(SenPatcher::Logger& logger,
     Emit_JMP_R64(codespace, R64::RDX);
 }
 
-void InjectAtBattleScriptExists(SenPatcher::Logger& logger,
+void InjectAtBattleScriptExists(HyoutaUtils::Logger& logger,
                                 char* textRegion,
                                 GameVersion version,
                                 char*& codespace,
@@ -100,7 +100,7 @@ void InjectAtBattleScriptExists(SenPatcher::Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
-void InjectAtFileExists1(SenPatcher::Logger& logger,
+void InjectAtFileExists1(HyoutaUtils::Logger& logger,
                          char* textRegion,
                          GameVersion version,
                          char*& codespace,
@@ -144,7 +144,7 @@ void InjectAtFileExists1(SenPatcher::Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
-void InjectAtFileExists2(SenPatcher::Logger& logger,
+void InjectAtFileExists2(HyoutaUtils::Logger& logger,
                          char* textRegion,
                          GameVersion version,
                          char*& codespace,
@@ -188,7 +188,7 @@ void InjectAtFileExists2(SenPatcher::Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
-void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
+void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
                               char* textRegion,
                               GameVersion version,
                               char*& codespace,
@@ -233,7 +233,7 @@ void InjectAtFFileGetFilesize(SenPatcher::Logger& logger,
     Emit_JMP_R64(codespace, R64::RCX);
 }
 
-void InjectAtOpenFSoundFile(SenPatcher::Logger& logger,
+void InjectAtOpenFSoundFile(HyoutaUtils::Logger& logger,
                             char* textRegion,
                             GameVersion version,
                             char*& codespace,

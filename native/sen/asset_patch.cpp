@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "util/file.h"
-#include "util/logger.h"
 #include "util/hash/sha1.h"
+#include "util/logger.h"
 
 #include "p3a/p3a.h"
 #include "p3a/pack.h"
@@ -25,7 +25,7 @@ static bool IsSenPatcherVersionFile(const SenPatcher::P3AFileInfo& f) {
     return strcmp(f.Filename.data(), "_senpatcher_version.txt") == 0;
 }
 
-static bool CheckArchiveExistsAndIsRightVersion(SenPatcher::Logger& logger, std::string_view path) {
+static bool CheckArchiveExistsAndIsRightVersion(HyoutaUtils::Logger& logger, std::string_view path) {
     logger.Log("Checking for existing asset archive.\n");
 
     SenPatcher::P3A p3a;
@@ -63,7 +63,7 @@ static void AddSenPatcherVersionFile(SenPatcher::P3APackData& packData) {
 }
 
 bool CreateArchiveIfNeeded(
-    SenPatcher::Logger& logger,
+    HyoutaUtils::Logger& logger,
     std::string_view baseDir,
     std::string_view archivePath,
     const std::function<bool(SenPatcher::P3APackData& packData)>& collectAssets) {
@@ -84,7 +84,7 @@ bool CreateArchiveIfNeeded(
     tmpPath.reserve(fullArchivePath.size() + 4);
     tmpPath.append(fullArchivePath);
     tmpPath.append(".tmp");
-    SenPatcher::IO::File newArchive(std::string_view(tmpPath), SenPatcher::IO::OpenMode::Write);
+    HyoutaUtils::IO::File newArchive(std::string_view(tmpPath), HyoutaUtils::IO::OpenMode::Write);
     if (!newArchive.IsOpen()) {
         logger.Log("Opening new archive failed.\n");
         return false;
@@ -123,7 +123,7 @@ bool CreateArchiveIfNeeded(
     return true;
 }
 
-bool CreateVideoIfNeeded(SenPatcher::Logger& logger,
+bool CreateVideoIfNeeded(HyoutaUtils::Logger& logger,
                          std::string_view baseDir,
                          std::string_view videoPath,
                          const std::function<bool(std::vector<char>& videoData)>& getVideo) {
@@ -138,7 +138,7 @@ bool CreateVideoIfNeeded(SenPatcher::Logger& logger,
     // Turns out redirecting video files to a memory stream is nontrivial, so we'll just put
     // modified videos directly into the file system.
     {
-        SenPatcher::IO::File f(std::string_view(fullVideoPath), SenPatcher::IO::OpenMode::Read);
+        HyoutaUtils::IO::File f(std::string_view(fullVideoPath), HyoutaUtils::IO::OpenMode::Read);
         if (f.IsOpen()) {
             logger.Log("Video file exists.\n");
             // assume that it's good if it exists...
@@ -156,7 +156,7 @@ bool CreateVideoIfNeeded(SenPatcher::Logger& logger,
     tmpPath.reserve(fullVideoPath.size() + 4);
     tmpPath.append(fullVideoPath);
     tmpPath.append(".tmp");
-    SenPatcher::IO::File f(std::string_view(tmpPath), SenPatcher::IO::OpenMode::Write);
+    HyoutaUtils::IO::File f(std::string_view(tmpPath), HyoutaUtils::IO::OpenMode::Write);
     if (!f.IsOpen()) {
         logger.Log("Open failed.\n");
         return false;
@@ -181,7 +181,7 @@ bool CreateVideoIfNeeded(SenPatcher::Logger& logger,
 std::optional<SenPatcher::CheckedFileResult> GetCheckedFile(std::string_view baseDir,
                                                             std::string_view path,
                                                             size_t size,
-                                                            const SenPatcher::SHA1& hash) {
+                                                            const HyoutaUtils::Hash::SHA1& hash) {
     SenPatcher::CheckedFileResult result{};
     if (!SenPatcher::CopyToP3AFilename(result.Filename, path)) {
         return std::nullopt;
@@ -193,7 +193,7 @@ std::optional<SenPatcher::CheckedFileResult> GetCheckedFile(std::string_view bas
     fullFilePath.push_back('/');
     fullFilePath.append(path);
 
-    SenPatcher::IO::File inputfile(std::string_view(fullFilePath), SenPatcher::IO::OpenMode::Read);
+    HyoutaUtils::IO::File inputfile(std::string_view(fullFilePath), HyoutaUtils::IO::OpenMode::Read);
     if (!inputfile.IsOpen()) {
         return std::nullopt;
     }
@@ -209,7 +209,7 @@ std::optional<SenPatcher::CheckedFileResult> GetCheckedFile(std::string_view bas
     }
     inputfile.Close();
 
-    if (SenPatcher::CalculateSHA1(vec.data(), size) != hash) {
+    if (HyoutaUtils::Hash::CalculateSHA1(vec.data(), size) != hash) {
         return std::nullopt;
     }
 
