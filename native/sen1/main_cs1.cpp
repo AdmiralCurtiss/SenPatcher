@@ -61,11 +61,9 @@ static void Align16CodePage(HyoutaUtils::Logger& logger, char*& new_page) {
     new_page = p;
 }
 
-static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
-    GameVersion gameVersion = GameVersion::Unknown;
+static void LogMemoryMap(HyoutaUtils::Logger& logger) {
     MEMORY_BASIC_INFORMATION info;
     std::memset(&info, 0, sizeof(info));
-    *code = nullptr;
     size_t address = 0;
     while (true) {
         if (VirtualQuery(reinterpret_cast<void*>(address), &info, sizeof(info)) == 0) {
@@ -77,9 +75,9 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
             break;
         }
 
-        logger.Log("Querying address ")
+        logger.Log("Address ")
             .LogHex(address)
-            .Log(", got allocation at ")
+            .Log(", allocation at ")
             .LogPtr(info.AllocationBase)
             .Log(", base ptr ")
             .LogPtr(info.BaseAddress)
@@ -88,8 +86,30 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
             .Log(", protection ")
             .LogHex(info.Protect)
             .Log(".\n");
-        if (gameVersion == GameVersion::Unknown && info.State == MEM_COMMIT
-            && info.Type == MEM_IMAGE) {
+
+        if (address >= (size_t(0) - info.RegionSize)) {
+            // would wrap around
+            break;
+        }
+
+        address += info.RegionSize;
+    }
+}
+
+static std::optional<GameVersion> FindImageBase(HyoutaUtils::Logger& logger, void** code) {
+    MEMORY_BASIC_INFORMATION info;
+    std::memset(&info, 0, sizeof(info));
+    *code = nullptr;
+    size_t address = 0;
+    while (true) {
+        if (VirtualQuery(reinterpret_cast<void*>(address), &info, sizeof(info)) == 0) {
+            break;
+        }
+        if (info.RegionSize == 0) {
+            break;
+        }
+
+        if (info.State == MEM_COMMIT && info.Type == MEM_IMAGE) {
             if (info.RegionSize == 0x737000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
                 crc = crc_update(
@@ -101,7 +121,7 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
                 if (crc == 0x26477c77) {
                     logger.Log("Appears to be the EN version.\n");
                     *code = info.BaseAddress;
-                    gameVersion = GameVersion::English;
+                    return GameVersion::English;
                 }
             } else if (info.RegionSize == 0x735000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
@@ -114,7 +134,7 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
                 if (crc == 0x26477c77) {
                     logger.Log("Appears to be the JP version.\n");
                     *code = info.BaseAddress;
-                    gameVersion = GameVersion::Japanese;
+                    return GameVersion::Japanese;
                 }
             }
 
@@ -133,7 +153,7 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
         address += info.RegionSize;
     }
 
-    return gameVersion;
+    return std::nullopt;
 }
 
 struct FFile {
@@ -276,12 +296,14 @@ static int32_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* 
 
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
     void* codeBase = nullptr;
-    GameVersion version = FindImageBase(logger, &codeBase);
-    if (version == GameVersion::Unknown || !codeBase) {
+    const auto maybeVersion = FindImageBase(logger, &codeBase);
+    if (!maybeVersion || !codeBase) {
         logger.Log("Failed finding CS1 executable in memory -- wrong game or version?\n");
+        LogMemoryMap(logger);
         return nullptr;
     }
 
+    const GameVersion version = *maybeVersion;
     s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(
         static_cast<char*>(codeBase)
         + (version == GameVersion::Japanese ? (0x70fb70 - 0x401000) : (0x711440 - 0x401000)));
@@ -501,7 +523,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
 PDirectInput8Create InjectionDllInitializer() {
     HyoutaUtils::Logger logger(HyoutaUtils::IO::File(std::string_view("senpatcher_inject_cs1.log"),
-                                                    HyoutaUtils::IO::OpenMode::Write));
+                                                     HyoutaUtils::IO::OpenMode::Write));
     logger.Log("Initializing CS1 hook from SenPatcher, version " SENPATCHER_VERSION "...\n");
     auto* forwarder = LoadForwarderAddress(logger);
     SetupHacks(logger);

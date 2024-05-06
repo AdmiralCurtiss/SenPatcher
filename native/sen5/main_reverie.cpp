@@ -59,11 +59,9 @@ static void Align16CodePage(HyoutaUtils::Logger& logger, char*& new_page) {
     new_page = p;
 }
 
-static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
-    GameVersion gameVersion = GameVersion::Unknown;
+static void LogMemoryMap(HyoutaUtils::Logger& logger) {
     MEMORY_BASIC_INFORMATION info;
     std::memset(&info, 0, sizeof(info));
-    *code = nullptr;
     size_t address = 0;
     while (true) {
         if (VirtualQuery(reinterpret_cast<void*>(address), &info, sizeof(info)) == 0) {
@@ -75,9 +73,9 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
             break;
         }
 
-        logger.Log("Querying address ")
+        logger.Log("Address ")
             .LogHex(address)
-            .Log(", got allocation at ")
+            .Log(", allocation at ")
             .LogPtr(info.AllocationBase)
             .Log(", base ptr ")
             .LogPtr(info.BaseAddress)
@@ -86,8 +84,30 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
             .Log(", protection ")
             .LogHex(info.Protect)
             .Log(".\n");
-        if (gameVersion == GameVersion::Unknown && info.State == MEM_COMMIT
-            && info.Type == MEM_IMAGE) {
+
+        if (address >= (size_t(0) - info.RegionSize)) {
+            // would wrap around
+            break;
+        }
+
+        address += info.RegionSize;
+    }
+}
+
+static std::optional<GameVersion> FindImageBase(HyoutaUtils::Logger& logger, void** code) {
+    MEMORY_BASIC_INFORMATION info;
+    std::memset(&info, 0, sizeof(info));
+    *code = nullptr;
+    size_t address = 0;
+    while (true) {
+        if (VirtualQuery(reinterpret_cast<void*>(address), &info, sizeof(info)) == 0) {
+            break;
+        }
+        if (info.RegionSize == 0) {
+            break;
+        }
+
+        if (info.State == MEM_COMMIT && info.Type == MEM_IMAGE) {
             if (info.RegionSize == 0xbed000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
                 crc = crc_update(
@@ -99,7 +119,7 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
                 if (crc == 0x054e1c1d) {
                     logger.Log("Appears to be the EN version.\n");
                     *code = info.BaseAddress;
-                    gameVersion = GameVersion::English;
+                    return GameVersion::English;
                 }
             }
 
@@ -118,7 +138,7 @@ static GameVersion FindImageBase(HyoutaUtils::Logger& logger, void** code) {
         address += info.RegionSize;
     }
 
-    return gameVersion;
+    return std::nullopt;
 }
 
 struct FFile {
@@ -430,12 +450,14 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
 
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
     void* codeBase = nullptr;
-    GameVersion version = FindImageBase(logger, &codeBase);
-    if (version == GameVersion::Unknown || !codeBase) {
+    const auto maybeVersion = FindImageBase(logger, &codeBase);
+    if (!maybeVersion || !codeBase) {
         logger.Log("Failed finding Reverie executable in memory -- wrong game or version?\n");
+        LogMemoryMap(logger);
         return nullptr;
     }
 
+    const GameVersion version = *maybeVersion;
     s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(
         SenLib::Sen5::GetCodeAddressEn(version, static_cast<char*>(codeBase), 0x1407277e0));
     s_TrackedFree = reinterpret_cast<PTrackedFree>(

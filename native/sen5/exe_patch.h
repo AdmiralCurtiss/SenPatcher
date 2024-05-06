@@ -11,7 +11,6 @@ struct LoadedModsData;
 
 namespace SenLib::Sen5 {
 enum class GameVersion {
-    Unknown,
     English,
 };
 

@@ -11,9 +11,8 @@ struct LoadedModsData;
 
 namespace SenLib::Sen4 {
 enum class GameVersion {
-    Unknown,
-    English,
     Japanese,
+    English,
 };
 
 inline char* GetCodeAddressJpEn(GameVersion version,
