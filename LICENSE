@@ -80,3 +80,8 @@ See the native/cpp-optparse/LICENSE for details.
 Licensed under a BSD 3-Clause license
 Copyright 2008, Google Inc. All rights reserved.
 See the native/gtest/LICENSE for details.
+
+== native/zlib ==
+Licensed under the zlib license
+(C) 1995-2022 Jean-loup Gailly and Mark Adler
+See the native/zlib/LICENSE for details.

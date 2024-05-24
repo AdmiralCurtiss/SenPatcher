@@ -39,6 +39,10 @@ add_custom_target(
 	VERBATIM
 )
 
+set(SKIP_INSTALL_ALL ON)
+set(ZLIB_BUILD_EXAMPLES OFF)
+add_subdirectory(zlib)
+
 set(SOURCES_LZ4
 	lz4/lz4.c
 	lz4/lz4file.c
@@ -252,6 +256,7 @@ if (SENPATCHER_BUILD_TOOLS)
 	target_include_directories(sentools
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
+	target_link_libraries(sentools zlibstatic)
 	add_dependencies(sentools GenerateGitRevisionHeader)
 endif()
 
