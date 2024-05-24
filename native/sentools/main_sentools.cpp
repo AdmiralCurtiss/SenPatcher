@@ -6,6 +6,7 @@
 
 #include "util/text.h"
 
+#include "bra_extract.h"
 #include "cli_tool.h"
 #include "p3a_extract.h"
 #include "p3a_pack.h"
@@ -42,6 +43,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = PKA_Pack_Name,
             .ShortDescription = PKA_Pack_ShortDescription,
             .Function = PKA_Pack_Function},
+    CliTool{.Name = BRA_Extract_Name,
+            .ShortDescription = BRA_Extract_ShortDescription,
+            .Function = BRA_Extract_Function},
 };
 }
 
