@@ -178,6 +178,23 @@ if (SENPATCHER_BUILD_TOOLS)
 	add_executable(sentools)
 	target_sources(sentools PRIVATE
 		sentools/main_sentools.cpp
+		sentools/cli_tool.h
+		sentools/p3a_extract.cpp
+		sentools/p3a_extract.h
+		sentools/p3a_pack.cpp
+		sentools/p3a_pack.h
+		sentools/p3a_repack.cpp
+		sentools/p3a_repack.h
+		sentools/pka_extract.cpp
+		sentools/pka_extract.h
+		sentools/pka_pack.cpp
+		sentools/pka_pack.h
+		sentools/pkg_extract.cpp
+		sentools/pkg_extract.h
+		sentools/pkg_pack.cpp
+		sentools/pkg_pack.h
+		sentools/pkg_repack.cpp
+		sentools/pkg_repack.h
 
 		util/align.h
 		util/align.cpp
