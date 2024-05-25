@@ -8,6 +8,8 @@
 #include "x64/emitter.h"
 #include "x64/inject_jump_into.h"
 
+// NOTE: When calling a function, stack must be aligned to 0x10 bytes!
+
 namespace SenLib::Sen3 {
 void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
                        char* textRegion,
@@ -85,6 +87,7 @@ void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
     codespace += overwrittenInstructions.size();
 
     Emit_PUSH_R64(codespace, R64::RCX);
+    Emit_PUSH_R64(codespace, R64::RDX);
     Emit_PUSH_R64(codespace, R64::R8);
     Emit_PUSH_R64(codespace, R64::R9);
     Emit_PUSH_R64(codespace, R64::R10);
@@ -100,6 +103,7 @@ void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
     Emit_POP_R64(codespace, R64::R10);
     Emit_POP_R64(codespace, R64::R9);
     Emit_POP_R64(codespace, R64::R8);
+    Emit_POP_R64(codespace, R64::RDX);
     Emit_POP_R64(codespace, R64::RCX);
 
     // check for success
@@ -144,12 +148,12 @@ void InjectAtOpenFSoundFile(HyoutaUtils::Logger& logger,
     Emit_PUSH_R64(codespace, R64::R9);
     Emit_PUSH_R64(codespace, R64::R10);
     Emit_PUSH_R64(codespace, R64::R11);
-    Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x20);
+    Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x28);
 
     Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(fsoundOpenForwarder));
     Emit_CALL_R64(codespace, R64::RAX);
 
-    Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
+    Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x28);
     Emit_POP_R64(codespace, R64::R11);
     Emit_POP_R64(codespace, R64::R10);
     Emit_POP_R64(codespace, R64::R9);
