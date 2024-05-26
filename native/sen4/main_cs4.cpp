@@ -1,5 +1,6 @@
 #include <array>
 #include <bit>
+#include <charconv>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -504,6 +505,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool disablePauseOnFocusLoss = false;
     bool fixSwappedButtonsWhenDynamicPromptsOff = true;
     bool fixBgmEnqueue = true;
+    int increaseDlcCount = 0x1000;
 
     {
         std::string settingsFilePath;
@@ -538,6 +540,27 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                             }
                         }
                     };
+                const auto check_integer =
+                    [&](std::string_view section, std::string_view key, int& i) {
+                        const auto* kvp = ini.FindValue(section, key);
+                        if (kvp) {
+                            int intval = 0;
+                            const auto [_, ec] = std::from_chars(
+                                kvp->Value.data(), kvp->Value.data() + kvp->Value.size(), intval);
+                            if (ec == std::errc()) {
+                                logger.Log("Value ");
+                                logger.Log(key);
+                                logger.Log(" set to ");
+                                logger.LogInt(intval);
+                                logger.Log(".\n");
+                                i = intval;
+                            } else {
+                                logger.Log("Value ");
+                                logger.Log(key);
+                                logger.Log(" not found in ini, leaving default.\n");
+                            }
+                        }
+                    };
                 check_boolean("CS4", "AssetFixes", assetFixes);
                 check_boolean("CS4", "AllowSwitchToNightmare", allowSwitchToNightmare);
                 check_boolean("CS4", "ForceConfirmCancel", forceSwapConfirmCancel);
@@ -546,6 +569,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("CS4", "ShowMouseCursor", showMouseCursor);
                 check_boolean("CS4", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
                 check_boolean("CS4", "FixBgmEnqueue", fixBgmEnqueue);
+                check_integer("CS4", "IncreaseDlcCount", increaseDlcCount);
             }
         }
     }
@@ -619,6 +643,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     if (fixBgmEnqueue) {
         PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
         Align16CodePage(logger, newPage);
+    }
+    if (increaseDlcCount >= 0) {
+        PatchIncreaseDlcCount(
+            logger, static_cast<char*>(codeBase), version, static_cast<uint32_t>(increaseDlcCount));
     }
 
     // mark newly allocated page as executable

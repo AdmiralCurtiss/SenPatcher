@@ -80,4 +80,11 @@ void PatchMusicQueueing(HyoutaUtils::Logger& logger,
                         GameVersion version,
                         char*& codespace,
                         char* codespaceEnd);
+
+// changes the number of DLCs the game checks for
+void PatchIncreaseDlcCount(HyoutaUtils::Logger& logger,
+                           char* textRegion,
+                           GameVersion version,
+                           uint32_t newLimit);
+
 } // namespace SenLib::Sen4

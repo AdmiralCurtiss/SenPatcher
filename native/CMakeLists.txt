@@ -745,6 +745,7 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		sen3/exe_patch_fix_controller_mappings.cpp
 		sen3/exe_patch_fix_in_game_button_mapping.cpp
 		sen3/exe_patch_force_xinput.cpp
+		sen3/exe_patch_increase_dlc_count.cpp
 		sen3/exe_patch_patch_music_queueing.cpp
 		sen3/exe_patch_show_mouse_cursor.cpp
 		sen3/exe_patch_swap_broken_mq_values.cpp
@@ -807,6 +808,7 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		sen4/exe_patch_disable_pause_on_focus_loss.cpp
 		sen4/exe_patch_fix_pc_confirm_cancel_when_swapped.cpp
 		sen4/exe_patch_force_swap_confirm_cancel.cpp
+		sen4/exe_patch_increase_dlc_count.cpp
 		sen4/exe_patch_patch_music_queueing.cpp
 		sen4/exe_patch_show_mouse_cursor.cpp
 		sen4/inject_modloader.cpp
