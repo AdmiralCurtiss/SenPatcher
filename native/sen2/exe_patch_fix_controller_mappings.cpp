@@ -8,11 +8,12 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
-                                char* textRegion,
-                                GameVersion version,
-                                char*& codespace,
-                                char* codespaceEnd) {
+void PatchFixControllerMappings(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
     char* const addressStructMemAlloc =
         GetCodeAddressJpEn(version, textRegion, 0x6ac97c, 0x6ad9ac) + 1;
@@ -49,7 +50,7 @@ void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
         BranchHelper1Byte lookup_6;
         BranchHelper1Byte lookup_fail;
 
-        char*& tmp = codespace;
+        char* tmp = codespace;
         const auto injectResult = InjectJumpIntoCode<5>(logger, addressInjectPos, tmp);
         jumpBack.SetTarget(injectResult.JumpBackAddress);
 
@@ -111,6 +112,8 @@ void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
         tmp += injectResult.OverwrittenInstructions.size();
 
         jumpBack.WriteJump(tmp, JC::JMP);   // jmp jumpBack
+
+        codespace = tmp;
     }
 
     // two pops need to be executed either way so prepare that
@@ -178,7 +181,7 @@ void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
             BranchHelper1Byte checkdone;
             BranchHelper4Byte jumpBack;
             char* const addr = GetCodeAddressJpEn(version, textRegion, baseaddr, 0);
-            char*& tmp = codespace;
+            char* tmp = codespace;
 
             int32_t relativeCallAddress;
             std::memcpy(&relativeCallAddress, addr + 1, 4);
@@ -207,6 +210,8 @@ void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
             WriteInstruction48(tmp, 0xc70104000000);   // mov dword ptr[ecx],4
             checkdone.SetTarget(tmp);
             jumpBack.WriteJump(tmp, JC::JMP);          // jmp jumpBack
+
+            codespace = tmp;
         }
 
         // this is the function that handles the button prompt (re)mapping
@@ -225,5 +230,7 @@ void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
         }
     }
     // clang-format on
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen2

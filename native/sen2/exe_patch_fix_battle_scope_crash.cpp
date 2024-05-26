@@ -7,11 +7,12 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchAddNullCheckBattleScopeCrashMaybe(HyoutaUtils::Logger& logger,
-                                            char* textRegion,
-                                            GameVersion version,
-                                            char*& codespace,
-                                            char* codespaceEnd) {
+void PatchAddNullCheckBattleScopeCrashMaybe(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
 
     // Multiple reported crashes at this address while using a Battle Scope.
@@ -32,7 +33,7 @@ void PatchAddNullCheckBattleScopeCrashMaybe(HyoutaUtils::Logger& logger,
     // Battle Scope crash: Null check 1
     char* exitFunction;
     {
-        char*& tmp = codespace;
+        char* tmp = codespace;
         BranchHelper4Byte jmp_to_code;
         BranchHelper4Byte jmp_back;
         BranchHelper1Byte skip_deref;
@@ -67,11 +68,13 @@ void PatchAddNullCheckBattleScopeCrashMaybe(HyoutaUtils::Logger& logger,
 
         // why this works: by skipping overwrittenInstruction1, the zero flag keeps the state of the test eax,eax
         // this causes the next jge in the original code to return the function early, without us having to explicitly do that
+
+        codespace = tmp;
     }
 
     // Battle Scope crash: Null check 2
     {
-        char*& tmp = codespace;
+        char* tmp = codespace;
 
         BranchHelper4Byte exit_function;
         BranchHelper1Byte skip_deref;
@@ -99,11 +102,13 @@ void PatchAddNullCheckBattleScopeCrashMaybe(HyoutaUtils::Logger& logger,
 
         skip_deref.SetTarget(tmp);
         exit_function.WriteJump(tmp, JC::JMP); // jmp back
+
+        codespace = tmp;
     }
 
     // Battle Scope crash: Null check 3
     {
-        char*& tmp = codespace;
+        char* tmp = codespace;
 
         const auto injectResult4 = InjectJumpIntoCode<5, PaddingInstruction::Nop>(logger, checkAddress4, tmp);
 
@@ -127,7 +132,11 @@ void PatchAddNullCheckBattleScopeCrashMaybe(HyoutaUtils::Logger& logger,
         ++tmp;
         exit_function.WriteJump(tmp, JC::JE); // je exit_function
         jmp_back.WriteJump(tmp, JC::JMP);     // jmp back
+
+        codespace = tmp;
     }
     // clang-format on
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen2

@@ -7,11 +7,12 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchDisablePauseOnFocusLoss(HyoutaUtils::Logger& logger,
-                                  char* textRegion,
-                                  GameVersion version,
-                                  char*& codespace,
-                                  char* codespaceEnd) {
+void PatchDisablePauseOnFocusLoss(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
 
     // 0x413660 -> this branch is false when game is inactive, which skips most of the game update
@@ -98,5 +99,7 @@ void PatchDisablePauseOnFocusLoss(HyoutaUtils::Logger& logger,
         WriteInstruction16(codespace, 0x33c0);                     // xor eax,eax
         back_to_function.WriteJump(codespace, JumpCondition::JMP); // jmp back_to_function
     }
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen2

@@ -12,11 +12,11 @@ static void WriteByte(HyoutaUtils::Logger& logger, char* ptr, int byte) {
     *ptr = static_cast<char>(byte);
 }
 
-void FixGogGalaxy(HyoutaUtils::Logger& logger,
-                  char* textRegion,
-                  GameVersion version,
-                  char*& codespace,
-                  char* codespaceEnd) {
+void FixGogGalaxy(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x86;
 
     // 1.4.1/2 was seemingly compiled with the wrong gog galaxy headers, resulting in a few

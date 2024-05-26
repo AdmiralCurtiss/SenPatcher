@@ -10,11 +10,12 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen2 {
-void AddCS2ToTitleBar(HyoutaUtils::Logger& logger,
-                      char* textRegion,
-                      GameVersion version,
-                      char*& codespace,
-                      char* codespaceEnd) {
+void AddCS2ToTitleBar(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
     char* titleBarStringData = GetCodeAddressJpEn(version, textRegion, 0x6af3ec, 0x6b043c);
     PageUnprotect page(logger, titleBarStringData, 6);
@@ -47,5 +48,7 @@ void AddCS2ToTitleBar(HyoutaUtils::Logger& logger,
     }
 
     std::memcpy(titleBarStringData + 2, &addressNewTitleString, 4);
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen2

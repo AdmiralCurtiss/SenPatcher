@@ -12,13 +12,14 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen2 {
-void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
-                                 char* textRegion,
-                                 GameVersion version,
-                                 char*& codespace,
-                                 char* codespaceEnd,
+void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
     char* pushAddressVersionTitle = GetCodeAddressJpEn(version, textRegion, 0x62a74c, 0x62a2dc);
     char* pushAddressVersionConsole = GetCodeAddressJpEn(version, textRegion, 0x578911, 0x578c81);
@@ -71,5 +72,7 @@ void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
         PageUnprotect page(logger, pushAddressVersionCrashRpt, 4);
         std::memcpy(pushAddressVersionCrashRpt, &addressNewVersionStringShort, 4);
     }
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen2

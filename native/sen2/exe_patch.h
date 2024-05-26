@@ -15,6 +15,14 @@ enum class GameVersion {
     English,
 };
 
+struct PatchExecData {
+    HyoutaUtils::Logger* Logger;
+    char* TextRegion;
+    GameVersion Version;
+    char* Codespace;
+    char* CodespaceEnd;
+};
+
 inline char* GetCodeAddressJpEn(GameVersion version,
                                 char* textRegion,
                                 uint32_t addressJp,
@@ -23,92 +31,23 @@ inline char* GetCodeAddressJpEn(GameVersion version,
            + (version == GameVersion::Japanese ? (addressJp - 0x401000u) : (addressEn - 0x401000u));
 }
 
-void DeglobalizeMutexes(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd);
-void FixGogGalaxy(HyoutaUtils::Logger& logger,
-                  char* textRegion,
-                  GameVersion version,
-                  char*& codespace,
-                  char* codespaceEnd);
-void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
-                                 char* textRegion,
-                                 GameVersion version,
-                                 char*& codespace,
-                                 char* codespaceEnd,
+void DeglobalizeMutexes(PatchExecData& execData);
+void FixGogGalaxy(PatchExecData& execData);
+void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
-void AddCS2ToTitleBar(HyoutaUtils::Logger& logger,
-                      char* textRegion,
-                      GameVersion version,
-                      char*& codespace,
-                      char* codespaceEnd);
-void RemoveTurboAutoSkip(HyoutaUtils::Logger& logger,
-                         char* textRegion,
-                         GameVersion version,
-                         char*& codespace,
-                         char* codespaceEnd);
-void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
-                          char* textRegion,
-                          GameVersion version,
-                          char*& codespace,
-                          char* codespaceEnd,
-                          uint32_t divisor);
-void PatchMusicQueueingOnSoundThreadSide(HyoutaUtils::Logger& logger,
-                                         char* textRegion,
-                                         GameVersion version,
-                                         char*& codespace,
-                                         char* codespaceEnd);
-void PatchDisableMouseCapture(HyoutaUtils::Logger& logger,
-                              char* textRegion,
-                              GameVersion version,
-                              char*& codespace,
-                              char* codespaceEnd);
-void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
-                          char* textRegion,
-                          GameVersion version,
-                          char*& codespace,
-                          char* codespaceEnd);
-void PatchDisablePauseOnFocusLoss(HyoutaUtils::Logger& logger,
-                                  char* textRegion,
-                                  GameVersion version,
-                                  char*& codespace,
-                                  char* codespaceEnd);
-void PatchRemoveDebugLeftovers(HyoutaUtils::Logger& logger,
-                               char* textRegion,
-                               GameVersion version,
-                               char*& codespace,
-                               char* codespaceEnd);
-void PatchLanguageAppropriateVoiceTables(HyoutaUtils::Logger& logger,
-                                         char* textRegion,
-                                         GameVersion version,
-                                         char*& codespace,
-                                         char* codespaceEnd);
-void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
-                                char* textRegion,
-                                GameVersion version,
-                                char*& codespace,
-                                char* codespaceEnd);
-void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
-                              char* textRegion,
-                              GameVersion version,
-                              char*& codespace,
-                              char* codespaceEnd);
-void PatchForce0Kerning(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd);
-void PatchAddNullCheckBattleScopeCrashMaybe(HyoutaUtils::Logger& logger,
-                                            char* textRegion,
-                                            GameVersion version,
-                                            char*& codespace,
-                                            char* codespaceEnd);
-void PatchForceXInput(HyoutaUtils::Logger& logger,
-                      char* textRegion,
-                      GameVersion version,
-                      char*& codespace,
-                      char* codespaceEnd);
+void AddCS2ToTitleBar(PatchExecData& execData);
+void RemoveTurboAutoSkip(PatchExecData& execData);
+void PatchMusicFadeTiming(PatchExecData& execData, uint32_t divisor);
+void PatchMusicQueueingOnSoundThreadSide(PatchExecData& execData);
+void PatchDisableMouseCapture(PatchExecData& execData);
+void PatchShowMouseCursor(PatchExecData& execData);
+void PatchDisablePauseOnFocusLoss(PatchExecData& execData);
+void PatchRemoveDebugLeftovers(PatchExecData& execData);
+void PatchLanguageAppropriateVoiceTables(PatchExecData& execData);
+void PatchFixControllerMappings(PatchExecData& execData);
+void PatchFixArtsSupportCutin(PatchExecData& execData);
+void PatchForce0Kerning(PatchExecData& execData);
+void PatchAddNullCheckBattleScopeCrashMaybe(PatchExecData& execData);
+void PatchForceXInput(PatchExecData& execData);
 } // namespace SenLib::Sen2

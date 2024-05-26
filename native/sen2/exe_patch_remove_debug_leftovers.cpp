@@ -7,11 +7,11 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchRemoveDebugLeftovers(HyoutaUtils::Logger& logger,
-                               char* textRegion,
-                               GameVersion version,
-                               char*& codespace,
-                               char* codespaceEnd) {
+void PatchRemoveDebugLeftovers(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x86;
     char* begin = GetCodeAddressJpEn(version, textRegion, 0x4d1479, 0x4d17a9);
     char* end = GetCodeAddressJpEn(version, textRegion, 0x4d154f, 0x4d187f);

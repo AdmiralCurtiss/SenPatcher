@@ -7,12 +7,12 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
-                          char* textRegion,
-                          GameVersion version,
-                          char*& codespace,
-                          char* codespaceEnd,
-                          uint32_t divisor) {
+void PatchMusicFadeTiming(PatchExecData& execData, uint32_t divisor) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
 
     // divisor of 1000 seems to be console-accurate
@@ -104,7 +104,7 @@ void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
     }
     {
         // BGM Timing: Remainder Increment
-        char*& tmp = codespace;
+        char* tmp = codespace;
         remainder_increment.SetTarget(tmp);
         WriteInstruction24(tmp, 0x8b45bc);                // mov        eax,dword ptr [ebp-44h]  ; load counter into eax
         WriteInstruction16(tmp, 0x03c2);                  // add        eax,edx                  ; counter += ticks_per_loop_remainder
@@ -117,10 +117,11 @@ void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
         exit_remainder_increment.SetTarget(tmp);
         WriteInstruction24(tmp, 0x8945bc);                // mov        dword ptr [ebp-44h],eax  ; write counter back to stack
         time_pass_loop_4byte.WriteJump(tmp, JC::JMP);     // jmp        time_pass_loop
+        codespace = tmp;
     }
     {
         // BGM Timing: Thread Init 1
-        char*& tmp = codespace;
+        char* tmp = codespace;
         thread_mainloop.SetTarget(tmp);
         WriteInstruction8(tmp, 0x53);                                // push       ebx
         WriteInstruction16(tmp, 0x8bf9);                             // mov        edi,ecx
@@ -130,10 +131,11 @@ void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
         WriteInstruction24(tmp, 0x8d45d8);                           // lea        eax,[ebp-28h]
         invoke_query_performance_frequency.WriteJump(tmp, JC::CALL); // call       invoke_query_performance_frequency
         thread_mainloop_continue.WriteJump(tmp, JC::JMP);            // jmp        thread_mainloop_continue
+        codespace = tmp;
     }
     {
         // BGM Timing: Thread Init 2
-        char*& tmp = codespace;
+        char* tmp = codespace;
         thread_mainloop_continue.SetTarget(tmp);
         WriteInstruction8(tmp, 0xb8);                              // mov        eax,(divisor)
         std::memcpy(tmp, &divisor, 4);
@@ -165,6 +167,8 @@ void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
         WriteInstruction32(tmp, 0x807f5400);                       // cmp        byte ptr [edi+54h],0
         early_exit.WriteJump(tmp, JC::JNE);                        // jne        early_exit
         outer_loop_init.WriteJump(tmp, JC::JMP);                   // jmp        outer_loop_init
+
+        codespace = tmp;
     }
     {
         // BGM Timing: Outer Loop
@@ -223,7 +227,7 @@ void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
     }
     {
         // BGM Timing: Inner Loop
-        char*& tmp = codespace;
+        char* tmp = codespace;
         inner_loop.SetTarget(tmp);
         WriteInstruction40(tmp, 0xbb01000000);                     // mov        ebx,1 ; remember that we've executed an inner_loop
         WriteInstruction24(tmp, 0x8d4f38);                         // lea        ecx,[edi+38h]
@@ -249,30 +253,33 @@ void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
         unlock_mutex.WriteJump(tmp, JC::CALL);                     // call       unlock_mutex
         WriteInstruction8(tmp, 0x46);                              // inc        esi
         exit_inner_loop.WriteJump(tmp, JC::JMP);                   // jmp        exit_inner_loop
+        codespace = tmp;
     }
     {
         // BGM Timing: QueryPerformanceFrequency
-        char*& tmp = codespace;
+        char* tmp = codespace;
         invoke_query_performance_frequency.SetTarget(tmp);
         WriteInstruction8(tmp, 0x50);                              // push eax
         WriteInstruction16(tmp, 0xff15);                           // call dword ptr[QueryPerformanceFrequency]
         std::memcpy(tmp, &QueryPerformanceFrequency, 4);
         tmp += 4;
         WriteInstruction8(tmp, 0xc3);                              // ret
+        codespace = tmp;
     }
     {
         // BGM Timing: QueryPerformanceCounter
-        char*& tmp = codespace;
+        char* tmp = codespace;
         invoke_query_performance_counter.SetTarget(tmp);
         WriteInstruction8(tmp, 0x50);                              // push eax
         WriteInstruction16(tmp, 0xff15);                           // call dword ptr[QueryPerformanceCounter]
         std::memcpy(tmp, &QueryPerformanceCounter, 4);
         tmp += 4;
         WriteInstruction8(tmp, 0xc3);                              // ret
+        codespace = tmp;
     }
     {
         // BGM Timing: do_compare
-        char*& tmp = codespace;
+        char* tmp = codespace;
         do_compare.SetTarget(tmp);
         WriteInstruction8(tmp, 0x53);                              // push        ebx
         WriteInstruction16(tmp, 0x8bd8);                           // mov         ebx,eax
@@ -296,7 +303,10 @@ void PatchMusicFadeTiming(HyoutaUtils::Logger& logger,
         WriteInstruction8(tmp, 0x5e);                              // pop         esi
         WriteInstruction8(tmp, 0x5b);                              // pop         ebx
         WriteInstruction8(tmp, 0xc3);                              // ret
+        codespace = tmp;
     }
     // clang-format on
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen2

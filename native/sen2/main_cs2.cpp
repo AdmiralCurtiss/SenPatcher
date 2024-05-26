@@ -413,96 +413,77 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes);
 
-    SenLib::Sen2::InjectAtFFileOpen(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileOpenForwarder);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen2::InjectAtFFileGetFilesize(logger,
-                                           static_cast<char*>(codeBase),
-                                           version,
-                                           newPage,
-                                           newPageEnd,
-                                           &FFileGetFilesizeForwarder);
-    Align16CodePage(logger, newPage);
+    SenLib::Sen2::PatchExecData patchExecData;
+    patchExecData.Logger = &logger;
+    patchExecData.TextRegion = static_cast<char*>(codeBase);
+    patchExecData.Version = version;
+    patchExecData.Codespace = newPage;
+    patchExecData.CodespaceEnd = newPageEnd;
 
-    SenLib::Sen2::DeglobalizeMutexes(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen2::FixGogGalaxy(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen2::AddSenPatcherVersionToTitle(logger,
-                                              static_cast<char*>(codeBase),
-                                              version,
-                                              newPage,
-                                              newPageEnd,
-                                              s_LoadedModsData,
-                                              !assetCreationSuccess);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen2::AddCS2ToTitleBar(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen2::PatchRemoveDebugLeftovers(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-    Align16CodePage(logger, newPage);
+    SenLib::Sen2::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen2::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+
+    SenLib::Sen2::DeglobalizeMutexes(patchExecData);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen2::FixGogGalaxy(patchExecData);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen2::AddSenPatcherVersionToTitle(
+        patchExecData, s_LoadedModsData, !assetCreationSuccess);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen2::AddCS2ToTitleBar(patchExecData);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen2::PatchRemoveDebugLeftovers(patchExecData);
+    Align16CodePage(logger, patchExecData.Codespace);
 
     if (removeTurboSkip) {
-        SenLib::Sen2::RemoveTurboAutoSkip(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::RemoveTurboAutoSkip(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (replaceAudioTimingThread) {
-        SenLib::Sen2::PatchMusicFadeTiming(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, 1000);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchMusicFadeTiming(patchExecData, 1000);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (fixBgmEnqueue) {
-        SenLib::Sen2::PatchMusicQueueingOnSoundThreadSide(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchMusicQueueingOnSoundThreadSide(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (correctLanguageVoiceTables) {
-        SenLib::Sen2::PatchLanguageAppropriateVoiceTables(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchLanguageAppropriateVoiceTables(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (disableMouseCapture) {
-        SenLib::Sen2::PatchDisableMouseCapture(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchDisableMouseCapture(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (showMouseCursor) {
-        SenLib::Sen2::PatchShowMouseCursor(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchShowMouseCursor(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (disablePauseOnFocusLoss) {
-        SenLib::Sen2::PatchDisablePauseOnFocusLoss(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchDisablePauseOnFocusLoss(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (fixControllerMapping) {
-        SenLib::Sen2::PatchFixControllerMappings(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchFixControllerMappings(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (fixArtsSupportCutin) {
-        SenLib::Sen2::PatchFixArtsSupportCutin(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchFixArtsSupportCutin(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (force0Kerning) {
-        SenLib::Sen2::PatchForce0Kerning(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchForce0Kerning(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (fixBattleScopeCrash) {
-        SenLib::Sen2::PatchAddNullCheckBattleScopeCrashMaybe(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchAddNullCheckBattleScopeCrashMaybe(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (forceXInput) {
-        SenLib::Sen2::PatchForceXInput(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        SenLib::Sen2::PatchForceXInput(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
 
     // mark newly allocated page as executable

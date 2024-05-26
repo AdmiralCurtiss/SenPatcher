@@ -7,11 +7,12 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen2 {
-void PatchMusicQueueingOnSoundThreadSide(HyoutaUtils::Logger& logger,
-                                         char* textRegion,
-                                         GameVersion version,
-                                         char*& codespace,
-                                         char* codespaceEnd) {
+void PatchMusicQueueingOnSoundThreadSide(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
 
     char* const LockMutex = GetCodeAddressJpEn(version, textRegion, 0x71d4f0, 0x71e550);
@@ -51,7 +52,7 @@ void PatchMusicQueueingOnSoundThreadSide(HyoutaUtils::Logger& logger,
     {
         back_to_function.SetTarget(injectResult.JumpBackAddress);
 
-        char*& tmp = codespace;
+        char* tmp = codespace;
 
         // not entirely sure what this is checking but all the audio code does this before accessing any data, so...
         WriteInstruction56(tmp, 0xf74610ffffff7f);   // test dword ptr[esi+10h],7FFFFFFFh
@@ -132,7 +133,11 @@ void PatchMusicQueueingOnSoundThreadSide(HyoutaUtils::Logger& logger,
         WriteInstruction24(tmp, 0x8d4e40);           // lea  ecx,[esi+40h]
         unlock_mutex.WriteJump(tmp, JC::CALL);       // call unlock_mutex
         back_to_function.WriteJump(tmp, JC::JMP);    // jmp  back_to_function
+
+        codespace = tmp;
     }
     // clang-format on
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen2

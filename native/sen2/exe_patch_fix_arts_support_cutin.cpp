@@ -9,11 +9,12 @@
 namespace SenLib::Sen2 {
 static char Flag = 0;
 
-void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
-                              char* textRegion,
-                              GameVersion version,
-                              char*& codespace,
-                              char* codespaceEnd) {
+void PatchFixArtsSupportCutin(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
     char* addressInjectPos = GetCodeAddressJpEn(version, textRegion, 0x560beb, 0x56091b);
     char* flagOffInjectPos = GetCodeAddressJpEn(version, textRegion, 0x468091, 0x468251);
@@ -35,7 +36,7 @@ void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
     {
         // turn on flag when arts support starts
         BranchHelper4Byte jumpBack;
-        char*& tmp = codespace;
+        char* tmp = codespace;
         const auto injectResult =
             InjectJumpIntoCode<10, PaddingInstruction::Nop>(logger, flagOnInjectPos, tmp);
         jumpBack.SetTarget(injectResult.JumpBackAddress);
@@ -51,13 +52,15 @@ void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
         *tmp = 2;
         ++tmp;
         jumpBack.WriteJump(tmp, JC::JMP); // jmp jumpBack
+
+        codespace = tmp;
     }
 
     // turn off flag during this function that seems to be called after all link actions
     // this may need further adjustments
     {
         BranchHelper4Byte jumpBack;
-        char*& tmp = codespace;
+        char* tmp = codespace;
         const auto injectResult =
             InjectJumpIntoCode<5, PaddingInstruction::Nop>(logger, flagOffInjectPos, tmp);
         jumpBack.SetTarget(injectResult.JumpBackAddress);
@@ -73,6 +76,8 @@ void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
         *tmp = 0;
         ++tmp;
         jumpBack.WriteJump(tmp, JC::JMP); // jmp jumpBack
+
+        codespace = tmp;
     }
 
     // fix texcoords when running at not 1280x720
@@ -81,7 +86,7 @@ void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
         BranchHelper4Byte jumpBack;
         BranchHelper1Byte skip_modification;
 
-        char*& tmp = codespace;
+        char* tmp = codespace;
         const auto injectResult =
             InjectJumpIntoCode<6, PaddingInstruction::Nop>(logger, texcoordInjectPos, tmp);
         jumpBack.SetTarget(injectResult.JumpBackAddress);
@@ -137,6 +142,8 @@ void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
         tmp += injectResult.OverwrittenInstructions.size();
 
         jumpBack.WriteJump(tmp, JC::JMP); // jmp jumpBack
+
+        codespace = tmp;
     }
 
     // clang-format off
@@ -145,7 +152,7 @@ void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
         BranchHelper4Byte jumpBack;
         BranchHelper1Byte skip_modification;
 
-        char*& tmp = codespace;
+        char* tmp = codespace;
         const auto injectResult =
             InjectJumpIntoCode<7, PaddingInstruction::Nop>(logger, addressInjectPos, tmp);
         jumpBack.SetTarget(injectResult.JumpBackAddress);
@@ -204,7 +211,11 @@ void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
         skip_modification.SetTarget(tmp);
 
         jumpBack.WriteJump(tmp, JC::JMP);          // jmp jumpBack
+
+        codespace = tmp;
     }
     // clang-format on
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen2
