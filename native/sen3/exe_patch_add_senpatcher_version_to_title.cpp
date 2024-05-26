@@ -12,13 +12,14 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen3 {
-void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
-                                 char* textRegion,
-                                 GameVersion version,
-                                 char*& codespace,
-                                 char* codespaceEnd,
+void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
     char* entryPoint = GetCodeAddressJpEn(version, textRegion, 0x140421caf, 0x14042d2a2);
     char* rdxLoad = GetCodeAddressJpEn(version, textRegion, 0x140421cc6, 0x14042d2b9);
@@ -69,5 +70,7 @@ void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
             *tmp++ = static_cast<char>(0x90); // nop
         }
     }
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen3

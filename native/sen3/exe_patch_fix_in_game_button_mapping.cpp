@@ -8,11 +8,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen3 {
-void FixInGameButtonMappingValidity(HyoutaUtils::Logger& logger,
-                                    char* textRegion,
-                                    GameVersion version,
-                                    char*& codespace,
-                                    char* codespaceEnd) {
+void FixInGameButtonMappingValidity(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* entryPoint = GetCodeAddressJpEn(version, textRegion, 0x140447427, 0x140453257);
     size_t length = 0x44;

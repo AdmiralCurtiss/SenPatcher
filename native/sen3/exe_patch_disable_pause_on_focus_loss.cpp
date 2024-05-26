@@ -7,11 +7,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen3 {
-void PatchDisablePauseOnFocusLoss(HyoutaUtils::Logger& logger,
-                                  char* textRegion,
-                                  GameVersion version,
-                                  char*& codespace_,
-                                  char* codespaceEnd_) {
+void PatchDisablePauseOnFocusLoss(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* silenceAudioIfUnfocusedPos1 =
         GetCodeAddressJpEn(version, textRegion, 0x1400f943b, 0x1400f9abb);

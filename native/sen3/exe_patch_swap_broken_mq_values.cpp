@@ -8,11 +8,12 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen3 {
-void SwapBrokenMasterQuartzValuesForDisplay(HyoutaUtils::Logger& logger,
-                                            char* textRegion,
-                                            GameVersion version,
-                                            char*& codespace,
-                                            char* codespaceEnd) {
+void SwapBrokenMasterQuartzValuesForDisplay(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
     if (version != GameVersion::English) {
         return; // bug only exists in the english version
@@ -115,5 +116,7 @@ void SwapBrokenMasterQuartzValuesForDisplay(HyoutaUtils::Logger& logger,
             codespace, R64::RAX, std::bit_cast<uint64_t>(injectResult.JumpBackAddress));
         Emit_JMP_R64(codespace, R64::RAX);
     }
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen3

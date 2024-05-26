@@ -8,11 +8,12 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen3 {
-void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
-                                char* textRegion,
-                                GameVersion version,
-                                char*& codespace,
-                                char* codespaceEnd) {
+void PatchFixControllerMappings(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
     using JC = JumpCondition;
     const bool jp = version == GameVersion::Japanese;
@@ -192,5 +193,7 @@ void PatchFixControllerMappings(HyoutaUtils::Logger& logger,
             codespace, R64::RCX, std::bit_cast<uint64_t>(injectResult.JumpBackAddress));
         Emit_JMP_R64(codespace, R64::RCX);
     }
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen3
