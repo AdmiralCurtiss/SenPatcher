@@ -10,12 +10,11 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen1 {
-void ChangeTurboModeButton(HyoutaUtils::Logger& logger,
-                           char* textRegion,
-                           GameVersion version,
-                           char*& codespace,
-                           char* codespaceEnd,
-                           int turboModeButton) {
+void ChangeTurboModeButton(PatchExecData& execData, int turboModeButton) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     if (turboModeButton < 0 || turboModeButton > 0xF) {
         logger.Log("Invalid turbo mode button, skipping patch.\n");
         return;

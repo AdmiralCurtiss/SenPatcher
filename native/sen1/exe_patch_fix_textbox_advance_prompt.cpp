@@ -8,11 +8,11 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen1 {
-void FixTextboxAdvancePrompt(HyoutaUtils::Logger& logger,
-                             char* textRegion,
-                             GameVersion version,
-                             char*& codespace,
-                             char* codespaceEnd) {
+void FixTextboxAdvancePrompt(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x86;
     if (version != GameVersion::Japanese) {
         return;

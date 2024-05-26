@@ -9,20 +9,16 @@
 #include "x86/inject_jump_into.h"
 
 namespace SenLib::Sen1 {
-void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
-                       char* textRegion,
-                       GameVersion version,
-                       char*& codespace,
-                       char* codespaceEnd,
-                       void* ffileOpenForwarder) {
+void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
 
-    char* const entryPoint =
-        textRegion
-        + (version == GameVersion::Japanese ? (0x4825ea - 0x401000) : (0x483e5a - 0x401000));
-    char* const exitPoint =
-        textRegion
-        + (version == GameVersion::Japanese ? (0x48262e - 0x401000) : (0x483e9e - 0x401000));
+    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x4825ea, 0x483e5a);
+    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x48262e, 0x483e9e);
 
     char* codespaceBegin = codespace;
     auto injectResult = InjectJumpIntoCode<5>(logger, entryPoint, codespaceBegin);
@@ -53,19 +49,19 @@ void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
     BranchHelper4Byte success_exit;
     success_exit.SetTarget(exitPoint);
     success_exit.WriteJump(codespace, JumpCondition::JMP);
+
+    execData.Codespace = codespace;
 }
 
-void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
-                              char* textRegion,
-                              GameVersion version,
-                              char*& codespace,
-                              char* codespaceEnd,
-                              void* ffileGetFilesizeForwarder) {
+void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
 
-    char* const entryPoint =
-        textRegion
-        + (version == GameVersion::Japanese ? (0x482780 - 0x401000) : (0x483ff0 - 0x401000));
+    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x482780, 0x483ff0);
 
     char* codespaceBegin = codespace;
     auto injectResult =
@@ -95,5 +91,7 @@ void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
     // on success just return immediately
     success.SetTarget(codespace);
     Emit_RET_IMM16(codespace, 12);
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen1

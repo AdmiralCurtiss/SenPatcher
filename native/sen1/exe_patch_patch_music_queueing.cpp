@@ -9,11 +9,11 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen1 {
-void PatchMusicQueueing(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd) {
+void PatchMusicQueueing(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x86;
 
     char* const bgmPlayingCheckInjectAddress =
@@ -37,7 +37,7 @@ void PatchMusicQueueing(HyoutaUtils::Logger& logger,
     // that decides whether a music track should be enqueued or not.
 
     {
-        char*& tmp = codespace;
+        char* tmp = execData.Codespace;
         PageUnprotect page(logger, bgmFadingReturn2InjectAddress, 7);
 
         // reshuffle instructions so it's cleaner to inject
@@ -80,6 +80,8 @@ void PatchMusicQueueing(HyoutaUtils::Logger& logger,
         Emit_XOR_R32_R32(tmp, R32::EAX, R32::EAX);
         returnBranchShort.SetTarget(tmp);
         returnBranch.WriteJump(tmp, JumpCondition::JMP);
+
+        execData.Codespace = tmp;
     }
 
     {

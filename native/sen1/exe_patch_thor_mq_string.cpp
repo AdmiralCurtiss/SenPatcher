@@ -7,11 +7,11 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen1 {
-void PatchThorMasterQuartzString(HyoutaUtils::Logger& logger,
-                                 char* textRegion,
-                                 GameVersion version,
-                                 char*& codespace,
-                                 char* codespaceEnd) {
+void PatchThorMasterQuartzString(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x86;
     char* mstqrt027 = GetCodeAddressJpEn(version, textRegion, 0xb39d64, 0xb3bfb4) + 6;
     {

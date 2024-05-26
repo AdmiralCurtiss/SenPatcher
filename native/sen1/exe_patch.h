@@ -15,6 +15,14 @@ enum class GameVersion {
     English,
 };
 
+struct PatchExecData {
+    HyoutaUtils::Logger* Logger;
+    char* TextRegion;
+    GameVersion Version;
+    char* Codespace;
+    char* CodespaceEnd;
+};
+
 inline char* GetCodeAddressJpEn(GameVersion version,
                                 char* textRegion,
                                 uint32_t addressJp,
@@ -23,82 +31,21 @@ inline char* GetCodeAddressJpEn(GameVersion version,
            + (version == GameVersion::Japanese ? (addressJp - 0x401000u) : (addressEn - 0x401000u));
 }
 
-void DeglobalizeMutexes(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd);
-void AddSenPatcherVersionToTitle(HyoutaUtils::Logger& logger,
-                                 char* textRegion,
-                                 GameVersion version,
-                                 char*& codespace,
-                                 char* codespaceEnd,
+void DeglobalizeMutexes(PatchExecData& execData);
+void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
-void RemoveTurboAutoSkip(HyoutaUtils::Logger& logger,
-                         char* textRegion,
-                         GameVersion version,
-                         char*& codespace,
-                         char* codespaceEnd);
-void AllowR2NotebookShortcut(HyoutaUtils::Logger& logger,
-                             char* textRegion,
-                             GameVersion version,
-                             char*& codespace,
-                             char* codespaceEnd);
-void ChangeTurboModeButton(HyoutaUtils::Logger& logger,
-                           char* textRegion,
-                           GameVersion version,
-                           char*& codespace,
-                           char* codespaceEnd,
-                           int turboModeButton);
-void PatchThorMasterQuartzString(HyoutaUtils::Logger& logger,
-                                 char* textRegion,
-                                 GameVersion version,
-                                 char*& codespace,
-                                 char* codespaceEnd);
-void FixTextboxAdvancePrompt(HyoutaUtils::Logger& logger,
-                             char* textRegion,
-                             GameVersion version,
-                             char*& codespace,
-                             char* codespaceEnd);
-void PatchDisableMouseCapture(HyoutaUtils::Logger& logger,
-                              char* textRegion,
-                              GameVersion version,
-                              char*& codespace,
-                              char* codespaceEnd);
-void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
-                          char* textRegion,
-                          GameVersion version,
-                          char*& codespace,
-                          char* codespaceEnd);
-void PatchDisablePauseOnFocusLoss(HyoutaUtils::Logger& logger,
-                                  char* textRegion,
-                                  GameVersion version,
-                                  char*& codespace,
-                                  char* codespaceEnd);
-void PatchLanguageAppropriateVoiceTables(HyoutaUtils::Logger& logger,
-                                         char* textRegion,
-                                         GameVersion version,
-                                         char*& codespace,
-                                         char* codespaceEnd);
-void PatchFixArtsSupportCutin(HyoutaUtils::Logger& logger,
-                              char* textRegion,
-                              GameVersion version,
-                              char*& codespace,
-                              char* codespaceEnd);
-void PatchForce0Kerning(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd);
-void PatchForceXInput(HyoutaUtils::Logger& logger,
-                      char* textRegion,
-                      GameVersion version,
-                      char*& codespace,
-                      char* codespaceEnd);
-void PatchMusicQueueing(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd);
+void RemoveTurboAutoSkip(PatchExecData& execData);
+void AllowR2NotebookShortcut(PatchExecData& execData);
+void ChangeTurboModeButton(PatchExecData& execData, int turboModeButton);
+void PatchThorMasterQuartzString(PatchExecData& execData);
+void FixTextboxAdvancePrompt(PatchExecData& execData);
+void PatchDisableMouseCapture(PatchExecData& execData);
+void PatchShowMouseCursor(PatchExecData& execData);
+void PatchDisablePauseOnFocusLoss(PatchExecData& execData);
+void PatchLanguageAppropriateVoiceTables(PatchExecData& execData);
+void PatchFixArtsSupportCutin(PatchExecData& execData);
+void PatchForce0Kerning(PatchExecData& execData);
+void PatchForceXInput(PatchExecData& execData);
+void PatchMusicQueueing(PatchExecData& execData);
 } // namespace SenLib::Sen1

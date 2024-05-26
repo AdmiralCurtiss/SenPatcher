@@ -10,11 +10,12 @@ namespace SenLib::Sen1 {
 static const char FormattingStringJp[] = "%s/text/dat/%s.tbl";
 static const char FormattingStringEn[] = "%s/text/dat_us/%s.tbl";
 
-void PatchLanguageAppropriateVoiceTables(HyoutaUtils::Logger& logger,
-                                         char* textRegion,
-                                         GameVersion version,
-                                         char*& codespace,
-                                         char* codespaceEnd) {
+void PatchLanguageAppropriateVoiceTables(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x86;
     char* const t_vctiming_address = GetCodeAddressJpEn(version, textRegion, 0xb41c68, 0xb43f30);
     char* const t_voice_address = GetCodeAddressJpEn(version, textRegion, 0xb41bdc, 0xb43ea4);
@@ -39,7 +40,7 @@ void PatchLanguageAppropriateVoiceTables(HyoutaUtils::Logger& logger,
         pc_config__get_voice_language.SetTarget(GetVoiceLangAddress);
 
         // inject into the asset-from-text-subfolder loader function
-        char*& tmp = codespace;
+        char* tmp = codespace;
         const auto injectResult =
             InjectJumpIntoCode<5, PaddingInstruction::Nop>(logger, InjectAddress, tmp);
         back_to_function.SetTarget(injectResult.JumpBackAddress);
@@ -80,6 +81,10 @@ void PatchLanguageAppropriateVoiceTables(HyoutaUtils::Logger& logger,
 
         exit_inject.SetTarget(tmp);
         back_to_function.WriteJump(tmp, JC::JMP); // jmp  back_to_function
+
+        codespace = tmp;
     }
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen1

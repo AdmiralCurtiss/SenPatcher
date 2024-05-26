@@ -10,11 +10,11 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen1 {
-void AllowR2NotebookShortcut(HyoutaUtils::Logger& logger,
-                             char* textRegion,
-                             GameVersion version,
-                             char*& codespace,
-                             char* codespaceEnd) {
+void AllowR2NotebookShortcut(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x86;
     char* const addressJumpR2NotebookOpen =
         GetCodeAddressJpEn(version, textRegion, 0x5b6fbf, 0x5b812f);

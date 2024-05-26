@@ -7,11 +7,11 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen1 {
-void PatchForceXInput(HyoutaUtils::Logger& logger,
-                      char* textRegion,
-                      GameVersion version,
-                      char*& codespace,
-                      char* codespaceEnd) {
+void PatchForceXInput(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x86;
     char* position = GetCodeAddressJpEn(version, textRegion, 0x939766, 0x93b036);
     constexpr size_t length = 6;

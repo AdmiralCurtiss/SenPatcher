@@ -7,11 +7,11 @@
 #include "x86/page_unprotect.h"
 
 namespace SenLib::Sen1 {
-void PatchForce0Kerning(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd) {
+void PatchForce0Kerning(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     if (version != GameVersion::English) {
         return;
     }

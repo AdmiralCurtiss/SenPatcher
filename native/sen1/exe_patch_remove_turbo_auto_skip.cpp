@@ -10,11 +10,11 @@
 #include "senpatcher_version.h"
 
 namespace SenLib::Sen1 {
-void RemoveTurboAutoSkip(HyoutaUtils::Logger& logger,
-                         char* textRegion,
-                         GameVersion version,
-                         char*& codespace,
-                         char* codespaceEnd) {
+void RemoveTurboAutoSkip(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x86;
     char* addressJumpBattleAnimationAutoSkip =
         GetCodeAddressJpEn(version, textRegion, 0x4d6411, 0x4d7c61);
