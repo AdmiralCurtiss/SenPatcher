@@ -11,12 +11,12 @@
 // NOTE: When calling a function, stack must be aligned to 0x10 bytes!
 
 namespace SenLib::Sen5 {
-void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
-                       char* textRegion,
-                       GameVersion version,
-                       char*& codespace,
-                       char* codespaceEnd,
-                       void* ffileOpenForwarder) {
+void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140088732);
@@ -56,14 +56,16 @@ void InjectAtFFileOpen(HyoutaUtils::Logger& logger,
     success.SetTarget(codespace);
     Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(exitPoint));
     Emit_JMP_R64(codespace, R64::RDX);
+
+    execData.Codespace = codespace;
 }
 
-void InjectAtBattleScriptExists(HyoutaUtils::Logger& logger,
-                                char* textRegion,
-                                GameVersion version,
-                                char*& codespace,
-                                char* codespaceEnd,
-                                void* ffileExistsForwarder) {
+void InjectAtBattleScriptExists(PatchExecData& execData, void* ffileExistsForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14014844a);
@@ -100,14 +102,16 @@ void InjectAtBattleScriptExists(HyoutaUtils::Logger& logger,
     success.SetTarget(codespace);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPointOnSuccess));
     Emit_JMP_R64(codespace, R64::RCX);
+
+    execData.Codespace = codespace;
 }
 
-void InjectAtFileExists1(HyoutaUtils::Logger& logger,
-                         char* textRegion,
-                         GameVersion version,
-                         char*& codespace,
-                         char* codespaceEnd,
-                         void* ffileExistsForwarder) {
+void InjectAtFileExists1(PatchExecData& execData, void* ffileExistsForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14006db8f);
@@ -144,14 +148,16 @@ void InjectAtFileExists1(HyoutaUtils::Logger& logger,
     success.SetTarget(codespace);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPointOnSuccess));
     Emit_JMP_R64(codespace, R64::RCX);
+
+    execData.Codespace = codespace;
 }
 
-void InjectAtFileExists2(HyoutaUtils::Logger& logger,
-                         char* textRegion,
-                         GameVersion version,
-                         char*& codespace,
-                         char* codespaceEnd,
-                         void* ffileExistsForwarder) {
+void InjectAtFileExists2(PatchExecData& execData, void* ffileExistsForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14006de34);
@@ -188,14 +194,16 @@ void InjectAtFileExists2(HyoutaUtils::Logger& logger,
     success.SetTarget(codespace);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPointOnSuccess));
     Emit_JMP_R64(codespace, R64::RCX);
+
+    execData.Codespace = codespace;
 }
 
-void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
-                              char* textRegion,
-                              GameVersion version,
-                              char*& codespace,
-                              char* codespaceEnd,
-                              void* ffileGetFilesizeForwarder) {
+void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140088b85);
@@ -233,14 +241,16 @@ void InjectAtFFileGetFilesize(HyoutaUtils::Logger& logger,
     success.SetTarget(codespace);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPointOnSuccess));
     Emit_JMP_R64(codespace, R64::RCX);
+
+    execData.Codespace = codespace;
 }
 
-void InjectAtOpenFSoundFile(HyoutaUtils::Logger& logger,
-                            char* textRegion,
-                            GameVersion version,
-                            char*& codespace,
-                            char* codespaceEnd,
-                            void* fsoundOpenForwarder) {
+void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140b7e1a0);
@@ -276,5 +286,7 @@ void InjectAtOpenFSoundFile(HyoutaUtils::Logger& logger,
     // on success just return from the function, RAX already has the correct return value
     success.SetTarget(codespace);
     Emit_RET(codespace);
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen5

@@ -570,64 +570,52 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     SenLib::ModLoad::LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes);
 
-    SenLib::Sen5::InjectAtFFileOpen(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileOpenForwarder);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen5::InjectAtBattleScriptExists(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileExistsForwarder);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen5::InjectAtFileExists1(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileExistsForwarder);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen5::InjectAtFileExists2(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FFileExistsForwarder);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen5::InjectAtFFileGetFilesize(logger,
-                                           static_cast<char*>(codeBase),
-                                           version,
-                                           newPage,
-                                           newPageEnd,
-                                           &FFileGetFilesizeForwarder);
-    Align16CodePage(logger, newPage);
-    SenLib::Sen5::InjectAtOpenFSoundFile(
-        logger, static_cast<char*>(codeBase), version, newPage, newPageEnd, &FSoundOpenForwarder);
-    Align16CodePage(logger, newPage);
+    SenLib::Sen5::PatchExecData patchExecData;
+    patchExecData.Logger = &logger;
+    patchExecData.TextRegion = static_cast<char*>(codeBase);
+    patchExecData.Version = version;
+    patchExecData.Codespace = newPage;
+    patchExecData.CodespaceEnd = newPageEnd;
 
-    AddSenPatcherVersionToTitle(logger,
-                                static_cast<char*>(codeBase),
-                                version,
-                                newPage,
-                                newPageEnd,
-                                s_LoadedModsData,
-                                !assetCreationSuccess);
-    Align16CodePage(logger, newPage);
+    SenLib::Sen5::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen5::InjectAtBattleScriptExists(patchExecData, &FFileExistsForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen5::InjectAtFileExists1(patchExecData, &FFileExistsForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen5::InjectAtFileExists2(patchExecData, &FFileExistsForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen5::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen5::InjectAtOpenFSoundFile(patchExecData, &FSoundOpenForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+
+    AddSenPatcherVersionToTitle(patchExecData, s_LoadedModsData, !assetCreationSuccess);
+    Align16CodePage(logger, patchExecData.Codespace);
 
     if (fixBgmEnqueue) {
-        PatchMusicQueueing(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        PatchMusicQueueing(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
 
     if (disableMouseCapture) {
-        PatchDisableMouseCapture(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        PatchDisableMouseCapture(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (showMouseCursor) {
-        PatchShowMouseCursor(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        PatchShowMouseCursor(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (disableFpsLimitOnFocusLoss) {
-        PatchDisableFpsLimitOnFocusLoss(
-            logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        PatchDisableFpsLimitOnFocusLoss(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
     if (increaseDlcCount >= 0) {
-        PatchIncreaseDlcCount(
-            logger, static_cast<char*>(codeBase), version, static_cast<uint32_t>(increaseDlcCount));
+        PatchIncreaseDlcCount(patchExecData, static_cast<uint32_t>(increaseDlcCount));
     }
     if (fixDlcCostumeCrash) {
-        PatchDlcCostumeCrash(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
-        Align16CodePage(logger, newPage);
+        PatchDlcCostumeCrash(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
     }
 
     // mark newly allocated page as executable

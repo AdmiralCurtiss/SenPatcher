@@ -7,11 +7,12 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen5 {
-void PatchMusicQueueing(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd) {
+void PatchMusicQueueing(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
 
     char* const bgmPlayingCheckInjectAddress = GetCodeAddressEn(version, textRegion, 0x1403438cc);
@@ -34,33 +35,34 @@ void PatchMusicQueueing(HyoutaUtils::Logger& logger,
     //
     // we're essentially just writing another version of that block but instead of
     // checking eax for == 0 we check for != 1
-    char*& tmp = codespace;
     const auto injectResult = InjectJumpIntoCode<14, PaddingInstruction::Nop>(
         logger, bgmPlayingCheckInjectAddress, R64::RCX, codespace);
     const char* const continueEnqueueTargetAddress =
         bgmPlayingCheckInjectAddress + 4
         + static_cast<int8_t>(injectResult.OverwrittenInstructions[3]);
 
-    WriteInstruction24(tmp, 0x83f801); // cmp eax,1
+    WriteInstruction24(codespace, 0x83f801); // cmp eax,1
     BranchHelper1Byte continue_enqueue;
-    continue_enqueue.WriteJump(tmp, JumpCondition::JNE);
+    continue_enqueue.WriteJump(codespace, JumpCondition::JNE);
 
     // extra check whether to continue enqueueing anyway (there's a bool parameter to the function
     // that's effectively 'enqueue always, regardless of track playing state', which is checked
     // after the expensive check for some reason...)
-    std::memcpy(tmp,
+    std::memcpy(codespace,
                 injectResult.OverwrittenInstructions.data() + 4,
                 injectResult.OverwrittenInstructions.size() - 6);
-    tmp += (injectResult.OverwrittenInstructions.size() - 6);
-    continue_enqueue.WriteJump(tmp, JumpCondition::JNE);
+    codespace += (injectResult.OverwrittenInstructions.size() - 6);
+    continue_enqueue.WriteJump(codespace, JumpCondition::JNE);
 
     // skip the enqueue
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(injectResult.JumpBackAddress));
     Emit_JMP_R64(codespace, R64::RCX);
 
     // continue the enqueue
-    continue_enqueue.SetTarget(tmp);
+    continue_enqueue.SetTarget(codespace);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(continueEnqueueTargetAddress));
     Emit_JMP_R64(codespace, R64::RCX);
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen5

@@ -8,11 +8,12 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen5 {
-void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
-                          char* textRegion,
-                          GameVersion version,
-                          char*& codespace,
-                          char* codespaceEnd) {
+void PatchShowMouseCursor(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
     char* showCursorPos1 = GetCodeAddressEn(version, textRegion, 0x140838c46);
     char* showCursorPos1Scratch = GetCodeAddressEn(version, textRegion, 0x1408389e2);
@@ -21,7 +22,7 @@ void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
 
     // only allow call to SetCursor() if the parameter is not null
     {
-        char*& tmp = codespace;
+        char* tmp = codespace;
         auto inject = InjectJumpIntoCode2Step<6, 12, PaddingInstruction::Nop>(
             logger, showCursorPos1, showCursorPos1Scratch, R64::RAX, tmp);
         const int32_t relativeOffsetForCall = static_cast<int32_t>(
@@ -38,6 +39,8 @@ void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
         skip.SetTarget(tmp);
         Emit_MOV_R64_IMM64(tmp, R64::RCX, std::bit_cast<uint64_t>(inject.JumpBackAddress));
         Emit_JMP_R64(tmp, R64::RCX);
+
+        codespace = tmp;
     }
 
     // // remove call to SetCursor(nullptr)
@@ -48,5 +51,7 @@ void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
     //         *tmp++ = static_cast<char>(0x90); // nop
     //     }
     // }
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen5

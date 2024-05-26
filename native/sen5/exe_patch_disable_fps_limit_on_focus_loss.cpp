@@ -7,11 +7,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen5 {
-void PatchDisableFpsLimitOnFocusLoss(HyoutaUtils::Logger& logger,
-                                     char* textRegion,
-                                     GameVersion version,
-                                     char*& codespace,
-                                     char* codespaceEnd) {
+void PatchDisableFpsLimitOnFocusLoss(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* isInBackgroundFlag1 = GetCodeAddressEn(version, textRegion, 0x14097c5ad);
 
