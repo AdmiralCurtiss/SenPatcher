@@ -7,11 +7,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void PatchDisableMouseCapture(HyoutaUtils::Logger& logger,
-                              char* textRegion,
-                              GameVersion version,
-                              char*& codespace,
-                              char* codespaceEnd) {
+void PatchDisableMouseCapture(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* captureMouseCursorPos = GetCodeAddressJpEn(version, textRegion, 0x14030ab6f, 0x14030d62f);
     char* cameraMouseFuncPos1 = GetCodeAddressJpEn(version, textRegion, 0x1400b1e78, 0x1400b1e98);

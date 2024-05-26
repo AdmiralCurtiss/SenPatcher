@@ -7,11 +7,12 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void PatchFixPcConfirmCancelWhenSwapped(HyoutaUtils::Logger& logger,
-                                        char* textRegion,
-                                        GameVersion version,
-                                        char*& codespace,
-                                        char* codespaceEnd) {
+void PatchFixPcConfirmCancelWhenSwapped(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
     using namespace SenPatcher::x64;
 
     // inject right after the 'id' value is read and stored from the XML
@@ -78,5 +79,7 @@ void PatchFixPcConfirmCancelWhenSwapped(HyoutaUtils::Logger& logger,
             codespace, R64::RDX, std::bit_cast<uint64_t>(injectResult.JumpBackAddress));
         Emit_JMP_R64(codespace, R64::RDX);
     }
+
+    execData.Codespace = codespace;
 }
 } // namespace SenLib::Sen4

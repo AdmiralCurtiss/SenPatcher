@@ -8,18 +8,18 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void PatchDlcCostumeCrash(HyoutaUtils::Logger& logger,
-                          char* textRegion,
-                          GameVersion version,
-                          char*& codespace,
-                          char* codespaceEnd) {
+void PatchDlcCostumeCrash(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
 
     char* const injectAddress = GetCodeAddressJpEn(version, textRegion, 0x140203d0d, 0x140205f80);
     char* const scratchAddress = GetCodeAddressJpEn(version, textRegion, 0x140204044, 0x140206052);
     char* const skipAddress = GetCodeAddressJpEn(version, textRegion, 0x140203d5b, 0x140205fce);
 
-    char*& tmp = codespace;
+    char* tmp = execData.Codespace;
     const auto injectResult = InjectJumpIntoCode2Step<7, 12, PaddingInstruction::Nop>(
         logger, injectAddress, scratchAddress, R64::RCX, tmp);
 
@@ -43,5 +43,7 @@ void PatchDlcCostumeCrash(HyoutaUtils::Logger& logger,
     HyoutaUtils::MemWrite::WriteAdvUInt32(tmp, 0x3f3f3f);
     Emit_MOV_R64_IMM64(tmp, R64::RCX, std::bit_cast<uint64_t>(skipAddress));
     Emit_JMP_R64(tmp, R64::RCX);
+
+    execData.Codespace = tmp;
 }
 } // namespace SenLib::Sen4

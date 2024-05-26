@@ -7,11 +7,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void DeglobalizeMutexes(HyoutaUtils::Logger& logger,
-                        char* textRegion,
-                        GameVersion version,
-                        char*& codespace,
-                        char* codespaceEnd) {
+void DeglobalizeMutexes(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* createMutexString1 = GetCodeAddressJpEn(version, textRegion, 0x1405ae269, 0x1405b07e9);
     char* createMutexString2 = GetCodeAddressJpEn(version, textRegion, 0x1400d6051, 0x1400d60d1);

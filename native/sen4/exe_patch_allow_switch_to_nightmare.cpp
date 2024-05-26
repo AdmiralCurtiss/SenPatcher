@@ -7,11 +7,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void AllowSwitchToNightmare(HyoutaUtils::Logger& logger,
-                            char* textRegion,
-                            GameVersion version,
-                            char*& codespace,
-                            char* codespaceEnd) {
+void AllowSwitchToNightmare(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* setMaxDifficultyIndexPos =
         GetCodeAddressJpEn(version, textRegion, 0x140486117, 0x140488647) + 1;

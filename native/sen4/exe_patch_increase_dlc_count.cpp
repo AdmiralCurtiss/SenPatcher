@@ -8,10 +8,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void PatchIncreaseDlcCount(HyoutaUtils::Logger& logger,
-                           char* textRegion,
-                           GameVersion version,
-                           uint32_t newLimit) {
+void PatchIncreaseDlcCount(PatchExecData& execData, uint32_t newLimit) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* dlcLimitAddress = GetCodeAddressJpEn(version, textRegion, 0x1403c42ec, 0x1403c65fc);
 

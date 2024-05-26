@@ -7,11 +7,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void PatchShowMouseCursor(HyoutaUtils::Logger& logger,
-                          char* textRegion,
-                          GameVersion version,
-                          char*& codespace,
-                          char* codespaceEnd) {
+void PatchShowMouseCursor(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* showCursorPos = GetCodeAddressJpEn(version, textRegion, 0x1405fadc4, 0x1405fd344);
 

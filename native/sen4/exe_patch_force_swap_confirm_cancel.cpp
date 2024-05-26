@@ -7,12 +7,11 @@
 #include "x64/page_unprotect.h"
 
 namespace SenLib::Sen4 {
-void PatchForceSwapConfirmCancel(HyoutaUtils::Logger& logger,
-                                 char* textRegion,
-                                 GameVersion version,
-                                 char*& codespace,
-                                 char* codespaceEnd,
-                                 bool swapOX) {
+void PatchForceSwapConfirmCancel(PatchExecData& execData, bool swapOX) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
     using namespace SenPatcher::x64;
     char* isSwitchButtonFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1405fa7b0, 0x1405fcd30);
 
