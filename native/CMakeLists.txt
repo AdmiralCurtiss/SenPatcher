@@ -742,6 +742,7 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		sen3/exe_patch_deglobalize_mutexes.cpp
 		sen3/exe_patch_disable_mouse_capture.cpp
 		sen3/exe_patch_disable_pause_on_focus_loss.cpp
+		sen3/exe_patch_dlc_costume_crash.cpp
 		sen3/exe_patch_fix_controller_mappings.cpp
 		sen3/exe_patch_fix_in_game_button_mapping.cpp
 		sen3/exe_patch_force_xinput.cpp

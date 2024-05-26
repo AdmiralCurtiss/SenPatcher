@@ -92,6 +92,15 @@ void PatchMusicQueueing(HyoutaUtils::Logger& logger,
                         char*& codespace,
                         char* codespaceEnd);
 
+// fix the crash that happens when opening the Costumes menu
+// when you have non-installed DLC costumes equipped
+// (the game will just use the base model instead)
+void PatchDlcCostumeCrash(HyoutaUtils::Logger& logger,
+                          char* textRegion,
+                          GameVersion version,
+                          char*& codespace,
+                          char* codespaceEnd);
+
 // changes the number of DLCs the game checks for
 void PatchIncreaseDlcCount(HyoutaUtils::Logger& logger,
                            char* textRegion,
