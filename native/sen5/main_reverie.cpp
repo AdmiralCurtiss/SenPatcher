@@ -494,6 +494,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool showMouseCursor = false;
     bool disableFpsLimitOnFocusLoss = false;
     int increaseDlcCount = 0x1000;
+    bool fixDlcCostumeCrash = true;
 
     {
         std::string settingsFilePath;
@@ -555,6 +556,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("Reverie", "ShowMouseCursor", showMouseCursor);
                 check_boolean("Reverie", "DisableFpsLimitOnFocusLoss", disableFpsLimitOnFocusLoss);
                 check_integer("Reverie", "IncreaseDlcCount", increaseDlcCount);
+                check_boolean("Reverie", "FixDlcCostumeCrash", fixDlcCostumeCrash);
             }
         }
     }
@@ -622,6 +624,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     if (increaseDlcCount >= 0) {
         PatchIncreaseDlcCount(
             logger, static_cast<char*>(codeBase), version, static_cast<uint32_t>(increaseDlcCount));
+    }
+    if (fixDlcCostumeCrash) {
+        PatchDlcCostumeCrash(logger, static_cast<char*>(codeBase), version, newPage, newPageEnd);
+        Align16CodePage(logger, newPage);
     }
 
     // mark newly allocated page as executable

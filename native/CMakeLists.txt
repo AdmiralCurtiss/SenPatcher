@@ -868,6 +868,7 @@ if (SENPATCHER_BUILD_REVHOOK)
 		sen5/exe_patch_add_senpatcher_version_to_title.cpp
 		sen5/exe_patch_disable_fps_limit_on_focus_loss.cpp
 		sen5/exe_patch_disable_mouse_capture.cpp
+		sen5/exe_patch_dlc_costume_crash.cpp
 		sen5/exe_patch_increase_dlc_count.cpp
 		sen5/exe_patch_patch_music_queueing.cpp
 		sen5/exe_patch_show_mouse_cursor.cpp
