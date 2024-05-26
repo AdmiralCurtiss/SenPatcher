@@ -807,6 +807,7 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		sen4/exe_patch_deglobalize_mutexes.cpp
 		sen4/exe_patch_disable_mouse_capture.cpp
 		sen4/exe_patch_disable_pause_on_focus_loss.cpp
+		sen4/exe_patch_dlc_costume_crash.cpp
 		sen4/exe_patch_fix_pc_confirm_cancel_when_swapped.cpp
 		sen4/exe_patch_force_swap_confirm_cancel.cpp
 		sen4/exe_patch_increase_dlc_count.cpp
