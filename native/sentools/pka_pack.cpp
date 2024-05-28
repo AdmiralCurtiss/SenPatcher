@@ -319,10 +319,20 @@ int PKA_Pack_Function(int argc, char** argv) {
         printf("Failed to allocate memory.\n");
         return -1;
     }
+    const size_t numberOfPkgsToInclude = [&]() -> size_t {
+        size_t count = 0;
+        for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+            if (pkgPackFiles[i].IncludeInPka) {
+                ++count;
+            }
+        }
+        return count;
+    }();
+
     char* pkaHeaderWritePtr = pkaHeader.get();
     WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(static_cast<uint32_t>(0x7ff7cf0d), LittleEndian));
     WriteAdvUInt32(pkaHeaderWritePtr,
-                   ToEndian(static_cast<uint32_t>(pkgPackFiles.size()), LittleEndian));
+                   ToEndian(static_cast<uint32_t>(numberOfPkgsToInclude), LittleEndian));
     for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
         if (!pkgPackFiles[i].IncludeInPka) {
             continue;
