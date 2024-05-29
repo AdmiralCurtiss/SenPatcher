@@ -3,12 +3,12 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstring>
+#include <cstdint>
+#include <cstdio>
 #include <filesystem>
-#include <map>
+#include <memory>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "zlib/zlib.h"
 
@@ -18,21 +18,8 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "p3a/pack.h"
-#include "p3a/packfs.h"
-#include "p3a/packjson.h"
-#include "p3a/structs.h"
-#include "p3a/unpackfs.h"
-#include "sen/pka.h"
-#include "sen/pka_to_pkg.h"
-#include "sen/pkg.h"
-#include "sen/pkg_compress.h"
-#include "sen/pkg_extract.h"
 #include "util/file.h"
-#include "util/hash/sha256.h"
 #include "util/memread.h"
-#include "util/memwrite.h"
-#include "util/stream.h"
 #include "util/text.h"
 
 namespace {
@@ -280,15 +267,19 @@ int BRA_Extract_Function(int argc, char** argv) {
         auto pathShiftJis = StripToNull(fileInfo.Path);
         auto pathUtf8 =
             HyoutaUtils::TextUtils::ShiftJisToUtf8(pathShiftJis.data(), pathShiftJis.size());
+        if (!pathUtf8) {
+            printf("Unknown encoding for path.\n");
+            return -1;
+        }
         json.Key("NameInArchive");
-        json.String(pathUtf8.data(), pathUtf8.size(), true);
-        for (char& c : pathUtf8) {
+        json.String(pathUtf8->data(), pathUtf8->size(), true);
+        for (char& c : *pathUtf8) {
             if (c == '\\') {
                 c = '/';
             }
         }
-        std::u8string_view pathUtf8Sv(reinterpret_cast<const char8_t*>(pathUtf8.data()),
-                                      pathUtf8.size());
+        std::u8string_view pathUtf8Sv(reinterpret_cast<const char8_t*>(pathUtf8->data()),
+                                      pathUtf8->size());
         std::filesystem::path p = targetpath / pathUtf8Sv;
         {
             std::error_code ec;
@@ -348,7 +339,7 @@ int BRA_Extract_Function(int argc, char** argv) {
         }
 
         json.Key("PathOnDisk");
-        json.String(pathUtf8.data(), pathUtf8.size(), true);
+        json.String(pathUtf8->data(), pathUtf8->size(), true);
         json.Key("CompressionType");
         json.Uint(fileInfo.FileHeader_CompressionType);
         json.Key("Unknown1");

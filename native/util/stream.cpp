@@ -216,7 +216,11 @@ std::string ReadStream::ReadUTF16Nullterm() {
         b1 = ReadByte();
     }
 
-    return HyoutaUtils::TextUtils::Utf16ToUtf8(sb.data(), sb.size());
+    auto utf8 = HyoutaUtils::TextUtils::Utf16ToUtf8(sb.data(), sb.size());
+    if (!utf8) {
+        throw "Invalid UTF-16 string";
+    }
+    return *utf8;
 }
 
 std::string ReadStream::ReadShiftJisNullterm() {
@@ -238,7 +242,11 @@ std::string ReadStream::ReadShiftJisNullterm() {
         b = ReadByte();
     }
 
-    return HyoutaUtils::TextUtils::ShiftJisToUtf8(sb.data(), sb.size());
+    auto utf8 = HyoutaUtils::TextUtils::ShiftJisToUtf8(sb.data(), sb.size());
+    if (!utf8) {
+        throw "Invalid Shift-JIS string";
+    }
+    return *utf8;
 }
 
 std::string ReadStream::ReadNulltermString(HyoutaUtils::TextUtils::GameTextEncoding encoding) {
@@ -489,7 +497,10 @@ void WriteStream::WriteUTF8Nullterm(std::string_view str) {
 
 void WriteStream::WriteShiftJisNullterm(std::string_view str) {
     auto sjis = HyoutaUtils::TextUtils::Utf8ToShiftJis(str.data(), str.size());
-    WriteStringRaw(sjis, 0, false);
+    if (!sjis) {
+        throw "Invalid UTF-8 string";
+    }
+    WriteStringRaw(*sjis, 0, false);
     WriteByte(0);
 }
 

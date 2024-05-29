@@ -907,11 +907,14 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/hash/sha256.h
 		util/hash/sha256.cpp
 		util/hash/util.h
+		util/text.cpp
+		util/text.h
 		util/xorshift.h
 
 		test/p3a_lookup_test.cpp
 		test/sha1_test.cpp
 		test/sha256_test.cpp
+		test/text_encoding_test.cpp
 	)
 	target_include_directories(tests
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds" "gtest/googletest/include"

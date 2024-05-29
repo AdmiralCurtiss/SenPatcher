@@ -63,7 +63,10 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
         case OpenMode::Read: {
 #ifdef _MSC_VER
             auto s = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
-            Filehandle = CreateFileW(s.c_str(),
+            if (!s) {
+                return false;
+            }
+            Filehandle = CreateFileW(s->c_str(),
                                      GENERIC_READ,
                                      FILE_SHARE_READ,
                                      nullptr,
@@ -79,7 +82,10 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
         case OpenMode::Write: {
 #ifdef _MSC_VER
             auto s = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
-            Filehandle = CreateFileW(s.c_str(),
+            if (!s) {
+                return false;
+            }
+            Filehandle = CreateFileW(s->c_str(),
                                      GENERIC_WRITE | DELETE,
                                      0,
                                      nullptr,
@@ -338,7 +344,10 @@ bool File::Rename(const std::string_view p) noexcept {
 
 #ifdef _MSC_VER
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
-    return RenameInternalWindows(Filehandle, wstr.data(), wstr.size());
+    if (!wstr) {
+        return false;
+    }
+    return RenameInternalWindows(Filehandle, wstr->data(), wstr->size());
 #else
     // TODO: How do you rename a file by handle in POSIX?
     return false;
@@ -378,7 +387,10 @@ static bool FileExistsWindows(const wchar_t* path) {
 bool FileExists(std::string_view p) noexcept {
 #ifdef _MSC_VER
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
-    return FileExistsWindows(wstr.data());
+    if (!wstr) {
+        return false;
+    }
+    return FileExistsWindows(wstr->data());
 #else
     // TODO
     return false;
@@ -409,7 +421,10 @@ static bool DirectoryExistsWindows(const wchar_t* path) {
 bool DirectoryExists(std::string_view p) noexcept {
 #ifdef _MSC_VER
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
-    return DirectoryExistsWindows(wstr.data());
+    if (!wstr) {
+        return false;
+    }
+    return DirectoryExistsWindows(wstr->data());
 #else
     // TODO
     return false;
@@ -436,7 +451,10 @@ static bool CreateDirectoryWindows(const wchar_t* path) {
 bool CreateDirectory(std::string_view p) noexcept {
 #ifdef _MSC_VER
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
-    return CreateDirectoryWindows(wstr.data());
+    if (!wstr) {
+        return false;
+    }
+    return CreateDirectoryWindows(wstr->data());
 #else
     // TODO
     return false;

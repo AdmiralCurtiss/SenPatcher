@@ -135,7 +135,6 @@ static bool LoadOrderTxt(std::vector<std::string>& output,
                          HyoutaUtils::Logger& logger,
                          HyoutaUtils::IO::File& file) {
     using HyoutaUtils::TextUtils::Trim;
-    using HyoutaUtils::TextUtils::Utf8ToUtf16;
 
     if (!file.IsOpen()) {
         return false;
@@ -243,7 +242,8 @@ static std::vector<std::string> CollectModPaths(HyoutaUtils::Logger& logger,
 
     // check for order.txt, which may define an order (priority) for the mods
     {
-        HyoutaUtils::IO::File orderfile(std::string_view(orderPath), HyoutaUtils::IO::OpenMode::Read);
+        HyoutaUtils::IO::File orderfile(std::string_view(orderPath),
+                                        HyoutaUtils::IO::OpenMode::Read);
         LoadOrderTxt(paths, logger, orderfile);
     }
 
@@ -268,10 +268,10 @@ static std::vector<std::string> CollectModPaths(HyoutaUtils::Logger& logger,
             && string[string.size() - 2] == L'3'
             && (string[string.size() - 1] == L'A' || string[string.size() - 1] == L'a')) {
             auto filenamepath = path.filename();
-            std::string filename = HyoutaUtils::TextUtils::WStringToUtf8(
-                filenamepath.native().data(), filenamepath.native().size());
-            if (!ContainsPath(paths, filename)) {
-                paths.emplace_back(std::move(filename));
+            auto filename = HyoutaUtils::TextUtils::WStringToUtf8(filenamepath.native().data(),
+                                                                  filenamepath.native().size());
+            if (filename && !ContainsPath(paths, *filename)) {
+                paths.emplace_back(std::move(*filename));
                 modified = true;
             }
         }
@@ -288,7 +288,7 @@ static std::vector<std::string> CollectModPaths(HyoutaUtils::Logger& logger,
         orderPathTmp.append(orderPath);
         orderPathTmp.append(".tmp");
         HyoutaUtils::IO::File orderfile(std::string_view(orderPathTmp),
-                                       HyoutaUtils::IO::OpenMode::Write);
+                                        HyoutaUtils::IO::OpenMode::Write);
         if (WriteOrderTxt(paths, logger, orderfile)) {
             if (!orderfile.Rename(orderPath)) {
                 orderfile.Delete();

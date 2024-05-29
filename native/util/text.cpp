@@ -2,6 +2,7 @@
 
 #include <array>
 #include <charconv>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -13,40 +14,45 @@
 
 namespace HyoutaUtils::TextUtils {
 #ifdef _MSC_VER
-static std::string WStringToCodepage(const wchar_t* data, size_t length, UINT codepage) {
+static std::optional<std::string>
+    WStringToCodepage(const wchar_t* data, size_t length, UINT codepage) {
     if (length == 0) {
         return std::string();
     }
 
     if (length > INT32_MAX) {
-        throw "string too long";
+        return std::nullopt;
     }
 
+    BOOL usedDefaultChar = FALSE;
+    const DWORD flags = (codepage == CP_UTF8) ? WC_ERR_INVALID_CHARS : WC_NO_BEST_FIT_CHARS;
+    const LPBOOL usedDefaultCharPtr = (codepage == CP_UTF8) ? nullptr : &usedDefaultChar;
+
     const auto requiredBytes = WideCharToMultiByte(
-        codepage, 0, data, static_cast<int>(length), nullptr, 0, nullptr, nullptr);
-    if (requiredBytes <= 0) {
-        throw "string conversion failed";
+        codepage, flags, data, static_cast<int>(length), nullptr, 0, nullptr, usedDefaultCharPtr);
+    if (requiredBytes <= 0 || usedDefaultChar != FALSE) {
+        return std::nullopt;
     }
 
     std::string result;
     result.resize(requiredBytes);
     const auto convertedBytes = WideCharToMultiByte(codepage,
-                                                    0,
+                                                    flags,
                                                     data,
                                                     static_cast<int>(length),
                                                     result.data(),
                                                     result.size(),
                                                     nullptr,
-                                                    nullptr);
-    if (convertedBytes != requiredBytes) {
-        throw "string conversion failed";
+                                                    usedDefaultCharPtr);
+    if (convertedBytes != requiredBytes || usedDefaultChar != FALSE) {
+        return std::nullopt;
     }
 
     return result;
 }
 
 template<typename T>
-static T CodepageToString16(const char* data, size_t length, UINT codepage) {
+static std::optional<T> CodepageToString16(const char* data, size_t length, UINT codepage) {
     static_assert(sizeof(typename T::value_type) == 2);
 
     if (length == 0) {
@@ -54,93 +60,106 @@ static T CodepageToString16(const char* data, size_t length, UINT codepage) {
     }
 
     if (length > INT32_MAX) {
-        throw "string too long";
+        return std::nullopt;
     }
 
-    const auto requiredBytes = MultiByteToWideChar(codepage, 0, data, length, nullptr, 0);
+    const auto requiredBytes =
+        MultiByteToWideChar(codepage, MB_ERR_INVALID_CHARS, data, length, nullptr, 0);
     if (requiredBytes <= 0) {
-        throw "string conversion failed";
+        return std::nullopt;
     }
 
     T wstr;
     wstr.resize(requiredBytes);
-    const auto convertedBytes =
-        MultiByteToWideChar(codepage, 0, data, length, (wchar_t*)wstr.data(), wstr.size());
+    const auto convertedBytes = MultiByteToWideChar(
+        codepage, MB_ERR_INVALID_CHARS, data, length, (wchar_t*)wstr.data(), wstr.size());
     if (convertedBytes != requiredBytes) {
-        throw "string conversion failed";
+        return std::nullopt;
     }
 
     return wstr;
 }
 #endif
 
-std::string Utf16ToUtf8(const char16_t* data, size_t length) {
+std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) {
 #ifdef _MSC_VER
     return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, CP_UTF8);
 #else
-    throw "not implemented";
+    return std::nullopt;
 #endif
 }
 
-std::u16string Utf8ToUtf16(const char* data, size_t length) {
+std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) {
 #ifdef _MSC_VER
     return CodepageToString16<std::u16string>(data, length, CP_UTF8);
 #else
-    throw "not implemented";
+    return std::nullopt;
 #endif
 }
 
-std::string Utf16ToShiftJis(const char16_t* data, size_t length) {
+std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length) {
 #ifdef _MSC_VER
     return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, 932);
 #else
-    throw "not implemented";
+    return std::nullopt;
 #endif
 }
 
-std::u16string ShiftJisToUtf16(const char* data, size_t length) {
+std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length) {
 #ifdef _MSC_VER
     return CodepageToString16<std::u16string>(data, length, 932);
 #else
-    throw "not implemented";
+    return std::nullopt;
 #endif
 }
 
 #ifdef _MSC_VER
-std::string WStringToUtf8(const wchar_t* data, size_t length) {
+std::optional<std::string> WStringToUtf8(const wchar_t* data, size_t length) {
     return WStringToCodepage(data, length, CP_UTF8);
 }
 
-std::wstring Utf8ToWString(const char* data, size_t length) {
+std::optional<std::wstring> Utf8ToWString(const char* data, size_t length) {
     return CodepageToString16<std::wstring>(data, length, CP_UTF8);
 }
 
-std::string WStringToShiftJis(const wchar_t* data, size_t length) {
+std::optional<std::string> WStringToShiftJis(const wchar_t* data, size_t length) {
     return WStringToCodepage(data, length, 932);
 }
 
-std::wstring ShiftJisToWString(const char* data, size_t length) {
+std::optional<std::wstring> ShiftJisToWString(const char* data, size_t length) {
     return CodepageToString16<std::wstring>(data, length, 932);
 }
 #endif
 
-std::string ShiftJisToUtf8(const char* data, size_t length) {
+std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length) {
 #ifdef _MSC_VER
     auto wstr = ShiftJisToWString(data, length);
-    return WStringToUtf8(wstr.data(), wstr.size());
+    if (!wstr) {
+        return std::nullopt;
+    }
+    return WStringToUtf8(wstr->data(), wstr->size());
 #else
     auto utf16 = ShiftJisToUtf16(data, length);
-    return Utf16ToUtf8(utf16.data(), utf16.size());
+    if (!utf16) {
+        return std::nullopt;
+    }
+    return Utf16ToUtf8(utf16->data(), utf16->size());
 #endif
 }
 
-std::string Utf8ToShiftJis(const char* data, size_t length) {
+std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length) {
 #ifdef _MSC_VER
     auto wstr = Utf8ToWString(data, length);
-    return WStringToShiftJis(wstr.data(), wstr.size());
+    if (!wstr) {
+        return std::nullopt;
+    }
+    return WStringToShiftJis(wstr->data(), wstr->size());
 #else
     auto utf16 = Utf8ToUtf16(data, length);
-    return Utf16ToShiftJis(utf16.data(), utf16.size());
+    if (!utf16) {
+        return std::nullopt;
+    }
+    return Utf16ToShiftJis(utf16->data(), utf16->size());
 #endif
 }
 
