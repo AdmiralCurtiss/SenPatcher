@@ -13,5 +13,7 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
                            std::unique_ptr<char[]>& dataBuffer,
                            const PkaHeader& pka,
                            size_t index,
-                           HyoutaUtils::IO::File& file);
+                           HyoutaUtils::IO::File& file,
+                           const PkaHeader* referencedPka,
+                           HyoutaUtils::IO::File* referencedFile);
 } // namespace SenLib

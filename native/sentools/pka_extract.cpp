@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -30,6 +31,10 @@ int PKA_Extract_Function(int argc, char** argv) {
         .help(
             "The output directory to extract to. Will be derived from input filename if not "
             "given.");
+    parser.add_option("--referenced-pka")
+        .dest("referenced-pka")
+        .metavar("PKA")
+        .help("2nd pka file that could also contain files.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -64,6 +69,22 @@ int PKA_Extract_Function(int argc, char** argv) {
         return -1;
     }
 
+    std::optional<HyoutaUtils::IO::File> refInfile;
+    std::optional<SenLib::PkaHeader> refPkaHeader;
+    if (options.is_set("referenced-pka")) {
+        std::string_view refpath(options["referenced-pka"]);
+        refInfile.emplace(std::filesystem::path(refpath), HyoutaUtils::IO::OpenMode::Read);
+        if (!refInfile->IsOpen()) {
+            printf("Error opening referenced pka.\n");
+            return -1;
+        }
+        refPkaHeader.emplace();
+        if (!SenLib::ReadPkaFromFile(*refPkaHeader, *refInfile)) {
+            printf("Error reading referenced pka.\n");
+            return -1;
+        }
+    }
+
     {
         std::error_code ec;
         std::filesystem::create_directories(targetpath, ec);
@@ -76,7 +97,13 @@ int PKA_Extract_Function(int argc, char** argv) {
     for (size_t i = 0; i < pkaHeader.PkgCount; ++i) {
         SenLib::PkgHeader pkg;
         std::unique_ptr<char[]> buffer;
-        if (!SenLib::ConvertPkaToSinglePkg(pkg, buffer, pkaHeader, i, infile)) {
+        if (!SenLib::ConvertPkaToSinglePkg(pkg,
+                                           buffer,
+                                           pkaHeader,
+                                           i,
+                                           infile,
+                                           refPkaHeader.has_value() ? &*refPkaHeader : nullptr,
+                                           refInfile.has_value() ? &*refInfile : nullptr)) {
             printf("Failed to convert archive %zu to pkg.\n", i);
             return -1;
         }

@@ -9,12 +9,14 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "cpp-optparse/OptionParser.h"
 
+#include "sen/pka.h"
 #include "sen/pkg.h"
 #include "sen/pkg_extract.h"
 #include "util/endian.h"
@@ -69,6 +71,13 @@ int PKA_Pack_Function(int argc, char** argv) {
         .dest("output")
         .metavar("FILENAME")
         .help("The output filename. Must be given.");
+    parser.add_option("--referenced-pka")
+        .dest("referenced-pka")
+        .metavar("PKA")
+        .help(
+            "Existing pka file that already contains files. Files contained in that pka will not "
+            "be packed into this pka. The referenced pka will be necessary to extract data later. "
+            "This is a nonstandard feature that the vanilla game does not handle.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -83,6 +92,23 @@ int PKA_Pack_Function(int argc, char** argv) {
     }
 
     std::string_view target(options["output"]);
+
+    std::optional<HyoutaUtils::IO::File> existingPkaFile = std::nullopt;
+    std::optional<SenLib::PkaHeader> existingPkaHeader = std::nullopt;
+    if (options.is_set("referenced-pka")) {
+        std::string_view existingPkaPath(options["referenced-pka"]);
+        existingPkaFile.emplace(std::filesystem::path(existingPkaPath),
+                                HyoutaUtils::IO::OpenMode::Read);
+        if (!existingPkaFile->IsOpen()) {
+            printf("Error opening existing pka.\n");
+            return -1;
+        }
+        existingPkaHeader.emplace();
+        if (!SenLib::ReadPkaFromFile(*existingPkaHeader, *existingPkaFile)) {
+            printf("Error reading existing pka.\n");
+            return -1;
+        }
+    }
 
     // first collect info about every file in every pkg
     struct PkgPackFile {
@@ -250,6 +276,7 @@ int PKA_Pack_Function(int argc, char** argv) {
         size_t FileIndex;
         uint64_t OffsetInPka = 0;
         bool AlreadyWritten = false;
+        bool ShouldBeWritten = true;
     };
     struct SHA256Sorter {
         bool operator()(const HyoutaUtils::Hash::SHA256& lhs,
@@ -280,12 +307,42 @@ int PKA_Pack_Function(int argc, char** argv) {
                     existingFileReference.ArchiveIndex = i;
                     existingFileReference.FileIndex = j;
                 }
+            } else {
+                if (existingPkaHeader.has_value()) {
+                    FileReference& fileReference = it.first->second;
+                    const SenLib::PkaHashToFileData* existingFile =
+                        SenLib::FindFileInPkaByHash(existingPkaHeader->Files.get(),
+                                                    existingPkaHeader->FilesCount,
+                                                    file.Hash.Hash);
+                    if (existingFile) {
+                        fileReference.ShouldBeWritten = false;
+                    }
+                }
             }
         }
     }
 
+    const size_t numberOfPkgsToInclude = [&]() -> size_t {
+        size_t count = 0;
+        for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+            if (pkgPackFiles[i].IncludeInPka) {
+                ++count;
+            }
+        }
+        return count;
+    }();
+    const size_t numberOfFilesToInclude = [&]() -> size_t {
+        size_t count = 0;
+        for (const auto& kvp : filesByHash) {
+            if (kvp.second.ShouldBeWritten) {
+                ++count;
+            }
+        }
+        return count;
+    }();
+
     // calculate file offsets
-    size_t pkaHeaderLength = (8u + 4u) + (filesByHash.size() * (0x20u + 8u + 4u + 4u + 4u));
+    size_t pkaHeaderLength = (8u + 4u) + (numberOfFilesToInclude * (0x20u + 8u + 4u + 4u + 4u));
     for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
         if (!pkgPackFiles[i].IncludeInPka) {
             continue;
@@ -302,7 +359,7 @@ int PKA_Pack_Function(int argc, char** argv) {
                 return -1;
             }
             FileReference& ref = it->second;
-            if (ref.OffsetInPka == 0) {
+            if (ref.ShouldBeWritten && ref.OffsetInPka == 0) {
                 ref.OffsetInPka = fileOffset;
                 fileOffset += pkgPackFiles[ref.ArchiveIndex].Files[ref.FileIndex].CompressedSize;
             }
@@ -319,15 +376,6 @@ int PKA_Pack_Function(int argc, char** argv) {
         printf("Failed to allocate memory.\n");
         return -1;
     }
-    const size_t numberOfPkgsToInclude = [&]() -> size_t {
-        size_t count = 0;
-        for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
-            if (pkgPackFiles[i].IncludeInPka) {
-                ++count;
-            }
-        }
-        return count;
-    }();
 
     char* pkaHeaderWritePtr = pkaHeader.get();
     WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(static_cast<uint32_t>(0x7ff7cf0d), LittleEndian));
@@ -347,16 +395,18 @@ int PKA_Pack_Function(int argc, char** argv) {
         }
     }
     WriteAdvUInt32(pkaHeaderWritePtr,
-                   ToEndian(static_cast<uint32_t>(filesByHash.size()), LittleEndian));
+                   ToEndian(static_cast<uint32_t>(numberOfFilesToInclude), LittleEndian));
     for (const auto& kvp : filesByHash) {
         const FileReference& ref = kvp.second;
         const PkgPackFile& file = pkgPackFiles[ref.ArchiveIndex].Files[ref.FileIndex];
 
-        WriteAdvArray(pkaHeaderWritePtr, kvp.first.Hash);
-        WriteAdvUInt64(pkaHeaderWritePtr, ToEndian(ref.OffsetInPka, LittleEndian));
-        WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.CompressedSize, LittleEndian));
-        WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.UncompressedSize, LittleEndian));
-        WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.Flags, LittleEndian));
+        if (kvp.second.ShouldBeWritten) {
+            WriteAdvArray(pkaHeaderWritePtr, kvp.first.Hash);
+            WriteAdvUInt64(pkaHeaderWritePtr, ToEndian(ref.OffsetInPka, LittleEndian));
+            WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.CompressedSize, LittleEndian));
+            WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.UncompressedSize, LittleEndian));
+            WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.Flags, LittleEndian));
+        }
     }
     assert(pkaHeaderWritePtr == (pkaHeader.get() + pkaHeaderLength));
 
@@ -378,7 +428,7 @@ int PKA_Pack_Function(int argc, char** argv) {
                 return -1;
             }
             FileReference& ref = it->second;
-            if (!ref.AlreadyWritten) {
+            if (ref.ShouldBeWritten && !ref.AlreadyWritten) {
                 assert(ref.OffsetInPka == outfile.GetPosition());
                 PkgPackArchive& archive = pkgPackFiles[ref.ArchiveIndex];
                 const PkgPackFile& file = archive.Files[ref.FileIndex];

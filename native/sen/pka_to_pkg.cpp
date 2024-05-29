@@ -2,16 +2,18 @@
 
 #include <memory>
 
-#include "util/file.h"
 #include "sen/pka.h"
 #include "sen/pkg.h"
+#include "util/file.h"
 
 namespace SenLib {
 bool ConvertPkaToSinglePkg(PkgHeader& pkg,
                            std::unique_ptr<char[]>& dataBuffer,
                            const PkaHeader& pka,
                            size_t index,
-                           HyoutaUtils::IO::File& file) {
+                           HyoutaUtils::IO::File& file,
+                           const PkaHeader* referencedPka,
+                           HyoutaUtils::IO::File* referencedFile) {
     if (index >= pka.PkgCount) {
         return false;
     }
@@ -29,6 +31,10 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
     size_t requiredMemorySize = 0;
     for (size_t i = 0; i < fileCount; ++i) {
         auto* f = FindFileInPkaByHash(pka.Files.get(), pka.FilesCount, pkaFiles[i].Hash);
+        if (!f && referencedPka && referencedFile) {
+            f = FindFileInPkaByHash(
+                referencedPka->Files.get(), referencedPka->FilesCount, pkaFiles[i].Hash);
+        }
         if (!f) {
             return false;
         }
@@ -41,6 +47,12 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
     size_t dataOffset = 0;
     for (size_t i = 0; i < fileCount; ++i) {
         auto* f = FindFileInPkaByHash(pka.Files.get(), pka.FilesCount, pkaFiles[i].Hash);
+        HyoutaUtils::IO::File* hf = &file;
+        if (!f && referencedPka && referencedFile) {
+            f = FindFileInPkaByHash(
+                referencedPka->Files.get(), referencedPka->FilesCount, pkaFiles[i].Hash);
+            hf = referencedFile;
+        }
         if (!f) {
             return false;
         }
@@ -52,10 +64,10 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
         pkgFiles[i].Flags = f->Flags;
         pkgFiles[i].Data = &data[dataOffset];
 
-        if (!file.SetPosition(f->Offset)) {
+        if (!hf->SetPosition(f->Offset)) {
             return false;
         }
-        if (file.Read(&data[dataOffset], f->CompressedSize) != f->CompressedSize) {
+        if (hf->Read(&data[dataOffset], f->CompressedSize) != f->CompressedSize) {
             return false;
         }
         dataOffset += f->CompressedSize;
