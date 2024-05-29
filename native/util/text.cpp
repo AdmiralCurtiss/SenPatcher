@@ -14,6 +14,10 @@
 namespace HyoutaUtils::TextUtils {
 #ifdef _MSC_VER
 static std::string WStringToCodepage(const wchar_t* data, size_t length, UINT codepage) {
+    if (length == 0) {
+        return std::string();
+    }
+
     if (length > INT32_MAX) {
         throw "string too long";
     }
@@ -44,6 +48,10 @@ static std::string WStringToCodepage(const wchar_t* data, size_t length, UINT co
 template<typename T>
 static T CodepageToString16(const char* data, size_t length, UINT codepage) {
     static_assert(sizeof(typename T::value_type) == 2);
+
+    if (length == 0) {
+        return T();
+    }
 
     if (length > INT32_MAX) {
         throw "string too long";
