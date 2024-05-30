@@ -23,6 +23,9 @@
 #undef CreateDirectory
 #else
 #include <cstdio>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define INVALID_HANDLE_VALUE nullptr
 #define DWORD unsigned int
@@ -42,7 +45,12 @@ File::File(const std::filesystem::path& p, OpenMode mode) noexcept
 }
 #endif
 
-File::File(File&& other) noexcept : Filehandle(other.Filehandle) {
+File::File(File&& other) noexcept
+  : Filehandle(other.Filehandle)
+#ifndef _MSC_VER
+  , Path(std::move(other.Path))
+#endif
+{
     other.Filehandle = INVALID_HANDLE_VALUE;
 }
 
@@ -50,6 +58,9 @@ File& File::operator=(File&& other) noexcept {
     Close();
     this->Filehandle = other.Filehandle;
     other.Filehandle = INVALID_HANDLE_VALUE;
+#ifndef _MSC_VER
+    this->Path = std::move(other.Path);
+#endif
     return *this;
 }
 
@@ -76,6 +87,9 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
 #else
             std::string s(p);
             Filehandle = fopen(s.c_str(), "rb");
+            if (Filehandle != INVALID_HANDLE_VALUE) {
+                Path = std::move(s);
+            }
 #endif
             return Filehandle != INVALID_HANDLE_VALUE;
         }
@@ -95,6 +109,9 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
 #else
             std::string s(p);
             Filehandle = fopen(s.c_str(), "wb");
+            if (Filehandle != INVALID_HANDLE_VALUE) {
+                Path = std::move(s);
+            }
 #endif
             return Filehandle != INVALID_HANDLE_VALUE;
         }
@@ -106,7 +123,7 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
 bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
     Close();
     switch (mode) {
-        case OpenMode::Read:
+        case OpenMode::Read: {
 #ifdef _MSC_VER
             Filehandle = CreateFileW(p.c_str(),
                                      GENERIC_READ,
@@ -116,10 +133,15 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
                                      FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
 #else
-            Filehandle = fopen(p.c_str(), "rb");
+            std::string s(p);
+            Filehandle = fopen(s.c_str(), "rb");
+            if (Filehandle != INVALID_HANDLE_VALUE) {
+                Path = std::move(s);
+            }
 #endif
             return Filehandle != INVALID_HANDLE_VALUE;
-        case OpenMode::Write:
+        }
+        case OpenMode::Write: {
 #ifdef _MSC_VER
             Filehandle = CreateFileW(p.c_str(),
                                      GENERIC_WRITE | DELETE,
@@ -129,9 +151,14 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
                                      FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
 #else
-            Filehandle = fopen(p.c_str(), "wb");
+            std::string s(p);
+            Filehandle = fopen(s.c_str(), "wb");
+            if (Filehandle != INVALID_HANDLE_VALUE) {
+                Path = std::move(s);
+            }
 #endif
             return Filehandle != INVALID_HANDLE_VALUE;
+        }
         default: Filehandle = INVALID_HANDLE_VALUE; return false;
     }
 }
@@ -149,6 +176,9 @@ void File::Close() noexcept {
         fclose((FILE*)Filehandle);
 #endif
         Filehandle = INVALID_HANDLE_VALUE;
+#ifndef _MSC_VER
+        Path.clear();
+#endif
     }
 }
 
@@ -297,7 +327,10 @@ bool File::Delete() noexcept {
         return true;
     }
 #else
-    // TODO: How do you delete a file by handle in POSIX?
+    int result = unlink(Path.c_str());
+    if (result == 0) {
+        return true;
+    }
 #endif
 
     return false;
@@ -349,8 +382,9 @@ bool File::Rename(const std::string_view p) noexcept {
     }
     return RenameInternalWindows(Filehandle, wstr->data(), wstr->size());
 #else
-    // TODO: How do you rename a file by handle in POSIX?
-    return false;
+    std::string newName(p);
+    int result = rename(Path.c_str(), newName.c_str());
+    return result == 0;
 #endif
 }
 
@@ -362,8 +396,8 @@ bool File::Rename(const std::filesystem::path& p) noexcept {
     const auto& wstr = p.native();
     return RenameInternalWindows(Filehandle, wstr.data(), wstr.size());
 #else
-    // TODO: How do you rename a file by handle in POSIX?
-    return false;
+    int result = rename(Path.c_str(), p.c_str());
+    return result == 0;
 #endif
 }
 #endif
@@ -371,6 +405,9 @@ bool File::Rename(const std::filesystem::path& p) noexcept {
 void* File::ReleaseHandle() noexcept {
     void* h = Filehandle;
     Filehandle = INVALID_HANDLE_VALUE;
+#ifndef _MSC_VER
+    Path.clear();
+#endif
     return h;
 }
 
@@ -382,6 +419,17 @@ static bool FileExistsWindows(const wchar_t* path) {
     }
     return (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
 }
+#else
+static bool FileExistsLinux(const char* path) {
+    struct stat buf {};
+    if (stat(path, &buf) != 0) {
+        return false;
+    }
+    if (S_ISREG(buf.st_mode)) {
+        return true;
+    }
+    return false;
+}
 #endif
 
 bool FileExists(std::string_view p) noexcept {
@@ -392,8 +440,8 @@ bool FileExists(std::string_view p) noexcept {
     }
     return FileExistsWindows(wstr->data());
 #else
-    // TODO
-    return false;
+    std::string s(p);
+    return FileExistsLinux(s.c_str());
 #endif
 }
 
@@ -402,8 +450,7 @@ bool FileExists(const std::filesystem::path& p) noexcept {
 #ifdef _MSC_VER
     return FileExistsWindows(p.native().data());
 #else
-    std::error_code ec;
-    return std::filesystem::exists(p, ec);
+    return FileExistsLinux(p.c_str());
 #endif
 }
 #endif
@@ -416,6 +463,17 @@ static bool DirectoryExistsWindows(const wchar_t* path) {
     }
     return (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
+#else
+static bool DirectoryExistsLinux(const char* path) {
+    struct stat buf {};
+    if (stat(path, &buf) != 0) {
+        return false;
+    }
+    if (S_ISDIR(buf.st_mode)) {
+        return true;
+    }
+    return false;
+}
 #endif
 
 bool DirectoryExists(std::string_view p) noexcept {
@@ -426,8 +484,8 @@ bool DirectoryExists(std::string_view p) noexcept {
     }
     return DirectoryExistsWindows(wstr->data());
 #else
-    // TODO
-    return false;
+    std::string s(p);
+    return DirectoryExistsLinux(s.c_str());
 #endif
 }
 
@@ -436,8 +494,7 @@ bool DirectoryExists(const std::filesystem::path& p) noexcept {
 #ifdef _MSC_VER
     return DirectoryExistsWindows(p.native().data());
 #else
-    std::error_code ec;
-    return std::filesystem::is_directory(p, ec);
+    return DirectoryExistsLinux(p.c_str());
 #endif
 }
 #endif
@@ -445,6 +502,17 @@ bool DirectoryExists(const std::filesystem::path& p) noexcept {
 #ifdef _MSC_VER
 static bool CreateDirectoryWindows(const wchar_t* path) {
     return CreateDirectoryW(path, nullptr);
+}
+#else
+static bool CreateDirectoryLinux(const char* path) {
+    if (DirectoryExistsLinux(path)) {
+        return true;
+    }
+    int result = mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO);
+    if (result == 0) {
+        return true;
+    }
+    return false;
 }
 #endif
 
@@ -456,8 +524,8 @@ bool CreateDirectory(std::string_view p) noexcept {
     }
     return CreateDirectoryWindows(wstr->data());
 #else
-    // TODO
-    return false;
+    std::string s(p);
+    return CreateDirectoryLinux(s.c_str());
 #endif
 }
 
@@ -466,8 +534,7 @@ bool CreateDirectory(const std::filesystem::path& p) noexcept {
 #ifdef _MSC_VER
     return CreateDirectoryWindows(p.native().data());
 #else
-    std::error_code ec;
-    return std::filesystem::create_directory(p, ec);
+    return CreateDirectoryLinux(p.c_str());
 #endif
 }
 #endif

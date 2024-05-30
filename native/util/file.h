@@ -4,6 +4,10 @@
 #include <optional>
 #include <string_view>
 
+#ifndef _MSC_VER
+#include <string>
+#endif
+
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 #include <filesystem>
 #endif
@@ -51,6 +55,10 @@ public:
 
 private:
     void* Filehandle;
+
+#ifndef _MSC_VER
+    std::string Path;
+#endif
 };
 
 bool FileExists(std::string_view p) noexcept;
