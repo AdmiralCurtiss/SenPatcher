@@ -117,6 +117,58 @@
         "SENPATCHER_BUILD_REVTEST": "OFF",
         "SENPATCHER_BUILD_GTESTS": "ON"
       }
+    },
+    {
+      "name": "linuxdebug64",
+      "displayName": "Debug (Linux, Tools only, x86-64)",
+      "generator": "Ninja",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/linuxdebug64",
+      "installDir": "${sourceDir}/out/linuxdebug64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "SENPATCHER_BUILD_TOOLS": "ON",
+        "SENPATCHER_BUILD_CS1HOOK": "OFF",
+        "SENPATCHER_BUILD_CS2HOOK": "OFF",
+        "SENPATCHER_BUILD_CS3HOOK": "OFF",
+        "SENPATCHER_BUILD_CS4HOOK": "OFF",
+        "SENPATCHER_BUILD_REVHOOK": "OFF",
+        "SENPATCHER_BUILD_CS1TEST": "OFF",
+        "SENPATCHER_BUILD_CS2TEST": "OFF",
+        "SENPATCHER_BUILD_CS3TEST": "OFF",
+        "SENPATCHER_BUILD_CS4TEST": "OFF",
+        "SENPATCHER_BUILD_REVTEST": "OFF",
+        "SENPATCHER_BUILD_GTESTS": "ON"
+      }
+    },
+    {
+      "name": "linuxrelease64",
+      "displayName": "Release (Linux, Tools only, x86-64)",
+      "generator": "Ninja",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/linuxrelease64",
+      "installDir": "${sourceDir}/out/linuxrelease64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "SENPATCHER_BUILD_TOOLS": "ON",
+        "SENPATCHER_BUILD_CS1HOOK": "OFF",
+        "SENPATCHER_BUILD_CS2HOOK": "OFF",
+        "SENPATCHER_BUILD_CS3HOOK": "OFF",
+        "SENPATCHER_BUILD_CS4HOOK": "OFF",
+        "SENPATCHER_BUILD_REVHOOK": "OFF",
+        "SENPATCHER_BUILD_CS1TEST": "OFF",
+        "SENPATCHER_BUILD_CS2TEST": "OFF",
+        "SENPATCHER_BUILD_CS3TEST": "OFF",
+        "SENPATCHER_BUILD_CS4TEST": "OFF",
+        "SENPATCHER_BUILD_REVTEST": "OFF",
+        "SENPATCHER_BUILD_GTESTS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -139,6 +191,16 @@
       "name": "release64",
       "displayName": "Release (x86-64)",
       "configurePreset": "release64"
+    },
+    {
+      "name": "linuxdebug64",
+      "displayName": "Debug (Linux, Tools only, x86-64)",
+      "configurePreset": "linuxdebug64"
+    },
+    {
+      "name": "linuxrelease64",
+      "displayName": "Release (Linux, Tools only, x86-64)",
+      "configurePreset": "linuxrelease64"
     }
   ]
 }
