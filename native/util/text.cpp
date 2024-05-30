@@ -10,6 +10,8 @@
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#else
+#include <iconv.h>
 #endif
 
 namespace HyoutaUtils::TextUtils {
@@ -79,13 +81,62 @@ static std::optional<T> CodepageToString16(const char* data, size_t length, UINT
 
     return wstr;
 }
+#else
+static std::optional<std::string> ConvertString(const char* data,
+                                                size_t length,
+                                                const char* sourceEncoding,
+                                                const char* targetEncoding) {
+    if (length == 0) {
+        return std::string();
+    }
+
+    iconv_t cd = iconv_open(targetEncoding, sourceEncoding);
+    if (cd == ((iconv_t)-1)) {
+        return std::nullopt;
+    }
+    struct ScopedIconvT {
+        iconv_t cd;
+        ~ScopedIconvT() {
+            iconv_close(cd);
+        }
+    };
+    ScopedIconvT scoped{cd};
+
+    std::string result;
+    std::array<char, 2048> buffer;
+    size_t rest = length;
+    char* next = const_cast<char*>(data);
+    do {
+        char* in = next;
+        char* out = buffer.data();
+        size_t outfree = buffer.size();
+        size_t rv = iconv(cd, &in, &rest, &out, &outfree);
+        if (out == buffer.data()) {
+            break;
+        }
+        if (rv == ((size_t)-1) && errno != E2BIG) {
+            return std::nullopt;
+        }
+        result.append(buffer.data(), out);
+        if (in == next) {
+            break;
+        }
+        next = in;
+    } while (rest > 0);
+
+    if (rest != 0) {
+        return std::nullopt;
+    }
+
+    return result;
+}
 #endif
 
 std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) {
 #ifdef _MSC_VER
     return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, CP_UTF8);
 #else
-    return std::nullopt;
+    return ConvertString(reinterpret_cast<const char*>(data), length * 2, "UTF-16LE", "UTF-8");
 #endif
 }
 
@@ -93,7 +144,18 @@ std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) {
 #ifdef _MSC_VER
     return CodepageToString16<std::u16string>(data, length, CP_UTF8);
 #else
-    return std::nullopt;
+    const auto str = ConvertString(data, length, "UTF-8", "UTF-16LE");
+    if (!str || (str->size() % 2) != 0) {
+        return std::nullopt;
+    }
+    std::u16string str16;
+    str16.reserve(str->size() / 2);
+    for (size_t i = 0; i < str->size(); i += 2) {
+        const char16_t c =
+            char16_t(uint16_t(uint8_t((*str)[i])) | (uint16_t(uint8_t((*str)[i + 1])) << 8));
+        str16.push_back(c);
+    }
+    return str16;
 #endif
 }
 
@@ -101,7 +163,11 @@ std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length) 
 #ifdef _MSC_VER
     return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, 932);
 #else
-    return std::nullopt;
+    auto str8 = Utf16ToUtf8(data, length);
+    if (!str8) {
+        return std::nullopt;
+    }
+    return Utf8ToShiftJis(str8->data(), str8->size());
 #endif
 }
 
@@ -109,7 +175,11 @@ std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length) {
 #ifdef _MSC_VER
     return CodepageToString16<std::u16string>(data, length, 932);
 #else
-    return std::nullopt;
+    auto str8 = ShiftJisToUtf8(data, length);
+    if (!str8) {
+        return std::nullopt;
+    }
+    return Utf8ToUtf16(str8->data(), str8->size());
 #endif
 }
 
@@ -139,11 +209,7 @@ std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length) {
     }
     return WStringToUtf8(wstr->data(), wstr->size());
 #else
-    auto utf16 = ShiftJisToUtf16(data, length);
-    if (!utf16) {
-        return std::nullopt;
-    }
-    return Utf16ToUtf8(utf16->data(), utf16->size());
+    return ConvertString(data, length, "CP932", "UTF-8");
 #endif
 }
 
@@ -155,11 +221,7 @@ std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length) {
     }
     return WStringToShiftJis(wstr->data(), wstr->size());
 #else
-    auto utf16 = Utf8ToUtf16(data, length);
-    if (!utf16) {
-        return std::nullopt;
-    }
-    return Utf16ToShiftJis(utf16->data(), utf16->size());
+    return ConvertString(data, length, "UTF-8", "CP932");
 #endif
 }
 
