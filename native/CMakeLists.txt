@@ -56,6 +56,10 @@ set(SOURCES_LZ4
 	lz4/lz4hc.h
 	lz4/xxhash.h
 )
+set(DEFINES_ZSTD -DZSTD_LEGACY_SUPPORT=0 -DZSTD_DISABLE_ASM)
+if (MSVC)
+	set(DEFINES_ZSTD "${DEFINES_ZSTD} -DZSTD_HEAPMODE=0")
+endif()
 set(SOURCES_ZSTD_BASE
 	zstd/zdict.h
 	zstd/zstd.h
@@ -252,7 +256,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		${SOURCES_RAPIDJSON}
 	)
 	target_compile_definitions(sentools
-		PUBLIC P3A_PACKER_WITH_STD_FILESYSTEM FILE_WRAPPER_WITH_STD_FILESYSTEM
+		PUBLIC P3A_PACKER_WITH_STD_FILESYSTEM FILE_WRAPPER_WITH_STD_FILESYSTEM ${DEFINES_ZSTD}
 	)
 	target_compile_options(sentools PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(sentools
@@ -578,6 +582,9 @@ if (SENPATCHER_BUILD_CS1TEST)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_definitions(cs1test
+		PUBLIC ${DEFINES_ZSTD}
+	)
 	target_compile_options(cs1test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs1test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -626,6 +633,9 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_definitions(cs1hook
+		PUBLIC ${DEFINES_ZSTD}
+	)
 	target_compile_options(cs1hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs1hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -644,6 +654,9 @@ if (SENPATCHER_BUILD_CS2TEST)
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_compile_definitions(cs2test
+		PUBLIC ${DEFINES_ZSTD}
 	)
 	target_compile_options(cs2test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs2test
@@ -695,6 +708,9 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_definitions(cs2hook
+		PUBLIC ${DEFINES_ZSTD}
+	)
 	target_compile_options(cs2hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs2hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -713,6 +729,9 @@ if (SENPATCHER_BUILD_CS3TEST)
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_compile_definitions(cs3test
+		PUBLIC ${DEFINES_ZSTD}
 	)
 	target_compile_options(cs3test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs3test
@@ -760,6 +779,9 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_definitions(cs3hook
+		PUBLIC ${DEFINES_ZSTD}
+	)
 	target_compile_options(cs3hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs3hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -778,6 +800,9 @@ if (SENPATCHER_BUILD_CS4TEST)
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_compile_definitions(cs4test
+		PUBLIC ${DEFINES_ZSTD}
 	)
 	target_compile_options(cs4test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs4test
@@ -823,6 +848,9 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_definitions(cs4hook
+		PUBLIC ${DEFINES_ZSTD}
+	)
 	target_compile_options(cs4hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs4hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -841,6 +869,9 @@ if (SENPATCHER_BUILD_REVTEST)
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_compile_definitions(reverietest
+		PUBLIC ${DEFINES_ZSTD}
 	)
 	target_compile_options(reverietest PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(reverietest
@@ -882,6 +913,9 @@ if (SENPATCHER_BUILD_REVHOOK)
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
+	target_compile_definitions(reveriehook
+		PUBLIC ${DEFINES_ZSTD}
+	)
 	target_compile_options(reveriehook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(reveriehook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -915,6 +949,9 @@ if (SENPATCHER_BUILD_GTESTS)
 		test/sha1_test.cpp
 		test/sha256_test.cpp
 		test/text_encoding_test.cpp
+	)
+	target_compile_definitions(tests
+		PUBLIC ${DEFINES_ZSTD}
 	)
 	target_include_directories(tests
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds" "gtest/googletest/include"

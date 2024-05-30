@@ -1,6 +1,7 @@
 #include "sha256.h"
 
 #include <cstdint>
+#include <cstring>
 
 // sha.cpp - modified by Wei Dai from Steve Reid's public domain sha1.c
 

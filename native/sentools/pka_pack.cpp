@@ -244,6 +244,8 @@ int PKA_Pack_Function(int argc, char** argv) {
                     .Flags = f.Flags,
                 });
             }
+
+            return true;
         };
 
         for (size_t i = 0; i < args.size(); ++i) {

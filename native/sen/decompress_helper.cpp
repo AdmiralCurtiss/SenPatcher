@@ -1,6 +1,7 @@
-#pragma once
+#include "decompress_helper.h"
 
 #include <cstdint>
+#include <cstring>
 #include <vector>
 
 #include "util/hash/crc32.h"

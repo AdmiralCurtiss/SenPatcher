@@ -1,6 +1,7 @@
 #include "packfs.h"
 
 #include <array>
+#include <cstring>
 #include <filesystem>
 #include <vector>
 
