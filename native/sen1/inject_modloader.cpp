@@ -18,7 +18,7 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
     using namespace SenPatcher::x86;
 
     char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x4825ea, 0x483e5a);
-    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x48262e, 0x483e9e);
+    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x482630, 0x483ea0);
 
     char* codespaceBegin = codespace;
     auto injectResult = InjectJumpIntoCode<5>(logger, entryPoint, codespaceBegin);
@@ -37,14 +37,14 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
     // check result
     Emit_TEST_R32_R32(codespace, R32::EAX, R32::EAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // on failure proceed with normal function
+    // if we have no injected file proceed with normal function
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     jump_back.WriteJump(codespace, JumpCondition::JMP);
 
-    // on success go to return code
+    // if we have an injected file go to return code, return value is already correct in EAX
     success.SetTarget(codespace);
     BranchHelper4Byte success_exit;
     success_exit.SetTarget(exitPoint);
@@ -81,14 +81,14 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
     // check result
     Emit_TEST_R32_R32(codespace, R32::EAX, R32::EAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // on failure proceed with normal function
+    // if we have no injected file proceed with normal function
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     jump_back.WriteJump(codespace, JumpCondition::JMP);
 
-    // on success just return immediately
+    // if we have an injected file just return immediately, return value is already correct in EAX
     success.SetTarget(codespace);
     Emit_RET_IMM16(codespace, 12);
 
