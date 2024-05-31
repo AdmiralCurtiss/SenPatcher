@@ -18,6 +18,7 @@
 
 #include "sen/pka.h"
 #include "sen/pkg.h"
+#include "sen/pkg_compress.h"
 #include "sen/pkg_extract.h"
 #include "util/endian.h"
 #include "util/file.h"
@@ -78,6 +79,11 @@ int PKA_Pack_Function(int argc, char** argv) {
             "Existing pka file that already contains files. Files contained in that pka will not "
             "be packed into this pka. The referenced pka will be necessary to extract data later. "
             "This is a nonstandard feature that the vanilla game does not handle.");
+    parser.add_option("--recompress")
+        .dest("recompress")
+        .metavar("TYPE")
+        .help("Recompress all files before packing them into the pka.")
+        .choices({"none", "type1", "lz4", "zstd"});
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -89,6 +95,23 @@ int PKA_Pack_Function(int argc, char** argv) {
     if (!options.is_set("output")) {
         parser.error("No output filename given.");
         return -1;
+    }
+
+    std::optional<uint32_t> recompressFlags = std::nullopt;
+    if (options.is_set("recompress")) {
+        const auto& compressionString = options["recompress"];
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
+            recompressFlags = static_cast<uint32_t>(0);
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("type1", compressionString)) {
+            recompressFlags = static_cast<uint32_t>(1);
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("lz4", compressionString)) {
+            recompressFlags = static_cast<uint32_t>(4);
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("zstd", compressionString)) {
+            recompressFlags = static_cast<uint32_t>(0x10);
+        } else {
+            parser.error("Invalid compression type.");
+            return -1;
+        }
     }
 
     std::string_view target(options["output"]);
@@ -279,6 +302,23 @@ int PKA_Pack_Function(int argc, char** argv) {
         uint64_t OffsetInPka = 0;
         bool AlreadyWritten = false;
         bool ShouldBeWritten = true;
+        std::unique_ptr<char[]> RecompressedData;
+        uint32_t RecompressedSize;
+        uint32_t RecompressedFlags;
+    };
+    const auto get_compressed_size = [&](const FileReference& ref) -> uint32_t {
+        if (ref.RecompressedData) {
+            return ref.RecompressedSize;
+        } else {
+            return pkgPackFiles[ref.ArchiveIndex].Files[ref.FileIndex].CompressedSize;
+        }
+    };
+    const auto get_flags = [&](const FileReference& ref) -> uint32_t {
+        if (ref.RecompressedData) {
+            return ref.RecompressedFlags;
+        } else {
+            return pkgPackFiles[ref.ArchiveIndex].Files[ref.FileIndex].Flags;
+        }
     };
     struct SHA256Sorter {
         bool operator()(const HyoutaUtils::Hash::SHA256& lhs,
@@ -290,7 +330,7 @@ int PKA_Pack_Function(int argc, char** argv) {
     };
     std::map<HyoutaUtils::Hash::SHA256, FileReference, SHA256Sorter> filesByHash;
     for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
-        const PkgPackArchive& archive = pkgPackFiles[i];
+        PkgPackArchive& archive = pkgPackFiles[i];
         for (size_t j = 0; j < archive.Files.size(); ++j) {
             const PkgPackFile& file = archive.Files[j];
             auto it = filesByHash.try_emplace(file.Hash,
@@ -304,14 +344,15 @@ int PKA_Pack_Function(int argc, char** argv) {
                     printf("File with same hash has different file data.\n");
                     return -1;
                 }
-                if (file.CompressedSize < existingFile.CompressedSize) {
+                if (!existingFileReference.RecompressedData
+                    && file.CompressedSize < existingFile.CompressedSize) {
                     // prefer higher compression
                     existingFileReference.ArchiveIndex = i;
                     existingFileReference.FileIndex = j;
                 }
             } else {
+                FileReference& fileReference = it.first->second;
                 if (existingPkaHeader.has_value()) {
-                    FileReference& fileReference = it.first->second;
                     const SenLib::PkaHashToFileData* existingFile =
                         SenLib::FindFileInPkaByHash(existingPkaHeader->Files.get(),
                                                     existingPkaHeader->FilesCount,
@@ -319,6 +360,53 @@ int PKA_Pack_Function(int argc, char** argv) {
                     if (existingFile) {
                         fileReference.ShouldBeWritten = false;
                     }
+                }
+                if (recompressFlags && fileReference.ShouldBeWritten) {
+                    auto& infile = archive.FileHandle;
+                    auto data = std::make_unique_for_overwrite<char[]>(file.CompressedSize);
+                    if (!data) {
+                        printf("Failed to allocate memory.\n");
+                        return -1;
+                    }
+                    if (!infile.SetPosition(file.OffsetInPkg)) {
+                        printf("Failed to seek in pkg.\n");
+                        return -1;
+                    }
+                    if (infile.Read(data.get(), file.CompressedSize) != file.CompressedSize) {
+                        printf("Failed to read pkg.\n");
+                        return -1;
+                    }
+
+                    std::unique_ptr<char[]> dataBuffer;
+                    size_t dataLength;
+                    SenLib::PkgFile f;
+                    f.Filename = file.Filename;
+                    f.UncompressedSize = file.UncompressedSize;
+                    f.CompressedSize = file.CompressedSize;
+                    f.DataPosition = file.OffsetInPkg;
+                    f.Flags = file.Flags;
+                    f.Data = data.get();
+                    if (!SenLib::ExtractAndDecompressPkgFile(
+                            dataBuffer, dataLength, f, LittleEndian)) {
+                        printf("Failed to extract file from pkg.\n");
+                        return false;
+                    }
+
+                    std::unique_ptr<char[]> recompressedDataBuffer;
+                    SenLib::PkgFile pkgFile;
+                    if (!SenLib::CompressPkgFile(
+                            recompressedDataBuffer,
+                            pkgFile,
+                            dataBuffer.get(),
+                            static_cast<uint32_t>(dataLength),
+                            *recompressFlags,
+                            HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+                        printf("Failed recompressing file.\n");
+                        return -1;
+                    }
+                    fileReference.RecompressedData = std::move(recompressedDataBuffer);
+                    fileReference.RecompressedSize = pkgFile.CompressedSize;
+                    fileReference.RecompressedFlags = pkgFile.Flags;
                 }
             }
         }
@@ -363,7 +451,7 @@ int PKA_Pack_Function(int argc, char** argv) {
             FileReference& ref = it->second;
             if (ref.ShouldBeWritten && ref.OffsetInPka == 0) {
                 ref.OffsetInPka = fileOffset;
-                fileOffset += pkgPackFiles[ref.ArchiveIndex].Files[ref.FileIndex].CompressedSize;
+                fileOffset += get_compressed_size(ref);
             }
         }
     }
@@ -405,9 +493,9 @@ int PKA_Pack_Function(int argc, char** argv) {
         if (kvp.second.ShouldBeWritten) {
             WriteAdvArray(pkaHeaderWritePtr, kvp.first.Hash);
             WriteAdvUInt64(pkaHeaderWritePtr, ToEndian(ref.OffsetInPka, LittleEndian));
-            WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.CompressedSize, LittleEndian));
+            WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(get_compressed_size(ref), LittleEndian));
             WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.UncompressedSize, LittleEndian));
-            WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(file.Flags, LittleEndian));
+            WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(get_flags(ref), LittleEndian));
         }
     }
     assert(pkaHeaderWritePtr == (pkaHeader.get() + pkaHeaderLength));
@@ -435,23 +523,31 @@ int PKA_Pack_Function(int argc, char** argv) {
                 PkgPackArchive& archive = pkgPackFiles[ref.ArchiveIndex];
                 const PkgPackFile& file = archive.Files[ref.FileIndex];
 
-                auto& infile = archive.FileHandle;
-                auto data = std::make_unique_for_overwrite<char[]>(file.CompressedSize);
-                if (!data) {
-                    printf("Failed to allocate memory.\n");
-                    return -1;
-                }
-                if (!infile.SetPosition(file.OffsetInPkg)) {
-                    printf("Failed to seek in pkg.\n");
-                    return -1;
-                }
-                if (infile.Read(data.get(), file.CompressedSize) != file.CompressedSize) {
-                    printf("Failed to read pkg.\n");
-                    return -1;
-                }
-                if (outfile.Write(data.get(), file.CompressedSize) != file.CompressedSize) {
-                    printf("Failed to write data to output file.\n");
-                    return -1;
+                if (ref.RecompressedData) {
+                    if (outfile.Write(ref.RecompressedData.get(), ref.RecompressedSize)
+                        != ref.RecompressedSize) {
+                        printf("Failed to write data to output file.\n");
+                        return -1;
+                    }
+                } else {
+                    auto& infile = archive.FileHandle;
+                    auto data = std::make_unique_for_overwrite<char[]>(file.CompressedSize);
+                    if (!data) {
+                        printf("Failed to allocate memory.\n");
+                        return -1;
+                    }
+                    if (!infile.SetPosition(file.OffsetInPkg)) {
+                        printf("Failed to seek in pkg.\n");
+                        return -1;
+                    }
+                    if (infile.Read(data.get(), file.CompressedSize) != file.CompressedSize) {
+                        printf("Failed to read pkg.\n");
+                        return -1;
+                    }
+                    if (outfile.Write(data.get(), file.CompressedSize) != file.CompressedSize) {
+                        printf("Failed to write data to output file.\n");
+                        return -1;
+                    }
                 }
 
                 ref.AlreadyWritten = true;
