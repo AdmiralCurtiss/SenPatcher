@@ -564,6 +564,8 @@ set(SOURCES_BASE_FIXES
 	sen/file_getter.h
 	sen/pkg.cpp
 	sen/pkg.h
+	sen/pkg_extract.cpp
+	sen/pkg_extract.h
 	sen/sen_script_patcher.cpp
 	sen/sen_script_patcher.h
 

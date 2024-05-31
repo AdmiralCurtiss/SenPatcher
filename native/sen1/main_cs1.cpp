@@ -14,6 +14,8 @@
 #include "util/logger.h"
 
 #include "modload/loaded_mods.h"
+#include "sen/pkg.h"
+#include "sen/pkg_extract.h"
 #include "sen1/exe_patch.h"
 #include "sen1/file_fixes.h"
 #include "sen1/inject_modloader.h"
@@ -301,6 +303,42 @@ static int32_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* 
     return GetFilesizeOfModFile(path, out_filesize);
 }
 
+struct PkgSingleFileHeader {
+    std::array<char, 0x40> Filename;
+    uint32_t UncompressedSize;
+    uint32_t CompressedSize;
+    uint32_t DataOffset;
+    uint32_t Flags;
+};
+static_assert(offsetof(PkgSingleFileHeader, Filename) == 0);
+static_assert(offsetof(PkgSingleFileHeader, UncompressedSize) == 0x40);
+static_assert(offsetof(PkgSingleFileHeader, CompressedSize) == 0x44);
+static_assert(offsetof(PkgSingleFileHeader, DataOffset) == 0x48);
+static_assert(offsetof(PkgSingleFileHeader, Flags) == 0x4c);
+
+
+static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
+                                                  char* decompressedData,
+                                                  const PkgSingleFileHeader* pkgSingleFileHeader) {
+    // TODO: Improve memory management here.
+
+    std::unique_ptr<char[]> dataBuffer;
+    size_t dataLength;
+    SenLib::PkgFile tmp;
+    tmp.Filename = pkgSingleFileHeader->Filename;
+    tmp.UncompressedSize = pkgSingleFileHeader->UncompressedSize;
+    tmp.CompressedSize = pkgSingleFileHeader->CompressedSize;
+    tmp.DataPosition = pkgSingleFileHeader->DataOffset;
+    tmp.Flags = pkgSingleFileHeader->Flags;
+    tmp.Data = compressedData;
+    if (SenLib::ExtractAndDecompressPkgFile(
+            dataBuffer, dataLength, tmp, HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+        std::memcpy(decompressedData, dataBuffer.get(), dataLength);
+    }
+
+    return tmp.UncompressedSize;
+}
+
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
     void* codeBase = nullptr;
     const auto maybeVersion = FindImageBase(logger, &codeBase);
@@ -442,6 +480,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     SenLib::Sen1::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::Sen1::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen1::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::Sen1::DeglobalizeMutexes(patchExecData);
