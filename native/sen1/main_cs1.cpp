@@ -320,23 +320,17 @@ static_assert(offsetof(PkgSingleFileHeader, Flags) == 0x4c);
 static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
                                                   char* decompressedData,
                                                   const PkgSingleFileHeader* pkgSingleFileHeader) {
-    // TODO: Improve memory management here.
-
-    std::unique_ptr<char[]> dataBuffer;
-    size_t dataLength;
-    SenLib::PkgFile tmp;
-    tmp.Filename = pkgSingleFileHeader->Filename;
-    tmp.UncompressedSize = pkgSingleFileHeader->UncompressedSize;
-    tmp.CompressedSize = pkgSingleFileHeader->CompressedSize;
-    tmp.DataPosition = pkgSingleFileHeader->DataOffset;
-    tmp.Flags = pkgSingleFileHeader->Flags;
-    tmp.Data = compressedData;
-    if (SenLib::ExtractAndDecompressPkgFile(
-            dataBuffer, dataLength, tmp, HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-        std::memcpy(decompressedData, dataBuffer.get(), dataLength);
+    const uint32_t uncompressedSize = pkgSingleFileHeader->UncompressedSize;
+    if (!SenLib::ExtractAndDecompressPkgFile(decompressedData,
+                                             uncompressedSize,
+                                             compressedData,
+                                             pkgSingleFileHeader->CompressedSize,
+                                             pkgSingleFileHeader->Flags,
+                                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+        return 0;
     }
 
-    return tmp.UncompressedSize;
+    return uncompressedSize;
 }
 
 static void* SetupHacks(HyoutaUtils::Logger& logger) {

@@ -108,10 +108,18 @@ int PKG_Extract_Function(int argc, char** argv) {
 
         const auto& pkgFile = pkg.Files[i];
 
-        std::unique_ptr<char[]> buffer;
-        size_t length;
+        auto buffer = std::make_unique<char[]>(pkgFile.UncompressedSize);
+        if (!buffer) {
+            printf("Failed to allocate memory.\n");
+            return false;
+        }
         if (!SenLib::ExtractAndDecompressPkgFile(
-                buffer, length, pkgFile, HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+                buffer.get(),
+                pkgFile.UncompressedSize,
+                pkgFile.Data,
+                pkgFile.CompressedSize,
+                pkgFile.Flags,
+                HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
             printf("Failed to extract file %zu from pkg.\n", i);
             return -1;
         }
@@ -130,7 +138,7 @@ int PKG_Extract_Function(int argc, char** argv) {
             return -1;
         }
 
-        if (outfile.Write(buffer.get(), length) != length) {
+        if (outfile.Write(buffer.get(), pkgFile.UncompressedSize) != pkgFile.UncompressedSize) {
             printf("Failed to write to output file.\n");
             return -1;
         }

@@ -255,7 +255,7 @@ int PKA_Pack_Function(int argc, char** argv) {
 
             fi.Files.reserve(pkgHeader.FileCount);
             for (uint32_t i = 0; i < pkgHeader.FileCount; ++i) {
-                auto& f = pkgHeader.Files[i];
+                const auto& f = pkgHeader.Files[i];
                 auto compressedData = std::make_unique_for_overwrite<char[]>(f.CompressedSize);
                 if (!compressedData) {
                     printf("Failed to allocate memory.\n");
@@ -270,16 +270,24 @@ int PKA_Pack_Function(int argc, char** argv) {
                     return false;
                 }
 
-                std::unique_ptr<char[]> dataBuffer;
-                size_t dataLength;
-                f.Data = compressedData.get();
-                if (!SenLib::ExtractAndDecompressPkgFile(dataBuffer, dataLength, f, LittleEndian)) {
+                auto dataBuffer = std::make_unique<char[]>(f.UncompressedSize);
+                if (!dataBuffer) {
+                    printf("Failed to allocate memory.\n");
+                    return false;
+                }
+                if (!SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
+                                                         f.UncompressedSize,
+                                                         compressedData.get(),
+                                                         f.CompressedSize,
+                                                         f.Flags,
+                                                         LittleEndian)) {
                     printf("Failed to extract file from pkg.\n");
                     return false;
                 }
                 fi.Files.emplace_back(PkgPackFile{
                     .Filename = f.Filename,
-                    .Hash = HyoutaUtils::Hash::CalculateSHA256(dataBuffer.get(), dataLength),
+                    .Hash =
+                        HyoutaUtils::Hash::CalculateSHA256(dataBuffer.get(), f.UncompressedSize),
                     .OffsetInPkg = f.DataPosition,
                     .CompressedSize = f.CompressedSize,
                     .UncompressedSize = f.UncompressedSize,
@@ -396,17 +404,17 @@ int PKA_Pack_Function(int argc, char** argv) {
                         return -1;
                     }
 
-                    std::unique_ptr<char[]> dataBuffer;
-                    size_t dataLength;
-                    SenLib::PkgFile f;
-                    f.Filename = file.Filename;
-                    f.UncompressedSize = file.UncompressedSize;
-                    f.CompressedSize = file.CompressedSize;
-                    f.DataPosition = file.OffsetInPkg;
-                    f.Flags = file.Flags;
-                    f.Data = data.get();
-                    if (!SenLib::ExtractAndDecompressPkgFile(
-                            dataBuffer, dataLength, f, LittleEndian)) {
+                    auto dataBuffer = std::make_unique<char[]>(file.UncompressedSize);
+                    if (!dataBuffer) {
+                        printf("Failed to allocate memory.\n");
+                        return false;
+                    }
+                    if (!SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
+                                                             file.UncompressedSize,
+                                                             data.get(),
+                                                             file.CompressedSize,
+                                                             file.Flags,
+                                                             LittleEndian)) {
                         printf("Failed to extract file from pkg.\n");
                         return false;
                     }
@@ -417,7 +425,7 @@ int PKA_Pack_Function(int argc, char** argv) {
                             recompressedDataBuffer,
                             pkgFile,
                             dataBuffer.get(),
-                            static_cast<uint32_t>(dataLength),
+                            file.UncompressedSize,
                             *recompressFlags,
                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
                         printf("Failed recompressing file.\n");
