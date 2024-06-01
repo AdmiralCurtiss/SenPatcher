@@ -173,25 +173,28 @@ int PKA_Pack_Function(int argc, char** argv) {
             const char8_t* filenameC = filename.c_str();
 
             std::array<char, 0x20> fn{};
-            for (size_t i = 0; i < fn.size() - 1; ++i) {
-                const char c = static_cast<char>(filenameC[i]);
-                if (c == '\0') {
-                    break;
+            const size_t filenameLength = [&]() -> size_t {
+                for (size_t i = 0; i < fn.size() - 1; ++i) {
+                    const char c = static_cast<char>(filenameC[i]);
+                    if (c == '\0') {
+                        return i;
+                    }
+                    fn[i] = c;
                 }
-                fn[i] = c;
-            }
+                return fn.size();
+            }();
             NormalizePkgName(fn);
 
-            auto existingArchive =
-                std::find_if(pkgPackFiles.begin(),
-                             pkgPackFiles.end(),
-                             [&](const PkgPackArchive& a) { return a.PkgName == fn; });
+            auto existingArchive = std::find_if(
+                pkgPackFiles.begin(), pkgPackFiles.end(), [&](const PkgPackArchive& a) {
+                    return strncmp(a.PkgName.data(), fn.data(), fn.size()) == 0;
+                });
             const bool archiveExistsAlready = (existingArchive != pkgPackFiles.end());
             if (archiveExistsAlready) {
                 printf(
                     "WARNING: %s exists multiple times, only the first parsed archive will be "
                     "available in the PKA (but the contents of all instances will be packed).\n",
-                    fn.data());
+                    filenameC);
             }
 
             auto& fi = pkgPackFiles.emplace_back(PkgPackArchive{
@@ -210,6 +213,22 @@ int PKA_Pack_Function(int argc, char** argv) {
                 printf("Failed to read pkg.\n");
                 return false;
             }
+
+            // PKGs start with an unknown 32-bit integer, some kind of ID or maybe timestamp.
+            // As far as I can tell, this is not used by anything and can be safely discarded, so
+            // the PKA format does so. However, that technically makes packing a PKA lossy.
+            // If the length of the filename permits, however, we can use the end of the fixed-size
+            // filename field to store this data, so we can restore it when 'extracting' the PKA.
+            // This is a somewhat creative interpretation of the PKA format, but it shouldn't cause
+            // any issues in practice.
+            if (filenameLength < 28) {
+                const uint32_t unknownId = HyoutaUtils::EndianUtils::FromEndian(
+                    HyoutaUtils::MemRead::ReadUInt32(pkgHeaderInitialBytes.data()), LittleEndian);
+                HyoutaUtils::MemWrite::WriteUInt32(
+                    fi.PkgName.data() + 28,
+                    HyoutaUtils::EndianUtils::ToEndian(unknownId, LittleEndian));
+            }
+
             const uint32_t fileCountInPkg = HyoutaUtils::EndianUtils::FromEndian(
                 HyoutaUtils::MemRead::ReadUInt32(&pkgHeaderInitialBytes[4]), LittleEndian);
             const size_t pkgHeaderLength = 8u + static_cast<size_t>(fileCountInPkg) * 0x50u;

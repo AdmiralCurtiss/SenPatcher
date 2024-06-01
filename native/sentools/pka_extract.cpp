@@ -12,9 +12,20 @@
 #include "sen/pka.h"
 #include "sen/pka_to_pkg.h"
 #include "sen/pkg.h"
+#include "util/endian.h"
 #include "util/file.h"
+#include "util/memread.h"
 
 namespace SenTools {
+static std::string_view StripToNull(std::string_view sv) {
+    for (size_t i = 0; i < sv.size(); ++i) {
+        if (sv[i] == '\0') {
+            return sv.substr(0, i);
+        }
+    }
+    return sv;
+}
+
 int PKA_Extract_Function(int argc, char** argv) {
     optparse::OptionParser parser;
     parser.description(
@@ -95,6 +106,9 @@ int PKA_Extract_Function(int argc, char** argv) {
     }
 
     for (size_t i = 0; i < pkaHeader.PkgCount; ++i) {
+        const auto& pkgName = pkaHeader.Pkgs[i].PkgName;
+        std::string_view pkgNameSv = StripToNull(std::string_view(pkgName.data(), pkgName.size()));
+
         SenLib::PkgHeader pkg;
         std::unique_ptr<char[]> buffer;
         if (!SenLib::ConvertPkaToSinglePkg(pkg,
@@ -108,6 +122,13 @@ int PKA_Extract_Function(int argc, char** argv) {
             return -1;
         }
 
+        // Restore the possibly stored initial PKG bytes.
+        if (pkgNameSv.size() < 28) {
+            pkg.Unknown = HyoutaUtils::EndianUtils::FromEndian(
+                HyoutaUtils::MemRead::ReadUInt32(pkgName.data() + 28),
+                HyoutaUtils::EndianUtils::Endianness::LittleEndian);
+        }
+
         std::unique_ptr<char[]> ms;
         size_t msSize;
         if (!SenLib::CreatePkgInMemory(
@@ -116,12 +137,11 @@ int PKA_Extract_Function(int argc, char** argv) {
             return -1;
         }
 
-        const auto& pkgName = pkaHeader.Pkgs[i].PkgName;
-        std::u8string_view pkgNameSv(reinterpret_cast<const char8_t*>(pkgName.data()),
-                                     pkgName.size());
-        HyoutaUtils::IO::File outfile(targetpath
-                                          / pkgNameSv.substr(0, pkgNameSv.find_first_of(u8'\0')),
-                                      HyoutaUtils::IO::OpenMode::Write);
+        HyoutaUtils::IO::File outfile(
+            targetpath
+                / std::u8string_view(reinterpret_cast<const char8_t*>(pkgNameSv.data()),
+                                     pkgNameSv.size()),
+            HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
             printf("Failed to open output file.\n");
             return -1;
