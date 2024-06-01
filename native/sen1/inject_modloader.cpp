@@ -105,13 +105,25 @@ void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder
 
     char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x44feee, 0x45003e);
     char* const compressionFlagCheck1 = GetCodeAddressJpEn(version, textRegion, 0x44fe49, 0x44ff99);
+    char* const compressionFlagCheck2 = GetCodeAddressJpEn(version, textRegion, 0x425078, 0x4250f8);
+    char* const compressionFlagCheck3 = GetCodeAddressJpEn(version, textRegion, 0x425301, 0x425381);
 
-    // TODO: There are other checks for '(flags & 1) != 0' that might need to be replaced
+    // TODO: Is that all the '(flags & 1) != 0' checks?
 
     {
         // this changes a '(flags & 1) != 0' check to a '(flags & 0xfd) != 0' check
         // that way compression is detected if any non-checksum flag is set, and not just bit 0
         char* tmp = compressionFlagCheck1;
+        PageUnprotect page(logger, tmp, 4);
+        *(tmp + 3) = (char)0xfd;
+    }
+    {
+        char* tmp = compressionFlagCheck2;
+        PageUnprotect page(logger, tmp, 4);
+        *(tmp + 3) = (char)0xfd;
+    }
+    {
+        char* tmp = compressionFlagCheck3;
         PageUnprotect page(logger, tmp, 4);
         *(tmp + 3) = (char)0xfd;
     }
