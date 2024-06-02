@@ -141,6 +141,7 @@ int PKA_Pack_Function(int argc, char** argv) {
         uint32_t CompressedSize;
         uint32_t UncompressedSize;
         uint32_t Flags;
+        bool IsCorruptedFile = false;
     };
     struct PkgPackArchive {
         HyoutaUtils::IO::File FileHandle;
@@ -275,24 +276,64 @@ int PKA_Pack_Function(int argc, char** argv) {
                     printf("Failed to allocate memory.\n");
                     return false;
                 }
-                if (!SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
-                                                         f.UncompressedSize,
-                                                         compressedData.get(),
-                                                         f.CompressedSize,
-                                                         f.Flags,
-                                                         LittleEndian)) {
-                    printf("Failed to extract file from pkg.\n");
-                    return false;
+                if (SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
+                                                        f.UncompressedSize,
+                                                        compressedData.get(),
+                                                        f.CompressedSize,
+                                                        f.Flags,
+                                                        LittleEndian)) {
+                    fi.Files.emplace_back(PkgPackFile{
+                        .Filename = f.Filename,
+                        .Hash = HyoutaUtils::Hash::CalculateSHA256(dataBuffer.get(),
+                                                                   f.UncompressedSize),
+                        .OffsetInPkg = f.DataPosition,
+                        .CompressedSize = f.CompressedSize,
+                        .UncompressedSize = f.UncompressedSize,
+                        .Flags = f.Flags,
+                    });
+                } else {
+                    // CS2 contains two corrupted files in its PKGs. Thankfully, both of the files
+                    // have uncorrupted copies in other PKGs, so this is recoverable. Check if we're
+                    // processing one of those files and, if yes, try to recover the file.
+                    if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                            std::string_view(fn.data(), filenameLength), "C_NPC290_C00.pkg")
+                        && i == 10) {
+                        printf(
+                            "Known corrupted file found in %s. Replacing with known good hash and "
+                            "assuming we have a clean copy in another pkg.\n",
+                            fn.data());
+                        fi.Files.emplace_back(PkgPackFile{
+                            .Filename = f.Filename,
+                            .Hash = HyoutaUtils::Hash::SHA256FromHexString(
+                                "ff37dc7dbde66c3d79da984e57864be0ebbd03ba9c8d1a9b5b85c295076dfe85"),
+                            .OffsetInPkg = 0xffff'ffff,
+                            .CompressedSize = 0xffff'ffff,
+                            .UncompressedSize = 0xffff'ffff,
+                            .Flags = 0xffff'ffff,
+                            .IsCorruptedFile = true,
+                        });
+                    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                                   std::string_view(fn.data(), filenameLength), "O_E6303.pkg")
+                               && i == 5) {
+                        printf(
+                            "Known corrupted file found in %s. Replacing with known good hash and "
+                            "assuming we have a clean copy in another pkg.\n",
+                            fn.data());
+                        fi.Files.emplace_back(PkgPackFile{
+                            .Filename = f.Filename,
+                            .Hash = HyoutaUtils::Hash::SHA256FromHexString(
+                                "27aef8d457b29e50cbbd37bf24ca1bca2c5174e23f46fed57afc43a2bacf7b7d"),
+                            .OffsetInPkg = 0xffff'ffff,
+                            .CompressedSize = 0xffff'ffff,
+                            .UncompressedSize = 0xffff'ffff,
+                            .Flags = 0xffff'ffff,
+                            .IsCorruptedFile = true,
+                        });
+                    } else {
+                        printf("Failed to extract file %u from pkg %s.\n", i, filenameC);
+                        return false;
+                    }
                 }
-                fi.Files.emplace_back(PkgPackFile{
-                    .Filename = f.Filename,
-                    .Hash =
-                        HyoutaUtils::Hash::CalculateSHA256(dataBuffer.get(), f.UncompressedSize),
-                    .OffsetInPkg = f.DataPosition,
-                    .CompressedSize = f.CompressedSize,
-                    .UncompressedSize = f.UncompressedSize,
-                    .Flags = f.Flags,
-                });
             }
 
             return true;
@@ -343,6 +384,10 @@ int PKA_Pack_Function(int argc, char** argv) {
         PkgPackArchive& archive = pkgPackFiles[i];
         for (size_t j = 0; j < archive.Files.size(); ++j) {
             const PkgPackFile& file = archive.Files[j];
+            if (file.IsCorruptedFile) {
+                continue;
+            }
+
             auto it = filesByHash.try_emplace(file.Hash,
                                               FileReference{.ArchiveIndex = i, .FileIndex = j});
             if (!it.second) {
