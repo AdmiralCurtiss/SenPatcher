@@ -562,6 +562,8 @@ set(SOURCES_BASE_FIXES
 	sen/book_table.cpp
 	sen/book_table.h
 	sen/file_getter.h
+	sen/pka.cpp
+	sen/pka.h
 	sen/pkg.cpp
 	sen/pkg.h
 	sen/pkg_extract.cpp

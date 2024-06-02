@@ -37,7 +37,7 @@ struct PkaHeader {
     std::unique_ptr<PkaHashToFileData[]> Files;
     size_t FilesCount = 0;
 
-    PkaHeader();
+    PkaHeader() = default;
     PkaHeader(const PkaHeader& other) = delete;
     PkaHeader(PkaHeader&& other);
     PkaHeader& operator=(const PkaHeader& other) = delete;

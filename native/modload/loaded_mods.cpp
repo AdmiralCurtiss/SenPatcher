@@ -459,13 +459,13 @@ const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
         const P3AFileRef* middle = infos + countHalf;
         const int cmp =
             strncmp(middle->FileInfo->Filename.data(), filteredPath.data(), filteredPath.size());
-        if (cmp == 0) {
-            return middle;
-        } else if (cmp < 0) {
+        if (cmp < 0) {
             infos = middle + 1;
             count = count - (countHalf + 1);
-        } else {
+        } else if (cmp > 0) {
             count = countHalf;
+        } else {
+            return middle;
         }
     }
 }

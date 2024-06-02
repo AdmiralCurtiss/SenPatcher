@@ -7,7 +7,6 @@
 #include "util/memread.h"
 
 namespace SenLib {
-PkaHeader::PkaHeader() = default;
 PkaHeader::PkaHeader(PkaHeader&& other) = default;
 PkaHeader& PkaHeader::operator=(PkaHeader&& other) = default;
 PkaHeader::~PkaHeader() = default;
