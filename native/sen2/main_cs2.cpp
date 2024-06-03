@@ -13,6 +13,8 @@
 #include "util/logger.h"
 
 #include "modload/loaded_mods.h"
+#include "sen/pkg.h"
+#include "sen/pkg_extract.h"
 #include "sen2/exe_patch.h"
 #include "sen2/file_fixes.h"
 #include "sen2/inject_modloader.h"
@@ -304,6 +306,37 @@ static int32_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* 
     return GetFilesizeOfModFile(path, out_filesize);
 }
 
+struct PkgSingleFileHeader {
+    std::array<char, 0x40> Filename;
+    uint32_t UncompressedSize;
+    uint32_t CompressedSize;
+    uint32_t DataOffset;
+    uint32_t Flags;
+};
+static_assert(offsetof(PkgSingleFileHeader, Filename) == 0);
+static_assert(offsetof(PkgSingleFileHeader, UncompressedSize) == 0x40);
+static_assert(offsetof(PkgSingleFileHeader, CompressedSize) == 0x44);
+static_assert(offsetof(PkgSingleFileHeader, DataOffset) == 0x48);
+static_assert(offsetof(PkgSingleFileHeader, Flags) == 0x4c);
+
+static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
+                                                  char* decompressedData,
+                                                  const PkgSingleFileHeader* pkgSingleFileHeader) {
+    const uint32_t uncompressedSize = pkgSingleFileHeader->UncompressedSize;
+    const uint32_t compressedSize = pkgSingleFileHeader->CompressedSize;
+    const uint32_t flags = pkgSingleFileHeader->Flags;
+    if (!SenLib::ExtractAndDecompressPkgFile(decompressedData,
+                                             uncompressedSize,
+                                             compressedData,
+                                             compressedSize,
+                                             flags,
+                                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+        return 0;
+    }
+
+    return uncompressedSize;
+}
+
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
     void* codeBase = nullptr;
     const auto maybeVersion = FindImageBase(logger, &codeBase);
@@ -430,6 +463,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     SenLib::Sen2::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::Sen2::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen2::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::Sen2::DeglobalizeMutexes(patchExecData);

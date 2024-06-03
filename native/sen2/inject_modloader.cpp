@@ -95,4 +95,56 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
 
     execData.Codespace = codespace;
 }
+
+void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
+    using namespace SenPatcher::x86;
+
+    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x41ae91, 0x41aec1);
+    char* const compressionFlagCheck1 = GetCodeAddressJpEn(version, textRegion, 0x41add8, 0x41ae08);
+    char* const compressionFlagCheck2 = GetCodeAddressJpEn(version, textRegion, 0x404b0a, 0x404b1a);
+
+    // TODO: Is that all the '(flags & 1) != 0' checks?
+
+    {
+        // this changes a '(flags & 1) != 0' check to a '(flags & 0xfd) != 0' check
+        // that way compression is detected if any non-checksum flag is set, and not just bit 0
+        char* tmp = compressionFlagCheck1;
+        PageUnprotect page(logger, tmp, 4);
+        *(tmp + 3) = (char)0xfd;
+    }
+    {
+        char* tmp = compressionFlagCheck2;
+        PageUnprotect page(logger, tmp, 4);
+        *(tmp + 3) = (char)0xfd;
+    }
+
+    char* codespaceBegin = codespace;
+    auto injectResult =
+        InjectJumpIntoCode<7, PaddingInstruction::Nop>(logger, entryPoint, codespaceBegin);
+    BranchHelper4Byte jump_back;
+    jump_back.SetTarget(injectResult.JumpBackAddress);
+
+    BranchHelper4Byte decompress_pkg_forwarder;
+    decompress_pkg_forwarder.SetTarget(static_cast<char*>(decompressPkgForwarder));
+
+    // call forwarder
+    Emit_MOV_R32_R32(codespace, R32::ECX, R32::ESI);
+    Emit_MOV_R32_R32(codespace, R32::EDX, R32::EAX);
+    Emit_PUSH_R32(codespace, R32::EDI);
+    decompress_pkg_forwarder.WriteJump(codespace, JumpCondition::CALL);
+
+    // fix stack
+    Emit_SUB_R32_IMM32(codespace, R32::ESP, 0x8);
+
+    // no return value to check, so just go back
+    jump_back.WriteJump(codespace, JumpCondition::JMP);
+
+    execData.Codespace = codespace;
+}
+
 } // namespace SenLib::Sen2
