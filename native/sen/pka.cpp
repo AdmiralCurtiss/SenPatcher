@@ -161,9 +161,8 @@ bool ReadPkaFromMemory(PkaHeader& pka,
     return true;
 }
 
-const PkaHashToFileData* FindFileInPkaByHash(const PkaHashToFileData* files,
-                                             size_t length,
-                                             const std::array<char, 0x20>& hash) {
+const PkaHashToFileData*
+    FindFileInPkaByHash(const PkaHashToFileData* files, size_t length, const char* hash) {
     const PkaHashToFileData* infos = files;
     size_t count = length;
     while (true) {
@@ -173,7 +172,36 @@ const PkaHashToFileData* FindFileInPkaByHash(const PkaHashToFileData* files,
 
         const size_t countHalf = count / 2;
         const PkaHashToFileData* middle = infos + countHalf;
-        const int cmp = memcmp(middle->Hash.data(), hash.data(), hash.size());
+        const int cmp = memcmp(middle->Hash.data(), hash, middle->Hash.size());
+        if (cmp < 0) {
+            infos = middle + 1;
+            count = count - (countHalf + 1);
+        } else if (cmp > 0) {
+            count = countHalf;
+        } else {
+            return middle;
+        }
+    }
+}
+
+const PkaHashToFileData* FindFileInPkaByHash(const PkaHashToFileData* files,
+                                             size_t length,
+                                             const std::array<char, 0x20>& hash) {
+    return FindFileInPkaByHash(files, length, hash.data());
+}
+
+const PkaPkgToHashData*
+    FindPkgInPkaByName(const PkaPkgToHashData* pkgs, size_t pkgCount, const char* pkgName) {
+    const PkaPkgToHashData* infos = pkgs;
+    size_t count = pkgCount;
+    while (true) {
+        if (count == 0) {
+            return nullptr;
+        }
+
+        const size_t countHalf = count / 2;
+        const PkaPkgToHashData* middle = infos + countHalf;
+        const int cmp = strncmp(middle->PkgName.data(), pkgName, middle->PkgName.size());
         if (cmp < 0) {
             infos = middle + 1;
             count = count - (countHalf + 1);

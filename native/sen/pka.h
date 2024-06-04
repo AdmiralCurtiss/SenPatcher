@@ -54,7 +54,11 @@ bool ReadPkaFromMemory(
     const char* data,
     size_t length,
     HyoutaUtils::EndianUtils::Endianness e = HyoutaUtils::EndianUtils::Endianness::LittleEndian);
+const PkaHashToFileData*
+    FindFileInPkaByHash(const PkaHashToFileData* files, size_t length, const char* hash);
 const PkaHashToFileData* FindFileInPkaByHash(const PkaHashToFileData* files,
                                              size_t length,
                                              const std::array<char, 0x20>& hash);
+const PkaPkgToHashData*
+    FindPkgInPkaByName(const PkaPkgToHashData* pkgs, size_t pkgCount, const char* pkgName);
 } // namespace SenLib

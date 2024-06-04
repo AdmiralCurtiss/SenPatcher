@@ -208,52 +208,6 @@ static LoadedPkaData s_LoadedPkaData{};
 #define SECONDARY_PKA_PATH "data/asset/D3D11_us.pka"
 #define SECONDARY_PKG_PREFIX "data/asset/d3d11_us/"
 
-const SenLib::PkaPkgToHashData*
-    FindPkaPkg(const SenLib::PkaPkgToHashData* pkgs, size_t pkgCount, const char* pkgName) {
-    const SenLib::PkaPkgToHashData* infos = pkgs;
-    size_t count = pkgCount;
-    while (true) {
-        if (count == 0) {
-            return nullptr;
-        }
-
-        const size_t countHalf = count / 2;
-        const SenLib::PkaPkgToHashData* middle = infos + countHalf;
-        const int cmp = strncmp(middle->PkgName.data(), pkgName, middle->PkgName.size());
-        if (cmp < 0) {
-            infos = middle + 1;
-            count = count - (countHalf + 1);
-        } else if (cmp > 0) {
-            count = countHalf;
-        } else {
-            return middle;
-        }
-    }
-}
-
-const SenLib::PkaHashToFileData*
-    FindPkaFile(const SenLib::PkaHashToFileData* pkgs, size_t pkgCount, const char* hash) {
-    const SenLib::PkaHashToFileData* infos = pkgs;
-    size_t count = pkgCount;
-    while (true) {
-        if (count == 0) {
-            return nullptr;
-        }
-
-        const size_t countHalf = count / 2;
-        const SenLib::PkaHashToFileData* middle = infos + countHalf;
-        const int cmp = memcmp(middle->Hash.data(), hash, middle->Hash.size());
-        if (cmp < 0) {
-            infos = middle + 1;
-            count = count - (countHalf + 1);
-        } else if (cmp > 0) {
-            count = countHalf;
-        } else {
-            return middle;
-        }
-    }
-}
-
 // ignore any path that doesn't begin with the 'data' directory
 static bool IsValidReroutablePath(const char* path) {
     return (path[0] == 'D' || path[0] == 'd') && (path[1] == 'A' || path[1] == 'a')
@@ -341,7 +295,7 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
             const size_t start = pkgPrefixLength;
             assert(filteredPath.size() - start >= pkgs[0].PkgName.size());
             const SenLib::PkaPkgToHashData* pkaPkg =
-                FindPkaPkg(pkgs, pkgCount, &filteredPath[start]);
+                SenLib::FindPkgInPkaByName(pkgs, pkgCount, &filteredPath[start]);
             if (pkaPkg) {
                 size_t length = 8 + (pkaPkg->FileCount * (0x50 + 0x20));
                 void* memory = s_TrackedMalloc(length, 8);
@@ -359,8 +313,8 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
                 uint32_t dataPosition = 8 + (pkaPkg->FileCount * 0x50);
                 for (size_t i = 0; i < pkaPkg->FileCount; ++i) {
                     const SenLib::PkaFileHashData& fileHashData = pkgFiles[pkaPkg->FileOffset + i];
-                    const SenLib::PkaHashToFileData* fileData = FindPkaFile(
-                        pkaData.Files.get(), pkaData.FilesCount, fileHashData.Hash.data());
+                    const SenLib::PkaHashToFileData* fileData = SenLib::FindFileInPkaByHash(
+                        pkaData.Files.get(), pkaData.FilesCount, fileHashData.Hash);
                     if (!fileData) {
                         s_TrackedFree(memory);
                         ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
@@ -481,7 +435,7 @@ static int32_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
             const size_t start = pkgPrefixLength;
             assert(filteredPath.size() - start >= pkgs[0].PkgName.size());
             const SenLib::PkaPkgToHashData* pkaPkg =
-                FindPkaPkg(pkgs, pkgCount, &filteredPath[start]);
+                SenLib::FindPkgInPkaByName(pkgs, pkgCount, &filteredPath[start]);
             if (pkaPkg) {
                 if (out_filesize) {
                     // this pkg isn't actually real, but its size when crafted is going to be:
@@ -546,7 +500,7 @@ static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
         // this is a PKA hash, look up the data in the PKA
         auto& pkaData = s_LoadedPkaData;
         const SenLib::PkaHashToFileData* fileData =
-            FindPkaFile(pkaData.Files.get(), pkaData.FilesCount, compressedData);
+            SenLib::FindFileInPkaByHash(pkaData.Files.get(), pkaData.FilesCount, compressedData);
         if (fileData && fileData->UncompressedSize == uncompressedSize) {
             auto& pka = (fileData->Offset & static_cast<uint64_t>(0x8000'0000'0000'0000))
                             ? pkaData.UsPka
