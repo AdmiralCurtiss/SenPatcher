@@ -512,7 +512,7 @@ static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
     return uncompressedSize;
 }
 
-std::optional<HyoutaUtils::IO::File>
+static std::optional<HyoutaUtils::IO::File>
     LoadPka(HyoutaUtils::Logger& logger, SenLib::PkaHeader& pka, std::string_view path) {
     logger.Log("Trying to open PKA at ").Log(path).Log("\n");
     HyoutaUtils::IO::File f(path, HyoutaUtils::IO::OpenMode::Read);
@@ -539,7 +539,8 @@ std::optional<HyoutaUtils::IO::File>
     return std::nullopt;
 }
 
-void LoadPkas(HyoutaUtils::Logger& logger, LoadedPkaData& loadedPkaData, std::string_view baseDir) {
+static void
+    LoadPkas(HyoutaUtils::Logger& logger, LoadedPkaData& loadedPkaData, std::string_view baseDir) {
     constexpr static size_t longestPkaPath = sizeof(PRIMARY_PKA_PATH) > sizeof(SECONDARY_PKA_PATH)
                                                  ? sizeof(PRIMARY_PKA_PATH)
                                                  : sizeof(SECONDARY_PKA_PATH);
