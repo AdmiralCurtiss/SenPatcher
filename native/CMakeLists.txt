@@ -605,6 +605,8 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 		x86/emitter.cpp
 		x86/emitter.h
 		x86/inject_jump_into.h

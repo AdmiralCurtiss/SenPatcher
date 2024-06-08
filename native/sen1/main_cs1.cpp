@@ -17,6 +17,7 @@
 #include "util/logger.h"
 
 #include "modload/loaded_mods.h"
+#include "modload/loaded_pka.h"
 #include "sen/pka.h"
 #include "sen/pkg.h"
 #include "sen/pkg_extract.h"
@@ -325,36 +326,11 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
                 }
 
                 // build fake pkg
-                char* header = (char*)memory;
-                std::memcpy(header, &pkaPkg->PkgName[pkaPkg->PkgName.size() - 4], 4);
-                std::memcpy(header + 4, &pkaPkg->FileCount, 4);
-                header += 8;
-                char* data = header + (pkaPkg->FileCount * 0x50);
-                uint32_t dataPosition = 8 + (pkaPkg->FileCount * 0x50);
-                for (size_t i = 0; i < pkaPkg->FileCount; ++i) {
-                    const SenLib::PkaFileHashData& fileHashData = pkgFiles[pkaPkg->FileOffset + i];
-                    const SenLib::PkaHashToFileData* fileData = SenLib::FindFileInPkaByHash(
-                        pkaData.Files.get(), pkaData.FilesCount, fileHashData.Hash);
-                    if (!fileData) {
-                        s_TrackedFree(memory);
-                        ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
-                        return 0;
-                    }
-                    std::array<uint32_t, 4> headerData;
-                    headerData[0] = fileData->UncompressedSize;
-                    headerData[1] = 0x20; // compressed size, always the SHA256 hash
-                    headerData[2] = dataPosition;
-                    headerData[3] = 0x80; // fake flags to indicate that it should look in the PKA
-
-                    assert(fileHashData.Filename.size() == 0x40);
-                    assert(fileHashData.Hash.size() == 0x20);
-                    std::memcpy(header, fileHashData.Filename.data(), fileHashData.Filename.size());
-                    std::memcpy(header + 0x40, headerData.data(), 0x10);
-                    std::memcpy(data, fileHashData.Hash.data(), fileHashData.Hash.size());
-
-                    header += 0x50;
-                    data += 0x20;
-                    dataPosition += 0x20;
+                if (!SenLib::ModLoad::BuildFakePkaPkg(
+                        (char*)memory, pkaPkg, pkgFiles, pkaData.Files.get(), pkaData.FilesCount)) {
+                    s_TrackedFree(memory);
+                    ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
+                    return 0;
                 }
 
                 ffile->Filesize = static_cast<uint32_t>(length);
