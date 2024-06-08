@@ -297,6 +297,15 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
             const SenLib::PkaPkgToHashData* pkaPkg =
                 SenLib::FindPkgInPkaByName(pkgs, pkgCount, &filteredPath[start]);
             if (pkaPkg) {
+                // check bounds
+                // 0x120'0000 is an arbitrary limit; it would result in an allocation of near 2 GB
+                // just for the header which is bound to fail in 32-bit address space anyway
+                if (pkaPkg->FileCount > 0x120'0000 || pkaPkg->FileOffset > pkgFilesCount
+                    || pkaPkg->FileCount > pkgFilesCount - pkaPkg->FileOffset) {
+                    ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
+                    return 0;
+                }
+
                 size_t length = 8 + (pkaPkg->FileCount * (0x50 + 0x20));
                 void* memory = s_TrackedMalloc(length, 8);
                 if (!memory) {
