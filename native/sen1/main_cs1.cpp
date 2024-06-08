@@ -409,55 +409,24 @@ static int32_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
         return 1;
     }
 
-    const auto checkPka = [&](SenLib::PkaPkgToHashData* pkgs,
-                              size_t pkgCount,
-                              const char* pkgPrefix,
-                              size_t pkgPrefixLength) -> int32_t {
-        if (pkgCount > 0 && memcmp(pkgPrefix, filteredPath.data(), pkgPrefixLength) == 0) {
-            // first check for the real PKG
-            HyoutaUtils::IO::File file(std::string_view(path), HyoutaUtils::IO::OpenMode::Read);
-            if (file.IsOpen()) {
-                auto length = file.GetLength();
-                if (!length) {
-                    return 0;
-                }
-                if (out_filesize) {
-                    *out_filesize = static_cast<uint32_t>(*length);
-                }
-                return 1;
-            }
-
-            // then check for data in the PKA
-            const size_t start = pkgPrefixLength;
-            assert(filteredPath.size() - start >= pkgs[0].PkgName.size());
-            const SenLib::PkaPkgToHashData* pkaPkg =
-                SenLib::FindPkgInPkaByName(pkgs, pkgCount, &filteredPath[start]);
-            if (pkaPkg) {
-                if (out_filesize) {
-                    // this pkg isn't actually real, but its size when crafted is going to be:
-                    // 8 bytes fixed header
-                    // 0x50 bytes header per file
-                    // 0x20 bytes data per file (the SHA256 hash)
-                    *out_filesize = 8 + (pkaPkg->FileCount * (0x50 + 0x20));
-                }
-                return 1;
-            }
-        }
-        return -1;
-    };
-
     const auto& pkaData = s_LoadedPkaData;
-    int32_t pkaCheckResult1 = checkPka(pkaData.PrimaryPkgs.get(),
-                                       pkaData.PrimaryPkgCount,
-                                       PRIMARY_PKG_PREFIX,
-                                       sizeof(PRIMARY_PKG_PREFIX) - 1);
+    int32_t pkaCheckResult1 = SenLib::ModLoad::GetPkaPkgFilesize(pkaData.PrimaryPkgs.get(),
+                                                                 pkaData.PrimaryPkgCount,
+                                                                 PRIMARY_PKG_PREFIX,
+                                                                 sizeof(PRIMARY_PKG_PREFIX) - 1,
+                                                                 filteredPath,
+                                                                 path,
+                                                                 out_filesize);
     if (pkaCheckResult1 >= 0) {
         return pkaCheckResult1;
     }
-    int32_t pkaCheckResult2 = checkPka(pkaData.SecondaryPkgs.get(),
-                                       pkaData.SecondaryPkgCount,
-                                       SECONDARY_PKG_PREFIX,
-                                       sizeof(SECONDARY_PKG_PREFIX) - 1);
+    int32_t pkaCheckResult2 = SenLib::ModLoad::GetPkaPkgFilesize(pkaData.SecondaryPkgs.get(),
+                                                                 pkaData.SecondaryPkgCount,
+                                                                 SECONDARY_PKG_PREFIX,
+                                                                 sizeof(SECONDARY_PKG_PREFIX) - 1,
+                                                                 filteredPath,
+                                                                 path,
+                                                                 out_filesize);
     if (pkaCheckResult2 >= 0) {
         return pkaCheckResult2;
     }
