@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -200,6 +201,16 @@ struct LoadedPkaData {
 
     std::unique_ptr<SenLib::PkaHashToFileData[]> Files;
     size_t FilesCount = 0;
+
+    std::recursive_mutex PrimaryPkaMutex;
+    std::recursive_mutex SecondaryPkaMutex;
+
+    LoadedPkaData() = default;
+    LoadedPkaData(const LoadedPkaData& other) = delete;
+    LoadedPkaData(LoadedPkaData&& other) = delete;
+    LoadedPkaData& operator=(const LoadedPkaData& other) = delete;
+    LoadedPkaData& operator=(LoadedPkaData&& other) = delete;
+    ~LoadedPkaData() = default;
 };
 static LoadedPkaData s_LoadedPkaData{};
 
@@ -511,27 +522,37 @@ static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
         const SenLib::PkaHashToFileData* fileData =
             SenLib::FindFileInPkaByHash(pkaData.Files.get(), pkaData.FilesCount, compressedData);
         if (fileData && fileData->UncompressedSize == uncompressedSize) {
-            auto& pka = (fileData->Offset & static_cast<uint64_t>(0x8000'0000'0000'0000))
-                            ? pkaData.SecondaryPka
-                            : pkaData.PrimaryPka;
-            if (pka.SetPosition(fileData->Offset & static_cast<uint64_t>(0x7fff'ffff'ffff'ffff))) {
-                auto buffer = std::make_unique<char[]>(fileData->CompressedSize);
-                if (buffer) {
-                    if (pka.Read(buffer.get(), fileData->CompressedSize)
-                        == fileData->CompressedSize) {
-                        if (SenLib::ExtractAndDecompressPkgFile(
-                                decompressedData,
-                                uncompressedSize,
-                                buffer.get(),
-                                fileData->CompressedSize,
-                                fileData->Flags,
-                                HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-                            return uncompressedSize;
+            std::unique_ptr<char[]> buffer = nullptr;
+            {
+                bool isSecondary = (fileData->Offset & static_cast<uint64_t>(0x8000'0000'0000'0000))
+                                       ? true
+                                       : false;
+                auto& pka = isSecondary ? pkaData.SecondaryPka : pkaData.PrimaryPka;
+                std::lock_guard<std::recursive_mutex> lock(isSecondary ? pkaData.SecondaryPkaMutex
+                                                                       : pkaData.PrimaryPkaMutex);
+                if (pka.SetPosition(fileData->Offset
+                                    & static_cast<uint64_t>(0x7fff'ffff'ffff'ffff))) {
+                    buffer = std::make_unique<char[]>(fileData->CompressedSize);
+                    if (buffer) {
+                        if (pka.Read(buffer.get(), fileData->CompressedSize)
+                            != fileData->CompressedSize) {
+                            buffer.reset();
                         }
                     }
                 }
             }
+            if (buffer
+                && SenLib::ExtractAndDecompressPkgFile(
+                    decompressedData,
+                    uncompressedSize,
+                    buffer.get(),
+                    fileData->CompressedSize,
+                    fileData->Flags,
+                    HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+                return uncompressedSize;
+            }
         }
+        return 0;
     }
 
     if (!SenLib::ExtractAndDecompressPkgFile(decompressedData,
@@ -548,6 +569,7 @@ static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
 
 std::optional<HyoutaUtils::IO::File>
     LoadPka(HyoutaUtils::Logger& logger, SenLib::PkaHeader& pka, std::string_view path) {
+    logger.Log("Trying to open PKA at ").Log(path).Log("\n");
     HyoutaUtils::IO::File f(path, HyoutaUtils::IO::OpenMode::Read);
     bool success = f.IsOpen() && SenLib::ReadPkaFromFile(pka, f);
     if (success) {
@@ -566,6 +588,7 @@ std::optional<HyoutaUtils::IO::File>
             });
 
         // also need to sort the files but we do that later...
+        logger.Log("Opened PKA.\n");
         return f;
     }
     return std::nullopt;
