@@ -45,6 +45,14 @@ File::File(const std::filesystem::path& p, OpenMode mode) noexcept
 }
 #endif
 
+#ifdef _MSC_VER
+File::File(void* handle) noexcept : Filehandle(handle) {}
+
+File File::FromHandle(void* handle) noexcept {
+    return File(handle);
+}
+#endif
+
 File::File(File&& other) noexcept
   : Filehandle(other.Filehandle)
 #ifndef _MSC_VER

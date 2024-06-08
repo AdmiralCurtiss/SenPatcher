@@ -53,7 +53,17 @@ public:
     bool Rename(const std::filesystem::path& p) noexcept;
 #endif
 
+#ifdef _MSC_VER
+    // Construct a File from an existing Win32 HANDLE.
+    // The File instance will take ownership of the handle.
+    static File FromHandle(void* handle) noexcept;
+#endif
+
 private:
+#ifdef _MSC_VER
+    explicit File(void* handle) noexcept;
+#endif
+
     void* Filehandle;
 
 #ifndef _MSC_VER
