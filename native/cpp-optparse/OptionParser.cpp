@@ -12,7 +12,6 @@
 #include <cstdlib>
 #include <algorithm>
 #include <complex>
-#include <ciso646>
 
 #if defined(ENABLE_NLS) && ENABLE_NLS
 # include <libintl.h>
@@ -264,14 +263,14 @@ void OptionParser::handle_long_opt(const string& optstr) {
     opt = optstr;
 
   const Option& option = lookup_long_opt(opt);
-  if (option._nargs == 1 and delim == string::npos) {
-    if (not _remaining.empty()) {
+  if (option._nargs == 1 && delim == string::npos) {
+    if (!_remaining.empty()) {
       value = _remaining.front();
       _remaining.pop_front();
     }
   }
 
-  if (option._nargs == 1 and value == "")
+  if (option._nargs == 1 && value == "")
     error("--" + opt + " " + _("option requires 1 argument"));
 
   process_opt(option, string("--") + opt, value);
@@ -290,12 +289,12 @@ Values& OptionParser::parse_args(const vector<string>& v) {
     add_option("-h", "--help") .action(ActionType::Help) .help(_("Show this help message and exit."));
     _opts.splice(_opts.begin(), _opts, --(_opts.end()));
   }
-  if (add_version_option() and version() != "") {
+  if (add_version_option() && version() != "") {
     add_option("--version") .action(ActionType::Version) .help(_("Show the program's version number and exit."));
     _opts.splice(_opts.begin(), _opts, --(_opts.end()));
   }
 
-  while (not _remaining.empty()) {
+  while (!_remaining.empty()) {
     const string arg = _remaining.front();
 
     if (arg == "--") {
@@ -305,29 +304,29 @@ Values& OptionParser::parse_args(const vector<string>& v) {
 
     if (arg.substr(0,2) == "--") {
       handle_long_opt(arg.substr(2));
-    } else if (arg.substr(0,1) == "-" and arg.length() > 1) {
+    } else if (arg.substr(0,1) == "-" && arg.length() > 1) {
       handle_short_opt(arg.substr(1,1), arg);
     } else {
       _remaining.pop_front();
       _leftover.push_back(arg);
-      if (not interspersed_args())
+      if (!interspersed_args())
         break;
     }
   }
-  while (not _remaining.empty()) {
+  while (!_remaining.empty()) {
     const string arg = _remaining.front();
     _remaining.pop_front();
     _leftover.push_back(arg);
   }
 
   for (list<Option>::const_iterator it = _opts.begin(); it != _opts.end(); ++it) {
-    if (it->get_default() != "" and not _values.is_set(it->dest()))
+    if (it->get_default() != "" && !_values.is_set(it->dest()))
       _values[it->dest()] = it->get_default();
   }
 
   for (list<OptionGroup const*>::iterator group_it = _groups.begin(); group_it != _groups.end(); ++group_it) {
     for (list<Option>::const_iterator it = (*group_it)->_opts.begin(); it != (*group_it)->_opts.end(); ++it) {
-      if (it->get_default() != "" and not _values.is_set(it->dest()))
+      if (it->get_default() != "" && !_values.is_set(it->dest()))
         _values[it->dest()] = it->get_default();
     }
   }
@@ -487,12 +486,12 @@ string Option::check_type(const string& opt, const string& val) const {
 
   if (type() == DataType::Int) {
     long t;
-    if (not (ss >> t))
+    if (!(ss >> t))
       err << _("option") << " " << opt << ": " << _("invalid integer value") << ": '" << val << "'";
   }
   else if (type() == DataType::Float) {
     double t;
-    if (not (ss >> t))
+    if (!(ss >> t))
       err << _("option") << " " << opt << ": " << _("invalid floating-point value") << ": '" << val << "'";
   }
   else if (type() == DataType::Choice) {
@@ -505,7 +504,7 @@ string Option::check_type(const string& opt, const string& val) const {
   }
   else if (type() == DataType::Complex) {
     complex<double> t;
-    if (not (ss >> t))
+    if (!(ss >> t))
       err << _("option") << " " << opt << ": " << _("invalid complex value") << ": '" << val << "'";
   }
 
@@ -528,12 +527,12 @@ string Option::format_option_help(unsigned int indent /* = 2 */) const {
   stringstream ss;
   ss << string(indent, ' ');
 
-  if (not _short_opts.empty()) {
+  if (!_short_opts.empty()) {
     ss << str_join_trans(", ", _short_opts.begin(), _short_opts.end(), str_wrap("-", mvar_short));
-    if (not _long_opts.empty())
+    if (!_long_opts.empty())
       ss << ", ";
   }
-  if (not _long_opts.empty())
+  if (!_long_opts.empty())
     ss << str_join_trans(", ", _long_opts.begin(), _long_opts.end(), str_wrap("--", mvar_long));
 
   return ss.str();
