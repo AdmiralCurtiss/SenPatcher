@@ -202,7 +202,7 @@ OptionParser& OptionParser::add_option_group(const OptionGroup& group) {
 }
 
 const Option& OptionParser::lookup_short_opt(const string& opt) const {
-  optMap::const_iterator it = _optmap_s.find(opt);
+  auto it = _optmap_s.find(opt);
   if (it == _optmap_s.end())
     error(_("no such option") + string(": -") + opt);
   return *it->second;
@@ -233,7 +233,7 @@ void OptionParser::handle_short_opt(const string& opt, const string& arg) {
 const Option& OptionParser::lookup_long_opt(const string& opt) const {
 
   list<string> matching;
-  for (optMap::const_iterator it = _optmap_l.begin(); it != _optmap_l.end(); ++it) {
+  for (auto it = _optmap_l.begin(); it != _optmap_l.end(); ++it) {
     if (it->first.compare(0, opt.length(), opt) == 0) {
       matching.push_back(it->first);
       if (it->first.length() == opt.length())
@@ -467,7 +467,7 @@ void OptionParser::error(const string& msg) const {
 
 ////////// class Values { //////////
 const string& Values::operator[] (const string& d) const {
-  strMap::const_iterator it = _map.find(d);
+  auto it = _map.find(d);
   static const string empty = "";
   return (it != _map.end()) ? it->second : empty;
 }
@@ -582,7 +582,7 @@ Option& Option::type(DataType t) {
 }
 
 const std::string& Option::get_default() const {
-  strMap::const_iterator it = _parser._defaults.find(dest());
+  auto it = _parser._defaults.find(dest());
   if (it != _parser._defaults.end())
     return it->second;
   else
