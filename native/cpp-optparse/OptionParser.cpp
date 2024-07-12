@@ -2,6 +2,9 @@
  * Copyright (C) 2010 Johannes Weißl <jargon@molb.org>
  * License: MIT License
  * URL: https://github.com/weisslj/cpp-optparse
+ *
+ * Modified by AdmiralCurtiss in 2024 to add some features
+ * and to make it more C++-like.
  */
 
 #include "OptionParser.h"
@@ -284,11 +287,11 @@ Values& OptionParser::parse_args(const vector<string>& v) {
   _remaining.assign(v.begin(), v.end());
 
   if (add_help_option()) {
-    add_option("-h", "--help") .action("help") .help(_("Show this help message and exit."));
+    add_option("-h", "--help") .action(ActionType::Help) .help(_("Show this help message and exit."));
     _opts.splice(_opts.begin(), _opts, --(_opts.end()));
   }
   if (add_version_option() and version() != "") {
-    add_option("--version") .action("version") .help(_("Show the program's version number and exit."));
+    add_option("--version") .action(ActionType::Version) .help(_("Show the program's version number and exit."));
     _opts.splice(_opts.begin(), _opts, --(_opts.end()));
   }
 
@@ -333,26 +336,26 @@ Values& OptionParser::parse_args(const vector<string>& v) {
 }
 
 void OptionParser::process_opt(const Option& o, const string& opt, const string& value) {
-  if (o.action() == "store") {
+  if (o.action() == ActionType::Store) {
     string err = o.check_type(opt, value);
     if (err != "")
       error(err);
     _values[o.dest()] = value;
     _values.is_set_by_user(o.dest(), true);
   }
-  else if (o.action() == "store_const") {
+  else if (o.action() == ActionType::StoreConst) {
     _values[o.dest()] = o.get_const();
     _values.is_set_by_user(o.dest(), true);
   }
-  else if (o.action() == "store_true") {
+  else if (o.action() == ActionType::StoreTrue) {
     _values[o.dest()] = "1";
     _values.is_set_by_user(o.dest(), true);
   }
-  else if (o.action() == "store_false") {
+  else if (o.action() == ActionType::StoreFalse) {
     _values[o.dest()] = "0";
     _values.is_set_by_user(o.dest(), true);
   }
-  else if (o.action() == "append") {
+  else if (o.action() == ActionType::Append) {
     string err = o.check_type(opt, value);
     if (err != "")
       error(err);
@@ -360,24 +363,24 @@ void OptionParser::process_opt(const Option& o, const string& opt, const string&
     _values.all(o.dest()).push_back(value);
     _values.is_set_by_user(o.dest(), true);
   }
-  else if (o.action() == "append_const") {
+  else if (o.action() == ActionType::AppendConst) {
     _values[o.dest()] = o.get_const();
     _values.all(o.dest()).push_back(o.get_const());
     _values.is_set_by_user(o.dest(), true);
   }
-  else if (o.action() == "count") {
+  else if (o.action() == ActionType::Count) {
     _values[o.dest()] = str_inc(_values[o.dest()]);
     _values.is_set_by_user(o.dest(), true);
   }
-  else if (o.action() == "help") {
+  else if (o.action() == ActionType::Help) {
     print_help();
     std::exit(0);
   }
-  else if (o.action() == "version") {
+  else if (o.action() == ActionType::Version) {
     print_version();
     std::exit(0);
   }
-  else if (o.action() == "callback" && o.callback()) {
+  else if (o.action() == ActionType::Callback && o.callback()) {
     string err = o.check_type(opt, value);
     if (err != "")
       error(err);
@@ -482,17 +485,17 @@ string Option::check_type(const string& opt, const string& val) const {
   istringstream ss(val);
   stringstream err;
 
-  if (type() == "int" || type() == "long") {
+  if (type() == DataType::Int) {
     long t;
     if (not (ss >> t))
       err << _("option") << " " << opt << ": " << _("invalid integer value") << ": '" << val << "'";
   }
-  else if (type() == "float" || type() == "double") {
+  else if (type() == DataType::Float) {
     double t;
     if (not (ss >> t))
       err << _("option") << " " << opt << ": " << _("invalid floating-point value") << ": '" << val << "'";
   }
-  else if (type() == "choice") {
+  else if (type() == DataType::Choice) {
     if (find(choices().begin(), choices().end(), val) == choices().end()) {
       list<string> tmp = choices();
       transform(tmp.begin(), tmp.end(), tmp.begin(), str_wrap("'"));
@@ -500,7 +503,7 @@ string Option::check_type(const string& opt, const string& val) const {
         << " (" << _("choose from") << " " << str_join(", ", tmp.begin(), tmp.end()) << ")";
     }
   }
-  else if (type() == "complex") {
+  else if (type() == DataType::Complex) {
     complex<double> t;
     if (not (ss >> t))
       err << _("option") << " " << opt << ": " << _("invalid complex value") << ": '" << val << "'";
@@ -559,22 +562,23 @@ string Option::format_help(unsigned int indent /* = 2 */) const {
   return ss.str();
 }
 
-Option& Option::action(const string& a) {
+Option& Option::action(ActionType a) {
   _action = a;
-  if (a == "store_const" || a == "store_true" || a == "store_false" ||
-      a == "append_const" || a == "count" || a == "help" || a == "version") {
+  if (a == ActionType::StoreConst || a == ActionType::StoreTrue || a == ActionType::StoreFalse ||
+      a == ActionType::AppendConst || a == ActionType::Count || a == ActionType::Help ||
+      a == ActionType::Version) {
     nargs(0);
-  } else if (a == "callback") {
+  } else if (a == ActionType::Callback) {
     nargs(0);
-    type("");
+    type(DataType::None);
   }
   return *this;
 }
 
 
-Option& Option::type(const std::string& t) {
+Option& Option::type(DataType t) {
   _type = t;
-  nargs((t == "") ? 0 : 1);
+  nargs((t == DataType::None) ? 0 : 1);
   return *this;
 }
 

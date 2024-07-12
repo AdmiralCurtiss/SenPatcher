@@ -23,7 +23,7 @@ int P3A_Extract_Function(int argc, char** argv) {
             "given.");
     parser.add_option("-j", "--json")
         .dest("json")
-        .action("store_true")
+        .action(optparse::ActionType::StoreTrue)
         .help(
             "If set, a __p3a.json will be generated that contains information about the files in "
             "the archive. This file can be used to repack the archive with the P3A.Repack option "

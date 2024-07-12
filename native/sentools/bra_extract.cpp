@@ -128,7 +128,7 @@ int BRA_Extract_Function(int argc, char** argv) {
             "given.");
     parser.add_option("-j", "--json")
         .dest("json")
-        .action("store_true")
+        .action(optparse::ActionType::StoreTrue)
         .help(
             "If set, a __bra.json will be generated that contains information about the files in "
             "the archive.");

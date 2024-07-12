@@ -2,11 +2,15 @@
  * Copyright (C) 2010 Johannes Weißl <jargon@molb.org>
  * License: MIT License
  * URL: https://github.com/weisslj/cpp-optparse
+ *
+ * Modified by AdmiralCurtiss in 2024 to add some features
+ * and to make it more C++-like.
  */
 
 #ifndef OPTIONPARSER_H_
 #define OPTIONPARSER_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <list>
@@ -23,6 +27,28 @@ class Option;
 class Values;
 class Value;
 class Callback;
+
+enum class ActionType : uint8_t {
+    Store,
+    StoreConst,
+    StoreTrue,
+    StoreFalse,
+    Append,
+    AppendConst,
+    Count,
+    Callback,
+    Help,
+    Version,
+};
+
+enum class DataType : uint8_t {
+    None,
+    String,
+    Int,
+    Choice,
+    Float,
+    Complex,
+};
 
 typedef std::map<std::string,std::string> strMap;
 typedef std::map<std::string,std::list<std::string> > lstMap;
@@ -76,11 +102,11 @@ class Values {
 class Option {
   public:
     Option(const OptionParser& p) :
-      _parser(p), _action("store"), _type("string"), _nargs(1), _callback(0) {}
+      _parser(p), _action(ActionType::Store), _type(DataType::String), _nargs(1), _callback(0) {}
     virtual ~Option() {}
 
-    Option& action(const std::string& a);
-    Option& type(const std::string& t);
+    Option& action(ActionType a);
+    Option& type(DataType t);
     Option& dest(const std::string& d) { _dest = d; return *this; }
     Option& set_default(const std::string& d) { _default = d; return *this; }
     template<typename T>
@@ -89,17 +115,17 @@ class Option {
     Option& set_const(const std::string& c) { _const = c; return *this; }
     template<typename InputIterator>
     Option& choices(InputIterator begin, InputIterator end) {
-      _choices.assign(begin, end); type("choice"); return *this;
+      _choices.assign(begin, end); type(DataType::Choice); return *this;
     }
     Option& choices(std::initializer_list<std::string> ilist) {
-      _choices.assign(ilist); type("choice"); return *this;
+      _choices.assign(ilist); type(DataType::Choice); return *this;
     }
     Option& help(const std::string& h) { _help = h; return *this; }
     Option& metavar(const std::string& m) { _metavar = m; return *this; }
     Option& callback(Callback& c) { _callback = &c; return *this; }
 
-    const std::string& action() const { return _action; }
-    const std::string& type() const { return _type; }
+    ActionType action() const { return _action; }
+    DataType type() const { return _type; }
     const std::string& dest() const { return _dest; }
     const std::string& get_default() const;
     size_t nargs() const { return _nargs; }
@@ -119,8 +145,8 @@ class Option {
     std::set<std::string> _short_opts;
     std::set<std::string> _long_opts;
 
-    std::string _action;
-    std::string _type;
+    ActionType _action;
+    DataType _type;
     std::string _dest;
     std::string _default;
     size_t _nargs;
