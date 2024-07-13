@@ -189,6 +189,7 @@ using PTrackedFree = void(__cdecl*)(void* memory);
 static PTrackedMalloc s_TrackedMalloc = nullptr;
 static PTrackedFree s_TrackedFree = nullptr;
 
+static SenLib::ModLoad::LoadedP3AData s_LoadedVanillaP3As{};
 static SenLib::ModLoad::LoadedModsData s_LoadedModsData{};
 
 struct LoadedPkaData {
@@ -266,6 +267,9 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
 
     const SenLib::ModLoad::P3AFileRef* refptr =
         FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
+    if (refptr == nullptr) {
+        refptr = FindP3AFileRef(s_LoadedVanillaP3As, filteredPath);
+    }
     if (refptr != nullptr) {
         void* memory = nullptr;
         uint64_t filesize = 0;
@@ -405,6 +409,9 @@ static int32_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
 
     const SenLib::ModLoad::P3AFileRef* refptr =
         FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
+    if (refptr == nullptr) {
+        refptr = FindP3AFileRef(s_LoadedVanillaP3As, filteredPath);
+    }
     if (refptr != nullptr) {
         const SenLib::ModLoad::P3AFileRef& ref = *refptr;
         const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
@@ -714,11 +721,16 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
+    LoadP3As(logger,
+             s_LoadedVanillaP3As,
+             baseDirUtf8,
+             {{"data/misc.p3a", "data/bgm.p3a", "data/se.p3a", "data/voen.p3a", "data/vojp.p3a"}});
     LoadPkas(logger, s_LoadedPkaData, baseDirUtf8);
 
     bool assetCreationSuccess = true;
     if (assetFixes) {
-        assetCreationSuccess = SenLib::Sen2::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
+        assetCreationSuccess =
+            SenLib::Sen2::CreateAssetPatchIfNeeded(logger, baseDirUtf8, s_LoadedVanillaP3As);
     }
 
     LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes);
