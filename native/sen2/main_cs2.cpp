@@ -264,7 +264,8 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
         return -1;
     }
 
-    const SenLib::ModLoad::P3AFileRef* refptr = FindP3AFileRef(s_LoadedModsData, filteredPath);
+    const SenLib::ModLoad::P3AFileRef* refptr =
+        FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
     if (refptr != nullptr) {
         void* memory = nullptr;
         uint64_t filesize = 0;
@@ -402,7 +403,8 @@ static int32_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
         return -1;
     }
 
-    const SenLib::ModLoad::P3AFileRef* refptr = FindP3AFileRef(s_LoadedModsData, filteredPath);
+    const SenLib::ModLoad::P3AFileRef* refptr =
+        FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
     if (refptr != nullptr) {
         const SenLib::ModLoad::P3AFileRef& ref = *refptr;
         const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;

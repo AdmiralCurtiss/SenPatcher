@@ -6,8 +6,8 @@
 #include <mutex>
 #include <string_view>
 
-#include "util/logger.h"
 #include "p3a/p3a.h"
+#include "util/logger.h"
 
 namespace SenLib::ModLoad {
 using PMalloc = void* (*)(size_t size);
@@ -40,10 +40,21 @@ struct P3AFileRef {
     ~P3AFileRef() = default;
 };
 
-struct LoadedModsData {
+struct LoadedP3AData {
     std::unique_ptr<P3AData[]> P3As{};
     size_t CombinedFileInfoCount = 0;
     std::unique_ptr<P3AFileRef[]> CombinedFileInfos{};
+
+    LoadedP3AData() = default;
+    LoadedP3AData(const LoadedP3AData& other) = delete;
+    LoadedP3AData(LoadedP3AData&& other) = delete;
+    LoadedP3AData& operator=(const LoadedP3AData& other) = delete;
+    LoadedP3AData& operator=(LoadedP3AData&& other) = delete;
+    ~LoadedP3AData() = default;
+};
+
+struct LoadedModsData {
+    LoadedP3AData LoadedP3As;
     bool CheckDevFolderForAssets = false;
 
     LoadedModsData() = default;
@@ -63,7 +74,7 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
 // Searches a file with name filteredPath (assumed to be pre-filtered) in
 // [CombinedFileInfos, CombinedFileInfos + CombinedFileInfoCount)
 // which is assumed to be sorted and without duplicates.
-const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
+const P3AFileRef* FindP3AFileRef(const LoadedP3AData& loadedModsData,
                                  const std::array<char, 0x100>& filteredPath);
 
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,

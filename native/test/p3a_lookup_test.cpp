@@ -14,7 +14,7 @@ TEST(P3A, BinarySearchLookup) {
 
     static constexpr size_t maxFileCount = 32;
     P3AData p3a;
-    LoadedModsData mods;
+    LoadedP3AData mods;
     p3a.Archive.FileInfo = std::make_unique<SenPatcher::P3AFileInfo[]>(maxFileCount);
     p3a.Archive.FileCount = maxFileCount;
     mods.CombinedFileInfos = std::make_unique<P3AFileRef[]>(maxFileCount);

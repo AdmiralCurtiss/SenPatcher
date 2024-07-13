@@ -319,9 +319,9 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
                  bool shouldLoadAssetFixes) {
-    loadedModsData.CombinedFileInfoCount = 0;
-    loadedModsData.CombinedFileInfos.reset();
-    loadedModsData.P3As.reset();
+    loadedModsData.LoadedP3As.CombinedFileInfoCount = 0;
+    loadedModsData.LoadedP3As.CombinedFileInfos.reset();
+    loadedModsData.LoadedP3As.P3As.reset();
     loadedModsData.CheckDevFolderForAssets = false;
 
     {
@@ -439,14 +439,14 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
         }
     }
 
-    loadedModsData.P3As = std::move(p3as);
-    loadedModsData.CombinedFileInfoCount = totalFileInfoCount;
-    loadedModsData.CombinedFileInfos = std::move(combinedFileInfos);
+    loadedModsData.LoadedP3As.P3As = std::move(p3as);
+    loadedModsData.LoadedP3As.CombinedFileInfoCount = totalFileInfoCount;
+    loadedModsData.LoadedP3As.CombinedFileInfos = std::move(combinedFileInfos);
 
     return;
 }
 
-const P3AFileRef* FindP3AFileRef(const LoadedModsData& loadedModsData,
+const P3AFileRef* FindP3AFileRef(const LoadedP3AData& loadedModsData,
                                  const std::array<char, 0x100>& filteredPath) {
     const P3AFileRef* infos = loadedModsData.CombinedFileInfos.get();
     size_t count = loadedModsData.CombinedFileInfoCount;
@@ -688,14 +688,15 @@ void AppendLoadedModInfo(char*& string,
     size_t modfileCountExternal = 0;
     size_t modfileCountSenPatcher = 0;
 
-    for (size_t i = 0; i < loadedModsData.CombinedFileInfoCount; ++i) {
-        const auto& filename = loadedModsData.CombinedFileInfos[i].FileInfo->Filename;
+    for (size_t i = 0; i < loadedModsData.LoadedP3As.CombinedFileInfoCount; ++i) {
+        const auto& filename = loadedModsData.LoadedP3As.CombinedFileInfos[i].FileInfo->Filename;
         if (memcmp("data/", filename.data(), 5) != 0) {
             // ignore files that are not in the data directory, the file injection ignores them too
             continue;
         }
 
-        if (loadedModsData.CombinedFileInfos[i].ArchiveData->Flags & P3AFlag_IsSenPatcherAssetMod) {
+        if (loadedModsData.LoadedP3As.CombinedFileInfos[i].ArchiveData->Flags
+            & P3AFlag_IsSenPatcherAssetMod) {
             ++modfileCountSenPatcher;
         } else {
             ++modfileCountExternal;

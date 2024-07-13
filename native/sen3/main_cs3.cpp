@@ -217,7 +217,8 @@ static bool OpenModFile(FFile* ffile, const char* path) {
         return false;
     }
 
-    const SenLib::ModLoad::P3AFileRef* refptr = FindP3AFileRef(s_LoadedModsData, filteredPath);
+    const SenLib::ModLoad::P3AFileRef* refptr =
+        FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
     if (refptr != nullptr) {
         void* memory = nullptr;
         uint64_t filesize = 0;
@@ -265,7 +266,8 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
         return std::nullopt;
     }
 
-    const SenLib::ModLoad::P3AFileRef* refptr = FindP3AFileRef(s_LoadedModsData, filteredPath);
+    const SenLib::ModLoad::P3AFileRef* refptr =
+        FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
     if (refptr != nullptr) {
         const SenLib::ModLoad::P3AFileRef& ref = *refptr;
         const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
@@ -429,7 +431,8 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
         return nullptr;
     }
 
-    const SenLib::ModLoad::P3AFileRef* refptr = FindP3AFileRef(s_LoadedModsData, filteredPath);
+    const SenLib::ModLoad::P3AFileRef* refptr =
+        FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
     if (refptr != nullptr) {
         void* memory = nullptr;
         uint64_t filesize = 0;
