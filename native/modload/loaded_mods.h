@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <span>
 #include <string_view>
 
 #include "p3a/p3a.h"
@@ -66,6 +67,10 @@ struct LoadedModsData {
 };
 
 void CreateModDirectory(std::string_view baseDir);
+void LoadP3As(HyoutaUtils::Logger& logger,
+              LoadedP3AData& loadedP3AData,
+              std::string_view baseDir,
+              std::span<const char* const> files);
 void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,

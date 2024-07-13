@@ -315,6 +315,114 @@ void CreateModDirectory(std::string_view baseDir) {
     HyoutaUtils::IO::CreateDirectory(std::string_view(modsDir));
 }
 
+static void MakeP3ABinarySearchable(std::unique_ptr<P3AFileRef[]>& combinedFileInfos,
+                                    size_t& totalFileInfoCount,
+                                    P3AData* p3as,
+                                    size_t p3acount) {
+    combinedFileInfos.reset();
+    totalFileInfoCount = 0;
+    for (size_t i = 0; i < p3acount; ++i) {
+        totalFileInfoCount += p3as[i].Archive.FileCount;
+    }
+    if (totalFileInfoCount == 0) {
+        return;
+    }
+
+    // first just stuff them all into a long array
+    combinedFileInfos = std::make_unique<P3AFileRef[]>(totalFileInfoCount);
+    size_t index = 0;
+    for (size_t i = 0; i < p3acount; ++i) {
+        auto& p3a = p3as[i];
+        const size_t localFileInfoCount = p3a.Archive.FileCount;
+        for (size_t j = 0; j < localFileInfoCount; ++j) {
+            auto& fileinfo = p3a.Archive.FileInfo[j];
+            combinedFileInfos[index].ArchiveData = &p3a;
+            combinedFileInfos[index].FileInfo = &fileinfo;
+            FilterP3APath(fileinfo.Filename.data(), fileinfo.Filename.size());
+            ++index;
+        }
+    }
+
+    // sort by filename
+    std::stable_sort(combinedFileInfos.get(),
+                     combinedFileInfos.get() + totalFileInfoCount,
+                     [](const P3AFileRef& lhs, const P3AFileRef& rhs) {
+                         return strncmp(lhs.FileInfo->Filename.data(),
+                                        rhs.FileInfo->Filename.data(),
+                                        lhs.FileInfo->Filename.size())
+                                < 0;
+                     });
+
+    // drop identical filenames, preferring the first instance
+    {
+        size_t remainingFileInfoCount = totalFileInfoCount;
+        size_t in = 1;
+        size_t out = 0;
+        while (in < totalFileInfoCount) {
+            const P3AFileRef& last = combinedFileInfos[out];
+            const P3AFileRef& next = combinedFileInfos[in];
+            if (strncmp(last.FileInfo->Filename.data(),
+                        next.FileInfo->Filename.data(),
+                        last.FileInfo->Filename.size())
+                == 0) {
+                --remainingFileInfoCount;
+            } else {
+                const P3AFileRef tmp = next;
+                ++out;
+                combinedFileInfos[out] = tmp;
+            }
+            ++in;
+        }
+        totalFileInfoCount = remainingFileInfoCount;
+    }
+}
+
+void LoadP3As(HyoutaUtils::Logger& logger,
+              LoadedP3AData& loadedP3AData,
+              std::string_view baseDir,
+              std::span<const char* const> files) {
+    loadedP3AData.CombinedFileInfoCount = 0;
+    loadedP3AData.CombinedFileInfos.reset();
+    loadedP3AData.P3As.reset();
+    if (files.empty()) {
+        return;
+    }
+
+    size_t p3acount = 0;
+    std::unique_ptr<P3AData[]> p3as;
+    {
+        std::vector<SenPatcher::P3A> p3avector;
+        p3avector.reserve(files.size());
+        for (std::string_view filename : files) {
+            std::string filepath;
+            filepath.reserve(baseDir.size() + filename.size() + 1);
+            filepath.append(baseDir);
+            filepath.push_back('/');
+            filepath.append(filename);
+
+            auto& p3a = p3avector.emplace_back();
+            if (!p3a.Load(std::string_view(filepath))) {
+                p3avector.pop_back();
+            }
+        }
+
+        p3acount = p3avector.size();
+        p3as = std::make_unique<P3AData[]>(p3acount);
+        for (size_t i = 0; i < p3acount; ++i) {
+            p3as[i].Archive = std::move(p3avector[i]);
+            p3as[i].Flags = 0;
+        }
+    }
+
+    std::unique_ptr<P3AFileRef[]> combinedFileInfos;
+    size_t totalFileInfoCount = 0;
+    MakeP3ABinarySearchable(combinedFileInfos, totalFileInfoCount, p3as.get(), p3acount);
+
+    loadedP3AData.P3As = std::move(p3as);
+    loadedP3AData.CombinedFileInfoCount = totalFileInfoCount;
+    loadedP3AData.CombinedFileInfos = std::move(combinedFileInfos);
+}
+
 void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
@@ -378,72 +486,13 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
         }
     }
 
-    size_t totalFileInfoCount = 0;
-    for (size_t i = 0; i < p3acount; ++i) {
-        totalFileInfoCount += p3as[i].Archive.FileCount;
-    }
-
-    if (totalFileInfoCount == 0) {
-        return;
-    }
-
-    // now to make a binary tree from all files from all archives
     std::unique_ptr<P3AFileRef[]> combinedFileInfos;
-    if (totalFileInfoCount > 0) {
-        // first just stuff them all into a long array
-        combinedFileInfos = std::make_unique<P3AFileRef[]>(totalFileInfoCount);
-        size_t index = 0;
-        for (size_t i = 0; i < p3acount; ++i) {
-            auto& p3a = p3as[i];
-            const size_t localFileInfoCount = p3a.Archive.FileCount;
-            for (size_t j = 0; j < localFileInfoCount; ++j) {
-                auto& fileinfo = p3a.Archive.FileInfo[j];
-                combinedFileInfos[index].ArchiveData = &p3a;
-                combinedFileInfos[index].FileInfo = &fileinfo;
-                FilterP3APath(fileinfo.Filename.data(), fileinfo.Filename.size());
-                ++index;
-            }
-        }
-
-        // sort by filename
-        std::stable_sort(combinedFileInfos.get(),
-                         combinedFileInfos.get() + totalFileInfoCount,
-                         [](const P3AFileRef& lhs, const P3AFileRef& rhs) {
-                             return strncmp(lhs.FileInfo->Filename.data(),
-                                            rhs.FileInfo->Filename.data(),
-                                            lhs.FileInfo->Filename.size())
-                                    < 0;
-                         });
-
-        // drop identical filenames, preferring the first instance
-        {
-            size_t remainingFileInfoCount = totalFileInfoCount;
-            size_t in = 1;
-            size_t out = 0;
-            while (in < totalFileInfoCount) {
-                const P3AFileRef& last = combinedFileInfos[out];
-                const P3AFileRef& next = combinedFileInfos[in];
-                if (strncmp(last.FileInfo->Filename.data(),
-                            next.FileInfo->Filename.data(),
-                            last.FileInfo->Filename.size())
-                    == 0) {
-                    --remainingFileInfoCount;
-                } else {
-                    const P3AFileRef tmp = next;
-                    ++out;
-                    combinedFileInfos[out] = tmp;
-                }
-                ++in;
-            }
-            totalFileInfoCount = remainingFileInfoCount;
-        }
-    }
+    size_t totalFileInfoCount = 0;
+    MakeP3ABinarySearchable(combinedFileInfos, totalFileInfoCount, p3as.get(), p3acount);
 
     loadedModsData.LoadedP3As.P3As = std::move(p3as);
     loadedModsData.LoadedP3As.CombinedFileInfoCount = totalFileInfoCount;
     loadedModsData.LoadedP3As.CombinedFileInfos = std::move(combinedFileInfos);
-
-    return;
 }
 
 const P3AFileRef* FindP3AFileRef(const LoadedP3AData& loadedModsData,
