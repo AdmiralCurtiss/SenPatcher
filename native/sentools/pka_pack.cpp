@@ -17,6 +17,7 @@
 #include "cpp-optparse/OptionParser.h"
 
 #include "sen/pka.h"
+#include "sen/pka_to_pkg.h"
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
 #include "sen/pkg_extract.h"
@@ -74,11 +75,13 @@ int PKA_Pack_Function(int argc, char** argv) {
         .help("The output filename. Must be given.");
     parser.add_option("--referenced-pka")
         .dest("referenced-pka")
+        .action(optparse::ActionType::Append)
         .metavar("PKA")
         .help(
             "Existing pka file that already contains files. Files contained in that pka will not "
             "be packed into this pka. The referenced pka will be necessary to extract data later. "
-            "This is a nonstandard feature that the vanilla game does not handle.");
+            "Option can be provided multiple times. This is a nonstandard feature that the vanilla "
+            "game does not handle.");
     parser.add_option("--recompress")
         .dest("recompress")
         .metavar("TYPE")
@@ -117,20 +120,22 @@ int PKA_Pack_Function(int argc, char** argv) {
 
     std::string_view target(output_option->first_string());
 
-    std::optional<HyoutaUtils::IO::File> existingPkaFile = std::nullopt;
-    std::optional<SenLib::PkaHeader> existingPkaHeader = std::nullopt;
+    std::vector<SenLib::ReferencedPka> existingPkas;
     if (auto* referenced_pka_option = options.get("referenced-pka")) {
-        std::string_view existingPkaPath(referenced_pka_option->first_string());
-        existingPkaFile.emplace(std::filesystem::path(existingPkaPath),
-                                HyoutaUtils::IO::OpenMode::Read);
-        if (!existingPkaFile->IsOpen()) {
-            printf("Error opening existing pka.\n");
-            return -1;
-        }
-        existingPkaHeader.emplace();
-        if (!SenLib::ReadPkaFromFile(*existingPkaHeader, *existingPkaFile)) {
-            printf("Error reading existing pka.\n");
-            return -1;
+        const auto& existingPkaPaths = referenced_pka_option->strings();
+        existingPkas.reserve(existingPkaPaths.size());
+        for (const auto& existingPkaPath : existingPkaPaths) {
+            auto& existingPka = existingPkas.emplace_back();
+            existingPka.PkaFile.Open(std::filesystem::path(existingPkaPath),
+                                     HyoutaUtils::IO::OpenMode::Read);
+            if (!existingPka.PkaFile.IsOpen()) {
+                printf("Error opening existing pka.\n");
+                return -1;
+            }
+            if (!SenLib::ReadPkaFromFile(existingPka.PkaHeader, existingPka.PkaFile)) {
+                printf("Error reading existing pka.\n");
+                return -1;
+            }
         }
     }
 
@@ -407,13 +412,14 @@ int PKA_Pack_Function(int argc, char** argv) {
                 }
             } else {
                 FileReference& fileReference = it.first->second;
-                if (existingPkaHeader.has_value()) {
+                for (const auto& existingPka : existingPkas) {
                     const SenLib::PkaHashToFileData* existingFile =
-                        SenLib::FindFileInPkaByHash(existingPkaHeader->Files.get(),
-                                                    existingPkaHeader->FilesCount,
+                        SenLib::FindFileInPkaByHash(existingPka.PkaHeader.Files.get(),
+                                                    existingPka.PkaHeader.FilesCount,
                                                     file.Hash.Hash);
                     if (existingFile) {
                         fileReference.ShouldBeWritten = false;
+                        break;
                     }
                 }
             }

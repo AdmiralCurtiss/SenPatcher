@@ -12,8 +12,7 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
                            const PkaHeader& pka,
                            size_t index,
                            HyoutaUtils::IO::File& file,
-                           const PkaHeader* referencedPka,
-                           HyoutaUtils::IO::File* referencedFile) {
+                           std::vector<SenLib::ReferencedPka>& referencedPkas) {
     if (index >= pka.PkgCount) {
         return false;
     }
@@ -31,9 +30,14 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
     size_t requiredMemorySize = 0;
     for (size_t i = 0; i < fileCount; ++i) {
         auto* f = FindFileInPkaByHash(pka.Files.get(), pka.FilesCount, pkaFiles[i].Hash);
-        if (!f && referencedPka && referencedFile) {
-            f = FindFileInPkaByHash(
-                referencedPka->Files.get(), referencedPka->FilesCount, pkaFiles[i].Hash);
+        if (!f) {
+            for (auto& refPka : referencedPkas) {
+                f = FindFileInPkaByHash(
+                    refPka.PkaHeader.Files.get(), refPka.PkaHeader.FilesCount, pkaFiles[i].Hash);
+                if (f) {
+                    break;
+                }
+            }
         }
         if (!f) {
             return false;
@@ -48,10 +52,15 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
     for (size_t i = 0; i < fileCount; ++i) {
         auto* f = FindFileInPkaByHash(pka.Files.get(), pka.FilesCount, pkaFiles[i].Hash);
         HyoutaUtils::IO::File* hf = &file;
-        if (!f && referencedPka && referencedFile) {
-            f = FindFileInPkaByHash(
-                referencedPka->Files.get(), referencedPka->FilesCount, pkaFiles[i].Hash);
-            hf = referencedFile;
+        if (!f) {
+            for (auto& refPka : referencedPkas) {
+                f = FindFileInPkaByHash(
+                    refPka.PkaHeader.Files.get(), refPka.PkaHeader.FilesCount, pkaFiles[i].Hash);
+                if (f) {
+                    hf = &refPka.PkaFile;
+                    break;
+                }
+            }
         }
         if (!f) {
             return false;

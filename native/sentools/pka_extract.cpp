@@ -44,8 +44,12 @@ int PKA_Extract_Function(int argc, char** argv) {
             "given.");
     parser.add_option("--referenced-pka")
         .dest("referenced-pka")
+        .action(optparse::ActionType::Append)
         .metavar("PKA")
-        .help("2nd pka file that could also contain files.");
+        .help(
+            "Referenced pka file that could also contain files, see the corresponding option in "
+            "PKA.Pack for details. Option can be provided multiple times. This is a nonstandard "
+            "feature that the vanilla game does not handle.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -80,19 +84,22 @@ int PKA_Extract_Function(int argc, char** argv) {
         return -1;
     }
 
-    std::optional<HyoutaUtils::IO::File> refInfile;
-    std::optional<SenLib::PkaHeader> refPkaHeader;
+    std::vector<SenLib::ReferencedPka> referencedPkas;
     if (auto* referenced_pka_option = options.get("referenced-pka")) {
-        std::string_view refpath(referenced_pka_option->first_string());
-        refInfile.emplace(std::filesystem::path(refpath), HyoutaUtils::IO::OpenMode::Read);
-        if (!refInfile->IsOpen()) {
-            printf("Error opening referenced pka.\n");
-            return -1;
-        }
-        refPkaHeader.emplace();
-        if (!SenLib::ReadPkaFromFile(*refPkaHeader, *refInfile)) {
-            printf("Error reading referenced pka.\n");
-            return -1;
+        const auto& referencedPkaPaths = referenced_pka_option->strings();
+        referencedPkas.reserve(referencedPkaPaths.size());
+        for (const auto& referencedPkaPath : referencedPkaPaths) {
+            auto& refPka = referencedPkas.emplace_back();
+            refPka.PkaFile.Open(std::filesystem::path(referencedPkaPath),
+                                HyoutaUtils::IO::OpenMode::Read);
+            if (!refPka.PkaFile.IsOpen()) {
+                printf("Error opening referenced pka.\n");
+                return -1;
+            }
+            if (!SenLib::ReadPkaFromFile(refPka.PkaHeader, refPka.PkaFile)) {
+                printf("Error reading referenced pka.\n");
+                return -1;
+            }
         }
     }
 
@@ -111,13 +118,7 @@ int PKA_Extract_Function(int argc, char** argv) {
 
         SenLib::PkgHeader pkg;
         std::unique_ptr<char[]> buffer;
-        if (!SenLib::ConvertPkaToSinglePkg(pkg,
-                                           buffer,
-                                           pkaHeader,
-                                           i,
-                                           infile,
-                                           refPkaHeader.has_value() ? &*refPkaHeader : nullptr,
-                                           refInfile.has_value() ? &*refInfile : nullptr)) {
+        if (!SenLib::ConvertPkaToSinglePkg(pkg, buffer, pkaHeader, i, infile, referencedPkas)) {
             printf("Failed to convert archive %zu to pkg.\n", i);
             return -1;
         }
