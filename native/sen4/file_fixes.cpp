@@ -3,10 +3,10 @@
 #include <string_view>
 #include <vector>
 
-#include "util/logger.h"
 #include "p3a/pack.h"
 #include "sen/asset_patch.h"
 #include "sen/file_getter.h"
+#include "util/logger.h"
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen4::FileFixes::##name {                                 \
@@ -62,7 +62,7 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger, std::string_view base
         [&](std::string_view path,
             size_t size,
             const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
-        return GetCheckedFile(baseDir, path, size, hash);
+        return GetCheckedFile(baseDir, nullptr, path, size, hash);
     };
 
     return CreateArchiveIfNeeded(logger,

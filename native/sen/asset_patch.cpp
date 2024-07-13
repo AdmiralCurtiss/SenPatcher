@@ -12,6 +12,7 @@
 #include "util/hash/sha1.h"
 #include "util/logger.h"
 
+#include "modload/loaded_mods.h"
 #include "p3a/p3a.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
@@ -25,7 +26,8 @@ static bool IsSenPatcherVersionFile(const SenPatcher::P3AFileInfo& f) {
     return strcmp(f.Filename.data(), "_senpatcher_version.txt") == 0;
 }
 
-static bool CheckArchiveExistsAndIsRightVersion(HyoutaUtils::Logger& logger, std::string_view path) {
+static bool CheckArchiveExistsAndIsRightVersion(HyoutaUtils::Logger& logger,
+                                                std::string_view path) {
     logger.Log("Checking for existing asset archive.\n");
 
     SenPatcher::P3A p3a;
@@ -178,14 +180,19 @@ bool CreateVideoIfNeeded(HyoutaUtils::Logger& logger,
     return true;
 }
 
-std::optional<SenPatcher::CheckedFileResult> GetCheckedFile(std::string_view baseDir,
-                                                            std::string_view path,
-                                                            size_t size,
-                                                            const HyoutaUtils::Hash::SHA1& hash) {
+std::optional<SenPatcher::CheckedFileResult>
+    GetCheckedFile(std::string_view baseDir,
+                   SenLib::ModLoad::LoadedP3AData* vanillaP3As,
+                   std::string_view path,
+                   size_t size,
+                   const HyoutaUtils::Hash::SHA1& hash) {
     SenPatcher::CheckedFileResult result{};
     if (!SenPatcher::CopyToP3AFilename(result.Filename, path)) {
         return std::nullopt;
     }
+
+    std::vector<char>& vec = result.Data;
+    vec.resize(size);
 
     std::string fullFilePath;
     fullFilePath.reserve(baseDir.size() + 1 + path.size());
@@ -193,7 +200,32 @@ std::optional<SenPatcher::CheckedFileResult> GetCheckedFile(std::string_view bas
     fullFilePath.push_back('/');
     fullFilePath.append(path);
 
-    HyoutaUtils::IO::File inputfile(std::string_view(fullFilePath), HyoutaUtils::IO::OpenMode::Read);
+    if (vanillaP3As) {
+        const auto* ref = SenLib::ModLoad::FindP3AFileRef(*vanillaP3As, result.Filename);
+        void* out_memory = nullptr;
+        uint64_t out_filesize = 0;
+        if (ref && ref->FileInfo->UncompressedSize == size
+            && SenLib::ModLoad::ExtractP3AFileToMemory(
+                *ref,
+                0x8000'0000,
+                out_memory,
+                out_filesize,
+                [](size_t length) { return malloc(length); },
+                [](void* memory) { free(memory); })) {
+            if (size != out_filesize
+                || HyoutaUtils::Hash::CalculateSHA1(out_memory, size) != hash) {
+                free(out_memory);
+                return std::nullopt;
+            }
+
+            std::memcpy(vec.data(), out_memory, size);
+            free(out_memory);
+            return result;
+        }
+    }
+
+    HyoutaUtils::IO::File inputfile(std::string_view(fullFilePath),
+                                    HyoutaUtils::IO::OpenMode::Read);
     if (!inputfile.IsOpen()) {
         return std::nullopt;
     }
@@ -202,8 +234,6 @@ std::optional<SenPatcher::CheckedFileResult> GetCheckedFile(std::string_view bas
         // printf("filesize wrong -> %d == %s\n", (int)filesize.value_or(0), fullFilePath.data());
         return std::nullopt;
     }
-    std::vector<char>& vec = result.Data;
-    vec.resize(size);
     if (inputfile.Read(vec.data(), size) != size) {
         return std::nullopt;
     }

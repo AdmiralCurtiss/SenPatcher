@@ -3,10 +3,10 @@
 #include <string_view>
 #include <vector>
 
-#include "util/logger.h"
 #include "p3a/pack.h"
 #include "sen/asset_patch.h"
 #include "sen/file_getter.h"
+#include "util/logger.h"
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen1::FileFixes::##name {                                 \
@@ -142,12 +142,14 @@ static bool CollectAudio(HyoutaUtils::Logger& logger,
     return true;
 }
 
-bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger, std::string_view baseDir) {
+bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
+                              std::string_view baseDir,
+                              SenLib::ModLoad::LoadedP3AData& vanillaP3As) {
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
             size_t size,
             const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
-        return GetCheckedFile(baseDir, path, size, hash);
+        return GetCheckedFile(baseDir, &vanillaP3As, path, size, hash);
     };
 
     bool success = true;
