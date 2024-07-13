@@ -9,9 +9,25 @@
 
 #include "OptionParser.h"
 
-#include <cstdlib>
 #include <algorithm>
 #include <complex>
+#include <cstdint>
+#include <cstdlib>
+#include <format>
+#include <functional>
+#include <iosfwd>
+#include <iostream>
+#include <list>
+#include <map>
+#include <set>
+#include <span>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
+#include <variant>
+#include <vector>
 
 #if defined(ENABLE_NLS) && ENABLE_NLS
 # include <libintl.h>
@@ -96,14 +112,6 @@ static string str_format(const string& str, size_t pre, size_t len, bool running
   ss << p << s.substr(linestart) << endl;
   return ss.str();
 }
-static string str_inc(const string& s) {
-  stringstream ss;
-  string v = (s != "") ? s : "0";
-  long i;
-  istringstream(v) >> i;
-  ss << i+1;
-  return ss.str();
-}
 static unsigned int cols() {
   unsigned int n = 80;
 #ifndef _WIN32
@@ -126,6 +134,85 @@ static string basename(const string& s) {
   if (i != string::npos)
     b.erase(0, i+1);
   return b;
+}
+static std::string to_string(const Value::VariantT& value) {
+  if (std::holds_alternative<bool>(value)) {
+    return std::get<bool>(value) ? "true" : "false";
+  }
+  if (std::holds_alternative<int64_t>(value)) {
+    return std::format("{}", std::get<int64_t>(value));
+  }
+  if (std::holds_alternative<double>(value)) {
+    return std::format("{}", std::get<double>(value));
+  }
+  if (std::holds_alternative<std::complex<double>>(value)) {
+    auto& c = std::get<std::complex<double>>(value);
+    return std::format("{}{:+}j", c.real(), c.imag());
+  }
+  if (std::holds_alternative<std::string>(value)) {
+    return std::get<std::string>(value);
+  }
+  if (std::holds_alternative<std::vector<int64_t>>(value)) {
+    auto& vec = std::get<std::vector<int64_t>>(value);
+    std::string s;
+    s.push_back('[');
+    if (!vec.empty()) {
+      std::format_to(std::back_inserter(s), "{}", vec[0]);
+      for (size_t i = 1; i < vec.size(); ++i) {
+        s.push_back(',');
+        s.push_back(' ');
+        std::format_to(std::back_inserter(s), "{}", vec[i]);
+      }
+    }
+    s.push_back(']');
+    return s;
+  }
+  if (std::holds_alternative<std::vector<double>>(value)) {
+    auto& vec = std::get<std::vector<double>>(value);
+    std::string s;
+    s.push_back('[');
+    if (!vec.empty()) {
+      std::format_to(std::back_inserter(s), "{}", vec[0]);
+      for (size_t i = 1; i < vec.size(); ++i) {
+        s.push_back(',');
+        s.push_back(' ');
+        std::format_to(std::back_inserter(s), "{}", vec[i]);
+      }
+    }
+    s.push_back(']');
+    return s;
+  }
+  if (std::holds_alternative<std::vector<std::complex<double>>>(value)) {
+    auto& vec = std::get<std::vector<std::complex<double>>>(value);
+    std::string s;
+    s.push_back('[');
+    if (!vec.empty()) {
+      std::format_to(std::back_inserter(s), "{}{:+}j", vec[0].real(), vec[0].imag());
+      for (size_t i = 1; i < vec.size(); ++i) {
+        s.push_back(',');
+        s.push_back(' ');
+        std::format_to(std::back_inserter(s), "{}{:+}j", vec[i].real(), vec[i].imag());
+      }
+    }
+    s.push_back(']');
+    return s;
+  }
+  if (std::holds_alternative<std::vector<std::string>>(value)) {
+    auto& vec = std::get<std::vector<std::string>>(value);
+    std::string s;
+    s.push_back('[');
+    if (!vec.empty()) {
+      s.append(vec[0]);
+      for (size_t i = 1; i < vec.size(); ++i) {
+        s.push_back(',');
+        s.push_back(' ');
+        s.append(vec[i]);
+      }
+    }
+    s.push_back(']');
+    return s;
+  }
+  return "";
 }
 ////////// } auxiliary (string) functions //////////
 
@@ -182,12 +269,18 @@ string OptionContainer::format_option_help(unsigned int indent /* = 2 */) const 
 ////////// } class OptionContainer //////////
 
 ////////// class OptionParser { //////////
-OptionParser::OptionParser() :
-  OptionContainer(),
-  _usage(_("%prog [options]")),
-  _add_help_option(true),
-  _add_version_option(true),
-  _interspersed_args(true) {}
+OptionParser::OptionParser()
+  : OptionContainer()
+  , _usage(_("%prog [options]"))
+  , _add_help_option(true)
+  , _add_version_option(true)
+  , _interspersed_args(true)
+  , _values(this) {}
+
+OptionParser& OptionParser::set_defaults(const std::string& dest, Value::VariantT val) {
+  _defaults.insert_or_assign(dest, std::move(val));
+  return *this;
+}
 
 OptionParser& OptionParser::add_option_group(const OptionGroup& group) {
   for (list<Option>::const_iterator oit = group._opts.begin(); oit != group._opts.end(); ++oit) {
@@ -319,15 +412,27 @@ Values& OptionParser::parse_args(const vector<string>& v) {
     _leftover.push_back(arg);
   }
 
+  const auto handle_default_val = [&](const Option& o) -> void {
+    if (_values.get(o.dest()) == nullptr) {
+      const auto& def = o.get_default();
+      if (!std::holds_alternative<std::monostate>(def))
+        _values.set(o.dest(), Value(this, def, false));
+      else if (o.action() == ActionType::StoreTrue)
+        _values.set(o.dest(), Value(this, false, false));
+      else if (o.action() == ActionType::StoreFalse)
+        _values.set(o.dest(), Value(this, true, false));
+      else if (o.action() == ActionType::Count)
+        _values.set(o.dest(), Value(this, int64_t(0), false));
+    }
+  };
+
   for (list<Option>::const_iterator it = _opts.begin(); it != _opts.end(); ++it) {
-    if (it->get_default() != "" && !_values.is_set(it->dest()))
-      _values[it->dest()] = it->get_default();
+    handle_default_val(*it);
   }
 
   for (list<OptionGroup const*>::iterator group_it = _groups.begin(); group_it != _groups.end(); ++group_it) {
     for (list<Option>::const_iterator it = (*group_it)->_opts.begin(); it != (*group_it)->_opts.end(); ++it) {
-      if (it->get_default() != "" && !_values.is_set(it->dest()))
-        _values[it->dest()] = it->get_default();
+      handle_default_val(*it);
     }
   }
 
@@ -336,40 +441,33 @@ Values& OptionParser::parse_args(const vector<string>& v) {
 
 void OptionParser::process_opt(const Option& o, const string& opt, const string& value) {
   if (o.action() == ActionType::Store) {
-    string err = o.check_type(opt, value);
-    if (err != "")
-      error(err);
-    _values[o.dest()] = value;
-    _values.is_set_by_user(o.dest(), true);
+    _values.set(o.dest(), o.make_value_from_string(opt, this, value, true));
   }
   else if (o.action() == ActionType::StoreConst) {
-    _values[o.dest()] = o.get_const();
-    _values.is_set_by_user(o.dest(), true);
+    _values.set(o.dest(), o.make_value_from_string(opt, this, o.get_const(), true));
   }
   else if (o.action() == ActionType::StoreTrue) {
-    _values[o.dest()] = "1";
-    _values.is_set_by_user(o.dest(), true);
+    _values.set(o.dest(), Value(this, true, true));
   }
   else if (o.action() == ActionType::StoreFalse) {
-    _values[o.dest()] = "0";
-    _values.is_set_by_user(o.dest(), true);
+    _values.set(o.dest(), Value(this, false, true));
   }
   else if (o.action() == ActionType::Append) {
-    string err = o.check_type(opt, value);
-    if (err != "")
-      error(err);
-    _values[o.dest()] = value;
-    _values.all(o.dest()).push_back(value);
-    _values.is_set_by_user(o.dest(), true);
+    _values.append(o.dest(), o.make_value_from_string(opt, this, value, true));
   }
   else if (o.action() == ActionType::AppendConst) {
-    _values[o.dest()] = o.get_const();
-    _values.all(o.dest()).push_back(o.get_const());
-    _values.is_set_by_user(o.dest(), true);
+    _values.append(o.dest(), o.make_value_from_string(opt, this, o.get_const(), true));
   }
   else if (o.action() == ActionType::Count) {
-    _values[o.dest()] = str_inc(_values[o.dest()]);
-    _values.is_set_by_user(o.dest(), true);
+    int64_t count = 0;
+    const Value* v = _values.get(o.dest());
+    if (v) {
+      auto ints = v->integers();
+      if (!ints.empty()) {
+        count = ints.front();
+      }
+    }
+    _values.set(o.dest(), Value(this, int64_t(count + 1), true));
   }
   else if (o.action() == ActionType::Help) {
     print_help();
@@ -380,10 +478,7 @@ void OptionParser::process_opt(const Option& o, const string& opt, const string&
     std::exit(0);
   }
   else if (o.action() == ActionType::Callback && o.callback()) {
-    string err = o.check_type(opt, value);
-    if (err != "")
-      error(err);
-    (*o.callback())(o, opt, value, *this);
+    (*o.callback())(o, opt, o.make_value_from_string(opt, this, value, true), *this);
   }
 }
 
@@ -465,50 +560,267 @@ void OptionParser::error(const string& msg) const {
 }
 ////////// } class OptionParser //////////
 
-////////// class Values { //////////
-const string& Values::operator[] (const string& d) const {
-  auto it = _map.find(d);
-  static const string empty = "";
-  return (it != _map.end()) ? it->second : empty;
+////////// class Value { //////////
+Value::Value(const OptionParser* parser, VariantT v, bool set_by_user)
+  : m_parser_ref(parser)
+  , m_value(std::move(v))
+  , m_set_by_user(set_by_user) {}
+
+Value::Value(const Value& other) = default;
+Value::Value(Value&& other) = default;
+Value& Value::operator=(const Value& other) = default;
+Value& Value::operator=(Value&& other) = default;
+Value::~Value() = default;
+
+bool Value::flag() const {
+  if (std::holds_alternative<bool>(m_value))
+    return std::get<bool>(m_value);
+  m_parser_ref->error("internal error");
 }
-void Values::is_set_by_user(const string& d, bool yes) {
-  if (yes)
-    _userSet.insert(d);
-  else
-    _userSet.erase(d);
+
+std::span<const int64_t> Value::integers() const {
+  if (std::holds_alternative<int64_t>(m_value))
+    return std::span<const int64_t>(&std::get<int64_t>(m_value), size_t(1));
+  if (std::holds_alternative<std::vector<int64_t>>(m_value))
+    return std::get<std::vector<int64_t>>(m_value);
+  m_parser_ref->error("internal error");
+}
+
+std::span<const double> Value::floats() const {
+  if (std::holds_alternative<double>(m_value))
+    return std::span<const double>(&std::get<double>(m_value), size_t(1));
+  if (std::holds_alternative<std::vector<double>>(m_value))
+    return std::get<std::vector<double>>(m_value);
+  m_parser_ref->error("internal error");
+}
+
+std::span<const std::complex<double>> Value::complexes() const {
+  if (std::holds_alternative<std::complex<double>>(m_value))
+    return std::span<const std::complex<double>>(&std::get<std::complex<double>>(m_value), size_t(1));
+  if (std::holds_alternative<std::vector<std::complex<double>>>(m_value))
+    return std::get<std::vector<std::complex<double>>>(m_value);
+  m_parser_ref->error("internal error");
+}
+
+std::span<const std::string> Value::strings() const {
+  if (std::holds_alternative<std::string>(m_value))
+    return std::span<const std::string>(&std::get<std::string>(m_value), size_t(1));
+  if (std::holds_alternative<std::vector<std::string>>(m_value))
+    return std::get<std::vector<std::string>>(m_value);
+  m_parser_ref->error("internal error");
+}
+
+int64_t Value::first_integer() const {
+  auto v = integers();
+  if (v.empty()) {
+    m_parser_ref->error("internal error");
+  }
+  return v.front();
+}
+
+double Value::first_float() const {
+  auto v = floats();
+  if (v.empty()) {
+    m_parser_ref->error("internal error");
+  }
+  return v.front();
+}
+
+std::complex<double> Value::first_complex() const {
+  auto v = complexes();
+  if (v.empty()) {
+    m_parser_ref->error("internal error");
+  }
+  return v.front();
+}
+
+const std::string& Value::first_string() const {
+  auto v = strings();
+  if (v.empty()) {
+    m_parser_ref->error("internal error");
+  }
+  return v.front();
+}
+
+bool Value::is_set_by_user() const {
+  return m_set_by_user;
+}
+////////// } class Value //////////
+
+////////// class Values { //////////
+Values::Values(const OptionParser* parser)
+  : m_parser_ref(parser)
+  , m_values_per_option() {}
+
+Values::Values(const Values& other) = default;
+Values::Values(Values&& other) = default;
+Values& Values::operator=(const Values& other) = default;
+Values& Values::operator=(Values&& other) = default;
+Values::~Values() = default;
+
+const Value& Values::operator[](std::string_view key) const {
+  const Value* value = get(key);
+  if (!value) {
+    m_parser_ref->error("internal error");
+  }
+  return *value;
+}
+
+const Value* Values::get(std::string_view key) const {
+  auto it = m_values_per_option.find(key);
+  if (it == m_values_per_option.end()) {
+    return nullptr;
+  }
+  return &it->second;
+}
+
+void Values::set(const std::string& key, Value value) {
+  m_values_per_option.insert_or_assign(key, std::move(value));
+}
+
+void Values::append(const std::string& key, Value value) {
+  auto it = m_values_per_option.find(key);
+  if (it == m_values_per_option.end()) {
+    set(key, std::move(value));
+    return;
+  }
+
+  auto& merged_value = it->second.m_value;
+
+  // expand to vector if needed
+  if (std::holds_alternative<int64_t>(merged_value)) {
+    int64_t oldval = std::get<int64_t>(merged_value);
+    std::vector<int64_t> newval;
+    newval.push_back(oldval);
+    merged_value = std::move(newval);
+  }
+  else if (std::holds_alternative<double>(merged_value)) {
+    double oldval = std::get<double>(merged_value);
+    std::vector<double> newval;
+    newval.push_back(oldval);
+    merged_value = std::move(newval);
+  }
+  else if (std::holds_alternative<std::complex<double>>(merged_value)) {
+    std::complex<double> oldval = std::get<std::complex<double>>(merged_value);
+    std::vector<std::complex<double>> newval;
+    newval.push_back(oldval);
+    merged_value = std::move(newval);
+  }
+  else if (std::holds_alternative<std::string>(merged_value)) {
+    std::string oldval = std::move(std::get<std::string>(merged_value));
+    std::vector<std::string> newval;
+    newval.push_back(std::move(oldval));
+    merged_value = std::move(newval);
+  }
+
+  // merge
+  if (std::holds_alternative<std::monostate>(merged_value)) {
+    merged_value = std::move(value.m_value);
+  }
+  else if (std::holds_alternative<std::vector<int64_t>>(merged_value)) {
+    auto& lhs = std::get<std::vector<int64_t>>(merged_value);
+    if (std::holds_alternative<int64_t>(value.m_value)) {
+      lhs.push_back(std::get<int64_t>(value.m_value));
+    }
+    else if (std::holds_alternative<std::vector<int64_t>>(value.m_value)) {
+      auto& rhs = std::get<std::vector<int64_t>>(value.m_value);
+      lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+    }
+    else {
+      m_parser_ref->error("incompatible types");
+    }
+  }
+  else if (std::holds_alternative<std::vector<double>>(merged_value)) {
+    auto& lhs = std::get<std::vector<double>>(merged_value);
+    if (std::holds_alternative<double>(value.m_value)) {
+      lhs.push_back(std::get<double>(value.m_value));
+    }
+    else if (std::holds_alternative<std::vector<double>>(value.m_value)) {
+      auto& rhs = std::get<std::vector<double>>(value.m_value);
+      lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+    }
+    else {
+      m_parser_ref->error("incompatible types");
+    }
+  }  
+  else if (std::holds_alternative<std::vector<std::complex<double>>>(merged_value)) {
+    auto& lhs = std::get<std::vector<std::complex<double>>>(merged_value);
+    if (std::holds_alternative<std::complex<double>>(value.m_value)) {
+      lhs.push_back(std::get<std::complex<double>>(value.m_value));
+    }
+    else if (std::holds_alternative<std::vector<std::complex<double>>>(value.m_value)) {
+      auto& rhs = std::get<std::vector<std::complex<double>>>(value.m_value);
+      lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+    }
+    else {
+      m_parser_ref->error("incompatible types");
+    }
+  }  
+  else if (std::holds_alternative<std::vector<std::string>>(merged_value)) {
+    auto& lhs = std::get<std::vector<std::string>>(merged_value);
+    if (std::holds_alternative<std::string>(value.m_value)) {
+      lhs.push_back(std::move(std::get<std::string>(value.m_value)));
+    }
+    else if (std::holds_alternative<std::vector<std::string>>(value.m_value)) {
+      auto& rhs = std::get<std::vector<std::string>>(value.m_value);
+      lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+    }
+    else {
+      m_parser_ref->error("incompatible types");
+    }
+  }
+  else {
+    m_parser_ref->error("incompatible types");
+  }
+
+  it->second.m_set_by_user |= value.m_set_by_user;
 }
 ////////// } class Values //////////
 
 ////////// class Option { //////////
-string Option::check_type(const string& opt, const string& val) const {
-  istringstream ss(val);
-  stringstream err;
-
+Value Option::make_value_from_string(const std::string& opt, const OptionParser* parser, std::string_view val, bool set_by_user) const {
   if (type() == DataType::Int) {
-    long t;
-    if (!(ss >> t))
+    int64_t t;
+    istringstream ss{std::string(val)};
+    if (!(ss >> t)) {
+      stringstream err;
       err << _("option") << " " << opt << ": " << _("invalid integer value") << ": '" << val << "'";
+      parser->error(err.str());
+    }
+    return Value(parser, t, set_by_user);
   }
   else if (type() == DataType::Float) {
     double t;
-    if (!(ss >> t))
+    istringstream ss{std::string(val)};
+    if (!(ss >> t)) {
+      stringstream err;
       err << _("option") << " " << opt << ": " << _("invalid floating-point value") << ": '" << val << "'";
+      parser->error(err.str());
+    }
+    return Value(parser, t, set_by_user);
   }
   else if (type() == DataType::Choice) {
     if (find(choices().begin(), choices().end(), val) == choices().end()) {
       list<string> tmp = choices();
       transform(tmp.begin(), tmp.end(), tmp.begin(), str_wrap("'"));
+      stringstream err;
       err << _("option") << " " << opt << ": " << _("invalid choice") << ": '" << val << "'"
-        << " (" << _("choose from") << " " << str_join(", ", tmp.begin(), tmp.end()) << ")";
+          << " (" << _("choose from") << " " << str_join(", ", tmp.begin(), tmp.end()) << ")";
+      parser->error(err.str());
     }
   }
   else if (type() == DataType::Complex) {
     complex<double> t;
-    if (!(ss >> t))
+    istringstream ss{std::string(val)};
+    if (!(ss >> t)) {
+      stringstream err;
       err << _("option") << " " << opt << ": " << _("invalid complex value") << ": '" << val << "'";
+      parser->error(err.str());
+    }
+    return Value(parser, t, set_by_user);
   }
 
-  return err.str();
+  return Value(parser, std::string(val), set_by_user);
 }
 
 string Option::format_option_help(unsigned int indent /* = 2 */) const {
@@ -555,7 +867,8 @@ string Option::format_help(unsigned int indent /* = 2 */) const {
       ss << endl;
   }
   if (help() != "") {
-    string help_str = (get_default() != "") ? str_replace(help(), "%default", get_default()) : help();
+    const auto& def = get_default();
+    string help_str = (!std::holds_alternative<std::monostate>(def)) ? str_replace(help(), "%default", to_string(def)) : help();
     ss << str_format(help_str, opt_width, width, false, indent_first);
   }
   return ss.str();
@@ -581,7 +894,12 @@ Option& Option::type(DataType t) {
   return *this;
 }
 
-const std::string& Option::get_default() const {
+Option& Option::set_default(Value::VariantT d) {
+  _default = std::move(d);
+  return *this;
+}
+
+const Value::VariantT& Option::get_default() const {
   auto it = _parser._defaults.find(dest());
   if (it != _parser._defaults.end())
     return it->second;

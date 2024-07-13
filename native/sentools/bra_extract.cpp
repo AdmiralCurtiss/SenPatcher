@@ -140,12 +140,12 @@ int BRA_Extract_Function(int argc, char** argv) {
         return -1;
     }
 
-    const bool generateJson = options.is_set("json");
+    const bool generateJson = options["json"].flag();
     std::string_view source(args[0]);
     std::string_view target;
     std::string tmp;
-    if (options.is_set("output")) {
-        target = std::string_view(options["output"]);
+    if (auto* output_option = options.get("output")) {
+        target = std::string_view(output_option->first_string());
     } else {
         tmp = std::string(source);
         tmp += ".ex";

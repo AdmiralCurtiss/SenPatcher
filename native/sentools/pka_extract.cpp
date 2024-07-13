@@ -57,8 +57,8 @@ int PKA_Extract_Function(int argc, char** argv) {
     std::string_view source(args[0]);
     std::string_view target;
     std::string tmp;
-    if (options.is_set("output")) {
-        target = std::string_view(options["output"]);
+    if (auto* output_option = options.get("output")) {
+        target = std::string_view(output_option->first_string());
     } else {
         tmp = std::string(source);
         tmp += ".ex";
@@ -82,8 +82,8 @@ int PKA_Extract_Function(int argc, char** argv) {
 
     std::optional<HyoutaUtils::IO::File> refInfile;
     std::optional<SenLib::PkaHeader> refPkaHeader;
-    if (options.is_set("referenced-pka")) {
-        std::string_view refpath(options["referenced-pka"]);
+    if (auto* referenced_pka_option = options.get("referenced-pka")) {
+        std::string_view refpath(referenced_pka_option->first_string());
         refInfile.emplace(std::filesystem::path(refpath), HyoutaUtils::IO::OpenMode::Read);
         if (!refInfile->IsOpen()) {
             printf("Error opening referenced pka.\n");

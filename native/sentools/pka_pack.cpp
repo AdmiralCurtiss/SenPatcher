@@ -92,14 +92,15 @@ int PKA_Pack_Function(int argc, char** argv) {
         return -1;
     }
 
-    if (!options.is_set("output")) {
+    auto* output_option = options.get("output");
+    if (output_option == nullptr) {
         parser.error("No output filename given.");
         return -1;
     }
 
     std::optional<uint32_t> recompressFlags = std::nullopt;
-    if (options.is_set("recompress")) {
-        const auto& compressionString = options["recompress"];
+    if (auto* recompress_option = options.get("recompress")) {
+        const auto& compressionString = recompress_option->first_string();
         if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
             recompressFlags = static_cast<uint32_t>(0);
         } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("type1", compressionString)) {
@@ -114,12 +115,12 @@ int PKA_Pack_Function(int argc, char** argv) {
         }
     }
 
-    std::string_view target(options["output"]);
+    std::string_view target(output_option->first_string());
 
     std::optional<HyoutaUtils::IO::File> existingPkaFile = std::nullopt;
     std::optional<SenLib::PkaHeader> existingPkaHeader = std::nullopt;
-    if (options.is_set("referenced-pka")) {
-        std::string_view existingPkaPath(options["referenced-pka"]);
+    if (auto* referenced_pka_option = options.get("referenced-pka")) {
+        std::string_view existingPkaPath(referenced_pka_option->first_string());
         existingPkaFile.emplace(std::filesystem::path(existingPkaPath),
                                 HyoutaUtils::IO::OpenMode::Read);
         if (!existingPkaFile->IsOpen()) {

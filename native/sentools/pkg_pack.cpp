@@ -44,17 +44,18 @@ int PKG_Pack_Function(int argc, char** argv) {
         return -1;
     }
 
-    if (!options.is_set("output")) {
+    auto* output_option = options.get("output");
+    if (output_option == nullptr) {
         parser.error("No output filename given.");
         return -1;
     }
 
     std::string_view source(args[0]);
-    std::string_view target(options["output"]);
+    std::string_view target(output_option->first_string());
 
     uint32_t flags = 0;
-    if (options.is_set("compression")) {
-        const auto& compressionString = options["compression"];
+    if (auto* compression_option = options.get("compression")) {
+        const auto& compressionString = compression_option->first_string();
         if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
             flags = 0;
         } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("type1", compressionString)) {

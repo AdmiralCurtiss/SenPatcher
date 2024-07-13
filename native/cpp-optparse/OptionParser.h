@@ -10,14 +10,20 @@
 #ifndef OPTIONPARSER_H_
 #define OPTIONPARSER_H_
 
+#include <complex>
 #include <cstdint>
-#include <string>
-#include <vector>
+#include <functional>
+#include <iosfwd>
 #include <list>
 #include <map>
 #include <set>
-#include <iostream>
-#include <sstream>
+#include <span>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
+#include <variant>
+#include <vector>
 
 namespace optparse {
 
@@ -53,46 +59,75 @@ enum class DataType : uint8_t {
 const char* const SUPPRESS_HELP = "SUPPRESS" "HELP";
 const char* const SUPPRESS_USAGE = "SUPPRESS" "USAGE";
 
-//! Class for automatic conversion from string -> anytype
 class Value {
-  public:
-    Value() : str(), valid(false) {}
-    Value(const std::string& v) : str(v), valid(true) {}
-    operator const char*() { return str.c_str(); }
-    operator bool() { bool t; return (valid && (std::istringstream(str) >> t)) ? t : false; }
-    operator short() { short t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
-    operator unsigned short() { unsigned short t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
-    operator int() { int t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
-    operator unsigned int() { unsigned int t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
-    operator long() { long t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
-    operator unsigned long() { unsigned long t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
-    operator float() { float t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
-    operator double() { double t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
-    operator long double() { long double t; return (valid && (std::istringstream(str) >> t)) ? t : 0; }
- private:
-    const std::string str;
-    bool valid;
+public:
+  // indicates a command line flag without a value, usually given via StoreTrue or StoreFalse
+  bool flag() const;
+
+  std::span<const int64_t> integers() const;
+  std::span<const double> floats() const;
+  std::span<const std::complex<double>> complexes() const;
+  std::span<const std::string> strings() const;
+
+  int64_t first_integer() const;
+  double first_float() const;
+  std::complex<double> first_complex() const;
+  const std::string& first_string() const;
+
+  bool is_set_by_user() const;
+
+  using VariantT = std::variant<std::monostate,
+                                bool,
+                                int64_t,
+                                double,
+                                std::complex<double>,
+                                std::string,
+                                std::vector<int64_t>,
+                                std::vector<double>,
+                                std::vector<std::complex<double>>,
+                                std::vector<std::string>>;
+  Value(const OptionParser* parser, VariantT v, bool set_by_user);
+  Value(const Value& other);
+  Value(Value&& other);
+  Value& operator=(const Value& other);
+  Value& operator=(Value&& other);
+  ~Value();
+
+private:
+  const OptionParser* m_parser_ref;
+  VariantT m_value;
+  bool m_set_by_user;
+
+  friend class Values;
 };
 
 class Values {
-  public:
-    Values() : _map() {}
-    const std::string& operator[] (const std::string& d) const;
-    std::string& operator[] (const std::string& d) { return _map[d]; }
-    bool is_set(const std::string& d) const { return _map.find(d) != _map.end(); }
-    bool is_set_by_user(const std::string& d) const { return _userSet.find(d) != _userSet.end(); }
-    void is_set_by_user(const std::string& d, bool yes);
-    Value get(const std::string& d) const { return (is_set(d)) ? Value((*this)[d]) : Value(); }
+public:
+  Values(const OptionParser* parser);
+  Values(const Values& other);
+  Values(Values&& other);
+  Values& operator=(const Values& other);
+  Values& operator=(Values&& other);
+  ~Values();
 
-    typedef std::list<std::string>::iterator iterator;
-    typedef std::list<std::string>::const_iterator const_iterator;
-    std::list<std::string>& all(const std::string& d) { return _appendMap[d]; }
-    const std::list<std::string>& all(const std::string& d) const { return _appendMap.find(d)->second; }
+  const Value& operator[](std::string_view key) const;
+  const Value* get(std::string_view key) const;
 
-  private:
-    std::map<std::string, std::string> _map;
-    std::map<std::string, std::list<std::string>> _appendMap;
-    std::set<std::string> _userSet;
+  void set(const std::string& key, Value value);
+  void append(const std::string& key, Value value);
+
+private:
+  struct string_hash {
+    using hash_type = std::hash<std::string_view>;
+    using is_transparent = void;
+
+    std::size_t operator()(const char* str) const { return hash_type{}(str); }
+    std::size_t operator()(std::string_view str) const { return hash_type{}(str); }
+    std::size_t operator()(std::string const& str) const { return hash_type{}(str); }
+  };
+
+  const OptionParser* m_parser_ref;
+  std::unordered_map<std::string, Value, string_hash, std::equal_to<>> m_values_per_option;
 };
 
 class Option {
@@ -104,9 +139,7 @@ class Option {
     Option& action(ActionType a);
     Option& type(DataType t);
     Option& dest(const std::string& d) { _dest = d; return *this; }
-    Option& set_default(const std::string& d) { _default = d; return *this; }
-    template<typename T>
-    Option& set_default(T t) { std::ostringstream ss; ss << t; _default = ss.str(); return *this; }
+    Option& set_default(Value::VariantT d);
     Option& nargs(size_t n) { _nargs = n; return *this; }
     Option& set_const(const std::string& c) { _const = c; return *this; }
     template<typename InputIterator>
@@ -123,7 +156,7 @@ class Option {
     ActionType action() const { return _action; }
     DataType type() const { return _type; }
     const std::string& dest() const { return _dest; }
-    const std::string& get_default() const;
+    const Value::VariantT& get_default() const;
     size_t nargs() const { return _nargs; }
     const std::string& get_const() const { return _const; }
     const std::list<std::string>& choices() const { return _choices; }
@@ -132,7 +165,7 @@ class Option {
     Callback* callback() const { return _callback; }
 
   private:
-    std::string check_type(const std::string& opt, const std::string& val) const;
+    Value make_value_from_string(const std::string& opt, const OptionParser* parser, std::string_view val, bool set_by_user) const;
     std::string format_option_help(unsigned int indent = 2) const;
     std::string format_help(unsigned int indent = 2) const;
 
@@ -144,7 +177,7 @@ class Option {
     ActionType _action;
     DataType _type;
     std::string _dest;
-    std::string _default;
+    Value::VariantT _default = std::monostate();
     size_t _nargs;
     std::string _const;
     std::list<std::string> _choices;
@@ -194,11 +227,7 @@ class OptionParser : public OptionContainer {
     OptionParser& add_version_option(bool v) { _add_version_option = v; return *this; }
     OptionParser& prog(const std::string& p) { _prog = p; return *this; }
     OptionParser& epilog(const std::string& e) { _epilog = e; return *this; }
-    OptionParser& set_defaults(const std::string& dest, const std::string& val) {
-      _defaults[dest] = val; return *this;
-    }
-    template<typename T>
-    OptionParser& set_defaults(const std::string& dest, T t) { std::ostringstream ss; ss << t; _defaults[dest] = ss.str(); return *this; }
+    OptionParser& set_defaults(const std::string& dest, Value::VariantT val);
     OptionParser& enable_interspersed_args() { _interspersed_args = true; return *this; }
     OptionParser& disable_interspersed_args() { _interspersed_args = false; return *this; }
     OptionParser& add_option_group(const OptionGroup& group);
@@ -261,7 +290,7 @@ class OptionParser : public OptionContainer {
 
     Values _values;
 
-    std::map<std::string, std::string> _defaults;
+    std::unordered_map<std::string, Value::VariantT> _defaults;
     std::list<OptionGroup const*> _groups;
 
     std::list<std::string> _remaining;
@@ -290,7 +319,7 @@ class OptionGroup : public OptionContainer {
 
 class Callback {
 public:
-  virtual void operator() (const Option& option, const std::string& opt, const std::string& val, const OptionParser& parser) = 0;
+  virtual void operator() (const Option& option, const std::string& opt, const Value& val, const OptionParser& parser) = 0;
   virtual ~Callback() {}
 };
 
