@@ -9,6 +9,10 @@ enum class R8 {
     CL = 1,
     DL = 2,
     BL = 3,
+    AH = 4,
+    CH = 5,
+    DH = 6,
+    BH = 7,
 };
 enum class R16 {
     AX = 0,
@@ -69,6 +73,9 @@ enum class JumpCondition {
 void Emit_MOV_R32_R32(char*& address, R32 dst, R32 src);
 void Emit_MOV_R32_IMM32(char*& address, R32 dst, uint32_t imm, size_t desiredEncodingLength = 0);
 void Emit_MOV_R32_PtrR32PlusOffset8(char*& address, R32 dst, R32 src, int8_t offset);
+void Emit_MOV_R8_IMM8(char*& address, R8 dst, uint8_t imm);
+void Emit_MOV_R8_BytePtr(char*& address, R8 dst, void* src);
+void Emit_MOV_BytePtr_R8(char*& address, void* dst, R8 src);
 void Emit_JMP_R32(char*& address, R32 target);
 void Emit_CALL_R32(char*& address, R32 target);
 void Emit_RET(char*& address);
@@ -79,7 +86,10 @@ void Emit_ADD_R32_R32(char*& address, R32 dst, R32 src);
 void Emit_ADC_R32_R32(char*& address, R32 dst, R32 src);
 void Emit_SUB_R32_R32(char*& address, R32 dst, R32 src);
 void Emit_TEST_R32_R32(char*& address, R32 dst, R32 src);
+void Emit_TEST_R8_R8(char*& address, R8 dst, R8 src);
+void Emit_TEST_R8_BytePtr(char*& address, R8 dst, void* src);
 void Emit_CMP_R32_R32(char*& address, R32 dst, R32 src);
+void Emit_CMP_R8_R8(char*& address, R8 dst, R8 src);
 void Emit_AND_R32_R32(char*& address, R32 dst, R32 src);
 void Emit_OR_R32_R32(char*& address, R32 dst, R32 src);
 void Emit_XOR_R32_R32(char*& address, R32 dst, R32 src);

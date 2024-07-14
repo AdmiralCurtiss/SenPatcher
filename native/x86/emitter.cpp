@@ -13,6 +13,15 @@ static void Emit_Instr2Byte_R32_R32(char*& address, R32 dst, R32 src, char instr
     *address++ = static_cast<char>(op);
 }
 
+static void Emit_Instr2Byte_R8_R8(char*& address, R8 dst, R8 src, char instr) {
+    int op = 0xc0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+
+    *address++ = instr;
+    *address++ = static_cast<char>(op);
+}
+
 void Emit_MOV_R32_R32(char*& address, R32 dst, R32 src) {
     Emit_Instr2Byte_R32_R32(address, dst, src, static_cast<char>(0x8b));
 }
@@ -41,6 +50,38 @@ void Emit_MOV_R32_PtrR32PlusOffset8(char*& address, R32 dst, R32 src, int8_t off
         *address++ = static_cast<char>(0x24);
     }
     *address++ = static_cast<char>(offset);
+}
+
+void Emit_MOV_R8_IMM8(char*& address, R8 dst, uint8_t imm) {
+    int op = 0xb0 | (static_cast<int>(dst) & 0x7);
+    *address++ = static_cast<char>(op);
+    *address++ = static_cast<char>(imm);
+}
+
+void Emit_MOV_R8_BytePtr(char*& address, R8 dst, void* src) {
+    if (dst == R8::AL) {
+        *address++ = static_cast<char>(0xa0);
+    } else {
+        *address++ = static_cast<char>(0x8a);
+        *address++ = static_cast<char>(0x5 | ((static_cast<int>(dst) & 0x7) << 3));
+    }
+
+    uint32_t imm32 = reinterpret_cast<uint32_t>(src);
+    std::memcpy(address, &imm32, 4);
+    address += 4;
+}
+
+void Emit_MOV_BytePtr_R8(char*& address, void* dst, R8 src) {
+    if (src == R8::AL) {
+        *address++ = static_cast<char>(0xa2);
+    } else {
+        *address++ = static_cast<char>(0x88);
+        *address++ = static_cast<char>(0x5 | ((static_cast<int>(src) & 0x7) << 3));
+    }
+
+    uint32_t imm32 = reinterpret_cast<uint32_t>(dst);
+    std::memcpy(address, &imm32, 4);
+    address += 4;
 }
 
 void Emit_JMP_R32(char*& address, R32 target) {
@@ -95,8 +136,25 @@ void Emit_TEST_R32_R32(char*& address, R32 dst, R32 src) {
     Emit_Instr2Byte_R32_R32(address, dst, src, static_cast<char>(0x85));
 }
 
+void Emit_TEST_R8_R8(char*& address, R8 dst, R8 src) {
+    // yes this is flipped, i don't know why
+    Emit_Instr2Byte_R8_R8(address, src, dst, static_cast<char>(0x84));
+}
+
+void Emit_TEST_R8_BytePtr(char*& address, R8 dst, void* src) {
+    *address++ = static_cast<char>(0x84);
+    *address++ = static_cast<char>(0x5 | ((static_cast<int>(dst) & 0x7) << 3));
+    uint32_t imm32 = reinterpret_cast<uint32_t>(src);
+    std::memcpy(address, &imm32, 4);
+    address += 4;
+}
+
 void Emit_CMP_R32_R32(char*& address, R32 dst, R32 src) {
     Emit_Instr2Byte_R32_R32(address, dst, src, static_cast<char>(0x3b));
+}
+
+void Emit_CMP_R8_R8(char*& address, R8 dst, R8 src) {
+    Emit_Instr2Byte_R8_R8(address, dst, src, static_cast<char>(0x3a));
 }
 
 void Emit_AND_R32_R32(char*& address, R32 dst, R32 src) {

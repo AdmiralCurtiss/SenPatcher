@@ -35,9 +35,11 @@ void DeglobalizeMutexes(PatchExecData& execData);
 void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
-void RemoveTurboAutoSkip(PatchExecData& execData);
-void AllowR2NotebookShortcut(PatchExecData& execData);
-void ChangeTurboModeButton(PatchExecData& execData, int turboModeButton);
+void PatchTurboMode(PatchExecData& execData,
+                    bool removeAutoSkip,
+                    int turboModeButton,
+                    bool enableR2,
+                    bool makeToggle);
 void PatchThorMasterQuartzString(PatchExecData& execData);
 void FixTextboxAdvancePrompt(PatchExecData& execData);
 void PatchDisableMouseCapture(PatchExecData& execData);

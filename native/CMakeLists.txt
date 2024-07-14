@@ -615,8 +615,6 @@ if (SENPATCHER_BUILD_CS1HOOK)
 
 		sen1/exe_patch.h
 		sen1/exe_patch_add_senpatcher_version_to_title.cpp
-		sen1/exe_patch_allow_r2_notebook_shortcut.cpp
-		sen1/exe_patch_change_turbo_mode_button.cpp
 		sen1/exe_patch_deglobalize_mutexes.cpp
 		sen1/exe_patch_disable_mouse_capture.cpp
 		sen1/exe_patch_disable_pause_on_focus_loss.cpp
@@ -626,9 +624,9 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		sen1/exe_patch_force_no_kerning.cpp
 		sen1/exe_patch_force_xinput.cpp
 		sen1/exe_patch_patch_music_queueing.cpp
-		sen1/exe_patch_remove_turbo_auto_skip.cpp
 		sen1/exe_patch_show_mouse_cursor.cpp
 		sen1/exe_patch_thor_mq_string.cpp
+		sen1/exe_patch_turbo_mode.cpp
 		sen1/inject_modloader.h
 		sen1/inject_modloader.cpp
 

@@ -650,6 +650,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     bool assetFixes = true;
     bool removeTurboSkip = true;
+    bool makeTurboToggle = false;
     bool correctLanguageVoiceTables = true;
     bool fixArtsSupportCutin = true;
     bool force0Kerning = false;
@@ -717,6 +718,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                     };
                 check_boolean("CS1", "AssetFixes", assetFixes);
                 check_boolean("CS1", "RemoveTurboSkip", removeTurboSkip);
+                check_boolean("CS1", "MakeTurboToggle", makeTurboToggle);
                 check_boolean("CS1", "CorrectLanguageVoiceTables", correctLanguageVoiceTables);
                 check_boolean("CS1", "FixArtsSupportCutin", fixArtsSupportCutin);
                 check_boolean("CS1", "Force0Kerning", force0Kerning);
@@ -770,19 +772,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::Sen1::FixTextboxAdvancePrompt(patchExecData);
     Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen1::PatchTurboMode(
+        patchExecData, removeTurboSkip, turboModeButton, allowR2NotebookShortcut, makeTurboToggle);
+    Align16CodePage(logger, patchExecData.Codespace);
 
-    if (removeTurboSkip) {
-        SenLib::Sen1::RemoveTurboAutoSkip(patchExecData);
-        Align16CodePage(logger, patchExecData.Codespace);
-    }
-    if (allowR2NotebookShortcut) {
-        SenLib::Sen1::AllowR2NotebookShortcut(patchExecData);
-        Align16CodePage(logger, patchExecData.Codespace);
-    }
-    if (turboModeButton >= 0 && turboModeButton <= 0xF) {
-        SenLib::Sen1::ChangeTurboModeButton(patchExecData, turboModeButton);
-        Align16CodePage(logger, patchExecData.Codespace);
-    }
     if (correctLanguageVoiceTables) {
         SenLib::Sen1::PatchLanguageAppropriateVoiceTables(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
