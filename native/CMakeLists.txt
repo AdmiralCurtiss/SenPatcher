@@ -702,8 +702,8 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		sen2/exe_patch_patch_music_fade_timing.cpp
 		sen2/exe_patch_patch_music_queueing.cpp
 		sen2/exe_patch_remove_debug_leftovers.cpp
-		sen2/exe_patch_remove_turbo_auto_skip.cpp
 		sen2/exe_patch_show_mouse_cursor.cpp
+		sen2/exe_patch_turbo_mode.cpp
 		sen2/inject_modloader.h
 		sen2/inject_modloader.cpp
 
