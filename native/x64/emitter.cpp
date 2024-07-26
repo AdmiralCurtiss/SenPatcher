@@ -72,6 +72,51 @@ void Emit_MOV_R64_IMM64(char*& address, R64 dst, uint64_t imm, size_t desiredEnc
     }
 }
 
+void Emit_MOVZX_R32_BytePtrR64(char*& address, R32 dst, R64 src) {
+    if (dst >= R32::R8D || src >= R64::R8) {
+        int prefix = 0x40;
+        if (src >= R64::R8) {
+            prefix |= 1;
+        }
+        if (dst >= R32::R8D) {
+            prefix |= 4;
+        }
+        *address++ = static_cast<char>(prefix);
+    }
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0xb6);
+
+    int op = (src == R64::RBP || src == R64::R13) ? 0x40 : 0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+    *address++ = static_cast<char>(op);
+    if (src == R64::RSP || src == R64::R12) {
+        *address++ = static_cast<char>(0x24);
+    } else if (src == R64::RBP || src == R64::R13) {
+        *address++ = static_cast<char>(0);
+    }
+}
+
+void Emit_MOVZX_R32_R8(char*& address, R32 dst, R8 src) {
+    if (dst >= R32::R8D || src >= R8::R8B) {
+        int prefix = 0x40;
+        if (src >= R8::R8B) {
+            prefix |= 1;
+        }
+        if (dst >= R32::R8D) {
+            prefix |= 4;
+        }
+        *address++ = static_cast<char>(prefix);
+    }
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0xb6);
+
+    int op = 0xc0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+    *address++ = static_cast<char>(op);
+}
+
 void Emit_JMP_R64(char*& address, R64 target) {
     int op = 0xe0;
     op |= (static_cast<int>(target) & 0x7);

@@ -37,6 +37,7 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
 void FixInGameButtonMappingValidity(PatchExecData& execData);
+void PatchTurboMode(PatchExecData& execData, bool makeToggle);
 void AllowSwitchToNightmare(PatchExecData& execData);
 void SwapBrokenMasterQuartzValuesForDisplay(PatchExecData& execData);
 void PatchDisableMouseCapture(PatchExecData& execData);

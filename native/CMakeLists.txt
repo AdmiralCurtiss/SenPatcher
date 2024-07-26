@@ -775,6 +775,7 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		sen3/exe_patch_patch_music_queueing.cpp
 		sen3/exe_patch_show_mouse_cursor.cpp
 		sen3/exe_patch_swap_broken_mq_values.cpp
+		sen3/exe_patch_turbo_mode.cpp
 		sen3/inject_modloader.h
 		sen3/inject_modloader.cpp
 
