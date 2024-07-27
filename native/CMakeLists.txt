@@ -579,6 +579,9 @@ if (SENPATCHER_BUILD_CS1TEST)
 	target_sources(cs1test PRIVATE
 		sen1/main_cs1_test.cpp
 
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS1_FIXES}
 
@@ -651,6 +654,9 @@ if (SENPATCHER_BUILD_CS2TEST)
 	add_executable(cs2test)
 	target_sources(cs2test PRIVATE
 		sen2/main_cs2_test.cpp
+
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS2_FIXES}
