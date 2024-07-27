@@ -11,11 +11,13 @@ option(SENPATCHER_BUILD_CS2HOOK "build CS2 injection dll" OFF)
 option(SENPATCHER_BUILD_CS3HOOK "build CS3 injection dll" OFF)
 option(SENPATCHER_BUILD_CS4HOOK "build CS4 injection dll" OFF)
 option(SENPATCHER_BUILD_REVHOOK "build Reverie injection dll" OFF)
+option(SENPATCHER_BUILD_TXHOOK "build Tokyo Xanadu injection dll" OFF)
 option(SENPATCHER_BUILD_CS1TEST "build CS1 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS2TEST "build CS2 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS3TEST "build CS3 asset builder executable" OFF)
 option(SENPATCHER_BUILD_CS4TEST "build CS4 asset builder executable" OFF)
 option(SENPATCHER_BUILD_REVTEST "build Reverie asset builder executable" OFF)
+option(SENPATCHER_BUILD_TXTEST "build Tokyo Xanadu asset builder executable" OFF)
 option(SENPATCHER_BUILD_GTESTS "build tests" ON)
 
 separate_arguments(SENPATCHER_BUILDFLAGS NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS}")
@@ -523,6 +525,11 @@ set(SOURCES_REVERIE_FIXES
 	sen5/tbl.h
 )
 
+set(SOURCES_TX_FIXES
+	tx/file_fixes.cpp
+	tx/file_fixes.h
+)
+
 set(SOURCES_BASE_FIXES
 	util/align.h
 	util/align.cpp
@@ -728,6 +735,69 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
 	add_dependencies(cs2hook GenerateGitRevisionHeader)
+endif()
+
+if (SENPATCHER_BUILD_TXTEST)
+	add_executable(txtest)
+	target_sources(txtest PRIVATE
+		tx/main_tx_test.cpp
+
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+
+		${SOURCES_BASE_FIXES}
+		${SOURCES_TX_FIXES}
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_compile_definitions(txtest
+		PUBLIC ${DEFINES_ZSTD}
+	)
+	target_compile_options(txtest PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_include_directories(txtest
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(txtest GenerateGitRevisionHeader)
+endif()
+
+if (SENPATCHER_BUILD_TXHOOK)
+	add_library(txhook SHARED)
+	target_sources(txhook PRIVATE
+		dinput8.def
+		tx/main_tx.cpp
+		util/ini.cpp
+		util/ini.h
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
+		x86/emitter.cpp
+		x86/emitter.h
+		x86/inject_jump_into.h
+		x86/page_unprotect.cpp
+		x86/page_unprotect.h
+
+		tx/exe_patch.h
+		tx/inject_modloader.h
+		tx/inject_modloader.cpp
+
+		${SOURCES_BASE_FIXES}
+		${SOURCES_TX_FIXES}
+
+		${SOURCES_LZ4}
+		${SOURCES_ZSTD_BASE}
+		${SOURCES_ZSTD_COMPRESSION}
+	)
+	target_compile_definitions(txhook
+		PUBLIC ${DEFINES_ZSTD}
+	)
+	target_compile_options(txhook PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_include_directories(txhook
+		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
+	)
+	add_dependencies(txhook GenerateGitRevisionHeader)
 endif()
 
 if (SENPATCHER_BUILD_CS3TEST)
