@@ -96,7 +96,6 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
     execData.Codespace = codespace;
 }
 
-/*
 void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder) {
     HyoutaUtils::Logger& logger = *execData.Logger;
     char* textRegion = execData.TextRegion;
@@ -105,11 +104,11 @@ void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder
 
     using namespace SenPatcher::x86;
 
-    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x41ae91, 0x41aec1);
+    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x43e64a, 0x43ce7a);
     char* const compressionFlagCheck1 =
-        GetCodeAddressSteamGog(version, textRegion, 0x41add8, 0x41ae08);
+        GetCodeAddressSteamGog(version, textRegion, 0x43e548, 0x43cd78);
     char* const compressionFlagCheck2 =
-        GetCodeAddressSteamGog(version, textRegion, 0x404b0a, 0x404b1a);
+        GetCodeAddressSteamGog(version, textRegion, 0x4272e7, 0x425cd7);
 
     // TODO: Is that all the '(flags & 1) != 0' checks?
 
@@ -149,5 +148,4 @@ void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder
 
     execData.Codespace = codespace;
 }
-*/
 } // namespace SenLib::TX

@@ -452,9 +452,6 @@ static int32_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
 }
 
 static int32_t __fastcall FFileOpenForwarder(FFile* ffile, const char* path) {
-    OutputDebugStringA("Trying to open file: ");
-    OutputDebugStringA(path);
-    OutputDebugStringA("\n");
     return OpenModFile(ffile, path);
 }
 
@@ -791,8 +788,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
-    // SenLib::TX::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
-    // Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::TX::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
 
     // mark newly allocated page as executable
     {
