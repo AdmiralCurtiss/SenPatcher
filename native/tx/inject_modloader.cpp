@@ -54,7 +54,6 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
     execData.Codespace = codespace;
 }
 
-/*
 void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder) {
     HyoutaUtils::Logger& logger = *execData.Logger;
     char* textRegion = execData.TextRegion;
@@ -63,7 +62,7 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
 
     using namespace SenPatcher::x86;
 
-    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x4268c0, 0x426b90);
+    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x44b820, 0x44a170);
 
     char* codespaceBegin = codespace;
     auto injectResult =
@@ -97,6 +96,7 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
     execData.Codespace = codespace;
 }
 
+/*
 void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder) {
     HyoutaUtils::Logger& logger = *execData.Logger;
     char* textRegion = execData.TextRegion;

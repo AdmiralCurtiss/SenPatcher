@@ -789,8 +789,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
 
     SenLib::TX::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
-    // SenLib::TX::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
-    // Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::TX::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
     // SenLib::TX::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
     // Align16CodePage(logger, patchExecData.Codespace);
 

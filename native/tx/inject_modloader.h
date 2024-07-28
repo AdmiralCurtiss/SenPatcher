@@ -10,6 +10,6 @@ namespace SenLib::TX {
 enum class GameVersion;
 
 void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder);
-// void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder);
+void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder);
 // void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder);
 } // namespace SenLib::TX
