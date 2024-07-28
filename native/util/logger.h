@@ -10,9 +10,9 @@ struct Logger {
     explicit Logger();
     explicit Logger(HyoutaUtils::IO::File file);
     Logger(const Logger& other) = delete;
-    Logger(Logger&& other) = delete;
+    Logger(Logger&& other);
     Logger& operator=(const Logger& other) = delete;
-    Logger& operator=(Logger&& other) = delete;
+    Logger& operator=(Logger&& other);
     ~Logger();
 
     Logger& Log(std::string_view text);

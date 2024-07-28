@@ -10,6 +10,8 @@
 namespace HyoutaUtils {
 Logger::Logger() = default;
 Logger::Logger(HyoutaUtils::IO::File file) : Handle(std::move(file)) {}
+Logger::Logger(Logger&& other) = default;
+Logger& Logger::operator=(Logger&& other) = default;
 
 Logger::~Logger() = default;
 
