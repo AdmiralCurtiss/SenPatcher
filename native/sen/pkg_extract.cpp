@@ -122,14 +122,19 @@ bool ExtractAndDecompressPkgFile(char* uncompressedDataBuffer,
     uint32_t compressedLength = compressedDataLength;
 
     const bool hasChecksum = (flags & static_cast<uint32_t>(0x2)) != 0;
-    uint32_t checksum = 0;
     if (hasChecksum) {
         if (compressedLength < 4) {
             return false;
         }
 
-        checksum = FromEndian(ReadAdvUInt32(compressedData), e);
+        uint32_t checksum = FromEndian(ReadAdvUInt32(compressedData), e);
         compressedLength -= 4;
+
+        crc_t crc = static_cast<crc_t>(static_cast<uint32_t>(compressedLength));
+        crc = crc_update(crc, compressedData, compressedLength);
+        if (crc != checksum) {
+            return false;
+        }
     }
 
     size_t length = 0;
@@ -194,14 +199,6 @@ bool ExtractAndDecompressPkgFile(char* uncompressedDataBuffer,
         // no compression
         length = compressedLength;
         std::memcpy(uncompressedDataBuffer, compressedData, length);
-    }
-
-    if (hasChecksum) {
-        crc_t crc = static_cast<crc_t>(static_cast<uint32_t>(length));
-        crc = crc_update(crc, uncompressedDataBuffer, length);
-        if (crc != checksum) {
-            return false;
-        }
     }
 
     return true;

@@ -10,8 +10,8 @@
 
 #include "zstd/zstd.h"
 
-#include "util/hash/crc32.h"
 #include "sen/pkg.h"
+#include "util/hash/crc32.h"
 #include "util/memwrite.h"
 
 namespace SenLib {
@@ -200,12 +200,6 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
                      uint32_t flags,
                      HyoutaUtils::EndianUtils::Endianness e) {
     const bool wantsChecksum = (flags & static_cast<uint32_t>(0x2)) != 0;
-    uint32_t checksum = 0;
-    if (wantsChecksum) {
-        crc_t crc = static_cast<crc_t>(uncompressedLength);
-        crc = crc_update(crc, uncompressedData, uncompressedLength);
-        checksum = static_cast<uint32_t>(crc);
-    }
 
     std::unique_ptr<char[]> data;
     uint32_t length = 0;
@@ -340,6 +334,11 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
     }
 
     if (wantsChecksum) {
+        const uint32_t realLength = length - offset;
+        crc_t crc = static_cast<crc_t>(realLength);
+        crc = crc_update(crc, data.get() + offset, realLength);
+        uint32_t checksum = static_cast<uint32_t>(crc);
+
         HyoutaUtils::MemWrite::WriteUInt32(data.get(),
                                            HyoutaUtils::EndianUtils::ToEndian(checksum, e));
     }
