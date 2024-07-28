@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <bit>
 #include <cassert>
 #include <cstdint>
@@ -9,6 +10,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <thread>
 
 #include "util/file.h"
 #include "util/hash/crc32.h"
@@ -618,7 +620,52 @@ static void
     loadedPkaData.FilesCount = filesCount;
 }
 
-static void* SetupHacks(HyoutaUtils::Logger& logger) {
+static void* SetupHacks(HyoutaUtils::Logger& logger,
+                        SenLib::TX::GameVersion version,
+                        void* codeBase,
+                        char* newPage,
+                        size_t newPageLength);
+
+namespace {
+struct InterceptDecryptData {
+    HyoutaUtils::Logger logger;
+    void* codeBase;
+    char* newPage;
+    size_t newPageLength;
+};
+std::atomic<InterceptDecryptData*> s_InterceptDecryptData = nullptr;
+} // namespace
+
+static void SetupHacksAfterDecrypt() {
+    InterceptDecryptData* data = s_InterceptDecryptData.load();
+    s_InterceptDecryptData.store(nullptr);
+    HyoutaUtils::Logger logger = std::move(data->logger);
+    void* codeBase = data->codeBase;
+    char* newPage = data->newPage;
+    size_t newPageLength = data->newPageLength;
+    delete data;
+    SetupHacks(logger, SenLib::TX::GameVersion::Steam, codeBase, newPage, newPageLength);
+}
+
+static void InterceptDecryptThreadFunc(void* codeBase) {
+    // very ugly but I'm not sure if there's a better way to do this?
+    // spinloop and wait for the entry point to be decrypted
+    char* entryPoint = reinterpret_cast<char*>(codeBase) + (0x88e5c4 - 0x401000);
+    volatile uint32_t* refpt = reinterpret_cast<uint32_t*>(entryPoint);
+    while (!(*refpt == (uint32_t)0xe9 && *(refpt + 1) == (uint32_t)0x68146a00)) {
+        ;
+    }
+
+    // call SetupHacksAfterDecrypt at entry point
+    void* funcptr = SetupHacksAfterDecrypt;
+    int32_t diff = (reinterpret_cast<char*>(funcptr) - (entryPoint + 5));
+    *entryPoint = static_cast<char>(0xe8);
+    std::memcpy(entryPoint + 1, &diff, 4);
+
+    FlushInstructionCache(GetCurrentProcess(), entryPoint, 5);
+}
+
+static void* SetupHacksInit(HyoutaUtils::Logger& logger) {
     void* codeBase = nullptr;
     const auto maybeVersion = FindImageBase(logger, &codeBase);
     if (!maybeVersion || !codeBase) {
@@ -626,20 +673,6 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
         LogMemoryMap(logger);
         return nullptr;
     }
-
-    const GameVersion version = *maybeVersion;
-    if (version == GameVersion::Steam_Encrypted) {
-        // TODO
-        logger.Log("Encrypted Steam version, retry later.\n");
-        return nullptr;
-    }
-
-    s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(
-        static_cast<char*>(codeBase)
-        + (version == GameVersion::Steam ? (0x7c1190 - 0x401000) : (0x7bf8d0 - 0x401000)));
-    s_TrackedFree = reinterpret_cast<PTrackedFree>(
-        static_cast<char*>(codeBase)
-        + (version == GameVersion::Steam ? (0x7c1110 - 0x401000) : (0x7bf850 - 0x401000)));
 
     // allocate extra page for code
     const size_t newPageLength = 0x1000;
@@ -650,6 +683,33 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
         return nullptr;
     }
     std::memset(newPage, 0xcc, newPageLength);
+
+    const GameVersion version = *maybeVersion;
+    if (version == GameVersion::Steam_Encrypted) {
+        logger.Log("Encrypted Steam version, attempting to intercept decryption...\n");
+
+        s_InterceptDecryptData.store(
+            new InterceptDecryptData{std::move(logger), codeBase, newPage, newPageLength});
+        std::thread(InterceptDecryptThreadFunc, codeBase).detach();
+
+        return nullptr;
+    } else {
+        return SetupHacks(logger, version, codeBase, newPage, newPageLength);
+    }
+}
+
+static void* SetupHacks(HyoutaUtils::Logger& logger,
+                        SenLib::TX::GameVersion version,
+                        void* codeBase,
+                        char* newPage,
+                        size_t newPageLength) {
+    s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(
+        static_cast<char*>(codeBase)
+        + (version == GameVersion::Steam ? (0x7c1190 - 0x401000) : (0x7bf8d0 - 0x401000)));
+    s_TrackedFree = reinterpret_cast<PTrackedFree>(
+        static_cast<char*>(codeBase)
+        + (version == GameVersion::Steam ? (0x7c1110 - 0x401000) : (0x7bf850 - 0x401000)));
+
     char* newPageStart = newPage;
     char* newPageEnd = newPage + newPageLength;
 
@@ -752,7 +812,7 @@ PDirectInput8Create InjectionDllInitializer() {
     logger.Log("Initializing Tokyo Xanadu hook from SenPatcher, version " SENPATCHER_VERSION
                "...\n");
     auto* forwarder = LoadForwarderAddress(logger);
-    SetupHacks(logger);
+    SetupHacksInit(logger);
     return forwarder;
 }
 static PDirectInput8Create addr_PDirectInput8Create = InjectionDllInitializer();
