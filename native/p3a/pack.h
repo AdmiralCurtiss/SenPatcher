@@ -16,10 +16,15 @@ struct File;
 namespace SenPatcher {
 enum class P3ACompressionType : uint64_t;
 
+enum class P3APackFilePrecompressed : bool { No, Yes };
+
 struct P3APackFile {
     P3APackFile(std::vector<char> data,
                 const std::array<char, 0x100>& filename,
-                P3ACompressionType desiredCompressionType);
+                P3ACompressionType desiredCompressionType,
+                P3APackFilePrecompressed precompressed = P3APackFilePrecompressed::No,
+                uint64_t decompressedFilesize = 0 // ignored if not precompressed
+    );
     P3APackFile(const P3APackFile& other) = delete;
     P3APackFile(P3APackFile&& other);
     P3APackFile& operator=(const P3APackFile& other) = delete;
@@ -29,11 +34,16 @@ struct P3APackFile {
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
     P3APackFile(std::filesystem::path path,
                 const std::array<char, 0x100>& filename,
-                P3ACompressionType desiredCompressionType);
+                P3ACompressionType desiredCompressionType,
+                P3APackFilePrecompressed precompressed = P3APackFilePrecompressed::No,
+                uint64_t decompressedFilesize = 0 // ignored if not precompressed
+    );
 #endif
 
     const std::array<char, 0x100>& GetFilename() const;
     P3ACompressionType GetDesiredCompressionType() const;
+    bool IsPrecompressed() const;
+    uint64_t GetDecompressedFilesizeForPrecompressed() const;
 
     bool HasVectorData() const;
     const std::vector<char>& GetVectorData() const;

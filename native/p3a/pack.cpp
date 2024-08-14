@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -33,30 +34,58 @@ struct P3APackFile::Impl {
 #endif
     std::array<char, 0x100> Filename{};
     P3ACompressionType DesiredCompressionType{};
+    P3APackFilePrecompressed IsPrecompressed = P3APackFilePrecompressed::No;
+    uint64_t DecompressedFilesizeForPrecompressed = 0u;
 
     Impl(std::vector<char> data,
          const std::array<char, 0x100>& filename,
-         P3ACompressionType desiredCompressionType)
-      : Data(std::move(data)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
+         P3ACompressionType desiredCompressionType,
+         P3APackFilePrecompressed precompressed,
+         uint64_t decompressedFilesize)
+      : Data(std::move(data))
+      , Filename(filename)
+      , DesiredCompressionType(desiredCompressionType)
+      , IsPrecompressed(precompressed)
+      , DecompressedFilesizeForPrecompressed(
+            precompressed != P3APackFilePrecompressed::No ? decompressedFilesize : 0u) {}
 
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
     Impl(std::filesystem::path path,
          const std::array<char, 0x100>& filename,
-         P3ACompressionType desiredCompressionType)
-      : Data(std::move(path)), Filename(filename), DesiredCompressionType(desiredCompressionType) {}
+         P3ACompressionType desiredCompressionType,
+         P3APackFilePrecompressed precompressed,
+         uint64_t decompressedFilesize)
+      : Data(std::move(path))
+      , Filename(filename)
+      , DesiredCompressionType(desiredCompressionType)
+      , IsPrecompressed(precompressed)
+      , DecompressedFilesizeForPrecompressed(
+            precompressed != P3APackFilePrecompressed::No ? decompressedFilesize : 0u) {}
 #endif
 };
 
 P3APackFile::P3APackFile(std::vector<char> data,
                          const std::array<char, 0x100>& filename,
-                         P3ACompressionType desiredCompressionType)
-  : Data(std::make_unique<P3APackFile::Impl>(std::move(data), filename, desiredCompressionType)) {}
+                         P3ACompressionType desiredCompressionType,
+                         P3APackFilePrecompressed precompressed,
+                         uint64_t decompressedFilesize)
+  : Data(std::make_unique<P3APackFile::Impl>(std::move(data),
+                                             filename,
+                                             desiredCompressionType,
+                                             precompressed,
+                                             decompressedFilesize)) {}
 
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
 P3APackFile::P3APackFile(std::filesystem::path path,
                          const std::array<char, 0x100>& filename,
-                         P3ACompressionType desiredCompressionType)
-  : Data(std::make_unique<P3APackFile::Impl>(std::move(path), filename, desiredCompressionType)) {}
+                         P3ACompressionType desiredCompressionType,
+                         P3APackFilePrecompressed precompressed,
+                         uint64_t decompressedFilesize)
+  : Data(std::make_unique<P3APackFile::Impl>(std::move(path),
+                                             filename,
+                                             desiredCompressionType,
+                                             precompressed,
+                                             decompressedFilesize)) {}
 #endif
 
 P3APackFile::P3APackFile(P3APackFile&& other) = default;
@@ -69,18 +98,27 @@ const std::array<char, 0x100>& P3APackFile::GetFilename() const {
 P3ACompressionType P3APackFile::GetDesiredCompressionType() const {
     return Data->DesiredCompressionType;
 }
+bool P3APackFile::IsPrecompressed() const {
+    return Data->IsPrecompressed != P3APackFilePrecompressed::No;
+}
+uint64_t P3APackFile::GetDecompressedFilesizeForPrecompressed() const {
+    assert(IsPrecompressed());
+    return Data->DecompressedFilesizeForPrecompressed;
+}
 
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
 bool P3APackFile::HasVectorData() const {
     return std::holds_alternative<std::vector<char>>(Data->Data);
 }
 const std::vector<char>& P3APackFile::GetVectorData() const {
+    assert(HasVectorData());
     return std::get<std::vector<char>>(Data->Data);
 }
 bool P3APackFile::HasPathData() const {
     return std::holds_alternative<std::filesystem::path>(Data->Data);
 }
 const std::filesystem::path& P3APackFile::GetPathData() const {
+    assert(HasPathData());
     return std::get<std::filesystem::path>(Data->Data);
 }
 #else
@@ -129,6 +167,7 @@ bool P3APackData::HasZStdDictionaryVectorData() const {
     return std::holds_alternative<std::vector<char>>(Data->ZStdDictionary);
 }
 const std::vector<char>& P3APackData::GetZStdDictionaryVectorData() const {
+    assert(HasZStdDictionaryVectorData());
     return std::get<std::vector<char>>(Data->ZStdDictionary);
 }
 void P3APackData::SetZStdDictionaryVectorData(std::vector<char> data) {
@@ -138,6 +177,7 @@ bool P3APackData::HasZStdDictionaryPathData() const {
     return std::holds_alternative<std::filesystem::path>(Data->ZStdDictionary);
 }
 const std::filesystem::path& P3APackData::GetZStdDictionaryPathData() const {
+    assert(HasZStdDictionaryPathData());
     return std::get<std::filesystem::path>(Data->ZStdDictionary);
 }
 void P3APackData::SetZStdDictionaryPathData(std::filesystem::path path) {
@@ -151,6 +191,7 @@ bool P3APackData::HasZStdDictionaryVectorData() const {
     return Data->ZStdDictionary.has_value();
 }
 const std::vector<char>& P3APackData::GetZStdDictionaryVectorData() const {
+    assert(HasZStdDictionaryVectorData());
     return *Data->ZStdDictionary;
 }
 void P3APackData::SetZStdDictionaryVectorData(std::vector<char> data) {
@@ -305,13 +346,32 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
         const P3ACompressionType desiredCompressionType = fileinfo.GetDesiredCompressionType();
         P3ACompressionType compressionType = desiredCompressionType;
         uint64_t compressedSize = filesize;
-        uint64_t uncompressedSize = filesize;
+        const uint64_t uncompressedSize = fileinfo.IsPrecompressed()
+                                              ? fileinfo.GetDecompressedFilesizeForPrecompressed()
+                                              : filesize;
         uint64_t hash = 0;
 
         const auto write_uncompressed = [&]() -> bool {
+            if (fileinfo.IsPrecompressed()) {
+                // TODO: this is doable, decompress first
+                return false;
+            }
+
             compressionType = P3ACompressionType::None;
+            compressedSize = uncompressedSize;
+            hash = XXH64(filedata, uncompressedSize, 0);
+            if (file.Write(filedata, uncompressedSize) != uncompressedSize) {
+                return false;
+            }
+            return true;
+        };
+        const auto write_precompressed = [&]() -> bool {
+            if (!fileinfo.IsPrecompressed()) {
+                return false;
+            }
+
+            compressionType = desiredCompressionType;
             compressedSize = filesize;
-            uncompressedSize = filesize;
             hash = XXH64(filedata, filesize, 0);
             if (file.Write(filedata, filesize) != filesize) {
                 return false;
@@ -319,36 +379,74 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
             return true;
         };
 
-        switch (desiredCompressionType) {
-            case P3ACompressionType::LZ4: {
-                if (filesize == 0 || filesize > LZ4_MAX_INPUT_SIZE) {
-                    if (!write_uncompressed()) {
-                        return false;
-                    }
-                } else {
-                    const int signedSize = static_cast<int>(filesize);
-                    const int bound = LZ4_compressBound(signedSize);
-                    if (bound <= 0) {
+        if (fileinfo.IsPrecompressed()) {
+            if (!write_precompressed()) {
+                return false;
+            }
+        } else {
+            switch (desiredCompressionType) {
+                case P3ACompressionType::LZ4: {
+                    if (uncompressedSize == 0 || uncompressedSize > LZ4_MAX_INPUT_SIZE) {
                         if (!write_uncompressed()) {
                             return false;
                         }
                     } else {
-                        auto compressedData = std::make_unique_for_overwrite<char[]>(
-                            static_cast<unsigned int>(bound));
-                        if (!compressedData) {
-                            return false;
-                        }
-                        const int lz4return = LZ4_compress_HC(
-                            filedata, compressedData.get(), signedSize, bound, LZ4HC_CLEVEL_MAX);
-                        if (lz4return <= 0 || static_cast<unsigned int>(lz4return) >= filesize) {
-                            // compression failed or pointless, write uncompressed instead
+                        const int signedSize = static_cast<int>(uncompressedSize);
+                        const int bound = LZ4_compressBound(signedSize);
+                        if (bound <= 0) {
                             if (!write_uncompressed()) {
                                 return false;
                             }
                         } else {
-                            compressionType = P3ACompressionType::LZ4;
-                            compressedSize = static_cast<unsigned int>(lz4return);
-                            uncompressedSize = filesize;
+                            auto compressedData = std::make_unique_for_overwrite<char[]>(
+                                static_cast<unsigned int>(bound));
+                            if (!compressedData) {
+                                return false;
+                            }
+                            const int lz4return = LZ4_compress_HC(filedata,
+                                                                  compressedData.get(),
+                                                                  signedSize,
+                                                                  bound,
+                                                                  LZ4HC_CLEVEL_MAX);
+                            if (lz4return <= 0
+                                || static_cast<unsigned int>(lz4return) >= uncompressedSize) {
+                                // compression failed or pointless, write uncompressed instead
+                                if (!write_uncompressed()) {
+                                    return false;
+                                }
+                            } else {
+                                compressionType = P3ACompressionType::LZ4;
+                                compressedSize = static_cast<unsigned int>(lz4return);
+                                hash = XXH64(compressedData.get(), compressedSize, 0);
+                                if (file.Write(compressedData.get(), compressedSize)
+                                    != compressedSize) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case P3ACompressionType::ZSTD: {
+                    size_t bound = ZSTD_compressBound(uncompressedSize);
+                    if (uncompressedSize == 0 || ZSTD_isError(bound)) {
+                        if (!write_uncompressed()) {
+                            return false;
+                        }
+                    } else {
+                        auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
+                        if (!compressedData) {
+                            return false;
+                        }
+                        const size_t zstdReturn = ZSTD_compress(
+                            compressedData.get(), bound, filedata, uncompressedSize, 22);
+                        if (ZSTD_isError(zstdReturn)) {
+                            if (!write_uncompressed()) {
+                                return false;
+                            }
+                        } else {
+                            compressionType = P3ACompressionType::ZSTD;
+                            compressedSize = zstdReturn;
                             hash = XXH64(compressedData.get(), compressedSize, 0);
                             if (file.Write(compressedData.get(), compressedSize)
                                 != compressedSize) {
@@ -356,90 +454,60 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
                             }
                         }
                     }
+                    break;
                 }
-                break;
-            }
-            case P3ACompressionType::ZSTD: {
-                size_t bound = ZSTD_compressBound(filesize);
-                if (filesize == 0 || ZSTD_isError(bound)) {
-                    if (!write_uncompressed()) {
+                case P3ACompressionType::ZSTD_DICT: {
+                    if (!cdict) {
                         return false;
                     }
-                } else {
-                    auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
-                    if (!compressedData) {
-                        return false;
-                    }
-                    const size_t zstdReturn =
-                        ZSTD_compress(compressedData.get(), bound, filedata, filesize, 22);
-                    if (ZSTD_isError(zstdReturn)) {
-                        if (!write_uncompressed()) {
-                            return false;
-                        }
-                    } else {
-                        compressionType = P3ACompressionType::ZSTD;
-                        compressedSize = zstdReturn;
-                        uncompressedSize = filesize;
-                        hash = XXH64(compressedData.get(), compressedSize, 0);
-                        if (file.Write(compressedData.get(), compressedSize) != compressedSize) {
-                            return false;
-                        }
-                    }
-                }
-                break;
-            }
-            case P3ACompressionType::ZSTD_DICT: {
-                if (!cdict) {
-                    return false;
-                }
 
-                size_t bound = ZSTD_compressBound(filesize);
-                if (filesize == 0 || ZSTD_isError(bound)) {
-                    if (!write_uncompressed()) {
-                        return false;
-                    }
-                } else {
-                    auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
-                    if (!compressedData) {
-                        return false;
-                    }
-                    size_t zstdReturn;
-                    {
-                        ZSTD_CCtx_UniquePtr cctx = ZSTD_CCtx_UniquePtr(ZSTD_createCCtx());
-                        if (!cctx) {
-                            return false;
-                        }
-                        zstdReturn = ZSTD_compress_usingCDict(cctx.get(),
-                                                              compressedData.get(),
-                                                              bound,
-                                                              filedata,
-                                                              filesize,
-                                                              cdict.get());
-                    }
-                    if (ZSTD_isError(zstdReturn)) {
+                    size_t bound = ZSTD_compressBound(uncompressedSize);
+                    if (uncompressedSize == 0 || ZSTD_isError(bound)) {
                         if (!write_uncompressed()) {
                             return false;
                         }
                     } else {
-                        compressionType = P3ACompressionType::ZSTD_DICT;
-                        compressedSize = zstdReturn;
-                        uncompressedSize = filesize;
-                        hash = XXH64(compressedData.get(), compressedSize, 0);
-                        if (file.Write(compressedData.get(), compressedSize) != compressedSize) {
+                        auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
+                        if (!compressedData) {
                             return false;
                         }
+                        size_t zstdReturn;
+                        {
+                            ZSTD_CCtx_UniquePtr cctx = ZSTD_CCtx_UniquePtr(ZSTD_createCCtx());
+                            if (!cctx) {
+                                return false;
+                            }
+                            zstdReturn = ZSTD_compress_usingCDict(cctx.get(),
+                                                                  compressedData.get(),
+                                                                  bound,
+                                                                  filedata,
+                                                                  uncompressedSize,
+                                                                  cdict.get());
+                        }
+                        if (ZSTD_isError(zstdReturn)) {
+                            if (!write_uncompressed()) {
+                                return false;
+                            }
+                        } else {
+                            compressionType = P3ACompressionType::ZSTD_DICT;
+                            compressedSize = zstdReturn;
+                            hash = XXH64(compressedData.get(), compressedSize, 0);
+                            if (file.Write(compressedData.get(), compressedSize)
+                                != compressedSize) {
+                                return false;
+                            }
+                        }
                     }
+                    break;
                 }
-                break;
-            }
-            default: {
-                if (!write_uncompressed()) {
-                    return false;
+                default: {
+                    if (!write_uncompressed()) {
+                        return false;
+                    }
+                    break;
                 }
-                break;
             }
         }
-
 
         // fill in header
         P3AFileInfo tmp{};
