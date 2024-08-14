@@ -15,6 +15,19 @@
 
 namespace SenPatcher {
 template<typename T>
+static std::optional<bool> ReadBool(T& json, const char* key) {
+    auto it = json.FindMember(key);
+    if (it == json.MemberEnd()) {
+        return std::nullopt;
+    }
+    auto& j = it->value;
+    if (j.IsBool()) {
+        return j.GetBool() ? true : false;
+    }
+    return std::nullopt;
+}
+
+template<typename T>
 static std::optional<uint64_t> ReadUInt64(T& json, const char* key) {
     auto it = json.FindMember(key);
     if (it == json.MemberEnd()) {
@@ -92,7 +105,13 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                 const auto nameInArchive = ReadString(file, "NameInArchive");
                 const auto pathOnDisk = ReadString(file, "PathOnDisk");
                 const auto compression = ReadString(file, "Compression");
+                const bool isPrecompressed = ReadBool(file, "Precompressed").value_or(false);
+                const auto precompressedUncompressedFilesize =
+                    ReadUInt64(file, "UncompressedFilesize");
                 if (!nameInArchive || !pathOnDisk || !compression) {
+                    return false;
+                }
+                if (isPrecompressed && !precompressedUncompressedFilesize) {
                     return false;
                 }
                 std::array<char, 0x100> fn{};
@@ -119,7 +138,9 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                         (const char8_t*)pathOnDisk->data(),
                         ((const char8_t*)pathOnDisk->data()) + pathOnDisk->size())),
                     fn,
-                    ct);
+                    ct,
+                    isPrecompressed ? P3APackFilePrecompressed::Yes : P3APackFilePrecompressed::No,
+                    isPrecompressed ? *precompressedUncompressedFilesize : 0u);
             } else {
                 return false;
             }
