@@ -28,6 +28,10 @@ int P3A_Extract_Function(int argc, char** argv) {
             "If set, a __p3a.json will be generated that contains information about the files in "
             "the archive. This file can be used to repack the archive with the P3A.Repack option "
             "while preserving compression types and file order within the archive.");
+    parser.add_option("--no-decompress")
+        .dest("no-decompress")
+        .action(optparse::ActionType::StoreTrue)
+        .help("If set, files will be unpacked but not decompressed.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -50,7 +54,8 @@ int P3A_Extract_Function(int argc, char** argv) {
 
     if (!SenPatcher::UnpackP3A(std::filesystem::path(source.begin(), source.end()),
                                std::filesystem::path(target.begin(), target.end()),
-                               options["json"].flag())) {
+                               options["json"].flag(),
+                               options["no-decompress"].flag())) {
         printf("Unpacking failed.\n");
         return -1;
     }

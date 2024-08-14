@@ -47,7 +47,8 @@ using ZSTD_DCtx_UniquePtr = std::unique_ptr<ZSTD_DCtx, ZSTD_DCtx_Deleter>;
 
 bool UnpackP3A(const std::filesystem::path& archivePath,
                const std::filesystem::path& extractPath,
-               bool generateJson) {
+               bool generateJson,
+               bool noDecompression) {
     rapidjson::StringBuffer jsonbuffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> json(jsonbuffer);
     json.StartObject();
@@ -154,6 +155,7 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
 
         // not particularly memory efficient but whatever
         auto filedata = std::make_unique_for_overwrite<char[]>(fileinfo.CompressedSize);
+        uint64_t filedataSize = fileinfo.CompressedSize;
         if (!filedata) {
             return false;
         }
@@ -171,57 +173,66 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
         json.Key("Compression");
         if (fileinfo.CompressionType == P3ACompressionType::LZ4) {
             json.String("lz4");
-            auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
-            if (!decomp) {
-                return false;
+            if (!noDecompression) {
+                auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
+                if (!decomp) {
+                    return false;
+                }
+                if (LZ4_decompress_safe(filedata.get(),
+                                        decomp.get(),
+                                        fileinfo.CompressedSize,
+                                        fileinfo.UncompressedSize)
+                    != fileinfo.UncompressedSize) {
+                    return false;
+                }
+                decomp.swap(filedata);
+                filedataSize = fileinfo.UncompressedSize;
             }
-            if (LZ4_decompress_safe(filedata.get(),
-                                    decomp.get(),
-                                    fileinfo.CompressedSize,
-                                    fileinfo.UncompressedSize)
-                != fileinfo.UncompressedSize) {
-                return false;
-            }
-            decomp.swap(filedata);
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD) {
             json.String("zStd");
-            auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
-            if (!decomp) {
-                return false;
+            if (!noDecompression) {
+                auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
+                if (!decomp) {
+                    return false;
+                }
+                if (ZSTD_decompress(decomp.get(),
+                                    fileinfo.UncompressedSize,
+                                    filedata.get(),
+                                    fileinfo.CompressedSize)
+                    != fileinfo.UncompressedSize) {
+                    return false;
+                }
+                decomp.swap(filedata);
+                filedataSize = fileinfo.UncompressedSize;
             }
-            if (ZSTD_decompress(decomp.get(),
-                                fileinfo.UncompressedSize,
-                                filedata.get(),
-                                fileinfo.CompressedSize)
-                != fileinfo.UncompressedSize) {
-                return false;
-            }
-            decomp.swap(filedata);
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD_DICT) {
             json.String("zStdDict");
-            if (!ddict) {
-                return false;
-            }
+            if (!noDecompression) {
+                if (!ddict) {
+                    return false;
+                }
 
-            auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
-            if (!decomp) {
-                return false;
-            }
-            ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
-            if (!dctx) {
-                return false;
-            }
-            if (ZSTD_decompress_usingDDict(dctx.get(),
-                                           decomp.get(),
-                                           fileinfo.UncompressedSize,
-                                           filedata.get(),
-                                           fileinfo.CompressedSize,
-                                           ddict.get())
-                != fileinfo.UncompressedSize) {
-                return false;
-            }
+                auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
+                if (!decomp) {
+                    return false;
+                }
+                ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
+                if (!dctx) {
+                    return false;
+                }
+                if (ZSTD_decompress_usingDDict(dctx.get(),
+                                               decomp.get(),
+                                               fileinfo.UncompressedSize,
+                                               filedata.get(),
+                                               fileinfo.CompressedSize,
+                                               ddict.get())
+                    != fileinfo.UncompressedSize) {
+                    return false;
+                }
 
-            decomp.swap(filedata);
+                decomp.swap(filedata);
+                filedataSize = fileinfo.UncompressedSize;
+            }
         } else {
             json.String("none");
             if (fileinfo.CompressedSize != fileinfo.UncompressedSize) {
@@ -229,7 +240,14 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             }
         }
 
-        if (f2.Write(filedata.get(), fileinfo.UncompressedSize) != fileinfo.UncompressedSize) {
+        if (noDecompression) {
+            json.Key("Precompressed");
+            json.Bool(true);
+            json.Key("UncompressedFilesize");
+            json.Uint64(fileinfo.UncompressedSize);
+        }
+
+        if (f2.Write(filedata.get(), filedataSize) != filedataSize) {
             return false;
         }
 
