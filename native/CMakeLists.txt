@@ -807,6 +807,9 @@ if (SENPATCHER_BUILD_CS3TEST)
 	target_sources(cs3test PRIVATE
 		sen3/main_cs3_test.cpp
 
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS3_FIXES}
 
@@ -879,6 +882,9 @@ if (SENPATCHER_BUILD_CS4TEST)
 	target_sources(cs4test PRIVATE
 		sen4/main_cs4_test.cpp
 
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
+
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS4_FIXES}
 
@@ -947,6 +953,9 @@ if (SENPATCHER_BUILD_REVTEST)
 	add_executable(reverietest)
 	target_sources(reverietest PRIVATE
 		sen5/main_reverie_test.cpp
+
+		modload/loaded_mods.cpp
+		modload/loaded_mods.h
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_REVERIE_FIXES}
