@@ -219,6 +219,114 @@ struct ZSTD_CCtx_Deleter {
 using ZSTD_CCtx_UniquePtr = std::unique_ptr<ZSTD_CCtx, ZSTD_CCtx_Deleter>;
 } // namespace
 
+HyoutaUtils::Result<P3ACompressionResult, P3ACompressionError>
+    CompressForP3A(P3ACompressionType desiredCompressionType,
+                   const char* filedata,
+                   uint64_t uncompressedSize,
+                   const void* zstdCDict) {
+    switch (desiredCompressionType) {
+        case P3ACompressionType::LZ4: {
+            if (uncompressedSize == 0 || uncompressedSize > LZ4_MAX_INPUT_SIZE) {
+                return P3ACompressionError::InvalidUncompressedSize;
+            } else {
+                const int signedSize = static_cast<int>(uncompressedSize);
+                const int bound = LZ4_compressBound(signedSize);
+                if (bound <= 0) {
+                    return P3ACompressionError::InvalidUncompressedSize;
+                } else {
+                    auto bufferLength = static_cast<unsigned int>(bound);
+                    auto compressedData = std::make_unique_for_overwrite<char[]>(bufferLength);
+                    if (!compressedData) {
+                        return P3ACompressionError::MemoryAllocationFailure;
+                    }
+                    const int lz4return = LZ4_compress_HC(
+                        filedata, compressedData.get(), signedSize, bound, LZ4HC_CLEVEL_MAX);
+                    if (lz4return <= 0
+                        || static_cast<unsigned int>(lz4return) >= uncompressedSize) {
+                        // compression failed or pointless, write uncompressed instead
+                        return P3ACompressionError::CompressionError;
+                    } else {
+                        P3ACompressionResult c{};
+                        c.Buffer = std::move(compressedData);
+                        c.DataLength = static_cast<unsigned int>(lz4return);
+                        c.BufferLength = bufferLength;
+                        c.CompressionType = P3ACompressionType::LZ4;
+                        return c;
+                    }
+                }
+            }
+            break;
+        }
+        case P3ACompressionType::ZSTD: {
+            size_t bound = ZSTD_compressBound(uncompressedSize);
+            if (uncompressedSize == 0 || ZSTD_isError(bound)) {
+                return P3ACompressionError::InvalidUncompressedSize;
+            } else {
+                auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
+                if (!compressedData) {
+                    return P3ACompressionError::MemoryAllocationFailure;
+                }
+                const size_t zstdReturn =
+                    ZSTD_compress(compressedData.get(), bound, filedata, uncompressedSize, 22);
+                if (ZSTD_isError(zstdReturn)) {
+                    return P3ACompressionError::CompressionError;
+                } else {
+                    P3ACompressionResult c{};
+                    c.Buffer = std::move(compressedData);
+                    c.DataLength = zstdReturn;
+                    c.BufferLength = bound;
+                    c.CompressionType = P3ACompressionType::ZSTD;
+                    return c;
+                }
+            }
+            break;
+        }
+        case P3ACompressionType::ZSTD_DICT: {
+            if (!zstdCDict) {
+                return P3ACompressionError::ArgumentError;
+            }
+
+            size_t bound = ZSTD_compressBound(uncompressedSize);
+            if (uncompressedSize == 0 || ZSTD_isError(bound)) {
+                return P3ACompressionError::InvalidUncompressedSize;
+            } else {
+                auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
+                if (!compressedData) {
+                    return P3ACompressionError::MemoryAllocationFailure;
+                }
+                size_t zstdReturn;
+                {
+                    ZSTD_CCtx_UniquePtr cctx = ZSTD_CCtx_UniquePtr(ZSTD_createCCtx());
+                    if (!cctx) {
+                        return P3ACompressionError::MemoryAllocationFailure;
+                    }
+                    zstdReturn =
+                        ZSTD_compress_usingCDict(cctx.get(),
+                                                 compressedData.get(),
+                                                 bound,
+                                                 filedata,
+                                                 uncompressedSize,
+                                                 static_cast<const ZSTD_CDict*>(zstdCDict));
+                }
+                if (ZSTD_isError(zstdReturn)) {
+                    return P3ACompressionError::CompressionError;
+                } else {
+                    P3ACompressionResult c{};
+                    c.Buffer = std::move(compressedData);
+                    c.DataLength = zstdReturn;
+                    c.BufferLength = bound;
+                    c.CompressionType = P3ACompressionType::ZSTD_DICT;
+                    return c;
+                }
+            }
+            break;
+        }
+        default: break;
+    }
+
+    return P3ACompressionError::InvalidCompressionType;
+}
+
 bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
     if (!file.IsOpen()) {
         return false;
@@ -384,127 +492,25 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
                 return false;
             }
         } else {
-            switch (desiredCompressionType) {
-                case P3ACompressionType::LZ4: {
-                    if (uncompressedSize == 0 || uncompressedSize > LZ4_MAX_INPUT_SIZE) {
+            auto compressionResult =
+                CompressForP3A(desiredCompressionType, filedata, uncompressedSize, cdict.get());
+            if (compressionResult.IsSuccess()) {
+                auto& c = compressionResult.GetSuccessValue();
+                compressionType = c.CompressionType;
+                compressedSize = c.DataLength;
+                hash = XXH64(c.Buffer.get(), compressedSize, 0);
+                if (file.Write(c.Buffer.get(), compressedSize) != compressedSize) {
+                    return false;
+                }
+            } else {
+                switch (compressionResult.GetErrorValue()) {
+                    case P3ACompressionError::ArgumentError: return false;
+                    case P3ACompressionError::MemoryAllocationFailure: return false;
+                    default:
                         if (!write_uncompressed()) {
                             return false;
                         }
-                    } else {
-                        const int signedSize = static_cast<int>(uncompressedSize);
-                        const int bound = LZ4_compressBound(signedSize);
-                        if (bound <= 0) {
-                            if (!write_uncompressed()) {
-                                return false;
-                            }
-                        } else {
-                            auto compressedData = std::make_unique_for_overwrite<char[]>(
-                                static_cast<unsigned int>(bound));
-                            if (!compressedData) {
-                                return false;
-                            }
-                            const int lz4return = LZ4_compress_HC(filedata,
-                                                                  compressedData.get(),
-                                                                  signedSize,
-                                                                  bound,
-                                                                  LZ4HC_CLEVEL_MAX);
-                            if (lz4return <= 0
-                                || static_cast<unsigned int>(lz4return) >= uncompressedSize) {
-                                // compression failed or pointless, write uncompressed instead
-                                if (!write_uncompressed()) {
-                                    return false;
-                                }
-                            } else {
-                                compressionType = P3ACompressionType::LZ4;
-                                compressedSize = static_cast<unsigned int>(lz4return);
-                                hash = XXH64(compressedData.get(), compressedSize, 0);
-                                if (file.Write(compressedData.get(), compressedSize)
-                                    != compressedSize) {
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                    break;
-                }
-                case P3ACompressionType::ZSTD: {
-                    size_t bound = ZSTD_compressBound(uncompressedSize);
-                    if (uncompressedSize == 0 || ZSTD_isError(bound)) {
-                        if (!write_uncompressed()) {
-                            return false;
-                        }
-                    } else {
-                        auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
-                        if (!compressedData) {
-                            return false;
-                        }
-                        const size_t zstdReturn = ZSTD_compress(
-                            compressedData.get(), bound, filedata, uncompressedSize, 22);
-                        if (ZSTD_isError(zstdReturn)) {
-                            if (!write_uncompressed()) {
-                                return false;
-                            }
-                        } else {
-                            compressionType = P3ACompressionType::ZSTD;
-                            compressedSize = zstdReturn;
-                            hash = XXH64(compressedData.get(), compressedSize, 0);
-                            if (file.Write(compressedData.get(), compressedSize)
-                                != compressedSize) {
-                                return false;
-                            }
-                        }
-                    }
-                    break;
-                }
-                case P3ACompressionType::ZSTD_DICT: {
-                    if (!cdict) {
-                        return false;
-                    }
-
-                    size_t bound = ZSTD_compressBound(uncompressedSize);
-                    if (uncompressedSize == 0 || ZSTD_isError(bound)) {
-                        if (!write_uncompressed()) {
-                            return false;
-                        }
-                    } else {
-                        auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
-                        if (!compressedData) {
-                            return false;
-                        }
-                        size_t zstdReturn;
-                        {
-                            ZSTD_CCtx_UniquePtr cctx = ZSTD_CCtx_UniquePtr(ZSTD_createCCtx());
-                            if (!cctx) {
-                                return false;
-                            }
-                            zstdReturn = ZSTD_compress_usingCDict(cctx.get(),
-                                                                  compressedData.get(),
-                                                                  bound,
-                                                                  filedata,
-                                                                  uncompressedSize,
-                                                                  cdict.get());
-                        }
-                        if (ZSTD_isError(zstdReturn)) {
-                            if (!write_uncompressed()) {
-                                return false;
-                            }
-                        } else {
-                            compressionType = P3ACompressionType::ZSTD_DICT;
-                            compressedSize = zstdReturn;
-                            hash = XXH64(compressedData.get(), compressedSize, 0);
-                            if (file.Write(compressedData.get(), compressedSize)
-                                != compressedSize) {
-                                return false;
-                            }
-                        }
-                    }
-                    break;
-                }
-                default: {
-                    if (!write_uncompressed()) {
-                        return false;
-                    }
-                    break;
+                        break;
                 }
             }
         }

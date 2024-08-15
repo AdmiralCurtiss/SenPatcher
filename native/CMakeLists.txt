@@ -220,6 +220,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/endian.h
 		util/memread.h
 		util/memwrite.h
+		util/result.h
 		util/stream.cpp
 		util/stream.h
 		util/text.cpp
@@ -550,6 +551,7 @@ set(SOURCES_BASE_FIXES
 	util/endian.h
 	util/memread.h
 	util/memwrite.h
+	util/result.h
 	util/stream.cpp
 	util/stream.h
 	util/text.cpp

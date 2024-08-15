@@ -9,6 +9,8 @@
 #include <filesystem>
 #endif
 
+#include "util/result.h"
+
 namespace HyoutaUtils::IO {
 struct File;
 }
@@ -87,6 +89,32 @@ private:
     struct Impl;
     std::unique_ptr<Impl> Data;
 };
+
+struct P3ACompressionResult {
+    std::unique_ptr<char[]> Buffer;
+    size_t DataLength;
+    size_t BufferLength;
+    P3ACompressionType CompressionType;
+
+    P3ACompressionResult() = default;
+    P3ACompressionResult(const P3ACompressionResult& other) = delete;
+    P3ACompressionResult(P3ACompressionResult&& other) = default;
+    P3ACompressionResult& operator=(const P3ACompressionResult& other) = delete;
+    P3ACompressionResult& operator=(P3ACompressionResult&& other) = default;
+    ~P3ACompressionResult() = default;
+};
+enum class P3ACompressionError {
+    InvalidCompressionType,
+    InvalidUncompressedSize,
+    CompressionError,
+    ArgumentError,
+    MemoryAllocationFailure,
+};
+HyoutaUtils::Result<P3ACompressionResult, P3ACompressionError>
+    CompressForP3A(P3ACompressionType desiredCompressionType,
+                   const char* filedata,
+                   uint64_t uncompressedSize,
+                   const void* zstdCDict = nullptr);
 
 bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData);
 } // namespace SenPatcher
