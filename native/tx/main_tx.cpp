@@ -221,10 +221,8 @@ struct LoadedPkaData {
 };
 static LoadedPkaData s_LoadedPkaData{};
 
-#define PRIMARY_PKA_PATH "data/asset/D3D11.pka"
-#define PRIMARY_PKG_PREFIX "data/asset/d3d11/"
-#define SECONDARY_PKA_PATH "data/asset/D3D11_us.pka"
-#define SECONDARY_PKG_PREFIX "data/asset/d3d11_us/"
+#define PRIMARY_PKA_PATH "Asset.pka"
+#define SECONDARY_PKA_PATH "Japanese.pka"
 
 static bool s_JapaneseLanguage = false;
 
@@ -301,28 +299,11 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
     const auto checkPka = [&](SenLib::PkaPkgToHashData* pkgs,
                               size_t pkgCount,
                               SenLib::PkaFileHashData* pkgFiles,
-                              size_t pkgFilesCount,
-                              const char* pkgPrefix,
-                              size_t pkgPrefixLength) -> int32_t {
-        if (pkgCount > 0 && memcmp(pkgPrefix, filteredPath.data(), pkgPrefixLength) == 0) {
-            // first check for the real PKG
-            HyoutaUtils::IO::File file(std::string_view(path), HyoutaUtils::IO::OpenMode::Read);
-            if (file.IsOpen()) {
-                auto length = file.GetLength();
-                if (!length) {
-                    ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
-                    return 0;
-                }
-                ffile->NativeFileHandle = file.ReleaseHandle();
-                ffile->Filesize = static_cast<uint32_t>(*length);
-                return 1;
-            }
-
-            // then check for data in the PKA
-            const size_t start = pkgPrefixLength;
-            assert(filteredPath.size() - start >= pkgs[0].PkgName.size());
+                              size_t pkgFilesCount) -> int32_t {
+        if (pkgCount > 0) {
+            // check for data in the PKA
             const SenLib::PkaPkgToHashData* pkaPkg =
-                SenLib::FindPkgInPkaByName(pkgs, pkgCount, &filteredPath[start]);
+                SenLib::FindPkgInPkaByName(pkgs, pkgCount, filteredPath.data());
             if (pkaPkg) {
                 // check bounds
                 // 0x120'0000 is an arbitrary limit; it would result in an allocation of near 2 GB
@@ -358,25 +339,46 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
         return -1;
     };
 
+    if (s_JapaneseLanguage) {
+        int32_t pkaCheckResult2 = checkPka(pkaData.SecondaryPkgs.get(),
+                                           pkaData.SecondaryPkgCount,
+                                           pkaData.SecondaryPkgFiles.get(),
+                                           pkaData.SecondaryPkgFilesCount);
+        if (pkaCheckResult2 >= 0) {
+            return pkaCheckResult2;
+        }
+    }
     int32_t pkaCheckResult1 = checkPka(pkaData.PrimaryPkgs.get(),
                                        pkaData.PrimaryPkgCount,
                                        pkaData.PrimaryPkgFiles.get(),
-                                       pkaData.PrimaryPkgFilesCount,
-                                       PRIMARY_PKG_PREFIX,
-                                       sizeof(PRIMARY_PKG_PREFIX) - 1);
+                                       pkaData.PrimaryPkgFilesCount);
     if (pkaCheckResult1 >= 0) {
         return pkaCheckResult1;
     }
-    int32_t pkaCheckResult2 = checkPka(pkaData.SecondaryPkgs.get(),
-                                       pkaData.SecondaryPkgCount,
-                                       pkaData.SecondaryPkgFiles.get(),
-                                       pkaData.SecondaryPkgFilesCount,
-                                       SECONDARY_PKG_PREFIX,
-                                       sizeof(SECONDARY_PKG_PREFIX) - 1);
-    if (pkaCheckResult2 >= 0) {
-        return pkaCheckResult2;
-    }
 
+    return -1;
+}
+
+static int32_t GetPkaPkgFilesizeTX(SenLib::PkaPkgToHashData* pkgs,
+                                   size_t pkgCount,
+                                   const std::array<char, 0x100>& filteredPath,
+                                   const char* path,
+                                   uint32_t* out_filesize) {
+    if (pkgCount > 0) {
+        // check for data in the PKA
+        const SenLib::PkaPkgToHashData* pkaPkg =
+            SenLib::FindPkgInPkaByName(pkgs, pkgCount, filteredPath.data());
+        if (pkaPkg) {
+            if (out_filesize) {
+                // this pkg isn't actually real, but its size when crafted is going to be:
+                // 8 bytes fixed header
+                // 0x50 bytes header per file
+                // 0x20 bytes data per file (the SHA256 hash)
+                *out_filesize = 8 + (pkaPkg->FileCount * (0x50 + 0x20));
+            }
+            return 1;
+        }
+    }
     return -1;
 }
 
@@ -429,25 +431,20 @@ static int32_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
     }
 
     const auto& pkaData = s_LoadedPkaData;
-    int32_t pkaCheckResult1 = SenLib::ModLoad::GetPkaPkgFilesize(pkaData.PrimaryPkgs.get(),
-                                                                 pkaData.PrimaryPkgCount,
-                                                                 PRIMARY_PKG_PREFIX,
-                                                                 sizeof(PRIMARY_PKG_PREFIX) - 1,
-                                                                 filteredPath,
-                                                                 path,
-                                                                 out_filesize);
+    if (s_JapaneseLanguage) {
+        int32_t pkaCheckResult2 = GetPkaPkgFilesizeTX(pkaData.SecondaryPkgs.get(),
+                                                      pkaData.SecondaryPkgCount,
+                                                      filteredPath,
+                                                      path,
+                                                      out_filesize);
+        if (pkaCheckResult2 >= 0) {
+            return pkaCheckResult2;
+        }
+    }
+    int32_t pkaCheckResult1 = GetPkaPkgFilesizeTX(
+        pkaData.PrimaryPkgs.get(), pkaData.PrimaryPkgCount, filteredPath, path, out_filesize);
     if (pkaCheckResult1 >= 0) {
         return pkaCheckResult1;
-    }
-    int32_t pkaCheckResult2 = SenLib::ModLoad::GetPkaPkgFilesize(pkaData.SecondaryPkgs.get(),
-                                                                 pkaData.SecondaryPkgCount,
-                                                                 SECONDARY_PKG_PREFIX,
-                                                                 sizeof(SECONDARY_PKG_PREFIX) - 1,
-                                                                 filteredPath,
-                                                                 path,
-                                                                 out_filesize);
-    if (pkaCheckResult2 >= 0) {
-        return pkaCheckResult2;
     }
 
     return -1;
@@ -790,7 +787,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     //          baseDirUtf8,
     //          {{"data/misc.p3a", "data/bgm.p3a", "data/se.p3a", "data/voen.p3a",
     //          "data/vojp.p3a"}});
-    // LoadPkas(logger, s_LoadedPkaData, baseDirUtf8);
+    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8);
 
     bool assetCreationSuccess = true;
     if (assetFixes) {
