@@ -32,4 +32,6 @@ inline char* GetCodeAddressSteamGog(GameVersion version,
            + (version == GameVersion::Steam ? (addressSteam - 0x401000u)
                                             : (addressGog - 0x401000u));
 }
+
+void OverrideLanguage(PatchExecData& execData, bool useJapanese);
 } // namespace SenLib::TX

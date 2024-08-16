@@ -226,6 +226,8 @@ static LoadedPkaData s_LoadedPkaData{};
 #define SECONDARY_PKA_PATH "data/asset/D3D11_us.pka"
 #define SECONDARY_PKG_PREFIX "data/asset/d3d11_us/"
 
+static bool s_JapaneseLanguage = false;
+
 // ignore any path that doesn't begin with the 'data' directory
 static bool IsValidReroutablePath(const char* path) {
     // TX doesn't prefix its paths with 'data', which makes this a bit annoying to check.
@@ -717,6 +719,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool disableMouseCapture = false;
     bool showMouseCursor = false;
     bool disablePauseOnFocusLoss = false;
+    bool useJapaneseLanguage = false;
 
     {
         std::string settingsFilePath;
@@ -751,13 +754,33 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                             }
                         }
                     };
-                check_boolean("TX", "AssetFixes", assetFixes);
-                check_boolean("TX", "DisableMouseCapture", disableMouseCapture);
-                check_boolean("TX", "ShowMouseCursor", showMouseCursor);
-                check_boolean("TX", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
+                const auto check_language =
+                    [&](std::string_view section, std::string_view key, bool& b) {
+                        const auto* kvp = ini.FindValue(section, key);
+                        if (kvp) {
+                            using HyoutaUtils::TextUtils::CaseInsensitiveEquals;
+                            if (CaseInsensitiveEquals(kvp->Value, "Japanese")) {
+                                logger.Log("Set to Japanese via ini.\n");
+                                b = true;
+                            } else if (CaseInsensitiveEquals(kvp->Value, "English")) {
+                                logger.Log("Set to English via ini.\n");
+                            } else {
+                                logger.Log("Invalid language selected, defaulting to English.\n");
+                            }
+                        } else {
+                            logger.Log("No language selected, defaulting to English.\n");
+                        }
+                    };
+                // check_boolean("TX", "AssetFixes", assetFixes);
+                // check_boolean("TX", "DisableMouseCapture", disableMouseCapture);
+                // check_boolean("TX", "ShowMouseCursor", showMouseCursor);
+                // check_boolean("TX", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
+                check_language("TX", "Language", useJapaneseLanguage);
             }
         }
     }
+
+    s_JapaneseLanguage = useJapaneseLanguage;
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
@@ -783,6 +806,9 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     patchExecData.Version = version;
     patchExecData.Codespace = newPage;
     patchExecData.CodespaceEnd = newPageEnd;
+
+    SenLib::TX::OverrideLanguage(patchExecData, useJapaneseLanguage);
+    Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::TX::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
     Align16CodePage(logger, patchExecData.Codespace);

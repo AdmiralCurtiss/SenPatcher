@@ -782,6 +782,7 @@ if (SENPATCHER_BUILD_TXHOOK)
 		x86/page_unprotect.h
 
 		tx/exe_patch.h
+		tx/exe_patch_override_language.cpp
 		tx/inject_modloader.h
 		tx/inject_modloader.cpp
 
