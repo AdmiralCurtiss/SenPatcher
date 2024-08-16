@@ -594,7 +594,12 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
         assetCreationSuccess = SenLib::Sen3::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
-    LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes);
+    LoadModP3As(logger,
+                s_LoadedModsData,
+                baseDirUtf8,
+                assetFixes,
+                "CS3Mod",
+                version == GameVersion::Japanese);
 
     SenLib::Sen3::PatchExecData patchExecData;
     patchExecData.Logger = &logger;

@@ -542,6 +542,8 @@ set(SOURCES_BASE_FIXES
 	sen/decompress_helper.h
 	util/file.h
 	util/file.cpp
+	util/ini.cpp
+	util/ini.h
 	util/logger.cpp
 	util/logger.h
 	util/hash/sha1.cpp
@@ -613,8 +615,6 @@ if (SENPATCHER_BUILD_CS1HOOK)
 	target_sources(cs1hook PRIVATE
 		dinput8.def
 		sen1/main_cs1.cpp
-		util/ini.cpp
-		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		modload/loaded_pka.cpp
@@ -689,8 +689,6 @@ if (SENPATCHER_BUILD_CS2HOOK)
 	target_sources(cs2hook PRIVATE
 		dinput8.def
 		sen2/main_cs2.cpp
-		util/ini.cpp
-		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		modload/loaded_pka.cpp
@@ -769,8 +767,6 @@ if (SENPATCHER_BUILD_TXHOOK)
 	target_sources(txhook PRIVATE
 		dinput8.def
 		tx/main_tx.cpp
-		util/ini.cpp
-		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		modload/loaded_pka.cpp
@@ -834,8 +830,6 @@ if (SENPATCHER_BUILD_CS3HOOK)
 	target_sources(cs3hook PRIVATE
 		dinput8.def
 		sen3/main_cs3.cpp
-		util/ini.cpp
-		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		x64/emitter.cpp
@@ -909,8 +903,6 @@ if (SENPATCHER_BUILD_CS4HOOK)
 	target_sources(cs4hook PRIVATE
 		dinput8.def
 		sen4/main_cs4.cpp
-		util/ini.cpp
-		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		x64/emitter.cpp
@@ -981,8 +973,6 @@ if (SENPATCHER_BUILD_REVHOOK)
 	target_sources(reveriehook PRIVATE
 		dsound.def
 		sen5/main_reverie.cpp
-		util/ini.cpp
-		util/ini.h
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
 		x64/emitter.cpp

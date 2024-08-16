@@ -806,7 +806,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
             SenLib::TX::CreateAssetPatchIfNeeded(logger, baseDirUtf8, s_LoadedVanillaP3As);
     }
 
-    LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes);
+    LoadModP3As(logger, s_LoadedModsData, baseDirUtf8, assetFixes, "TXMod", useJapaneseLanguage);
 
     SenLib::TX::PatchExecData patchExecData;
     patchExecData.Logger = &logger;

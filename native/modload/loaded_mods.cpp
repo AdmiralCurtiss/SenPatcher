@@ -14,6 +14,7 @@
 #include "zstd/zstd.h"
 
 #include "util/file.h"
+#include "util/ini.h"
 #include "util/text.h"
 
 namespace {
@@ -338,7 +339,6 @@ static void MakeP3ABinarySearchable(std::unique_ptr<P3AFileRef[]>& combinedFileI
             auto& fileinfo = p3a.Archive.FileInfo[j];
             combinedFileInfos[index].ArchiveData = &p3a;
             combinedFileInfos[index].FileInfo = &fileinfo;
-            FilterP3APath(fileinfo.Filename.data(), fileinfo.Filename.size());
             ++index;
         }
     }
@@ -404,6 +404,11 @@ void LoadP3As(HyoutaUtils::Logger& logger,
             if (!p3a.Load(std::string_view(filepath))) {
                 p3avector.pop_back();
             }
+
+            for (size_t i = 0; i < p3a.FileCount; ++i) {
+                auto& fileinfo = p3a.FileInfo[i];
+                FilterP3APath(fileinfo.Filename.data(), fileinfo.Filename.size());
+            }
         }
 
         p3acount = p3avector.size();
@@ -426,7 +431,9 @@ void LoadP3As(HyoutaUtils::Logger& logger,
 void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
-                 bool shouldLoadAssetFixes) {
+                 bool shouldLoadAssetFixes,
+                 std::string_view iniCategory,
+                 bool isRunningInJapaneseLanguage) {
     loadedModsData.LoadedP3As.CombinedFileInfoCount = 0;
     loadedModsData.LoadedP3As.CombinedFileInfos.reset();
     loadedModsData.LoadedP3As.P3As.reset();
@@ -468,8 +475,70 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
             filepath.append(modsDir);
             filepath.push_back('/');
             filepath.append(path);
+            logger.Log("Loading mod file at ").Log(filepath).Log("...\n");
             if (!p3a.Load(std::string_view(filepath))) {
+                logger.Log("Couldn't load, skipping.\n");
                 p3avector.pop_back();
+            }
+
+            for (size_t i = 0; i < p3a.FileCount; ++i) {
+                auto& fileinfo = p3a.FileInfo[i];
+                FilterP3APath(fileinfo.Filename.data(), fileinfo.Filename.size());
+            }
+
+            // check ini and skip this file if it's language-limited to a different language
+            // TODO: can we do this in a cleaner way? this works but looks like a mess...
+            const bool shouldSkip = [&]() -> bool {
+                for (size_t i = 0; i < p3a.FileCount; ++i) {
+                    auto& fileinfo = p3a.FileInfo[i];
+                    if (strncmp(fileinfo.Filename.data(),
+                                "senpatcher_mod.ini",
+                                fileinfo.Filename.size())
+                        == 0) {
+                        std::recursive_mutex tmpMutex;
+                        void* out_memory = nullptr;
+                        uint64_t out_filesize = 0;
+                        if (ExtractP3AFileToMemory(
+                                fileinfo,
+                                p3a,
+                                tmpMutex,
+                                0x8000'0000,
+                                out_memory,
+                                out_filesize,
+                                [](size_t length) { return malloc(length); },
+                                [](void* memory) { free(memory); })) {
+                            bool skip = false;
+                            {
+                                HyoutaUtils::Ini::IniFile ini;
+                                ini.ParseExternalMemory(static_cast<char*>(out_memory),
+                                                        out_filesize);
+                                auto* lang = ini.FindValue(iniCategory, "Language");
+                                if (lang) {
+                                    if (isRunningInJapaneseLanguage) {
+                                        skip = !HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                                            "Japanese", lang->Value);
+                                    } else {
+                                        skip = !HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                                            "English", lang->Value);
+                                    }
+                                }
+                            }
+
+                            free(out_memory);
+                            return skip;
+                        } else {
+                            // failed to read ini, assume this p3a is broken
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }();
+            if (shouldSkip) {
+                logger.Log("Skipped via senpatcher_mod.ini\n");
+                p3avector.pop_back();
+                continue;
             }
 
             p3apair.second = 0;
@@ -525,7 +594,24 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                             uint64_t& out_filesize,
                             PMalloc malloc_func,
                             PFree free_func) {
-    const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
+    return ExtractP3AFileToMemory(*ref.FileInfo,
+                                  ref.ArchiveData->Archive,
+                                  ref.ArchiveData->Mutex,
+                                  filesizeLimit,
+                                  out_memory,
+                                  out_filesize,
+                                  malloc_func,
+                                  free_func);
+}
+
+bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
+                            SenPatcher::P3A& archive,
+                            std::recursive_mutex& mutex,
+                            uint64_t filesizeLimit,
+                            void*& out_memory,
+                            uint64_t& out_filesize,
+                            PMalloc malloc_func,
+                            PFree free_func) {
     if (fi.UncompressedSize >= filesizeLimit) {
         return false;
     }
@@ -536,15 +622,14 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 return false;
             }
 
-            auto& archiveData = *ref.ArchiveData;
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
                 return false;
             }
 
             {
-                std::lock_guard guard(archiveData.Mutex);
-                auto& file = archiveData.Archive.FileHandle;
+                std::lock_guard guard(mutex);
+                auto& file = archive.FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
                     free_func(memory);
                     return false;
@@ -571,7 +656,6 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                 return false;
             }
 
-            auto& archiveData = *ref.ArchiveData;
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
                 return false;
@@ -583,8 +667,8 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             }
 
             {
-                std::lock_guard guard(archiveData.Mutex);
-                auto& file = archiveData.Archive.FileHandle;
+                std::lock_guard guard(mutex);
+                auto& file = archive.FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
                     compressedMemory.reset();
                     free_func(memory);
@@ -619,7 +703,6 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             return true;
         }
         case SenPatcher::P3ACompressionType::ZSTD: {
-            auto& archiveData = *ref.ArchiveData;
             void* memory = malloc_func(fi.UncompressedSize);
             if (!memory) {
                 return false;
@@ -631,8 +714,8 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             }
 
             {
-                std::lock_guard guard(archiveData.Mutex);
-                auto& file = archiveData.Archive.FileHandle;
+                std::lock_guard guard(mutex);
+                auto& file = archive.FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
                     compressedMemory.reset();
                     free_func(memory);
@@ -667,8 +750,7 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             return true;
         }
         case SenPatcher::P3ACompressionType::ZSTD_DICT: {
-            auto& archiveData = *ref.ArchiveData;
-            if (!archiveData.Archive.Dict) {
+            if (!archive.Dict) {
                 return false;
             }
             void* memory = malloc_func(fi.UncompressedSize);
@@ -682,8 +764,8 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
             }
 
             {
-                std::lock_guard guard(archiveData.Mutex);
-                auto& file = archiveData.Archive.FileHandle;
+                std::lock_guard guard(mutex);
+                auto& file = archive.FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
                     compressedMemory.reset();
                     free_func(memory);
@@ -713,7 +795,7 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                                            fi.UncompressedSize,
                                            compressedMemory.get(),
                                            fi.CompressedSize,
-                                           archiveData.Archive.Dict)
+                                           archive.Dict)
                 != fi.UncompressedSize) {
                 dctx.reset();
                 compressedMemory.reset();

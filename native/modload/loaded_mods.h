@@ -74,7 +74,9 @@ void LoadP3As(HyoutaUtils::Logger& logger,
 void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
-                 bool shouldLoadAssetFixes);
+                 bool shouldLoadAssetFixes,
+                 std::string_view iniCategory,
+                 bool isRunningInJapaneseLanguage);
 
 // Searches a file with name filteredPath (assumed to be pre-filtered) in
 // [CombinedFileInfos, CombinedFileInfos + CombinedFileInfoCount)
@@ -83,6 +85,15 @@ const P3AFileRef* FindP3AFileRef(const LoadedP3AData& loadedModsData,
                                  const std::array<char, 0x100>& filteredPath);
 
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,
+                            uint64_t filesizeLimit,
+                            void*& out_memory,
+                            uint64_t& out_filesize,
+                            PMalloc malloc_func,
+                            PFree free_func);
+
+bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
+                            SenPatcher::P3A& archive,
+                            std::recursive_mutex& mutex,
                             uint64_t filesizeLimit,
                             void*& out_memory,
                             uint64_t& out_filesize,
