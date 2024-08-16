@@ -717,6 +717,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool showMouseCursor = false;
     bool disablePauseOnFocusLoss = false;
     bool useJapaneseLanguage = false;
+    bool skipLogos = true;
+    bool skipAllMovies = false;
 
     {
         std::string settingsFilePath;
@@ -773,6 +775,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 // check_boolean("TX", "ShowMouseCursor", showMouseCursor);
                 // check_boolean("TX", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
                 check_language("TX", "Language", useJapaneseLanguage);
+                check_boolean("TX", "SkipLogos", skipLogos);
+                check_boolean("TX", "SkipAllMovies", skipAllMovies);
             }
         }
     }
@@ -805,13 +809,15 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     patchExecData.CodespaceEnd = newPageEnd;
 
     SenLib::TX::OverrideLanguage(patchExecData, useJapaneseLanguage);
-    Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::TX::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+
+    SenLib::TX::PatchSkipMovies(patchExecData, skipLogos, skipAllMovies);
     Align16CodePage(logger, patchExecData.Codespace);
 
     // mark newly allocated page as executable
