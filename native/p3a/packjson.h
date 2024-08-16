@@ -4,5 +4,6 @@
 
 namespace SenPatcher {
 bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
-                         const std::filesystem::path& archivePath);
+                         const std::filesystem::path& archivePath,
+                         size_t desiredThreadCount);
 } // namespace SenPatcher

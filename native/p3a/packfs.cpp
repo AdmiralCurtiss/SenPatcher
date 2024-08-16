@@ -51,7 +51,8 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
 bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                           const std::filesystem::path& archivePath,
                           P3ACompressionType desiredCompressionType,
-                          const std::filesystem::path& dictPath) {
+                          const std::filesystem::path& dictPath,
+                          size_t desiredThreadCount) {
     P3APackData packData;
     packData.SetAlignment(0x40);
     std::error_code ec;
@@ -72,11 +73,13 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
         packData.SetZStdDictionaryPathData(dictPath);
     }
 
-    return PackP3A(archivePath, packData);
+    return PackP3A(archivePath, packData, desiredThreadCount);
 }
 
-bool PackP3A(const std::filesystem::path& archivePath, const P3APackData& packData) {
+bool PackP3A(const std::filesystem::path& archivePath,
+             const P3APackData& packData,
+             size_t desiredThreadCount) {
     HyoutaUtils::IO::File file(archivePath, HyoutaUtils::IO::OpenMode::Write);
-    return PackP3A(file, packData);
+    return PackP3A(file, packData, desiredThreadCount);
 }
 } // namespace SenPatcher

@@ -60,7 +60,8 @@ static std::optional<std::string> ReadString(T& json, const char* key) {
 }
 
 bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
-                         const std::filesystem::path& archivePath) {
+                         const std::filesystem::path& archivePath,
+                         size_t desiredThreadCount) {
     P3APackData packData;
 
     HyoutaUtils::IO::File f(jsonPath, HyoutaUtils::IO::OpenMode::Read);
@@ -147,6 +148,6 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
         }
     }
 
-    return PackP3A(archivePath, packData);
+    return PackP3A(archivePath, packData, desiredThreadCount);
 }
 } // namespace SenPatcher

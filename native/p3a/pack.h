@@ -116,5 +116,5 @@ HyoutaUtils::Result<P3ACompressionResult, P3ACompressionError>
                    uint64_t uncompressedSize,
                    const void* zstdCDict = nullptr);
 
-bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData);
+bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t desiredThreadCount);
 } // namespace SenPatcher

@@ -2,11 +2,17 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <cstdint>
+#include <deque>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
+#include <thread>
+#include <utility>
 #include <vector>
 
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
@@ -327,7 +333,329 @@ HyoutaUtils::Result<P3ACompressionResult, P3ACompressionError>
     return P3ACompressionError::InvalidCompressionType;
 }
 
-bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
+static const char* GetFileData(uint64_t& filesize,
+                               std::unique_ptr<char[]>& filedataHolder,
+                               const P3APackFile& fileinfo) {
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+    if (fileinfo.HasPathData()) {
+        HyoutaUtils::IO::File inputfile(fileinfo.GetPathData(), HyoutaUtils::IO::OpenMode::Read);
+        if (!inputfile.IsOpen()) {
+            return nullptr;
+        }
+        const auto maybeFilesize = inputfile.GetLength();
+        if (!maybeFilesize) {
+            return nullptr;
+        }
+        filesize = *maybeFilesize;
+        filedataHolder = std::make_unique_for_overwrite<char[]>(filesize);
+        if (!filedataHolder) {
+            return nullptr;
+        }
+        if (inputfile.Read(filedataHolder.get(), filesize) != filesize) {
+            return nullptr;
+        }
+        return filedataHolder.get();
+    }
+#endif
+
+    if (fileinfo.HasVectorData()) {
+        const auto& vec = fileinfo.GetVectorData();
+        filesize = vec.size();
+        return vec.data();
+    }
+
+    return nullptr;
+}
+
+static bool WriteData(HyoutaUtils::IO::File& file,
+                      P3ACompressionType& compressionType,
+                      uint64_t& compressedSize,
+                      uint64_t& hash,
+                      const char* filedata,
+                      const uint64_t filesize,
+                      const P3ACompressionType filedataCompressionType) {
+    compressionType = filedataCompressionType;
+    compressedSize = filesize;
+    hash = XXH64(filedata, filesize, 0);
+    if (file.Write(filedata, filesize) != filesize) {
+        return false;
+    }
+    return true;
+}
+
+static bool WriteUncompressed(HyoutaUtils::IO::File& file,
+                              P3ACompressionType& compressionType,
+                              uint64_t& compressedSize,
+                              uint64_t& hash,
+                              const P3APackFile& fileinfo,
+                              const char* filedata,
+                              const uint64_t uncompressedSize) {
+    if (fileinfo.IsPrecompressed()) {
+        // TODO: this is doable, decompress first
+        return false;
+    }
+
+    return WriteData(file,
+                     compressionType,
+                     compressedSize,
+                     hash,
+                     filedata,
+                     uncompressedSize,
+                     P3ACompressionType::None);
+}
+
+static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
+                                       const std::vector<P3APackFile>& fileinfos,
+                                       const uint64_t alignment,
+                                       uint64_t& position,
+                                       const ZSTD_CDict* cdict,
+                                       size_t numberOfFilesThatNeedCompressing,
+                                       size_t threadCount) {
+    // This is designed like this:
+    // - threadCount worker threads, which do the actual compression of the files
+    // - 1 file reader thread, which reads the input files and hands them over to a worker thread
+    // - 1 file writer thread, which takes the output of the worker thread and writes them to the
+    //   output file
+
+    // TODO: This generally works, but uses more memory that it really needs to because the reader
+    // thread just reads all files as fast as it can.
+
+    std::atomic<bool> encounteredError = false;
+
+    struct alignas(64) FileDataToWrite {
+        bool IsValid = false;
+        const char* Data;
+        uint64_t CompressedSize;
+        uint64_t UncompressedSize;
+        std::unique_ptr<char[]> Holder;
+        P3ACompressionType CompressionType;
+    };
+    auto fileDataToWriteArray = std::make_unique<FileDataToWrite[]>(fileinfos.size());
+    std::mutex fileDataToWriteMutex;
+    std::condition_variable fileDataToWriteCondVar;
+    bool fileDataToWriteAbort = false;
+
+    struct alignas(64) FileDataToCompress {
+        const char* Data;
+        uint64_t Size;
+        std::unique_ptr<char[]> Holder;
+        size_t Index;
+        P3ACompressionType CompressionType;
+    };
+    std::deque<FileDataToCompress> fileDataToCompressQueue;
+    std::mutex fileDataToCompressMutex;
+    std::condition_variable fileDataToCompressCondVar;
+    size_t fileDataToCompressLeft = numberOfFilesThatNeedCompressing;
+
+    const auto do_abort = [&]() -> void {
+        encounteredError.store(true);
+
+        // break out of file writer thread
+        {
+            std::unique_lock lock(fileDataToWriteMutex);
+            fileDataToWriteAbort = true;
+            fileDataToWriteCondVar.notify_all();
+        }
+
+        // break out of remaining worker threads
+        {
+            std::unique_lock lock(fileDataToCompressMutex);
+            fileDataToCompressLeft = 0;
+            fileDataToCompressCondVar.notify_all();
+        }
+    };
+
+    // worker threads
+    std::vector<std::thread> workerThreads;
+    workerThreads.reserve(threadCount);
+    for (size_t i = 0; i < threadCount; ++i) {
+        workerThreads.emplace_back([&]() -> void {
+            while (true) {
+                FileDataToCompress workPacket;
+                {
+                    std::unique_lock lock(fileDataToCompressMutex);
+                    if (fileDataToCompressLeft == 0) {
+                        return;
+                    }
+                    if (fileDataToCompressQueue.empty()) {
+                        fileDataToCompressCondVar.wait(lock, [&] {
+                            return fileDataToCompressLeft == 0 || !fileDataToCompressQueue.empty();
+                        });
+                        if (fileDataToCompressLeft == 0) {
+                            return;
+                        }
+                    }
+                    workPacket = std::move(fileDataToCompressQueue.front());
+                    fileDataToCompressQueue.pop_front();
+                    --fileDataToCompressLeft;
+                }
+
+                // process work packet
+                auto compressionResult = CompressForP3A(
+                    workPacket.CompressionType, workPacket.Data, workPacket.Size, cdict);
+                if (compressionResult.IsSuccess()) {
+                    auto& c = compressionResult.GetSuccessValue();
+                    FileDataToWrite data{.IsValid = true,
+                                         .Data = c.Buffer.get(),
+                                         .CompressedSize = c.DataLength,
+                                         .UncompressedSize = workPacket.Size,
+                                         .Holder = std::move(c.Buffer),
+                                         .CompressionType = c.CompressionType};
+
+                    {
+                        std::unique_lock lock(fileDataToWriteMutex);
+                        fileDataToWriteArray[workPacket.Index] = std::move(data);
+                        fileDataToWriteCondVar.notify_all();
+                    }
+                } else {
+                    switch (compressionResult.GetErrorValue()) {
+                        case P3ACompressionError::ArgumentError:
+                        case P3ACompressionError::MemoryAllocationFailure: do_abort(); return;
+                        default:
+                            // write uncompressed instead
+                            FileDataToWrite data{.IsValid = true,
+                                                 .Data = workPacket.Data,
+                                                 .CompressedSize = workPacket.Size,
+                                                 .UncompressedSize = workPacket.Size,
+                                                 .Holder = std::move(workPacket.Holder),
+                                                 .CompressionType = P3ACompressionType::None};
+
+                            {
+                                std::unique_lock lock(fileDataToWriteMutex);
+                                fileDataToWriteArray[workPacket.Index] = std::move(data);
+                                fileDataToWriteCondVar.notify_all();
+                            }
+                            break;
+                    }
+                }
+            }
+        });
+    }
+
+    // file reader thread
+    std::thread fileReaderThread = std::thread([&]() -> void {
+        for (size_t i = 0; i < fileinfos.size(); ++i) {
+            const auto& fileinfo = fileinfos[i];
+            uint64_t filesize = 0u;
+            std::unique_ptr<char[]> filedataHolder;
+            const char* filedata = GetFileData(filesize, filedataHolder, fileinfo);
+            if (!filedata) {
+                do_abort();
+                return;
+            }
+
+            if (!fileinfo.IsPrecompressed()
+                && fileinfo.GetDesiredCompressionType() != P3ACompressionType::None) {
+                // needs to be decompressed, push to worker thread
+                FileDataToCompress data{.Data = filedata,
+                                        .Size = filesize,
+                                        .Holder = std::move(filedataHolder),
+                                        .Index = i,
+                                        .CompressionType = fileinfo.GetDesiredCompressionType()};
+
+                {
+                    std::unique_lock lock(fileDataToCompressMutex);
+                    fileDataToCompressQueue.emplace_back(std::move(data));
+                    fileDataToCompressCondVar.notify_all();
+                }
+            } else {
+                // can be written as-is to target file, so push to writer thread directly
+                FileDataToWrite data{.IsValid = true,
+                                     .Data = filedata,
+                                     .CompressedSize = filesize,
+                                     .UncompressedSize =
+                                         fileinfo.IsPrecompressed()
+                                             ? fileinfo.GetDecompressedFilesizeForPrecompressed()
+                                             : filesize,
+                                     .Holder = std::move(filedataHolder),
+                                     .CompressionType = fileinfo.GetDesiredCompressionType()};
+
+                {
+                    std::unique_lock lock(fileDataToWriteMutex);
+                    fileDataToWriteArray[i] = std::move(data);
+                    fileDataToWriteCondVar.notify_all();
+                }
+            }
+        }
+    });
+
+    // file writer thread
+    std::thread fileWriterThread = std::thread([&]() -> void {
+        for (size_t i = 0; i < fileinfos.size(); ++i) {
+            const auto& fileinfo = fileinfos[i];
+            if (!HyoutaUtils::AlignFile(file, position, alignment)) {
+                do_abort();
+                return;
+            }
+
+            FileDataToWrite data;
+            {
+                std::unique_lock lock(fileDataToWriteMutex);
+                if (fileDataToWriteAbort) {
+                    return;
+                }
+                if (!fileDataToWriteArray[i].IsValid) {
+                    fileDataToWriteCondVar.wait(lock, [&] {
+                        return fileDataToWriteAbort || fileDataToWriteArray[i].IsValid;
+                    });
+                    if (fileDataToWriteAbort) {
+                        return;
+                    }
+                }
+                data = std::move(fileDataToWriteArray[i]);
+            }
+
+            P3ACompressionType compressionType = data.CompressionType;
+            uint64_t compressedSize = data.CompressedSize;
+            uint64_t hash = 0;
+            if (!WriteData(file,
+                           compressionType,
+                           compressedSize,
+                           hash,
+                           data.Data,
+                           data.CompressedSize,
+                           data.CompressionType)) {
+                do_abort();
+                return;
+            }
+
+            // fill in header
+            P3AFileInfo tmp{};
+            tmp.Filename = fileinfo.GetFilename();
+            tmp.CompressionType = compressionType;
+            tmp.CompressedSize = compressedSize;
+            tmp.UncompressedSize = data.UncompressedSize;
+            tmp.Offset = position;
+            tmp.Hash = hash;
+
+            if (!file.SetPosition(sizeof(P3AHeader) + sizeof(P3AFileInfo) * i)) {
+                do_abort();
+                return;
+            }
+            if (file.Write(&tmp, sizeof(P3AFileInfo)) != sizeof(P3AFileInfo)) {
+                do_abort();
+                return;
+            }
+
+            position += compressedSize;
+            if (!file.SetPosition(position)) {
+                do_abort();
+                return;
+            }
+        }
+    });
+
+    // wait for all threads to finish
+    for (size_t i = 0; i < threadCount; ++i) {
+        workerThreads[i].join();
+    }
+    fileReaderThread.join();
+    fileWriterThread.join();
+
+    return !encounteredError.load();
+}
+
+bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t desiredThreadCount) {
     if (!file.IsOpen()) {
         return false;
     }
@@ -412,42 +740,39 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
         position += dictLength;
     }
 
+    size_t threadCount =
+        desiredThreadCount == 0 ? std::thread::hardware_concurrency() : desiredThreadCount;
+    if (threadCount >= 2) {
+        size_t numberOfFilesThatNeedCompressing = 0;
+        for (size_t i = 0; i < fileinfos.size(); ++i) {
+            const auto& fileinfo = fileinfos[i];
+            if (!fileinfo.IsPrecompressed()
+                && fileinfo.GetDesiredCompressionType() != P3ACompressionType::None) {
+                ++numberOfFilesThatNeedCompressing;
+            }
+        }
+        if (numberOfFilesThatNeedCompressing >= 2) {
+            return MultithreadedWriteP3AFiles(
+                file,
+                fileinfos,
+                alignment,
+                position,
+                cdict.get(),
+                numberOfFilesThatNeedCompressing,
+                std::min(numberOfFilesThatNeedCompressing, threadCount));
+        }
+    }
+
     for (size_t i = 0; i < fileinfos.size(); ++i) {
         const auto& fileinfo = fileinfos[i];
         if (!HyoutaUtils::AlignFile(file, position, alignment)) {
             return false;
         }
 
-        uint64_t filesize;
-        const char* filedata;
+        uint64_t filesize = 0u;
         std::unique_ptr<char[]> filedataHolder;
-#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
-        if (fileinfo.HasPathData()) {
-            HyoutaUtils::IO::File inputfile(fileinfo.GetPathData(),
-                                            HyoutaUtils::IO::OpenMode::Read);
-            if (!inputfile.IsOpen()) {
-                return false;
-            }
-            const auto maybeFilesize = inputfile.GetLength();
-            if (!maybeFilesize) {
-                return false;
-            }
-            filesize = *maybeFilesize;
-            filedataHolder = std::make_unique_for_overwrite<char[]>(filesize);
-            if (!filedataHolder) {
-                return false;
-            }
-            if (inputfile.Read(filedataHolder.get(), filesize) != filesize) {
-                return false;
-            }
-            filedata = filedataHolder.get();
-        } else
-#endif
-            if (fileinfo.HasVectorData()) {
-            const auto& vec = fileinfo.GetVectorData();
-            filesize = vec.size();
-            filedata = vec.data();
-        } else {
+        const char* filedata = GetFileData(filesize, filedataHolder, fileinfo);
+        if (filedata == nullptr) {
             return false;
         }
 
@@ -459,36 +784,14 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
                                               : filesize;
         uint64_t hash = 0;
 
-        const auto write_uncompressed = [&]() -> bool {
-            if (fileinfo.IsPrecompressed()) {
-                // TODO: this is doable, decompress first
-                return false;
-            }
-
-            compressionType = P3ACompressionType::None;
-            compressedSize = uncompressedSize;
-            hash = XXH64(filedata, uncompressedSize, 0);
-            if (file.Write(filedata, uncompressedSize) != uncompressedSize) {
-                return false;
-            }
-            return true;
-        };
-        const auto write_precompressed = [&]() -> bool {
-            if (!fileinfo.IsPrecompressed()) {
-                return false;
-            }
-
-            compressionType = desiredCompressionType;
-            compressedSize = filesize;
-            hash = XXH64(filedata, filesize, 0);
-            if (file.Write(filedata, filesize) != filesize) {
-                return false;
-            }
-            return true;
-        };
-
         if (fileinfo.IsPrecompressed()) {
-            if (!write_precompressed()) {
+            if (!WriteData(file,
+                           compressionType,
+                           compressedSize,
+                           hash,
+                           filedata,
+                           filesize,
+                           desiredCompressionType)) {
                 return false;
             }
         } else {
@@ -496,10 +799,13 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
                 CompressForP3A(desiredCompressionType, filedata, uncompressedSize, cdict.get());
             if (compressionResult.IsSuccess()) {
                 auto& c = compressionResult.GetSuccessValue();
-                compressionType = c.CompressionType;
-                compressedSize = c.DataLength;
-                hash = XXH64(c.Buffer.get(), compressedSize, 0);
-                if (file.Write(c.Buffer.get(), compressedSize) != compressedSize) {
+                if (!WriteData(file,
+                               compressionType,
+                               compressedSize,
+                               hash,
+                               c.Buffer.get(),
+                               c.DataLength,
+                               c.CompressionType)) {
                     return false;
                 }
             } else {
@@ -507,7 +813,13 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData) {
                     case P3ACompressionError::ArgumentError: return false;
                     case P3ACompressionError::MemoryAllocationFailure: return false;
                     default:
-                        if (!write_uncompressed()) {
+                        if (!WriteUncompressed(file,
+                                               compressionType,
+                                               compressedSize,
+                                               hash,
+                                               fileinfo,
+                                               filedata,
+                                               uncompressedSize)) {
                             return false;
                         }
                         break;

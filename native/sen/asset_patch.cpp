@@ -109,7 +109,7 @@ bool CreateArchiveIfNeeded(
                          const auto& r = rhs.GetFilename();
                          return memcmp(l.data(), r.data(), l.size()) < 0;
                      });
-    if (!SenPatcher::PackP3A(newArchive, packData)) {
+    if (!SenPatcher::PackP3A(newArchive, packData, 0)) {
         logger.Log("Packing failed.\n");
         newArchive.Delete();
         return false;

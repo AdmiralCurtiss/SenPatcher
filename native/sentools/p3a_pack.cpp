@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <limits>
 #include <string_view>
 
 #include "cpp-optparse/OptionParser.h"
@@ -26,6 +27,12 @@ int P3A_Pack_Function(int argc, char** argv) {
         .help("Which compression to use for the files packed into the archive.")
         .choices({"none", "lz4", "zstd"})
         .set_default("none");
+    parser.add_option("-t", "--threads")
+        .type(optparse::DataType::Int)
+        .dest("threads")
+        .metavar("THREADCOUNT")
+        .set_default(0)
+        .help("Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -59,10 +66,21 @@ int P3A_Pack_Function(int argc, char** argv) {
         }
     }
 
+    auto* threads_option = options.get("threads");
+    size_t threadCount = 0;
+    if (threads_option != nullptr) {
+        int64_t argThreadCount = threads_option->first_integer();
+        if (argThreadCount > 0
+            && static_cast<uint64_t>(argThreadCount) <= std::numeric_limits<size_t>::max()) {
+            threadCount = static_cast<size_t>(argThreadCount);
+        }
+    }
 
     if (!SenPatcher::PackP3AFromDirectory(std::filesystem::path(source.begin(), source.end()),
                                           std::filesystem::path(target.begin(), target.end()),
-                                          compressionType)) {
+                                          compressionType,
+                                          std::filesystem::path(),
+                                          threadCount)) {
         printf("Packing failed.\n");
         return -1;
     }

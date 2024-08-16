@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <limits>
 #include <string_view>
 
 #include "cpp-optparse/OptionParser.h"
@@ -27,6 +28,12 @@ int P3A_Repack_Function(int argc, char** argv) {
         .dest("output")
         .metavar("FILENAME")
         .help("The output filename. Must be given.");
+    parser.add_option("-t", "--threads")
+        .type(optparse::DataType::Int)
+        .dest("threads")
+        .metavar("THREADCOUNT")
+        .set_default(0)
+        .help("Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -45,9 +52,19 @@ int P3A_Repack_Function(int argc, char** argv) {
     std::string_view source(args[0]);
     std::string_view target(output_option->first_string());
 
+    auto* threads_option = options.get("threads");
+    size_t threadCount = 0;
+    if (threads_option != nullptr) {
+        int64_t argThreadCount = threads_option->first_integer();
+        if (argThreadCount > 0
+            && static_cast<uint64_t>(argThreadCount) <= std::numeric_limits<size_t>::max()) {
+            threadCount = static_cast<size_t>(argThreadCount);
+        }
+    }
 
     if (!SenPatcher::PackP3AFromJsonFile(std::filesystem::path(source.begin(), source.end()),
-                                         std::filesystem::path(target.begin(), target.end()))) {
+                                         std::filesystem::path(target.begin(), target.end()),
+                                         threadCount)) {
         printf("Packing failed.\n");
         return -1;
     }
