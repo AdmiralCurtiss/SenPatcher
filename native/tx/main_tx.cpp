@@ -785,12 +785,19 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
-    // TODO
-    // LoadP3As(logger,
-    //          s_LoadedVanillaP3As,
-    //          baseDirUtf8,
-    //          {{"data/misc.p3a", "data/bgm.p3a", "data/se.p3a", "data/voen.p3a",
-    //          "data/vojp.p3a"}});
+    // Japanese.p3a is only loaded when using Japanese, where it is loaded first and overrides the
+    // System.p3a files for scripts/text
+    if (useJapaneseLanguage) {
+        LoadP3As(logger,
+                 s_LoadedVanillaP3As,
+                 baseDirUtf8,
+                 {{"Japanese.p3a", "System.p3a", "BGM.p3a", "SE.p3a", "Voice.p3a"}});
+    } else {
+        LoadP3As(logger,
+                 s_LoadedVanillaP3As,
+                 baseDirUtf8,
+                 {{"System.p3a", "BGM.p3a", "SE.p3a", "Voice.p3a"}});
+    }
     LoadPkas(logger, s_LoadedPkaData, baseDirUtf8);
 
     bool assetCreationSuccess = true;
