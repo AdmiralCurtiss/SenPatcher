@@ -22,6 +22,7 @@ namespace SenPatcherGui {
 			Path = path;
 
 			InitializeComponent();
+			buttonAssetFixDetails.Visible = false;
 			labelFile.Text = path;
 
 			comboBoxButtonLayout.Items.Clear();
