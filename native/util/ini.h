@@ -21,7 +21,15 @@ struct IniFile {
     IniFile& operator=(IniFile&& other) = delete;
     ~IniFile();
 
+    // IniFile takes memory ownership of data.
     bool ParseFile(HyoutaUtils::IO::File& file);
+
+    // IniFile takes memory ownership of data.
+    void ParseMemory(std::unique_ptr<char[]> buffer, size_t bufferLength);
+
+    // IniFile does *not* take memory ownership of data, but instead just points at it.
+    // Ensure that the memory is deleted *after* IniFile is destructed.
+    void ParseExternalMemory(char* buffer, size_t bufferLength);
 
     std::span<const IniKeyValueView> GetValues() const;
     const IniKeyValueView* FindValue(std::string_view section, std::string_view key) const;

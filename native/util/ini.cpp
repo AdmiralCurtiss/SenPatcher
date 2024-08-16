@@ -13,8 +13,6 @@ IniFile::IniFile() = default;
 IniFile::~IniFile() = default;
 
 bool IniFile::ParseFile(HyoutaUtils::IO::File& file) {
-    using HyoutaUtils::TextUtils::Trim;
-
     if (!file.IsOpen()) {
         return false;
     }
@@ -27,8 +25,15 @@ bool IniFile::ParseFile(HyoutaUtils::IO::File& file) {
         return false;
     }
 
+    ParseMemory(std::move(buffer), *length);
+    return true;
+}
+
+void IniFile::ParseExternalMemory(char* buffer, size_t bufferLength) {
+    using HyoutaUtils::TextUtils::Trim;
+
     std::vector<IniKeyValueView> values;
-    std::string_view remainingIni(buffer.get(), *length);
+    std::string_view remainingIni(buffer, bufferLength);
     std::string_view currentSection;
 
     // skip UTF8 BOM if it's there
@@ -90,14 +95,17 @@ bool IniFile::ParseFile(HyoutaUtils::IO::File& file) {
         values.emplace_back(IniKeyValueView{.Section = currentSection, .Key = key, .Value = value});
     }
 
-    DataBuffer = std::move(buffer);
-    DataBufferLength = *length;
     Values = std::make_unique_for_overwrite<IniKeyValueView[]>(values.size());
     for (size_t i = 0; i < values.size(); ++i) {
         Values[i] = std::move(values[i]);
     }
     ValueCount = values.size();
-    return true;
+}
+
+void IniFile::ParseMemory(std::unique_ptr<char[]> buffer, size_t bufferLength) {
+    ParseExternalMemory(buffer.get(), bufferLength);
+    DataBuffer = std::move(buffer);
+    DataBufferLength = bufferLength;
 }
 
 std::span<const IniKeyValueView> IniFile::GetValues() const {
