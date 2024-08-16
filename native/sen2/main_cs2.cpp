@@ -219,9 +219,9 @@ struct LoadedPkaData {
 };
 static LoadedPkaData s_LoadedPkaData{};
 
-#define PRIMARY_PKA_PATH "data/asset/D3D11.pka"
+#define PRIMARY_PKA_PATH "data/asset/D3D11/assets.pka"
 #define PRIMARY_PKG_PREFIX "data/asset/d3d11/"
-#define SECONDARY_PKA_PATH "data/asset/D3D11_us.pka"
+#define SECONDARY_PKA_PATH "data/asset/D3D11_us/assets.pka"
 #define SECONDARY_PKG_PREFIX "data/asset/d3d11_us/"
 
 // ignore any path that doesn't begin with the 'data' directory
