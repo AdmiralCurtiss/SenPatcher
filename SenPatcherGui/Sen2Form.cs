@@ -47,6 +47,7 @@ namespace SenPatcherGui {
 				ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
 				checkBoxAssetPatches.Checked = ini.GetBool("CS2", "AssetFixes", true);
 				checkBoxBattleAutoSkip.Checked = ini.GetBool("CS2", "RemoveTurboSkip", true);
+				checkBoxTurboToggle.Checked = ini.GetBool("CS2", "MakeTurboToggle", false);
 				checkBoxFixVoiceFileLang.Checked = ini.GetBool("CS2", "CorrectLanguageVoiceTables", true);
 				checkBoxBgmEnqueueingLogic.Checked = ini.GetBool("CS2", "FixBgmEnqueue", true);
 				checkBoxPatchAudioThread.Checked = ini.GetBool("CS2", "ReplaceAudioTimingThread", true);
@@ -70,6 +71,7 @@ namespace SenPatcherGui {
 				ini.LoadIniFromString(Properties.Resources.senpatcher_settings_cs2, overwriteExistingValues: true);
 				ini.SetBool("CS2", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetBool("CS2", "RemoveTurboSkip", checkBoxBattleAutoSkip.Checked);
+				ini.SetBool("CS2", "MakeTurboToggle", checkBoxTurboToggle.Checked);
 				ini.SetBool("CS2", "CorrectLanguageVoiceTables", checkBoxFixVoiceFileLang.Checked);
 				ini.SetBool("CS2", "FixBgmEnqueue", checkBoxBgmEnqueueingLogic.Checked);
 				ini.SetBool("CS2", "ReplaceAudioTimingThread", checkBoxPatchAudioThread.Checked);

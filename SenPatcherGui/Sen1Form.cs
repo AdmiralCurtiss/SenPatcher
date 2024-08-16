@@ -66,6 +66,7 @@ namespace SenPatcherGui {
 				ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
 				checkBoxAssetPatches.Checked = ini.GetBool("CS1", "AssetFixes", true);
 				checkBoxBattleAutoSkip.Checked = ini.GetBool("CS1", "RemoveTurboSkip", true);
+				checkBoxTurboToggle.Checked = ini.GetBool("CS1", "MakeTurboToggle", false);
 				checkBoxFixVoiceFileLang.Checked = ini.GetBool("CS1", "CorrectLanguageVoiceTables", true);
 				checkBoxBgmEnqueueingLogic.Checked = ini.GetBool("CS1", "FixBgmEnqueue", true);
 				checkBoxArtsSupport.Checked = ini.GetBool("CS1", "FixArtsSupportCutin", true);
@@ -91,6 +92,7 @@ namespace SenPatcherGui {
 				ini.LoadIniFromString(Properties.Resources.senpatcher_settings_cs1, overwriteExistingValues: true);
 				ini.SetBool("CS1", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetBool("CS1", "RemoveTurboSkip", checkBoxBattleAutoSkip.Checked);
+				ini.SetBool("CS1", "MakeTurboToggle", checkBoxTurboToggle.Checked);
 				ini.SetBool("CS1", "CorrectLanguageVoiceTables", checkBoxFixVoiceFileLang.Checked);
 				ini.SetBool("CS1", "FixBgmEnqueue", checkBoxBgmEnqueueingLogic.Checked);
 				ini.SetBool("CS1", "FixArtsSupportCutin", checkBoxArtsSupport.Checked);

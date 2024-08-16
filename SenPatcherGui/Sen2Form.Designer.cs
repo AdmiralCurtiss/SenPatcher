@@ -44,12 +44,13 @@
 			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
 			this.checkBoxFixBattleScopeCrash = new System.Windows.Forms.CheckBox();
 			this.checkBoxForceXInput = new System.Windows.Forms.CheckBox();
+			this.checkBoxTurboToggle = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(94, 244);
+			this.label5.Location = new System.Drawing.Point(94, 267);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(401, 26);
 			this.label5.TabIndex = 11;
@@ -99,7 +100,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 461);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 487);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 20;
@@ -112,7 +113,7 @@
 			this.checkBoxPatchAudioThread.AutoSize = true;
 			this.checkBoxPatchAudioThread.Checked = true;
 			this.checkBoxPatchAudioThread.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 224);
+			this.checkBoxPatchAudioThread.Location = new System.Drawing.Point(97, 247);
 			this.checkBoxPatchAudioThread.Name = "checkBoxPatchAudioThread";
 			this.checkBoxPatchAudioThread.Size = new System.Drawing.Size(248, 17);
 			this.checkBoxPatchAudioThread.TabIndex = 10;
@@ -124,7 +125,7 @@
 			this.checkBoxBgmEnqueueingLogic.AutoSize = true;
 			this.checkBoxBgmEnqueueingLogic.Checked = true;
 			this.checkBoxBgmEnqueueingLogic.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 168);
+			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 191);
 			this.checkBoxBgmEnqueueingLogic.Name = "checkBoxBgmEnqueueingLogic";
 			this.checkBoxBgmEnqueueingLogic.Size = new System.Drawing.Size(323, 17);
 			this.checkBoxBgmEnqueueingLogic.TabIndex = 8;
@@ -134,7 +135,7 @@
 			// label6
 			// 
 			this.label6.AutoSize = true;
-			this.label6.Location = new System.Drawing.Point(94, 188);
+			this.label6.Location = new System.Drawing.Point(94, 211);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(421, 26);
 			this.label6.TabIndex = 9;
@@ -181,7 +182,7 @@
 			this.checkBoxFixVoiceFileLang.AutoSize = true;
 			this.checkBoxFixVoiceFileLang.Checked = true;
 			this.checkBoxFixVoiceFileLang.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxFixVoiceFileLang.Location = new System.Drawing.Point(97, 145);
+			this.checkBoxFixVoiceFileLang.Location = new System.Drawing.Point(97, 168);
 			this.checkBoxFixVoiceFileLang.Name = "checkBoxFixVoiceFileLang";
 			this.checkBoxFixVoiceFileLang.Size = new System.Drawing.Size(369, 17);
 			this.checkBoxFixVoiceFileLang.TabIndex = 7;
@@ -191,7 +192,7 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 349);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 372);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
 			this.checkBoxDisableMouseCam.TabIndex = 15;
@@ -201,7 +202,7 @@
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 393);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 416);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
 			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 17;
@@ -213,7 +214,7 @@
 			this.checkBoxControllerMapping.AutoSize = true;
 			this.checkBoxControllerMapping.Checked = true;
 			this.checkBoxControllerMapping.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxControllerMapping.Location = new System.Drawing.Point(97, 280);
+			this.checkBoxControllerMapping.Location = new System.Drawing.Point(97, 303);
 			this.checkBoxControllerMapping.Name = "checkBoxControllerMapping";
 			this.checkBoxControllerMapping.Size = new System.Drawing.Size(409, 17);
 			this.checkBoxControllerMapping.TabIndex = 12;
@@ -225,7 +226,7 @@
 			this.checkBoxArtsSupport.AutoSize = true;
 			this.checkBoxArtsSupport.Checked = true;
 			this.checkBoxArtsSupport.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxArtsSupport.Location = new System.Drawing.Point(97, 303);
+			this.checkBoxArtsSupport.Location = new System.Drawing.Point(97, 326);
 			this.checkBoxArtsSupport.Name = "checkBoxArtsSupport";
 			this.checkBoxArtsSupport.Size = new System.Drawing.Size(228, 17);
 			this.checkBoxArtsSupport.TabIndex = 13;
@@ -235,7 +236,7 @@
 			// checkBoxForce0Kerning
 			// 
 			this.checkBoxForce0Kerning.AutoSize = true;
-			this.checkBoxForce0Kerning.Location = new System.Drawing.Point(97, 326);
+			this.checkBoxForce0Kerning.Location = new System.Drawing.Point(97, 349);
 			this.checkBoxForce0Kerning.Name = "checkBoxForce0Kerning";
 			this.checkBoxForce0Kerning.Size = new System.Drawing.Size(396, 17);
 			this.checkBoxForce0Kerning.TabIndex = 14;
@@ -245,7 +246,7 @@
 			// checkBoxShowMouseCursor
 			// 
 			this.checkBoxShowMouseCursor.AutoSize = true;
-			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(97, 371);
+			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(97, 394);
 			this.checkBoxShowMouseCursor.Name = "checkBoxShowMouseCursor";
 			this.checkBoxShowMouseCursor.Size = new System.Drawing.Size(121, 17);
 			this.checkBoxShowMouseCursor.TabIndex = 16;
@@ -257,7 +258,7 @@
 			this.checkBoxFixBattleScopeCrash.AutoSize = true;
 			this.checkBoxFixBattleScopeCrash.Checked = true;
 			this.checkBoxFixBattleScopeCrash.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxFixBattleScopeCrash.Location = new System.Drawing.Point(97, 436);
+			this.checkBoxFixBattleScopeCrash.Location = new System.Drawing.Point(97, 459);
 			this.checkBoxFixBattleScopeCrash.Name = "checkBoxFixBattleScopeCrash";
 			this.checkBoxFixBattleScopeCrash.Size = new System.Drawing.Size(371, 17);
 			this.checkBoxFixBattleScopeCrash.TabIndex = 19;
@@ -267,18 +268,29 @@
 			// checkBoxForceXInput
 			// 
 			this.checkBoxForceXInput.AutoSize = true;
-			this.checkBoxForceXInput.Location = new System.Drawing.Point(97, 414);
+			this.checkBoxForceXInput.Location = new System.Drawing.Point(97, 437);
 			this.checkBoxForceXInput.Name = "checkBoxForceXInput";
 			this.checkBoxForceXInput.Size = new System.Drawing.Size(370, 17);
 			this.checkBoxForceXInput.TabIndex = 18;
 			this.checkBoxForceXInput.Text = "Force all controllers as XInput (may fix issues with newer Xbox controllers)";
 			this.checkBoxForceXInput.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxTurboToggle
+			// 
+			this.checkBoxTurboToggle.AutoSize = true;
+			this.checkBoxTurboToggle.Location = new System.Drawing.Point(97, 145);
+			this.checkBoxTurboToggle.Name = "checkBoxTurboToggle";
+			this.checkBoxTurboToggle.Size = new System.Drawing.Size(222, 17);
+			this.checkBoxTurboToggle.TabIndex = 21;
+			this.checkBoxTurboToggle.Text = "Make turbo mode a toggle instead of hold";
+			this.checkBoxTurboToggle.UseVisualStyleBackColor = true;
+			// 
 			// Sen2Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 514);
+			this.ClientSize = new System.Drawing.Size(534, 540);
+			this.Controls.Add(this.checkBoxTurboToggle);
 			this.Controls.Add(this.checkBoxForceXInput);
 			this.Controls.Add(this.checkBoxFixBattleScopeCrash);
 			this.Controls.Add(this.checkBoxShowMouseCursor);
@@ -330,5 +342,6 @@
 		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
 		private System.Windows.Forms.CheckBox checkBoxFixBattleScopeCrash;
 		private System.Windows.Forms.CheckBox checkBoxForceXInput;
+		private System.Windows.Forms.CheckBox checkBoxTurboToggle;
 	}
 }

@@ -38,6 +38,7 @@
 			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
 			this.checkBoxForceXInput = new System.Windows.Forms.CheckBox();
 			this.checkBoxBgmEnqueueingLogic = new System.Windows.Forms.CheckBox();
+			this.checkBoxTurboToggle = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// label2
@@ -54,7 +55,7 @@
 			this.checkBoxFixButtonRemapping.AutoSize = true;
 			this.checkBoxFixButtonRemapping.Checked = true;
 			this.checkBoxFixButtonRemapping.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxFixButtonRemapping.Location = new System.Drawing.Point(97, 122);
+			this.checkBoxFixButtonRemapping.Location = new System.Drawing.Point(97, 145);
 			this.checkBoxFixButtonRemapping.Name = "checkBoxFixButtonRemapping";
 			this.checkBoxFixButtonRemapping.Size = new System.Drawing.Size(201, 17);
 			this.checkBoxFixButtonRemapping.TabIndex = 6;
@@ -83,7 +84,7 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 308);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 332);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
 			this.buttonPatch.TabIndex = 13;
@@ -131,7 +132,7 @@
 			this.checkBoxAllowNightmare.AutoSize = true;
 			this.checkBoxAllowNightmare.Checked = true;
 			this.checkBoxAllowNightmare.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxAllowNightmare.Location = new System.Drawing.Point(97, 145);
+			this.checkBoxAllowNightmare.Location = new System.Drawing.Point(97, 168);
 			this.checkBoxAllowNightmare.Name = "checkBoxAllowNightmare";
 			this.checkBoxAllowNightmare.Size = new System.Drawing.Size(276, 17);
 			this.checkBoxAllowNightmare.TabIndex = 7;
@@ -141,7 +142,7 @@
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 214);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 237);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(231, 17);
 			this.checkBoxDisableMouseCam.TabIndex = 9;
@@ -151,7 +152,7 @@
 			// checkBoxDisablePauseOnFocusLoss
 			// 
 			this.checkBoxDisablePauseOnFocusLoss.AutoSize = true;
-			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 257);
+			this.checkBoxDisablePauseOnFocusLoss.Location = new System.Drawing.Point(97, 280);
 			this.checkBoxDisablePauseOnFocusLoss.Name = "checkBoxDisablePauseOnFocusLoss";
 			this.checkBoxDisablePauseOnFocusLoss.Size = new System.Drawing.Size(219, 17);
 			this.checkBoxDisablePauseOnFocusLoss.TabIndex = 11;
@@ -163,7 +164,7 @@
 			this.checkBoxControllerMapping.AutoSize = true;
 			this.checkBoxControllerMapping.Checked = true;
 			this.checkBoxControllerMapping.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxControllerMapping.Location = new System.Drawing.Point(97, 168);
+			this.checkBoxControllerMapping.Location = new System.Drawing.Point(97, 191);
 			this.checkBoxControllerMapping.Name = "checkBoxControllerMapping";
 			this.checkBoxControllerMapping.Size = new System.Drawing.Size(409, 17);
 			this.checkBoxControllerMapping.TabIndex = 8;
@@ -173,7 +174,7 @@
 			// checkBoxShowMouseCursor
 			// 
 			this.checkBoxShowMouseCursor.AutoSize = true;
-			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(97, 235);
+			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(97, 258);
 			this.checkBoxShowMouseCursor.Name = "checkBoxShowMouseCursor";
 			this.checkBoxShowMouseCursor.Size = new System.Drawing.Size(121, 17);
 			this.checkBoxShowMouseCursor.TabIndex = 10;
@@ -183,7 +184,7 @@
 			// checkBoxForceXInput
 			// 
 			this.checkBoxForceXInput.AutoSize = true;
-			this.checkBoxForceXInput.Location = new System.Drawing.Point(97, 279);
+			this.checkBoxForceXInput.Location = new System.Drawing.Point(97, 302);
 			this.checkBoxForceXInput.Name = "checkBoxForceXInput";
 			this.checkBoxForceXInput.Size = new System.Drawing.Size(370, 17);
 			this.checkBoxForceXInput.TabIndex = 12;
@@ -195,18 +196,29 @@
 			this.checkBoxBgmEnqueueingLogic.AutoSize = true;
 			this.checkBoxBgmEnqueueingLogic.Checked = true;
 			this.checkBoxBgmEnqueueingLogic.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 191);
+			this.checkBoxBgmEnqueueingLogic.Location = new System.Drawing.Point(97, 214);
 			this.checkBoxBgmEnqueueingLogic.Name = "checkBoxBgmEnqueueingLogic";
 			this.checkBoxBgmEnqueueingLogic.Size = new System.Drawing.Size(323, 17);
 			this.checkBoxBgmEnqueueingLogic.TabIndex = 21;
 			this.checkBoxBgmEnqueueingLogic.Text = "Fix wrong BGM when BGM is changed while track is fading out";
 			this.checkBoxBgmEnqueueingLogic.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxTurboToggle
+			// 
+			this.checkBoxTurboToggle.AutoSize = true;
+			this.checkBoxTurboToggle.Location = new System.Drawing.Point(97, 122);
+			this.checkBoxTurboToggle.Name = "checkBoxTurboToggle";
+			this.checkBoxTurboToggle.Size = new System.Drawing.Size(222, 17);
+			this.checkBoxTurboToggle.TabIndex = 22;
+			this.checkBoxTurboToggle.Text = "Make turbo mode a toggle instead of hold";
+			this.checkBoxTurboToggle.UseVisualStyleBackColor = true;
+			// 
 			// Sen3Form
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 361);
+			this.ClientSize = new System.Drawing.Size(534, 385);
+			this.Controls.Add(this.checkBoxTurboToggle);
 			this.Controls.Add(this.checkBoxBgmEnqueueingLogic);
 			this.Controls.Add(this.checkBoxForceXInput);
 			this.Controls.Add(this.checkBoxShowMouseCursor);
@@ -245,5 +257,6 @@
 		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
 		private System.Windows.Forms.CheckBox checkBoxForceXInput;
 		private System.Windows.Forms.CheckBox checkBoxBgmEnqueueingLogic;
+		private System.Windows.Forms.CheckBox checkBoxTurboToggle;
 	}
 }
