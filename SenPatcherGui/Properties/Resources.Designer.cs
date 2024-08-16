@@ -75,7 +75,7 @@ namespace SenPatcherGui.Properties {
         ///; &apos;false&apos; to disable (skip animations)
         ///RemoveTurboSkip=true
         ///
-        ///; Whether to ensur [rest of string was truncated]&quot;;.
+        ///; Whether to chang [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string senpatcher_settings_cs1 {
             get {
@@ -98,7 +98,7 @@ namespace SenPatcherGui.Properties {
         ///; &apos;false&apos; to disable (skip animations)
         ///RemoveTurboSkip=true
         ///
-        ///; Whether to ensur [rest of string was truncated]&quot;;.
+        ///; Whether to chang [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string senpatcher_settings_cs2 {
             get {
@@ -165,6 +165,29 @@ namespace SenPatcherGui.Properties {
         internal static string senpatcher_settings_reverie {
             get {
                 return ResourceManager.GetString("senpatcher_settings_reverie", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TX]
+        ///
+        ///; Set the language used by the game.
+        ///; The game usually reads this from a Steam/GoG setting, but that&apos;s very inconvenient to change, especially on GoG.
+        ///; So SenPatcher overrides it with its own setting here.
+        ///;
+        ///; Language=Japanese
+        ///Language=English
+        ///
+        ///; Skip the startup logos when launching the game.
+        ///SkipLogos=True
+        ///
+        ///; Skip playback of all movie files. Not recommended unless your system has issues playing them.
+        ///SkipAllMovies=False
+        ///.
+        /// </summary>
+        internal static string senpatcher_settings_tx {
+            get {
+                return ResourceManager.GetString("senpatcher_settings_tx", resourceCulture);
             }
         }
     }

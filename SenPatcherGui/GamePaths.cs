@@ -119,6 +119,7 @@ namespace SenPatcherGui {
 					Properties.Settings.Default.Sen3Path,
 					Properties.Settings.Default.Sen4Path,
 					Properties.Settings.Default.Sen5Path,
+					Properties.Settings.Default.TXPath,
 				},
 				new string[] {
 					"Trails of Cold Steel",
@@ -137,6 +138,7 @@ namespace SenPatcherGui {
 					Properties.Settings.Default.Sen3Path,
 					Properties.Settings.Default.Sen4Path,
 					Properties.Settings.Default.Sen5Path,
+					Properties.Settings.Default.TXPath,
 				},
 				new string[] {
 					"Trails of Cold Steel II",
@@ -155,6 +157,7 @@ namespace SenPatcherGui {
 					Properties.Settings.Default.Sen2Path,
 					Properties.Settings.Default.Sen4Path,
 					Properties.Settings.Default.Sen5Path,
+					Properties.Settings.Default.TXPath,
 				},
 				new string[] {
 					"The Legend of Heroes Trails of Cold Steel III",
@@ -172,6 +175,7 @@ namespace SenPatcherGui {
 					Properties.Settings.Default.Sen2Path,
 					Properties.Settings.Default.Sen3Path,
 					Properties.Settings.Default.Sen5Path,
+					Properties.Settings.Default.TXPath,
 				},
 				new string[] {
 					"The Legend of Heroes Trails of Cold Steel IV",
@@ -189,6 +193,7 @@ namespace SenPatcherGui {
 					Properties.Settings.Default.Sen2Path,
 					Properties.Settings.Default.Sen3Path,
 					Properties.Settings.Default.Sen4Path,
+					Properties.Settings.Default.TXPath,
 				},
 				new string[] {
 					"The Legend of Heroes Trails into Reverie",
@@ -197,5 +202,24 @@ namespace SenPatcherGui {
 			);
 			return p ?? "";
 		}
+
+		public static string GetDefaultPathTX() {
+			var p = FindExistingPath(
+				Properties.Settings.Default.TXPath,
+				new string[] {
+					Properties.Settings.Default.Sen1Path,
+					Properties.Settings.Default.Sen2Path,
+					Properties.Settings.Default.Sen3Path,
+					Properties.Settings.Default.Sen4Path,
+					Properties.Settings.Default.Sen5Path,
+				},
+				new string[] {
+					"Tokyo Xanadu eX+",
+				},
+				"TokyoXanadu.exe"
+			);
+			return p ?? "";
+		}
+
 	}
 }

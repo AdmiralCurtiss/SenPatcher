@@ -527,6 +527,40 @@ namespace SenPatcherGui {
 			}
 		}
 
+		private void buttonTXPatch_Click(object sender, EventArgs e) {
+			using (OpenFileDialog d = new OpenFileDialog()) {
+				d.CheckFileExists = false;
+				d.ValidateNames = false;
+				d.InitialDirectory = GamePaths.GetDefaultPathTX();
+				d.FileName = "TokyoXanadu.exe";
+				d.Filter = "TX root game directory (TokyoXanadu.exe)|TokyoXanadu.exe|All files (*.*)|*.*";
+				if (d.ShowDialog() == DialogResult.OK) {
+					OpenTXGameDir(d.FileName);
+				}
+			}
+		}
+
+		public string TXGameInit(string launcherPath) {
+			string path;
+			try {
+				path = System.IO.Path.GetDirectoryName(launcherPath);
+			} catch (Exception ex) {
+				ShowError("Error while initializing TX patch/game data: " + ex.Message);
+				return null;
+			}
+
+			return path;
+		}
+
+		private void OpenTXGameDir(string launcherPath) {
+			var path = TXGameInit(launcherPath);
+			if (path != null) {
+				Logging.Log("Launching TX patch window at " + path);
+				Properties.Settings.Default.TXPath = path;
+				new TXForm(path).ShowDialog();
+			}
+		}
+
 		private static string LastToolboxDirectory = null;
 		private static string InitialToolboxDirectory => LastToolboxDirectory ?? Directory.GetCurrentDirectory();
 

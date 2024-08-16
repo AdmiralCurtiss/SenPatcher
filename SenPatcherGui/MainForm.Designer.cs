@@ -43,6 +43,8 @@
 			this.menuItemDecompressType2LE = new System.Windows.Forms.MenuItem();
 			this.buttonReveriePatch = new System.Windows.Forms.Button();
 			this.label5 = new System.Windows.Forms.Label();
+			this.buttonTXPatch = new System.Windows.Forms.Button();
+			this.labelTX = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// buttonCS1Patch
@@ -224,11 +226,34 @@
 			this.label5.TabIndex = 11;
 			this.label5.Text = "Trails into Reverie: (NISA PC release version 1.1.4)";
 			// 
+			// buttonTXPatch
+			// 
+			this.buttonTXPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonTXPatch.Location = new System.Drawing.Point(12, 366);
+			this.buttonTXPatch.Name = "buttonTXPatch";
+			this.buttonTXPatch.Size = new System.Drawing.Size(328, 21);
+			this.buttonTXPatch.TabIndex = 14;
+			this.buttonTXPatch.Text = "Patch game";
+			this.buttonTXPatch.UseVisualStyleBackColor = true;
+			this.buttonTXPatch.Click += new System.EventHandler(this.buttonTXPatch_Click);
+			// 
+			// labelTX
+			// 
+			this.labelTX.AutoSize = true;
+			this.labelTX.Location = new System.Drawing.Point(9, 350);
+			this.labelTX.Name = "labelTX";
+			this.labelTX.Size = new System.Drawing.Size(254, 13);
+			this.labelTX.TabIndex = 13;
+			this.labelTX.Text = "Tokyo Xanadu eX+: (Aksys PC release version 1.08)";
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(352, 348);
+			this.ClientSize = new System.Drawing.Size(352, 402);
+			this.Controls.Add(this.buttonTXPatch);
+			this.Controls.Add(this.labelTX);
 			this.Controls.Add(this.buttonReveriePatch);
 			this.Controls.Add(this.label5);
 			this.Controls.Add(this.buttonCS4Patch);
@@ -270,6 +295,8 @@
 		private System.Windows.Forms.MenuItem menuItemDecompressType2LE;
 		private System.Windows.Forms.Button buttonReveriePatch;
 		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.Button buttonTXPatch;
+		private System.Windows.Forms.Label labelTX;
 	}
 }
 

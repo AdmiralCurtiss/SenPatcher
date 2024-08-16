@@ -81,6 +81,12 @@
     <Compile Include="Sen1SystemDataForm.Designer.cs">
       <DependentUpon>Sen1SystemDataForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TXForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TXForm.Designer.cs">
+      <DependentUpon>TXForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Sen5Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -141,6 +147,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Sen1SystemDataForm.resx">
       <DependentUpon>Sen1SystemDataForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TXForm.resx">
+      <DependentUpon>TXForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Sen5Form.resx">
       <DependentUpon>Sen5Form.cs</DependentUpon>
