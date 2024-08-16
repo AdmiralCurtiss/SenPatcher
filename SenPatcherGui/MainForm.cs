@@ -497,7 +497,7 @@ namespace SenPatcherGui {
 				d.CheckFileExists = false;
 				d.ValidateNames = false;
 				string reveriePath = GamePaths.GetDefaultPathReverie();
-				d.InitialDirectory = (reveriePath == null || reveriePath == "") ? "" : (reveriePath + "/bin/Win64");
+				d.InitialDirectory = (reveriePath == null || reveriePath == "") ? "" : (Path.Combine(reveriePath, "bin", "Win64"));
 				d.FileName = "hnk.exe";
 				d.Filter = "Reverie game directory (hnk.exe)|hnk.exe|All files (*.*)|*.*";
 				if (d.ShowDialog() == DialogResult.OK) {
@@ -507,6 +507,24 @@ namespace SenPatcherGui {
 		}
 
 		public string ReverieGameInit(string launcherPath) {
+			try {
+				Logging.Log("Checking hnk.exe...");
+				if (!File.Exists(launcherPath)) {
+					ShowError("No file was selected.");
+					return null;
+				}
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
+					long length = fs.Length;
+					if (length != 15847840) {
+						ShowError("Selected file does not appear to be hnk.exe of version 1.1.4.");
+						return null;
+					}
+				}
+			} catch (Exception ex) {
+				ShowError("Error while validating hnk.exe: " + ex.Message);
+				return null;
+			}
+
 			string path;
 			try {
 				path = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(launcherPath)));
@@ -541,6 +559,24 @@ namespace SenPatcherGui {
 		}
 
 		public string TXGameInit(string launcherPath) {
+			try {
+				Logging.Log("Checking TokyoXanadu.exe...");
+				if (!File.Exists(launcherPath)) {
+					ShowError("No file was selected.");
+					return null;
+				}
+				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
+					long length = fs.Length;
+					if (!(length == 7373456 || length == 7232000 || length == 7225344)) {
+						ShowError("Selected file does not appear to be TokyoXanadu.exe of version 1.08.");
+						return null;
+					}
+				}
+			} catch (Exception ex) {
+				ShowError("Error while validating TokyoXanadu.exe: " + ex.Message);
+				return null;
+			}
+
 			string path;
 			try {
 				path = System.IO.Path.GetDirectoryName(launcherPath);
