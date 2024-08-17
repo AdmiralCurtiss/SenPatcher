@@ -20,7 +20,7 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140088732);
-    char* const exitPoint = GetCodeAddressEn(version, textRegion, 0x14008877a);
+    char* const exitPoint = GetCodeAddressEn(version, textRegion, 0x140088780);
 
 
     char* codespaceBegin = codespace;
@@ -41,19 +41,20 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
     Emit_POP_R64(codespace, R64::R11);
     Emit_POP_R64(codespace, R64::R10);
 
-    // check for success
+    // check result
     Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // go back to function and pretend nothing happened
+    // if we have no injected file proceed with normal function
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(inject));
     Emit_JMP_R64(codespace, R64::RCX);
 
-    // jump to exit point (success is set by code at exit point)
+    // if we have an injected file go to exit point, and write return value to RBX
     success.SetTarget(codespace);
+    Emit_MOV_R64_R64(codespace, R64::RBX, R64::RAX);
     Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(exitPoint));
     Emit_JMP_R64(codespace, R64::RDX);
 
@@ -69,7 +70,7 @@ void InjectAtBattleScriptExists(PatchExecData& execData, void* ffileExistsForwar
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14014844a);
-    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x140148412);
+    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x140148461);
     char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x140149de4);
 
 
@@ -87,19 +88,20 @@ void InjectAtBattleScriptExists(PatchExecData& execData, void* ffileExistsForwar
 
     Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
 
-    // check for success
+    // check result
     Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // go back to function and pretend nothing happened
+    // if we have no injected file proceed with normal function
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(inject));
     Emit_JMP_R64(codespace, R64::RCX);
 
-    // jump to exit point (success is set by code at exit point)
+    // if we have an injected file go to exit point, and write return value to RDX
     success.SetTarget(codespace);
+    Emit_MOV_R64_R64(codespace, R64::RDX, R64::RAX);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPointOnSuccess));
     Emit_JMP_R64(codespace, R64::RCX);
 
@@ -115,7 +117,7 @@ void InjectAtFileExists1(PatchExecData& execData, void* ffileExistsForwarder) {
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14006db8f);
-    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x14006db63);
+    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x14006dba6);
     char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x14006cb52);
 
 
@@ -133,19 +135,20 @@ void InjectAtFileExists1(PatchExecData& execData, void* ffileExistsForwarder) {
 
     Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
 
-    // check for success
+    // check result
     Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // go back to function and pretend nothing happened
+    // if we have no injected file proceed with normal function
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(inject));
     Emit_JMP_R64(codespace, R64::RCX);
 
-    // jump to exit point (success is set by code at exit point)
+    // if we have an injected file go to exit point, and write return value to RDX
     success.SetTarget(codespace);
+    Emit_MOV_R64_R64(codespace, R64::RDX, R64::RAX);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPointOnSuccess));
     Emit_JMP_R64(codespace, R64::RCX);
 
@@ -161,7 +164,7 @@ void InjectAtFileExists2(PatchExecData& execData, void* ffileExistsForwarder) {
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14006de34);
-    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x14006de08);
+    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x14006dba6);
     char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x14006fb92);
 
 
@@ -179,19 +182,20 @@ void InjectAtFileExists2(PatchExecData& execData, void* ffileExistsForwarder) {
 
     Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
 
-    // check for success
+    // check result
     Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // go back to function and pretend nothing happened
+    // if we have no injected file proceed with normal function
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(inject));
     Emit_JMP_R64(codespace, R64::RCX);
 
-    // jump to exit point (success is set by code at exit point)
+    // if we have an injected file go to exit point, and write return value to RDX
     success.SetTarget(codespace);
+    Emit_MOV_R64_R64(codespace, R64::RDX, R64::RAX);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPointOnSuccess));
     Emit_JMP_R64(codespace, R64::RCX);
 
@@ -207,7 +211,7 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140088b85);
-    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x140088ba9);
+    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x140088bab);
     char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x140088bf2);
 
 
@@ -226,19 +230,20 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
 
     Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x20);
 
-    // check for success
+    // check result
     Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // go back to function and pretend nothing happened
+    // if we have no injected file proceed with normal function
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(inject));
     Emit_JMP_R64(codespace, R64::RCX);
 
-    // jump to exit point (success is set by code at exit point)
+    // if we have an injected file go to exit point, and write return value to RBX
     success.SetTarget(codespace);
+    Emit_MOV_R64_R64(codespace, R64::RBX, R64::RAX);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPointOnSuccess));
     Emit_JMP_R64(codespace, R64::RCX);
 
