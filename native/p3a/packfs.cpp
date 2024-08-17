@@ -3,19 +3,69 @@
 #include <array>
 #include <cstring>
 #include <filesystem>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "util/file.h"
+#include "util/text.h"
 
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 
 namespace SenPatcher {
+static P3ACompressionType
+    DetermineCompressionTypeForFile(const std::filesystem::path& path,
+                                    std::optional<P3ACompressionType> desiredCompressionType) {
+    if (desiredCompressionType) {
+        return *desiredCompressionType;
+    }
+
+    // sloppy autodetection of 'do not compress' filetypes based on extension,
+    // this should give reasonable results for the set of known game files
+    auto ext = path.extension();
+    if (!ext.empty()) {
+        auto utf8ext = ext.u8string();
+        std::string_view sv((const char*)utf8ext.data(), utf8ext.size());
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".pkg", sv)) {
+            return P3ACompressionType::None;
+        }
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".pka", sv)) {
+            return P3ACompressionType::None;
+        }
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".p3a", sv)) {
+            return P3ACompressionType::None;
+        }
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".ogg", sv)) {
+            return P3ACompressionType::None;
+        }
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".opus", sv)) {
+            return P3ACompressionType::None;
+        }
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".png", sv)) {
+            return P3ACompressionType::None;
+        }
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".avi", sv)) {
+            return P3ACompressionType::None;
+        }
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".webm", sv)) {
+            return P3ACompressionType::None;
+        }
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".wmv", sv)) {
+            return P3ACompressionType::None;
+        }
+    }
+
+    // just use lz4 for everything else
+    return P3ACompressionType::LZ4;
+}
+
 static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
                            const std::filesystem::path& rootDir,
                            const std::filesystem::path& currentDir,
                            std::error_code& ec,
-                           P3ACompressionType desiredCompressionType) {
+                           std::optional<P3ACompressionType> desiredCompressionType) {
     std::filesystem::directory_iterator iterator(currentDir, ec);
     if (ec) {
         return false;
@@ -43,14 +93,17 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
             }
             fn[i] = (c == '\\' ? '/' : c);
         }
-        fileinfos.emplace_back(entry.path(), fn, desiredCompressionType);
+
+        auto& entryPath = entry.path();
+        fileinfos.emplace_back(
+            entryPath, fn, DetermineCompressionTypeForFile(entryPath, desiredCompressionType));
     }
     return true;
 }
 
 bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                           const std::filesystem::path& archivePath,
-                          P3ACompressionType desiredCompressionType,
+                          std::optional<P3ACompressionType> desiredCompressionType,
                           const std::filesystem::path& dictPath,
                           size_t desiredThreadCount) {
     P3APackData packData;

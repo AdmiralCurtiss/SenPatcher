@@ -25,8 +25,8 @@ int P3A_Pack_Function(int argc, char** argv) {
         .dest("compression")
         .metavar("TYPE")
         .help("Which compression to use for the files packed into the archive.")
-        .choices({"none", "lz4", "zstd"})
-        .set_default("none");
+        .choices({"auto", "none", "lz4", "zstd"})
+        .set_default("auto");
     parser.add_option("-t", "--threads")
         .type(optparse::DataType::Int)
         .dest("threads")
@@ -51,10 +51,12 @@ int P3A_Pack_Function(int argc, char** argv) {
     std::string_view source(args[0]);
     std::string_view target(output_option->first_string());
 
-    SenPatcher::P3ACompressionType compressionType = SenPatcher::P3ACompressionType::None;
+    std::optional<SenPatcher::P3ACompressionType> compressionType = std::nullopt;
     if (auto* compression_option = options.get("compression")) {
         const auto& compressionString = compression_option->first_string();
-        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("auto", compressionString)) {
+            compressionType = std::nullopt;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
             compressionType = SenPatcher::P3ACompressionType::None;
         } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("lz4", compressionString)) {
             compressionType = SenPatcher::P3ACompressionType::LZ4;
