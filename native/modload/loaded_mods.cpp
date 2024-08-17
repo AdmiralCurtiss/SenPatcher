@@ -515,11 +515,15 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                                 auto* lang = ini.FindValue(iniCategory, "Language");
                                 if (lang) {
                                     if (isRunningInJapaneseLanguage) {
-                                        skip = !HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                                            "Japanese", lang->Value);
+                                        skip = !(HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                                                     "Japanese", lang->Value)
+                                                 || HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                                                     "All", lang->Value));
                                     } else {
-                                        skip = !HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                                            "English", lang->Value);
+                                        skip = !(HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                                                     "English", lang->Value)
+                                                 || HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+                                                     "All", lang->Value));
                                     }
                                 }
                             }
