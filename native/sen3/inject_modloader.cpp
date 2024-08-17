@@ -20,7 +20,7 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x1401316f3, 0x140134e83);
-    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x140131754, 0x140134ee4);
+    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x140131756, 0x140134ee6);
 
 
     char* codespaceBegin = codespace;
@@ -41,18 +41,18 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
     Emit_POP_R64(codespace, R64::R11);
     Emit_POP_R64(codespace, R64::R10);
 
-    // check for success
+    // check result
     Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // go back to function and pretend nothing happened
+    // if we have no injected file proceed with normal function
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(inject));
     Emit_JMP_R64(codespace, R64::RDX);
 
-    // jump to exit point (success is set by code at exit point)
+    // if we have an injected file go to return code, return value is already correct in RAX
     success.SetTarget(codespace);
     Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(exitPoint));
     Emit_JMP_R64(codespace, R64::RDX);
@@ -69,7 +69,7 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
     using namespace SenPatcher::x64;
 
     char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x140131630, 0x140134dc0);
-    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x14013166a, 0x140134dfa);
+    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x14013166c, 0x140134dfc);
 
 
     char* codespaceBegin = codespace;
@@ -100,16 +100,16 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
     Emit_POP_R64(codespace, R64::RDX);
     Emit_POP_R64(codespace, R64::RCX);
 
-    // check for success
+    // check result
     Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
     BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
+    success.WriteJump(codespace, JumpCondition::JNS);
 
-    // on fail, go back to function and pretend nothing happened
+    // if we have no injected file proceed with normal function
     Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(inject));
     Emit_JMP_R64(codespace, R64::RDX);
 
-    // jump to exit point (success is set by code at exit point)
+    // if we have an injected file go to return code, return value is already correct in RAX
     success.SetTarget(codespace);
     Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(exitPoint));
     Emit_JMP_R64(codespace, R64::RCX);
