@@ -143,10 +143,28 @@ void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder) 
     Emit_PUSH_R64(codespace, R64::R10);
     Emit_PUSH_R64(codespace, R64::R11);
     Emit_SUB_R64_IMM32(codespace, R64::RSP, 0x28);
+    WriteInstruction40(codespace, 0x4c8d442420); // lea r8,[rsp+20h]
 
     Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(fsoundOpenForwarder));
     Emit_CALL_R64(codespace, R64::RAX);
 
+    Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
+    BranchHelper1Byte no_injected_file;
+    no_injected_file.WriteJump(codespace, JumpCondition::JS);
+
+    // if we have an injected file there's still two options
+    BranchHelper1Byte common_return;
+    BranchHelper1Byte failure;
+    failure.WriteJump(codespace, JumpCondition::JZ);
+
+    // opening file succeeded, load return value into RAX and return
+    WriteInstruction40(codespace, 0x488b442420); // mov rax,[rsp+20h]
+    common_return.WriteJump(codespace, JumpCondition::JMP);
+
+    // opening file failed, return nullptr
+    failure.SetTarget(codespace);
+    Emit_XOR_R64_R64(codespace, R64::RAX, R64::RAX);
+    common_return.SetTarget(codespace);
     Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x28);
     Emit_POP_R64(codespace, R64::R11);
     Emit_POP_R64(codespace, R64::R10);
@@ -154,19 +172,19 @@ void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder) 
     Emit_POP_R64(codespace, R64::R8);
     Emit_POP_R64(codespace, R64::RDX);
     Emit_POP_R64(codespace, R64::RCX);
+    Emit_RET(codespace);
 
-    // check for success
-    Emit_TEST_R64_R64(codespace, R64::RAX, R64::RAX);
-    BranchHelper1Byte success;
-    success.WriteJump(codespace, JumpCondition::JNZ);
-
-    // on failure go back to function
+    // if we have no injected file proceed with normal function
+    no_injected_file.SetTarget(codespace);
+    Emit_ADD_R64_IMM32(codespace, R64::RSP, 0x28);
+    Emit_POP_R64(codespace, R64::R11);
+    Emit_POP_R64(codespace, R64::R10);
+    Emit_POP_R64(codespace, R64::R9);
+    Emit_POP_R64(codespace, R64::R8);
+    Emit_POP_R64(codespace, R64::RDX);
+    Emit_POP_R64(codespace, R64::RCX);
     Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(inject));
     Emit_JMP_R64(codespace, R64::RAX);
-
-    // on success just return from the function, RAX already has the correct return value
-    success.SetTarget(codespace);
-    Emit_RET(codespace);
 
     execData.Codespace = codespace;
 }

@@ -397,9 +397,15 @@ static void __fastcall MemoryFile_FSoundFileClose(MemoryFile* file) {
     delete file;
 }
 
-static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* path) {
+// returns:
+// 0 if we should report that the file open failed
+// 1 if we should report that the file open succeeded (*out_handle will contain the file pointer)
+// -1 if the original function should continue running
+static int64_t __fastcall FSoundOpenForwarder(FSoundFile* soundFile,
+                                              const char* path,
+                                              void** out_handle) {
     if (!IsValidReroutablePath(path)) {
-        return nullptr;
+        return -1;
     }
 
     if (s_LoadedModsData.CheckDevFolderForAssets) {
@@ -418,14 +424,15 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
                 soundFile->FSeek = &SenPatcherFile_FSoundFileSeek;
                 soundFile->FTell = &SenPatcherFile_FSoundFileTell;
                 soundFile->FClose = &SenPatcherFile_FSoundFileClose;
-                return handle;
+                *out_handle = handle;
+                return 1;
             }
         }
     }
 
     std::array<char, 0x100> filteredPath;
     if (!SenLib::ModLoad::FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
-        return nullptr;
+        return -1;
     }
 
     const SenLib::ModLoad::P3AFileRef* refptr =
@@ -433,26 +440,28 @@ static void* __fastcall FSoundOpenForwarder(FSoundFile* soundFile, const char* p
     if (refptr != nullptr) {
         void* memory = nullptr;
         uint64_t filesize = 0;
-        if (SenLib::ModLoad::ExtractP3AFileToMemory(
+        if (!SenLib::ModLoad::ExtractP3AFileToMemory(
                 *refptr,
                 0x8000'0000,
                 memory,
                 filesize,
                 [](size_t length) { return malloc(length); },
                 [](void* memory) { free(memory); })) {
-            MemoryFile* handle = new MemoryFile();
-            handle->Memory = static_cast<char*>(memory);
-            handle->Length = filesize;
-            handle->Position = 0;
-            soundFile->FRead = &MemoryFile_FSoundFileRead;
-            soundFile->FSeek = &MemoryFile_FSoundFileSeek;
-            soundFile->FTell = &MemoryFile_FSoundFileTell;
-            soundFile->FClose = &MemoryFile_FSoundFileClose;
-            return handle;
+            return 0;
         }
+        MemoryFile* handle = new MemoryFile();
+        handle->Memory = static_cast<char*>(memory);
+        handle->Length = filesize;
+        handle->Position = 0;
+        soundFile->FRead = &MemoryFile_FSoundFileRead;
+        soundFile->FSeek = &MemoryFile_FSoundFileSeek;
+        soundFile->FTell = &MemoryFile_FSoundFileTell;
+        soundFile->FClose = &MemoryFile_FSoundFileClose;
+        *out_handle = handle;
+        return 1;
     }
 
-    return nullptr;
+    return -1;
 }
 
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
