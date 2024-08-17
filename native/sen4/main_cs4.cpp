@@ -185,9 +185,13 @@ static bool IsValidReroutablePath(const char* path) {
            && (path[4] == '/' || path[4] == '\\');
 }
 
-static bool OpenModFile(FFile* ffile, const char* path) {
+// returns:
+// 0 if we should report that the file open failed
+// 1 if we should report that the file open succeeded
+// -1 if the original function should continue running
+static int64_t OpenModFile(FFile* ffile, const char* path) {
     if (!IsValidReroutablePath(path)) {
-        return false;
+        return -1;
     }
 
     if (s_LoadedModsData.CheckDevFolderForAssets) {
@@ -200,17 +204,19 @@ static bool OpenModFile(FFile* ffile, const char* path) {
         HyoutaUtils::IO::File file(std::string_view(tmp), HyoutaUtils::IO::OpenMode::Read);
         if (file.IsOpen()) {
             auto length = file.GetLength();
-            if (length && *length < 0x8000'0000) {
-                ffile->NativeFileHandle = file.ReleaseHandle();
-                ffile->Filesize = static_cast<uint32_t>(*length);
-                return true;
+            if (!length) {
+                ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
+                return 0;
             }
+            ffile->NativeFileHandle = file.ReleaseHandle();
+            ffile->Filesize = static_cast<uint32_t>(*length);
+            return 1;
         }
     }
 
     std::array<char, 0x100> filteredPath;
     if (!SenLib::ModLoad::FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
-        return false;
+        return -1;
     }
 
     const SenLib::ModLoad::P3AFileRef* refptr =
@@ -218,27 +224,33 @@ static bool OpenModFile(FFile* ffile, const char* path) {
     if (refptr != nullptr) {
         void* memory = nullptr;
         uint64_t filesize = 0;
-        if (SenLib::ModLoad::ExtractP3AFileToMemory(
+        if (!SenLib::ModLoad::ExtractP3AFileToMemory(
                 *refptr,
                 0x8000'0000,
                 memory,
                 filesize,
                 [](size_t length) { return s_TrackedMalloc(length, 8); },
                 [](void* memory) { s_TrackedFree(memory); })) {
-            ffile->Filesize = static_cast<uint32_t>(filesize);
-            ffile->MemoryPointer = memory;
-            ffile->MemoryPointerForFreeing = memory;
-            ffile->MemoryPosition = 0;
-            return true;
+            ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
+            return 0;
         }
+        ffile->Filesize = static_cast<uint32_t>(filesize);
+        ffile->MemoryPointer = memory;
+        ffile->MemoryPointerForFreeing = memory;
+        ffile->MemoryPosition = 0;
+        return 1;
     }
 
-    return false;
+    return -1;
 }
 
-static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
+// returns:
+// 0 if we should report that the file does not exist
+// 1 if we should report that the file does exist (in only this case *out_filesize will be set)
+// -1 if the original function should continue running
+static int64_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
     if (!IsValidReroutablePath(path)) {
-        return std::nullopt;
+        return -1;
     }
 
     if (s_LoadedModsData.CheckDevFolderForAssets) {
@@ -251,15 +263,19 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
         HyoutaUtils::IO::File file(std::string_view(tmp), HyoutaUtils::IO::OpenMode::Read);
         if (file.IsOpen()) {
             auto length = file.GetLength();
-            if (length && *length < 0x8000'0000) {
-                return length;
+            if (!length) {
+                return 0;
             }
+            if (out_filesize) {
+                *out_filesize = static_cast<uint32_t>(*length);
+            }
+            return 1;
         }
     }
 
     std::array<char, 0x100> filteredPath;
     if (!SenLib::ModLoad::FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
-        return std::nullopt;
+        return -1;
     }
 
     const SenLib::ModLoad::P3AFileRef* refptr =
@@ -267,30 +283,21 @@ static std::optional<uint64_t> GetFilesizeOfModFile(const char* path) {
     if (refptr != nullptr) {
         const SenLib::ModLoad::P3AFileRef& ref = *refptr;
         const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
-        if (fi.UncompressedSize < 0x8000'0000) {
-            return fi.UncompressedSize;
+        if (out_filesize) {
+            *out_filesize = static_cast<uint32_t>(fi.UncompressedSize);
         }
+        return 1;
     }
 
-    return std::nullopt;
+    return -1;
 }
 
 static int64_t __fastcall FFileOpenForwarder(FFile* ffile, const char* path) {
-    if (OpenModFile(ffile, path)) {
-        return 1;
-    }
-    return 0;
+    return OpenModFile(ffile, path);
 }
 
 static int64_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* out_filesize) {
-    auto result = GetFilesizeOfModFile(path);
-    if (result) {
-        if (out_filesize) {
-            *out_filesize = static_cast<uint32_t>(*result);
-        }
-        return 1;
-    }
-    return 0;
+    return GetFilesizeOfModFile(path, out_filesize);
 }
 
 struct FSoundFile {
