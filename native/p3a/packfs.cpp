@@ -103,10 +103,12 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
 
 bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                           const std::filesystem::path& archivePath,
+                          uint32_t archiveVersion,
                           std::optional<P3ACompressionType> desiredCompressionType,
                           const std::filesystem::path& dictPath,
                           size_t desiredThreadCount) {
     P3APackData packData;
+    packData.SetVersion(archiveVersion);
     packData.SetAlignment(0x40);
     std::error_code ec;
     auto& packFiles = packData.GetMutableFiles();

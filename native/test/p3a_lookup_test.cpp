@@ -29,7 +29,8 @@ TEST(P3A, BinarySearchLookup) {
         p3a.Archive.FileInfo[i].CompressedSize = i;
         p3a.Archive.FileInfo[i].UncompressedSize = i;
         p3a.Archive.FileInfo[i].Offset = i;
-        p3a.Archive.FileInfo[i].Hash = 0;
+        p3a.Archive.FileInfo[i].CompressedHash = 0;
+        p3a.Archive.FileInfo[i].UncompressedHash = 0;
 
         for (size_t j = 0; j < 16; ++j) {
             p3a.Archive.FileInfo[i].Filename[j] = static_cast<char>((rng() % 26) + 'a');

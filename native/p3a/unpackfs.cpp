@@ -73,6 +73,33 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
         return false;
     }
 
+    P3AExtendedHeader extHeader{};
+    bool hasUncompressedHash = false;
+    if (header.Version >= 1200) {
+        // if this changes this code needs to be updated
+        static_assert(P3AExtendedHeaderSize1200 == sizeof(P3AExtendedHeader));
+
+        if (f.Read(&extHeader, P3AExtendedHeaderSize1200) != P3AExtendedHeaderSize1200) {
+            return false;
+        }
+        if (extHeader.Size < P3AExtendedHeaderSize1200) {
+            return false;
+        }
+        if (extHeader.Size > P3AExtendedHeaderSize1200) {
+            // skip remaining extended header, we don't know what it contains
+            if (!f.SetPosition(extHeader.Size - P3AExtendedHeaderSize1200,
+                               HyoutaUtils::IO::SetPositionMode::Current)) {
+                return false;
+            }
+        }
+        // TODO: check hash
+
+        hasUncompressedHash = true;
+    } else {
+        extHeader.Size = 0;
+        extHeader.FileInfoSize = P3AFileInfoSize1100;
+    }
+
     json.Key("Version");
     json.Uint(header.Version);
 
@@ -83,9 +110,38 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
     if (!fileinfos) {
         return false;
     }
-    const size_t fileinfoTotalSize = sizeof(P3AFileInfo) * header.FileCount;
-    if (f.Read(fileinfos.get(), fileinfoTotalSize) != fileinfoTotalSize) {
-        return false;
+    if (extHeader.FileInfoSize == sizeof(P3AFileInfo)) {
+        // can read efficiently
+        const size_t fileinfoTotalSize = sizeof(P3AFileInfo) * header.FileCount;
+        if (f.Read(fileinfos.get(), fileinfoTotalSize) != fileinfoTotalSize) {
+            return false;
+        }
+    } else {
+        if (extHeader.FileInfoSize < P3AFileInfoSize1100) {
+            // P3AFileInfoSize1100 is the minimum size, this can't be valid
+            return false;
+        }
+
+        if (extHeader.FileInfoSize > sizeof(P3AFileInfo)) {
+            // read one at a time, then skip difference
+            for (size_t i = 0; i < header.FileCount; ++i) {
+                if (f.Read(&fileinfos[i], sizeof(P3AFileInfo)) != sizeof(P3AFileInfo)) {
+                    return false;
+                }
+                if (!f.SetPosition(extHeader.FileInfoSize - sizeof(P3AFileInfo),
+                                   HyoutaUtils::IO::SetPositionMode::Current)) {
+                    return false;
+                }
+            }
+        } else {
+            // read one at a time, keep the unread part zero-filled
+            std::memset(fileinfos.get(), 0, sizeof(P3AFileInfo) * header.FileCount);
+            for (size_t i = 0; i < header.FileCount; ++i) {
+                if (f.Read(&fileinfos[i], extHeader.FileInfoSize) != extHeader.FileInfoSize) {
+                    return false;
+                }
+            }
+        }
     }
 
     ZSTD_DDict_UniquePtr ddict = nullptr;
@@ -166,7 +222,7 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             return false;
         }
 
-        if (fileinfo.Hash != XXH64(filedata.get(), fileinfo.CompressedSize, 0)) {
+        if (fileinfo.CompressedHash != XXH64(filedata.get(), fileinfo.CompressedSize, 0)) {
             return false;
         }
 
@@ -187,6 +243,11 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
                 }
                 decomp.swap(filedata);
                 filedataSize = fileinfo.UncompressedSize;
+
+                if (hasUncompressedHash
+                    && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
+                    return false;
+                }
             }
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD) {
             json.String("zStd");
@@ -204,6 +265,11 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
                 }
                 decomp.swap(filedata);
                 filedataSize = fileinfo.UncompressedSize;
+
+                if (hasUncompressedHash
+                    && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
+                    return false;
+                }
             }
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD_DICT) {
             json.String("zStdDict");
@@ -232,10 +298,18 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
 
                 decomp.swap(filedata);
                 filedataSize = fileinfo.UncompressedSize;
+
+                if (hasUncompressedHash
+                    && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
+                    return false;
+                }
             }
         } else {
             json.String("none");
             if (fileinfo.CompressedSize != fileinfo.UncompressedSize) {
+                return false;
+            }
+            if (hasUncompressedHash && fileinfo.CompressedHash != fileinfo.UncompressedHash) {
                 return false;
             }
         }
@@ -245,6 +319,10 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             json.Bool(true);
             json.Key("UncompressedFilesize");
             json.Uint64(fileinfo.UncompressedSize);
+            if (header.Version >= 1200) {
+                json.Key("UncompressedHash");
+                json.Uint64(fileinfo.UncompressedHash);
+            }
         }
 
         if (f2.Write(filedata.get(), filedataSize) != filedataSize) {

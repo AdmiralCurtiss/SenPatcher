@@ -8,6 +8,7 @@
 namespace SenPatcher {
 bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
                           const std::filesystem::path& archivePath,
+                          uint32_t archiveVersion,
                           std::optional<P3ACompressionType> desiredCompressionType,
                           const std::filesystem::path& dictPath,
                           size_t desiredThreadCount);

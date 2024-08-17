@@ -93,6 +93,7 @@ bool CreateArchiveIfNeeded(
     }
 
     SenPatcher::P3APackData packData;
+    packData.SetVersion(SenPatcher::P3AHighestSupportedVersion);
     packData.SetAlignment(0x10);
     AddSenPatcherVersionFile(packData);
     if (!collectAssets(packData)) {

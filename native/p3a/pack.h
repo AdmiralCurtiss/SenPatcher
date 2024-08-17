@@ -25,7 +25,8 @@ struct P3APackFile {
                 const std::array<char, 0x100>& filename,
                 P3ACompressionType desiredCompressionType,
                 P3APackFilePrecompressed precompressed = P3APackFilePrecompressed::No,
-                uint64_t decompressedFilesize = 0 // ignored if not precompressed
+                uint64_t decompressedFilesize = 0, // ignored if not precompressed
+                uint64_t decompressedHash = 0      // ignored if not precompressed
     );
     P3APackFile(const P3APackFile& other) = delete;
     P3APackFile(P3APackFile&& other);
@@ -38,7 +39,8 @@ struct P3APackFile {
                 const std::array<char, 0x100>& filename,
                 P3ACompressionType desiredCompressionType,
                 P3APackFilePrecompressed precompressed = P3APackFilePrecompressed::No,
-                uint64_t decompressedFilesize = 0 // ignored if not precompressed
+                uint64_t decompressedFilesize = 0, // ignored if not precompressed
+                uint64_t decompressedHash = 0      // ignored if not precompressed
     );
 #endif
 
@@ -46,6 +48,7 @@ struct P3APackFile {
     P3ACompressionType GetDesiredCompressionType() const;
     bool IsPrecompressed() const;
     uint64_t GetDecompressedFilesizeForPrecompressed() const;
+    uint64_t GetDecompressedHashForPrecompressed() const;
 
     bool HasVectorData() const;
     const std::vector<char>& GetVectorData() const;
@@ -68,6 +71,8 @@ struct P3APackData {
     P3APackData& operator=(P3APackData&& other);
     ~P3APackData();
 
+    uint32_t GetVersion() const;
+    void SetVersion(uint32_t version);
     size_t GetAlignment() const;
     void SetAlignment(size_t alignment);
     const std::vector<P3APackFile>& GetFiles() const;

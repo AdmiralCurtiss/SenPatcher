@@ -1,5 +1,6 @@
 #include "p3a_pack.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <filesystem>
 #include <limits>
@@ -33,6 +34,14 @@ int P3A_Pack_Function(int argc, char** argv) {
         .metavar("THREADCOUNT")
         .set_default(0)
         .help("Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection.");
+    parser.add_option("--archive-version")
+        .type(optparse::DataType::Int)
+        .dest("archive-version")
+        .metavar("VERSION")
+        .set_default(SenPatcher::P3AHighestSupportedVersion)
+        .help(
+            "The version of the archive to pack. Defaults to the newest supported version.\n"
+            "1100 and 1200 are supported.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -78,8 +87,29 @@ int P3A_Pack_Function(int argc, char** argv) {
         }
     }
 
+    auto* archiveVersion_option = options.get("archive-version");
+    uint32_t archiveVersion = SenPatcher::P3AHighestSupportedVersion;
+    if (archiveVersion_option != nullptr) {
+        int64_t argVersion = archiveVersion_option->first_integer();
+        if (argVersion < 0
+            || static_cast<uint64_t>(argVersion) > std::numeric_limits<uint32_t>::max()) {
+            parser.error("Invalid archive version.");
+            return -1;
+        }
+        auto it = std::find(SenPatcher::P3ASupportedVersions.begin(),
+                            SenPatcher::P3ASupportedVersions.end(),
+                            static_cast<uint32_t>(argVersion));
+        if (it != SenPatcher::P3ASupportedVersions.end()) {
+            archiveVersion = *it;
+        } else {
+            parser.error("Invalid archive version.");
+            return -1;
+        }
+    }
+
     if (!SenPatcher::PackP3AFromDirectory(std::filesystem::path(source.begin(), source.end()),
                                           std::filesystem::path(target.begin(), target.end()),
+                                          archiveVersion,
                                           compressionType,
                                           std::filesystem::path(),
                                           threadCount)) {

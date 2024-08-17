@@ -644,7 +644,7 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                 }
             }
 
-            if (fi.Hash != XXH64(memory, fi.UncompressedSize, 0)) {
+            if (fi.CompressedHash != XXH64(memory, fi.UncompressedSize, 0)) {
                 free_func(memory);
                 return false;
             }
@@ -685,7 +685,7 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                 }
             }
 
-            if (fi.Hash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
+            if (fi.CompressedHash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
                 compressedMemory.reset();
                 free_func(memory);
                 return false;
@@ -732,7 +732,7 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                 }
             }
 
-            if (fi.Hash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
+            if (fi.CompressedHash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
                 compressedMemory.reset();
                 free_func(memory);
                 return false;
@@ -782,7 +782,7 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                 }
             }
 
-            if (fi.Hash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
+            if (fi.CompressedHash != XXH64(compressedMemory.get(), fi.CompressedSize, 0)) {
                 compressedMemory.reset();
                 free_func(memory);
                 return false;

@@ -1,5 +1,6 @@
 #include "packjson.h"
 
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -40,6 +41,26 @@ static std::optional<uint64_t> ReadUInt64(T& json, const char* key) {
             return std::nullopt;
         }
         return static_cast<uint64_t>(i);
+    }
+    return std::nullopt;
+}
+
+template<typename T>
+static std::optional<uint32_t> ReadUInt32(T& json, const char* key) {
+    auto it = json.FindMember(key);
+    if (it == json.MemberEnd()) {
+        return std::nullopt;
+    }
+    auto& j = it->value;
+    if (j.IsInt64()) {
+        const auto i = j.GetInt64();
+        if (i < 0) {
+            return std::nullopt;
+        }
+        if (i > std::numeric_limits<uint32_t>::max()) {
+            return std::nullopt;
+        }
+        return static_cast<uint32_t>(i);
     }
     return std::nullopt;
 }
@@ -88,6 +109,14 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
     }
 
     const auto root = json.GetObject();
+    const auto archiveVersion = ReadUInt32(root, "Version");
+    if (!archiveVersion) {
+        return false;
+    }
+    if (!(*archiveVersion == 1100 || *archiveVersion == 1200)) {
+        return false;
+    }
+    packData.SetVersion(*archiveVersion);
     packData.SetAlignment(ReadUInt64(root, "Alignment").value_or(0));
     const auto dictString = ReadString(root, "ZStdDictionaryPath");
     packData.ClearZStdDictionaryData();
@@ -109,10 +138,14 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                 const bool isPrecompressed = ReadBool(file, "Precompressed").value_or(false);
                 const auto precompressedUncompressedFilesize =
                     ReadUInt64(file, "UncompressedFilesize");
+                const auto precompressedUncompressedHash = ReadUInt64(file, "UncompressedHash");
                 if (!nameInArchive || !pathOnDisk || !compression) {
                     return false;
                 }
                 if (isPrecompressed && !precompressedUncompressedFilesize) {
+                    return false;
+                }
+                if (isPrecompressed && *archiveVersion >= 1200 && !precompressedUncompressedHash) {
                     return false;
                 }
                 std::array<char, 0x100> fn{};
@@ -141,7 +174,10 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                     fn,
                     ct,
                     isPrecompressed ? P3APackFilePrecompressed::Yes : P3APackFilePrecompressed::No,
-                    isPrecompressed ? *precompressedUncompressedFilesize : 0u);
+                    isPrecompressed ? *precompressedUncompressedFilesize : 0u,
+                    isPrecompressed && precompressedUncompressedHash
+                        ? *precompressedUncompressedHash
+                        : 0u);
             } else {
                 return false;
             }
