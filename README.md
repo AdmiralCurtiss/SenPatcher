@@ -7,6 +7,7 @@ SenPatcher is a collection of fixes and customizations for several PC ports of g
 - The NISA PC release of The Legend of Heroes: Trails of Cold Steel III
 - The NISA PC release of The Legend of Heroes: Trails of Cold Steel IV
 - The NISA PC release of The Legend of Heroes: Trails into Reverie
+- The Aksys PC release of Tokyo Xanadu eX+
 
 It also acts as a mod loader so file-based mods can be distributed and installed without modifying the base game files.
 
@@ -27,7 +28,7 @@ Prerequisites
 - If you have installed a version of SenPatcher before v1.0, please restore your game before continuing.
   - The `SenPatcherGui.exe` provided in the release binary package should offer to automatically restore the game for you when you open the relevant game.
   - Alternatively, verify the game files in Steam or GoG Galaxy. It will detect and redownload any patched files and replace them with unpatched ones.
-- Make sure your game is updated to a supported version (CS1 v1.6, CS2 v1.4.1 or v1.4.2, CS3 v1.06, CS4 v1.2.1, Reverie v1.1.4). Other versions of the games will not work.
+- Make sure your game is updated to a supported version (CS1 v1.6, CS2 v1.4.1 or v1.4.2, CS3 v1.06, CS4 v1.2.1, Reverie v1.1.4, TX v1.08). Other versions of the games will not work.
 
 
 Windows (using the GUI)
@@ -62,6 +63,7 @@ Windows (manual)
     - For CS3 it's `DINPUT8.dll` in `bin/x64`, next to `ed8_3_PC.exe`.
     - For CS4 it's `DINPUT8.dll` in `bin/Win64`, next to `ed8_4_PC.exe`.
     - For Reverie it's `DSOUND.dll` in `bin/Win64`, next to `hnk.exe`.
+    - For Tokyo Xanadu it's `DINPUT8.dll` in the root of the game folder, next to `TokyoXanadu.exe`.
 - Adjust the active patches as desired by modifiying `senpatcher_settings.ini`.
 - Run the game as usual.
 
@@ -82,9 +84,10 @@ Steam Deck
     - For CS3 it's `DINPUT8.dll` in `bin/x64`, next to `ed8_3_PC.exe`.
     - For CS4 it's `DINPUT8.dll` in `bin/Win64`, next to `ed8_4_PC.exe`.
     - For Reverie it's `DSOUND.dll` in `bin/Win64`, next to `hnk.exe`.
+    - For Tokyo Xanadu it's `DINPUT8.dll` in the root of the game folder, next to `TokyoXanadu.exe`.
 - Right-click the game in the Steam game list and select 'Properties'.
 - In the General tab, add the following text (without the backticks!) into the advanced Launch Options field at the bottom:
-  - For CS1-4: `WINEDLLOVERRIDES=DINPUT8=n,b %command%`
+  - For CS1-4 and TX: `WINEDLLOVERRIDES=DINPUT8=n,b %command%`
   - For Reverie: `WINEDLLOVERRIDES=DSOUND=n,b %command%`
 - Adjust the active patches as desired by modifiying `senpatcher_settings.ini`.
 - You can switch back to Gaming mode now and run the game as usual.
@@ -95,6 +98,7 @@ To uninstall, just delete `DINPUT8.dll` or `DSOUND.dll` from the folder with the
 Feature Set for Trails of Cold Steel
 ====================================
 
+* Built-in mod loader for p3a mods.
 * Option to remove the forced animation skip in Turbo mode.
 * Option to fix the internal Thor master quartz HD texture ID to allow usage of the HD texture pack for it.
 * Option to fix various minor script and asset file errors, such as missing sound effects, incorrect voice clips, text typos, etc.
@@ -114,6 +118,7 @@ Note: Compatible with version 1.6 of the game only.
 Feature Set for Trails of Cold Steel II
 =======================================
 
+* Built-in mod loader for p3a mods.
 * Option to remove the forced animation skip in Turbo mode.
 * Option to fix two audio-related bugs, which cause missing or incorrect BGM/SFX and overlong track transitions.
 * Option to fix a few minor script errors.
@@ -133,6 +138,7 @@ Note: Compatible with versions 1.4, 1.4.1, and 1.4.2 of the game only.
 Feature Set for Trails of Cold Steel III
 ========================================
 
+* Built-in mod loader for p3a mods.
 * Option to fix various minor script and asset file errors, such as incorrect textures, incorrect voice clips, item description errors, broken Master Quartz effects, etc.
 * Option to fix the in-game button remapping options being incorrectly enabled/disabled, disallowing various sensible mappings.
 * Option to fix a bug that causes incorrect music playback when you switch areas too quickly.
@@ -147,6 +153,7 @@ Note: Compatible with version 1.06 of the game only.
 Feature Set for Trails of Cold Steel IV
 =======================================
 
+* Built-in mod loader for p3a mods.
 * Option to allow changing difficulty to Nightmare mid-playthrough.
 * Option to fix a bug that causes incorrect music playback when you switch areas too quickly.
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
@@ -158,11 +165,22 @@ Note: Compatible with version 1.2.1 of the game only.
 Feature Set for Trails into Reverie
 ===================================
 
+* Built-in mod loader for p3a mods.
 * Option to fix a bug that causes incorrect music playback when you switch areas too quickly.
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to remove the 30 FPS limit when the game is in the background.
 
 Note: Compatible with version 1.1.4 of the game only.
+
+Feature Set for Tokyo Xanadu eX+
+================================
+
+* Built-in mod loader for p3a mods.
+* Option to set the game language to English or Japanese instead of the game reading it from Steam/GOG Galaxy.
+* Option to skip the startup logos and/or all FMVs.
+
+Note: Compatible with version 1.08 of the game only.
+
 
 
 Information for people wanting to create file-based mods
@@ -174,7 +192,7 @@ This feature comes in two flavors:
 
 For development, you can create a `dev` directory in the base game directory and put your replacement files in there. Files in this folder will have priority over everything else, so eg. if you want to replace the t_magic table in CS4, you can place your modified copy at `The Legend of Heroes Trails of Cold Steel IV\dev\data\text\dat_en\t_magic.tbl`. This should work for all game files *except* the FMVs and the big `assets.pka`. Note that the `dev` directory must exist when the game is booted in order for this replacement to take effect. You will see a notice on the title screen (next to the version info) if the `dev` folder is active and being scanned.
 
-Once you're ready to release your mod into the world, you can pack it into a convenient archive file for distribution. In order to do that, take the included `sentools.exe` and pack the `dev` directory with it, so for example `sentools.exe P3A.Pack -c lz4 "The Legend of Heroes Trails of Cold Steel IV\dev" mymod.p3a`. The generated `mymod.p3a` can be placed in the `mods` directory that is created by SenPatcher, where it will act exactly like the freestanding `dev` directory, replacing the files as seen by the game. (Yes, this is the same file format used by the PH3 Daybreak PC port. You may choose to use their tool instead if you prefer it.)
+Once you're ready to release your mod into the world, you can pack it into a convenient archive file for distribution. In order to do that, take the included `sentools.exe` and pack the `dev` directory with it, so for example `sentools.exe P3A.Pack "The Legend of Heroes Trails of Cold Steel IV\dev" mymod.p3a`. The generated `mymod.p3a` can be placed in the `mods` directory that is created by SenPatcher, where it will act exactly like the freestanding `dev` directory, replacing the files as seen by the game. (Yes, this is the same file format used by the PH3 Daybreak PC port. You may choose to use their tool instead if you prefer it.)
 
 If there are multiple copies of a single file across multiple mods, only the highest priority one will be seen by the game. The priority list is:
 
