@@ -3,6 +3,7 @@
 #include <atomic>
 #include <bit>
 #include <cassert>
+#include <charconv>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -719,6 +720,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool useJapaneseLanguage = false;
     bool skipLogos = true;
     bool skipAllMovies = false;
+    bool makeTurboToggle = false;
+    float turboModeFactor = 2.0f;
 
     {
         std::string settingsFilePath;
@@ -753,6 +756,27 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                             }
                         }
                     };
+                const auto check_float =
+                    [&](std::string_view section, std::string_view key, float& f) {
+                        const auto* kvp = ini.FindValue(section, key);
+                        if (kvp) {
+                            float floatval = 0.0f;
+                            const auto [_, ec] = std::from_chars(
+                                kvp->Value.data(), kvp->Value.data() + kvp->Value.size(), floatval);
+                            if (ec == std::errc()) {
+                                logger.Log("Value ");
+                                logger.Log(key);
+                                logger.Log(" set to ");
+                                logger.LogFloat(floatval);
+                                logger.Log(".\n");
+                                f = floatval;
+                            } else {
+                                logger.Log("Value ");
+                                logger.Log(key);
+                                logger.Log(" not found in ini, leaving default.\n");
+                            }
+                        }
+                    };
                 const auto check_language =
                     [&](std::string_view section, std::string_view key, bool& b) {
                         const auto* kvp = ini.FindValue(section, key);
@@ -777,6 +801,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 check_language("TX", "Language", useJapaneseLanguage);
                 check_boolean("TX", "SkipLogos", skipLogos);
                 check_boolean("TX", "SkipAllMovies", skipAllMovies);
+                check_boolean("TX", "MakeTurboToggle", makeTurboToggle);
+                check_float("TX", "TurboModeFactor", turboModeFactor);
             }
         }
     }
@@ -825,6 +851,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::TX::PatchSkipMovies(patchExecData, skipLogos, skipAllMovies);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::TX::PatchTurboMode(patchExecData, makeTurboToggle, turboModeFactor);
     Align16CodePage(logger, patchExecData.Codespace);
 
     // mark newly allocated page as executable

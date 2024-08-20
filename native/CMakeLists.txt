@@ -780,6 +780,7 @@ if (SENPATCHER_BUILD_TXHOOK)
 		tx/exe_patch.h
 		tx/exe_patch_override_language.cpp
 		tx/exe_patch_skip_movies.cpp
+		tx/exe_patch_turbo_mode.cpp
 		tx/inject_modloader.h
 		tx/inject_modloader.cpp
 

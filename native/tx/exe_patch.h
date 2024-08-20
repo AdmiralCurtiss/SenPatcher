@@ -35,4 +35,5 @@ inline char* GetCodeAddressSteamGog(GameVersion version,
 
 void OverrideLanguage(PatchExecData& execData, bool useJapanese);
 void PatchSkipMovies(PatchExecData& execData, bool skipLogos, bool skipAllMovies);
+void PatchTurboMode(PatchExecData& execData, bool makeToggle, float factor);
 } // namespace SenLib::TX
