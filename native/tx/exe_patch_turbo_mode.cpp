@@ -14,6 +14,7 @@ static bool TurboActive = false;
 static bool TurboIsToggle = false;
 static bool TurboButtonPressedLastFrame = false;
 static float TurboFactor = 0.0f;
+static float RealTimeStep = 0.0f;
 
 static void __fastcall HandleTurbo(float* timestep, bool buttonHeld) {
     bool turboActiveThisFrame = false;
@@ -31,6 +32,8 @@ static void __fastcall HandleTurbo(float* timestep, bool buttonHeld) {
         TurboActive = turboActiveThisFrame;
     }
 
+    RealTimeStep = *timestep;
+
     if (turboActiveThisFrame) {
         *timestep = (*timestep * TurboFactor);
     }
@@ -43,8 +46,60 @@ static void __fastcall HandleTurbo(float* timestep, bool buttonHeld) {
     return;
 }
 
-void PatchTurboMode(PatchExecData& execData, bool makeToggle, float factor) {
-    if (factor >= 1.0f || factor <= 6.0f) {
+// static void __fastcall DebugFunc(void* stack) {
+//     int* buffer = *(int**)(((char*)stack) - 0x18);
+//     float* floatbuffer = (float*)buffer;
+//
+//     if (buffer[0x1ec / 4] == 0x3eb44d4a) {
+//         __debugbreak();
+//     }
+//
+//     return;
+// }
+
+static const char EN_ButtonName_MenuAction1[] = "Menu - Action 1";
+static const char JP_ButtonName_MenuAction1[] =
+    "\xE3\x83\xA1\xE3\x83\x8B\xE3\x83\xA5\xE3\x83\xBC\xE3\x83\xBB"
+    "Action 1";
+static const char EN_ButtonName_MenuAction2[] = "Menu - Action 2";
+static const char JP_ButtonName_MenuAction2[] =
+    "\xE3\x83\xA1\xE3\x83\x8B\xE3\x83\xA5\xE3\x83\xBC\xE3\x83\xBB"
+    "Action 2";
+static const char EN_ButtonName_MenuZoomIn[] = "Menu - Zoom In";
+static const char JP_ButtonName_MenuZoomIn[] =
+    "\xE3\x83\xA1\xE3\x83\x8B\xE3\x83\xA5\xE3\x83\xBC\xE3\x83\xBB"
+    "\xE6\x8B\xA1\xE5\xA4\xA7";
+static const char EN_ButtonName_MenuZoomOut[] = "Menu - Zoom Out";
+static const char JP_ButtonName_MenuZoomOut[] =
+    "\xE3\x83\xA1\xE3\x83\x8B\xE3\x83\xA5\xE3\x83\xBC\xE3\x83\xBB"
+    "\xE7\xB8\xAE\xE5\xB0\x8F";
+static const char EN_ButtonName_TurboMode[] = "Turbo Mode";
+static const char JP_ButtonName_TurboMode[] =
+    "\xE3\x82\xBF\xE3\x83\xBC\xE3\x83\x9C\xE3\x83\xA2\xE3\x83\xBC\xE3\x83\x89";
+static const char EN_ButtonName_FishingUp[] = "Fishing - Up";
+static const char JP_ButtonName_FishingUp[] = "Fishing\xE3\x83\xBB\xE4\xB8\x8A";
+static const char EN_ButtonName_FishingDown[] = "Fishing - Down";
+static const char JP_ButtonName_FishingDown[] = "Fishing\xE3\x83\xBB\xE4\xB8\x8B";
+static const char EN_ButtonName_FishingLeft[] = "Fishing - Left";
+static const char JP_ButtonName_FishingLeft[] = "Fishing\xE3\x83\xBB\xE5\xB7\xA6";
+static const char EN_ButtonName_FishingRight[] = "Fishing - Right";
+static const char JP_ButtonName_FishingRight[] = "Fishing\xE3\x83\xBB\xE5\x8F\xB3";
+static constexpr uint32_t Index_MenuAction1 = 0x25 + 0;
+static constexpr uint32_t Index_MenuAction2 = 0x25 + 1;
+static constexpr uint32_t Index_MenuZoomIn = 0x25 + 2;
+static constexpr uint32_t Index_MenuZoomOut = 0x25 + 3;
+static constexpr uint32_t Index_TurboMode = 0x25 + 4;
+static constexpr uint32_t Index_FishingUp = 0x25 + 5;
+static constexpr uint32_t Index_FishingDown = 0x25 + 6;
+static constexpr uint32_t Index_FishingLeft = 0x25 + 7;
+static constexpr uint32_t Index_FishingRight = 0x25 + 8;
+static constexpr uint32_t ButtonsToAdd = 9;
+
+void PatchTurboAndButtonMappings(PatchExecData& execData,
+                                 bool makeToggle,
+                                 float factor,
+                                 bool useJapanese) {
+    if (factor >= 1.0f && factor <= 6.0f) {
         TurboFactor = factor;
     } else {
         TurboFactor = 2.0f;
@@ -58,70 +113,174 @@ void PatchTurboMode(PatchExecData& execData, bool makeToggle, float factor) {
     char* codespace = execData.Codespace;
     using namespace SenPatcher::x86;
 
-    // TODO: full list of steam addresses
+    // TODO: Actually make the new bindings work.
+    // TODO: Add default bindings when launching without ini or resetting to default.
 
     char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x437521, 0x435d41);
     char* const ed8appPtr = GetCodeAddressSteamGog(version, textRegion, 0xb4d888, 0xb4c888);
-    char* const readInputCase10 = GetCodeAddressSteamGog(version, textRegion, 0, 0x436e8c);
-    char* const readInputCommonCall = GetCodeAddressSteamGog(version, textRegion, 0, 0x436c4f);
+    char* const readInputCase10 = GetCodeAddressSteamGog(version, textRegion, 0x43865c, 0x436e8c);
+    char* const readInputCommonCall =
+        GetCodeAddressSteamGog(version, textRegion, 0x43841f, 0x436c4f);
     char* const countButtonMappingsToAlloc =
         GetCodeAddressSteamGog(version, textRegion, 0x4058d2, 0x405412) + 1;
     char* const countButtonMappingsToInit =
         GetCodeAddressSteamGog(version, textRegion, 0x405940, 0x405480) + 2;
     char* const countButtonMappingsToWriteToIni =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x406ed3) + 2;
+        GetCodeAddressSteamGog(version, textRegion, 0x407393, 0x406ed3) + 2;
     char* const countButtonMappingsToReadFromIni =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x406d8f) + 2;
+        GetCodeAddressSteamGog(version, textRegion, 0x40724f, 0x406d8f) + 2;
+    char* const getButtonMappingNameFunction =
+        GetCodeAddressSteamGog(version, textRegion, 0x405770, 0x4052b0);
 
     // TODO: are all of these needed?
     char* const countButtonMappingsInRemappingGUI1 =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x67d7b4) + 2;
+        GetCodeAddressSteamGog(version, textRegion, 0x67f2c4, 0x67d7b4) + 2;
     char* const countButtonMappingsInRemappingGUI2 =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x6739a3) + 2;
-    int* const countButtonMappingsInRemappingGUI3 =
-        (int*)(GetCodeAddressSteamGog(version, textRegion, 0, 0x6a8be6) + 2);
-    int* const countButtonMappingsInRemappingGUI4 =
-        (int*)(GetCodeAddressSteamGog(version, textRegion, 0, 0x673c81) + 2);
+        GetCodeAddressSteamGog(version, textRegion, 0x6754b3, 0x6739a3) + 2;
+    char* const countButtonMappingsInRemappingGUI3 =
+        GetCodeAddressSteamGog(version, textRegion, 0x6aa666, 0x6a8be6) + 2;
+    char* const countButtonMappingsInRemappingGUI4 =
+        GetCodeAddressSteamGog(version, textRegion, 0x675791, 0x673c81) + 2;
+    char* const countButtonMappingsInRemappingGUI5 =
+        GetCodeAddressSteamGog(version, textRegion, 0x67f411, 0x67d901) + 6;
+    char* const countButtonMappingsInRemappingGUI6 =
+        GetCodeAddressSteamGog(version, textRegion, 0x68f976, 0x68def6) + 1; // scroll bar
+
+    // debug
+    //{
+    //    char* const aa = GetCodeAddressSteamGog(version, textRegion, 0, 0x76ec4b);
+    //    auto injectResult = InjectJumpIntoCode<5>(logger, aa, codespace);
+    //    BranchHelper4Byte jump_back_dbg;
+    //    jump_back_dbg.SetTarget(injectResult.JumpBackAddress);
+    //    const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+    //    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+    //    codespace += overwrittenInstructions.size();
+    //
+    //    Emit_PUSH_R32(codespace, R32::EAX);
+    //    Emit_PUSH_R32(codespace, R32::EBX);
+    //    Emit_PUSH_R32(codespace, R32::ECX);
+    //    Emit_PUSH_R32(codespace, R32::EDX);
+    //    Emit_PUSH_R32(codespace, R32::ESI);
+    //    Emit_PUSH_R32(codespace, R32::EDI);
+    //    Emit_PUSH_R32(codespace, R32::EBP);
+    //
+    //    BranchHelper4Byte call_dbg;
+    //    void* debug_func_ptr = DebugFunc;
+    //    call_dbg.SetTarget(static_cast<char*>(debug_func_ptr));
+    //    Emit_MOV_R32_R32(codespace, R32::ECX, R32::EBP);
+    //    call_dbg.WriteJump(codespace, JumpCondition::CALL);
+    //
+    //    Emit_POP_R32(codespace, R32::EBP);
+    //    Emit_POP_R32(codespace, R32::EDI);
+    //    Emit_POP_R32(codespace, R32::ESI);
+    //    Emit_POP_R32(codespace, R32::EDX);
+    //    Emit_POP_R32(codespace, R32::ECX);
+    //    Emit_POP_R32(codespace, R32::EBX);
+    //    Emit_POP_R32(codespace, R32::EAX);
+    //
+    //    jump_back_dbg.WriteJump(codespace, JumpCondition::JMP);
+    //}
 
 
-    // TODO: add a string to display for the turbo button label
-    // TODO: the scroll bar in the remapping menu still assumes the old row count
+    // some extra notes:
+    // - call at 0x673c07 positions the remapping UI table rows
+    // - call at 0x67d7eb controls the size of the background window
 
-    // increase the amount of button mappings by one so we can have our own remappable turbo button
+    // add name strings for the new actions
+    {
+        // luckily, the two arrays that hold the JP and EN action names are right next to eachother
+        // in memory, so we can treat them as a single long array of double the size. set this up.
+        PageUnprotect page(logger, getButtonMappingNameFunction, 0x21);
+        const char** enArrayLocation;
+        std::memcpy(&enArrayLocation, getButtonMappingNameFunction + 0x1b, 4);
+        static constexpr uint32_t actionNameArrayLength = 0x25;
+        PageUnprotect page2(logger, enArrayLocation, actionNameArrayLength * sizeof(char*) * 2);
+
+        if (useJapanese) {
+            // copy the JP strings upwards over the EN strings
+            std::memcpy(enArrayLocation,
+                        enArrayLocation + actionNameArrayLength,
+                        actionNameArrayLength * sizeof(char*));
+
+            *(enArrayLocation + Index_MenuAction1) = JP_ButtonName_MenuAction1;
+            *(enArrayLocation + Index_MenuAction2) = JP_ButtonName_MenuAction2;
+            *(enArrayLocation + Index_MenuZoomIn) = JP_ButtonName_MenuZoomIn;
+            *(enArrayLocation + Index_MenuZoomOut) = JP_ButtonName_MenuZoomOut;
+            *(enArrayLocation + Index_TurboMode) = JP_ButtonName_TurboMode;
+            *(enArrayLocation + Index_FishingUp) = JP_ButtonName_FishingUp;
+            *(enArrayLocation + Index_FishingDown) = JP_ButtonName_FishingDown;
+            *(enArrayLocation + Index_FishingLeft) = JP_ButtonName_FishingLeft;
+            *(enArrayLocation + Index_FishingRight) = JP_ButtonName_FishingRight;
+        } else {
+            *(enArrayLocation + Index_MenuAction1) = EN_ButtonName_MenuAction1;
+            *(enArrayLocation + Index_MenuAction2) = EN_ButtonName_MenuAction2;
+            *(enArrayLocation + Index_MenuZoomIn) = EN_ButtonName_MenuZoomIn;
+            *(enArrayLocation + Index_MenuZoomOut) = EN_ButtonName_MenuZoomOut;
+            *(enArrayLocation + Index_TurboMode) = EN_ButtonName_TurboMode;
+            *(enArrayLocation + Index_FishingUp) = EN_ButtonName_FishingUp;
+            *(enArrayLocation + Index_FishingDown) = EN_ButtonName_FishingDown;
+            *(enArrayLocation + Index_FishingLeft) = EN_ButtonName_FishingLeft;
+            *(enArrayLocation + Index_FishingRight) = EN_ButtonName_FishingRight;
+        }
+
+        // always use the (now extended and possibly overwritten) EN strings
+        std::memcpy(getButtonMappingNameFunction + 3, getButtonMappingNameFunction + 0xa, 3);
+        std::memcpy(getButtonMappingNameFunction + 6, getButtonMappingNameFunction + 0x18, 9);
+        std::memset(getButtonMappingNameFunction + 15, 0xcc, 0x21 - 15);
+    }
+
+    // increase the amount of button mappings
     {
         PageUnprotect page(logger, countButtonMappingsToAlloc, 1);
-        (*countButtonMappingsToAlloc) += 1;
+        (*countButtonMappingsToAlloc) += ButtonsToAdd;
     }
     {
         PageUnprotect page(logger, countButtonMappingsToInit, 1);
-        (*countButtonMappingsToInit) += 1;
+        (*countButtonMappingsToInit) += ButtonsToAdd;
     }
     {
         PageUnprotect page(logger, countButtonMappingsToWriteToIni, 1);
-        (*countButtonMappingsToWriteToIni) += 1;
+        (*countButtonMappingsToWriteToIni) += ButtonsToAdd;
     }
     {
         PageUnprotect page(logger, countButtonMappingsToReadFromIni, 1);
-        (*countButtonMappingsToReadFromIni) += 1;
+        (*countButtonMappingsToReadFromIni) += ButtonsToAdd;
     }
     {
         PageUnprotect page(logger, countButtonMappingsInRemappingGUI1, 1);
-        (*countButtonMappingsInRemappingGUI1) += 1;
+        (*countButtonMappingsInRemappingGUI1) += ButtonsToAdd;
     }
     {
         PageUnprotect page(logger, countButtonMappingsInRemappingGUI2, 1);
-        (*countButtonMappingsInRemappingGUI2) += 1;
+        (*countButtonMappingsInRemappingGUI2) += ButtonsToAdd;
     }
     {
         PageUnprotect page(logger, countButtonMappingsInRemappingGUI3, 4);
-        (*countButtonMappingsInRemappingGUI3) += 4;
+        uint32_t tmp;
+        std::memcpy(&tmp, countButtonMappingsInRemappingGUI3, 4);
+        tmp += (ButtonsToAdd * 4);
+        std::memcpy(countButtonMappingsInRemappingGUI3, &tmp, 4);
     }
     {
         PageUnprotect page(logger, countButtonMappingsInRemappingGUI4, 4);
-        (*countButtonMappingsInRemappingGUI4) += 4;
+        uint32_t tmp;
+        std::memcpy(&tmp, countButtonMappingsInRemappingGUI4, 4);
+        tmp += (ButtonsToAdd * 4);
+        std::memcpy(countButtonMappingsInRemappingGUI4, &tmp, 4);
+    }
+    {
+        PageUnprotect page(logger, countButtonMappingsInRemappingGUI5, 4);
+        float tmp;
+        std::memcpy(&tmp, countButtonMappingsInRemappingGUI5, 4);
+        tmp += static_cast<float>(ButtonsToAdd);
+        std::memcpy(countButtonMappingsInRemappingGUI5, &tmp, 4);
+    }
+    {
+        PageUnprotect page(logger, countButtonMappingsInRemappingGUI6, 1);
+        (*countButtonMappingsInRemappingGUI6) += ButtonsToAdd;
     }
 
-    // then, hook the turbo mode function
+    // then, inject the turbo mode code into the function that handles the per-frame timestep
     char* codespaceBegin = codespace;
     auto injectResult = InjectJumpIntoCode<5>(logger, entryPoint, codespaceBegin);
     BranchHelper4Byte jump_back;
@@ -205,7 +364,7 @@ void PatchTurboMode(PatchExecData& execData, bool makeToggle, float factor) {
     // finally, hook the function that translates the PC button mappings into the in-engine
     // controller buttons, and replace case 10 in the switch with code that checks the turbo button
     char* addressOfTurboCheckPush = codespace;
-    WriteInstruction16(codespace, 0x6a25); // push 0x25
+    WriteInstruction16(codespace, 0x6a00 | Index_TurboMode); // push Index_TurboMode
     BranchHelper4Byte go_to_common_call;
     go_to_common_call.SetTarget(readInputCommonCall);
     go_to_common_call.WriteJump(codespace, JumpCondition::JMP);

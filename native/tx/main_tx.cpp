@@ -852,7 +852,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
 
     SenLib::TX::PatchSkipMovies(patchExecData, skipLogos, skipAllMovies);
     Align16CodePage(logger, patchExecData.Codespace);
-    SenLib::TX::PatchTurboMode(patchExecData, makeTurboToggle, turboModeFactor);
+    SenLib::TX::PatchTurboAndButtonMappings(
+        patchExecData, makeTurboToggle, turboModeFactor, useJapaneseLanguage);
     Align16CodePage(logger, patchExecData.Codespace);
 
     // mark newly allocated page as executable
