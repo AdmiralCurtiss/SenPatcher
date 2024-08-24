@@ -37,7 +37,10 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
 void AddCS2ToTitleBar(PatchExecData& execData);
-void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggle);
+void PatchTurboMode(PatchExecData& execData,
+                    bool removeAutoSkip,
+                    bool makeToggle,
+                    bool adjustTimersForTurbo);
 void PatchMusicFadeTiming(PatchExecData& execData, uint32_t divisor);
 void PatchMusicQueueingOnSoundThreadSide(PatchExecData& execData);
 void PatchDisableMouseCapture(PatchExecData& execData);

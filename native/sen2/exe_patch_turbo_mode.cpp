@@ -17,8 +17,10 @@ static char TurboButtonPressedLastFrame = 0;
 static float RealTimeStep = 0.0f;
 static float TempStoreMul = 0.0f;
 
-void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggle) {
-    bool adjustVoiceClipTime = true;
+void PatchTurboMode(PatchExecData& execData,
+                    bool removeAutoSkip,
+                    bool makeToggle,
+                    bool adjustTimersForTurbo) {
     HyoutaUtils::Logger& logger = *execData.Logger;
     char* textRegion = execData.TextRegion;
     GameVersion version = execData.Version;
@@ -49,13 +51,13 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
     char* const addressJumpBattleStartAutoSkip =
         GetCodeAddressJpEn(version, textRegion, 0x4836eb, 0x48388b);
     char* const addressLoadTimeStepForLipflaps1 =
-        GetCodeAddressJpEn(version, textRegion, 0, 0x557c90);
+        GetCodeAddressJpEn(version, textRegion, 0x558000, 0x557c90);
     char* const addressLoadTimeStepForLipflaps2 =
-        GetCodeAddressJpEn(version, textRegion, 0, 0x557cb0);
+        GetCodeAddressJpEn(version, textRegion, 0x558020, 0x557cb0);
     char* const addressLoadTimeStepForLipflaps3 =
-        GetCodeAddressJpEn(version, textRegion, 0, 0x557cff);
+        GetCodeAddressJpEn(version, textRegion, 0x55806f, 0x557cff);
     char* const addressLoadTimeStepForActiveVoice =
-        GetCodeAddressJpEn(version, textRegion, 0, 0x558188);
+        GetCodeAddressJpEn(version, textRegion, 0x5584f8, 0x558188);
     float* const addrRealTimeStep = &RealTimeStep;
     float* const addrTempStoreMul = &TempStoreMul;
 
@@ -174,7 +176,7 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
     // use the unscaled timestep for lipflaps
     // this is a three-step process as the timestep is transformed twice before being passed to the
     // function that actually applies the time advancement
-    if (adjustVoiceClipTime) {
+    if (adjustTimersForTurbo) {
         char* codespace = execData.Codespace;
         const auto inject =
             InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps1, codespace);
@@ -197,7 +199,7 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
         jmpBack.WriteJump(codespace, JC::JMP);
         execData.Codespace = codespace;
     }
-    if (adjustVoiceClipTime) {
+    if (adjustTimersForTurbo) {
         char* codespace = execData.Codespace;
         const auto inject =
             InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps2, codespace);
@@ -220,7 +222,7 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
         jmpBack.WriteJump(codespace, JC::JMP);
         execData.Codespace = codespace;
     }
-    if (adjustVoiceClipTime) {
+    if (adjustTimersForTurbo) {
         char* codespace = execData.Codespace;
         const auto inject =
             InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps3, codespace);
@@ -244,7 +246,7 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
     // 0x558000 -> affects field/cutscene camera only
 
     // use unscaled timestep for active voices
-    if (adjustVoiceClipTime) {
+    if (adjustTimersForTurbo) {
         char* codespace = execData.Codespace;
         const auto inject =
             InjectJumpIntoCode<5>(logger, addressLoadTimeStepForActiveVoice, codespace);

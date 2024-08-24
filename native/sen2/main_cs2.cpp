@@ -658,6 +658,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool assetFixes = true;
     bool removeTurboSkip = true;
     bool makeTurboToggle = false;
+    bool adjustTimersForTurbo = true;
     bool correctLanguageVoiceTables = true;
     bool fixBgmEnqueue = true;
     bool replaceAudioTimingThread = true;
@@ -706,6 +707,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("CS2", "AssetFixes", assetFixes);
                 check_boolean("CS2", "RemoveTurboSkip", removeTurboSkip);
                 check_boolean("CS2", "MakeTurboToggle", makeTurboToggle);
+                check_boolean("CS2", "AdjustTimersForTurbo", adjustTimersForTurbo);
                 check_boolean("CS2", "CorrectLanguageVoiceTables", correctLanguageVoiceTables);
                 check_boolean("CS2", "FixBgmEnqueue", fixBgmEnqueue);
                 check_boolean("CS2", "ReplaceAudioTimingThread", replaceAudioTimingThread);
@@ -767,7 +769,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::Sen2::PatchRemoveDebugLeftovers(patchExecData);
     Align16CodePage(logger, patchExecData.Codespace);
-    SenLib::Sen2::PatchTurboMode(patchExecData, removeTurboSkip, makeTurboToggle);
+    SenLib::Sen2::PatchTurboMode(
+        patchExecData, removeTurboSkip, makeTurboToggle, adjustTimersForTurbo);
     Align16CodePage(logger, patchExecData.Codespace);
 
     if (replaceAudioTimingThread) {
