@@ -14,8 +14,11 @@
 namespace SenLib::Sen2 {
 static char TurboActive = 0;
 static char TurboButtonPressedLastFrame = 0;
+static float RealTimeStep = 0.0f;
+static float TempStoreMul = 0.0f;
 
 void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggle) {
+    bool adjustVoiceClipTime = true;
     HyoutaUtils::Logger& logger = *execData.Logger;
     char* textRegion = execData.TextRegion;
     GameVersion version = execData.Version;
@@ -45,6 +48,14 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
         GetCodeAddressJpEn(version, textRegion, 0x4845ae, 0x48474e);
     char* const addressJumpBattleStartAutoSkip =
         GetCodeAddressJpEn(version, textRegion, 0x4836eb, 0x48388b);
+    char* const addressLoadTimeStepForLipflaps1 =
+        GetCodeAddressJpEn(version, textRegion, 0, 0x557c90);
+    char* const addressLoadTimeStepForLipflaps2 =
+        GetCodeAddressJpEn(version, textRegion, 0, 0x557cb0);
+    char* const addressLoadTimeStepForLipflaps3 =
+        GetCodeAddressJpEn(version, textRegion, 0, 0x557cff);
+    float* const addrRealTimeStep = &RealTimeStep;
+    float* const addrTempStoreMul = &TempStoreMul;
 
     // hook the function that checks for turbo button held
     {
@@ -53,6 +64,13 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
         const int32_t relativeOffsetForCall = static_cast<int32_t>(
             HyoutaUtils::MemRead::ReadUInt32(&inject.OverwrittenInstructions[1]));
         char* const absolutePositionForCall = inject.JumpBackAddress + relativeOffsetForCall;
+
+        // store the unscaled timestep so we can use it later for the functions that want that
+        WriteInstruction24(codespace, 0x8b4508); // mov eax,dword ptr[ebp+8]
+        WriteInstruction8(codespace, 0xa3);      // mov dword ptr[&RealTimeStep],eax
+        std::memcpy(codespace, &addrRealTimeStep, 4);
+        codespace += 4;
+
         BranchHelper4Byte call;
         call.SetTarget(absolutePositionForCall);
         call.WriteJump(codespace, JC::CALL);
@@ -149,6 +167,75 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
         while (tmp < end) {
             *tmp++ = static_cast<char>(0x90); // nop
         }
+    }
+
+    // use the unscaled timestep for lipflaps
+    // this is a three-step process as the timestep is transformed twice before being passed to the
+    // function that actually applies the time advancement
+    if (adjustVoiceClipTime) {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps1, codespace);
+
+        WriteInstruction32(codespace, 0xf30f100d); // movss xmm1,dword ptr[&RealTimeStep]
+        std::memcpy(codespace, &addrRealTimeStep, 4);
+        codespace += 4;
+        WriteInstruction32(codespace, 0xf30f59c8); // mulss xmm1,xmm0
+        WriteInstruction32(codespace, 0xf30f110d); // movss dword ptr[&TempStoreMul],xmm1
+        std::memcpy(codespace, &addrTempStoreMul, 4);
+        codespace += 4;
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+    if (adjustVoiceClipTime) {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps2, codespace);
+
+        WriteInstruction32(codespace, 0xf30f100d); // movss xmm1,dword ptr[&TempStoreMul]
+        std::memcpy(codespace, &addrTempStoreMul, 4);
+        codespace += 4;
+        WriteInstruction32(codespace, 0xf30f59c8); // mulss xmm1,xmm0
+        WriteInstruction32(codespace, 0xf30f110d); // movss dword ptr[&TempStoreMul],xmm1
+        std::memcpy(codespace, &addrTempStoreMul, 4);
+        codespace += 4;
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+    if (adjustVoiceClipTime) {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps3, codespace);
+
+        WriteInstruction32(codespace, 0xf30f1005); // movss xmm0,dword ptr[&TempStoreMul]
+        std::memcpy(codespace, &addrTempStoreMul, 4);
+        codespace += 4;
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
     }
 
     if (removeAutoSkip) {
