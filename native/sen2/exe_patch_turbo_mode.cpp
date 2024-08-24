@@ -54,6 +54,8 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
         GetCodeAddressJpEn(version, textRegion, 0, 0x557cb0);
     char* const addressLoadTimeStepForLipflaps3 =
         GetCodeAddressJpEn(version, textRegion, 0, 0x557cff);
+    char* const addressLoadTimeStepForActiveVoice =
+        GetCodeAddressJpEn(version, textRegion, 0, 0x558188);
     float* const addrRealTimeStep = &RealTimeStep;
     float* const addrTempStoreMul = &TempStoreMul;
 
@@ -231,6 +233,25 @@ void PatchTurboMode(PatchExecData& execData, bool removeAutoSkip, bool makeToggl
                     inject.OverwrittenInstructions.data(),
                     inject.OverwrittenInstructions.size());
         codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+
+    // another timestep'd function I have identified:
+    // 0x558000 -> affects field/cutscene camera only
+
+    // use unscaled timestep for active voices
+    if (adjustVoiceClipTime) {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForActiveVoice, codespace);
+
+        WriteInstruction32(codespace, 0xf30f1005); // movss xmm0,dword ptr[&RealTimeStep]
+        std::memcpy(codespace, &addrRealTimeStep, 4);
+        codespace += 4;
 
         BranchHelper4Byte jmpBack;
         jmpBack.SetTarget(inject.JumpBackAddress);
