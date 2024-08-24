@@ -15,8 +15,38 @@ static bool TurboIsToggle = false;
 static bool TurboButtonPressedLastFrame = false;
 static float TurboFactor = 0.0f;
 static float RealTimeStep = 0.0f;
+static float TempStoreMul = 0.0f;
 
-static void __fastcall HandleTurbo(float* timestep, bool buttonHeld) {
+namespace {
+struct TimestepCounterStruct {
+    float Unknown1;
+    float Unknown2;
+    float FixedTimeStep;
+    float Unknown4;
+    uint32_t Unknown5;
+    uint32_t Unknown6;
+    float Unknown7;
+    uint32_t Unknown8;
+    bool Unknown9;
+    char Padding[3];
+    uint32_t Unknown10;
+};
+static_assert(offsetof(TimestepCounterStruct, Unknown1) == 0x00);
+static_assert(offsetof(TimestepCounterStruct, Unknown2) == 0x04);
+static_assert(offsetof(TimestepCounterStruct, FixedTimeStep) == 0x08);
+static_assert(offsetof(TimestepCounterStruct, Unknown4) == 0x0c);
+static_assert(offsetof(TimestepCounterStruct, Unknown5) == 0x10);
+static_assert(offsetof(TimestepCounterStruct, Unknown6) == 0x14);
+static_assert(offsetof(TimestepCounterStruct, Unknown7) == 0x18);
+static_assert(offsetof(TimestepCounterStruct, Unknown8) == 0x1c);
+static_assert(offsetof(TimestepCounterStruct, Unknown9) == 0x20);
+static_assert(offsetof(TimestepCounterStruct, Unknown10) == 0x24);
+} // namespace
+
+static void __fastcall HandleTurbo(float* timestep,
+                                   TimestepCounterStruct* counters,
+                                   int buttonHeldRegister) {
+    const bool buttonHeld = (buttonHeldRegister & 0xff) != 0;
     bool turboActiveThisFrame = false;
     if (TurboIsToggle) {
         if (buttonHeld && !TurboButtonPressedLastFrame) {
@@ -32,17 +62,23 @@ static void __fastcall HandleTurbo(float* timestep, bool buttonHeld) {
         TurboActive = turboActiveThisFrame;
     }
 
-    RealTimeStep = *timestep;
+    // Tokyo Xanadu doesn't actually implement a variable timestep. Instead, it just measures time
+    // and runs a fixed timestep every time a threshold is crossed. This is very unfortunate for
+    // several reasons, especially since the underlying engine should support variable timesteps
+    // mostly fine (since the CS games do). I suspect this is also the cause of the game's
+    // microstuttering, sometimes you just get 0 or 2 frame advancements for a rendered frame.
+    if (turboActiveThisFrame) {
+        // Technically incorrect (turbo can be toggled between fixed timestep advances), but should
+        // work okay enough given the circumstances.
+        RealTimeStep = counters->FixedTimeStep / TurboFactor;
+    } else {
+        RealTimeStep = counters->FixedTimeStep;
+    }
 
     if (turboActiveThisFrame) {
         *timestep = (*timestep * TurboFactor);
     }
 
-    // the CS games clamp the timestep, presumably to avoid physics going haywire on too long
-    // timesteps. so let's do that too, with the same value
-    if (!(*timestep < 0.0666666666f)) {
-        *timestep = 0.0666666666f;
-    }
     return;
 }
 
@@ -110,8 +146,8 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     HyoutaUtils::Logger& logger = *execData.Logger;
     char* textRegion = execData.TextRegion;
     GameVersion version = execData.Version;
-    char* codespace = execData.Codespace;
     using namespace SenPatcher::x86;
+    using JC = JumpCondition;
 
     // TODO: Actually make the new bindings work.
     // TODO: Add default bindings when launching without ini or resetting to default.
@@ -145,6 +181,17 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         GetCodeAddressSteamGog(version, textRegion, 0x67f411, 0x67d901) + 6;
     char* const countButtonMappingsInRemappingGUI6 =
         GetCodeAddressSteamGog(version, textRegion, 0x68f976, 0x68def6) + 1; // scroll bar
+
+    char* const addressLoadTimeStepForLipflaps1 =
+        GetCodeAddressSteamGog(version, textRegion, 0x536db0, 0x5353c0);
+    char* const addressLoadTimeStepForLipflaps2 =
+        GetCodeAddressSteamGog(version, textRegion, 0x536dd0, 0x5353e0);
+    char* const addressLoadTimeStepForLipflaps3 =
+        GetCodeAddressSteamGog(version, textRegion, 0x536e26, 0x535436);
+    char* const addressLoadTimeStepForActiveVoice =
+        GetCodeAddressSteamGog(version, textRegion, 0x5373f9, 0x535a09);
+    float* const addrRealTimeStep = &RealTimeStep;
+    float* const addrTempStoreMul = &TempStoreMul;
 
     // debug
     //{
@@ -280,7 +327,94 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         (*countButtonMappingsInRemappingGUI6) += ButtonsToAdd;
     }
 
+    // use the unscaled timestep for lipflaps
+    // this is a three-step process as the timestep is transformed twice before being passed to the
+    // function that actually applies the time advancement
+    {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps1, codespace);
+
+        WriteInstruction32(codespace, 0xf30f100d); // movss xmm1,dword ptr[&RealTimeStep]
+        std::memcpy(codespace, &addrRealTimeStep, 4);
+        codespace += 4;
+        WriteInstruction32(codespace, 0xf30f59c8); // mulss xmm1,xmm0
+        WriteInstruction32(codespace, 0xf30f110d); // movss dword ptr[&TempStoreMul],xmm1
+        std::memcpy(codespace, &addrTempStoreMul, 4);
+        codespace += 4;
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+    {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps2, codespace);
+
+        WriteInstruction32(codespace, 0xf30f100d); // movss xmm1,dword ptr[&TempStoreMul]
+        std::memcpy(codespace, &addrTempStoreMul, 4);
+        codespace += 4;
+        WriteInstruction32(codespace, 0xf30f59c8); // mulss xmm1,xmm0
+        WriteInstruction32(codespace, 0xf30f110d); // movss dword ptr[&TempStoreMul],xmm1
+        std::memcpy(codespace, &addrTempStoreMul, 4);
+        codespace += 4;
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+    {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForLipflaps3, codespace);
+
+        WriteInstruction32(codespace, 0xf30f1005); // movss xmm0,dword ptr[&TempStoreMul]
+        std::memcpy(codespace, &addrTempStoreMul, 4);
+        codespace += 4;
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+
+    // use unscaled timestep for active voices
+    {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForActiveVoice, codespace);
+
+        WriteInstruction32(codespace, 0xf30f1005); // movss xmm0,dword ptr[&RealTimeStep]
+        std::memcpy(codespace, &addrRealTimeStep, 4);
+        codespace += 4;
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+
+
     // then, inject the turbo mode code into the function that handles the per-frame timestep
+    char* codespace = execData.Codespace;
     char* codespaceBegin = codespace;
     auto injectResult = InjectJumpIntoCode<5>(logger, entryPoint, codespaceBegin);
     BranchHelper4Byte jump_back;
@@ -352,8 +486,9 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     BranchHelper4Byte handle_turbo;
     void* handleTurboFunc = HandleTurbo;
     handle_turbo.SetTarget(static_cast<char*>(handleTurboFunc));
-    WriteInstruction24(codespace, 0x8d4dfc); // lea ecx,dword ptr[ebp - 4]
-    Emit_MOV_R32_R32(codespace, R32::EDX, R32::EAX);
+    WriteInstruction24(codespace, 0x8d4dfc);       // lea ecx,dword ptr[ebp - 4]
+    WriteInstruction48(codespace, 0x8d96f8100000); // lea edx,dword ptr[esi + 10f8h]
+    Emit_PUSH_R32(codespace, R32::EAX);
     handle_turbo.WriteJump(codespace, JumpCondition::CALL);
 
     // go back to code
