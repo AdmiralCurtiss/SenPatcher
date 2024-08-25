@@ -58,6 +58,8 @@ void PatchTurboMode(PatchExecData& execData,
         GetCodeAddressJpEn(version, textRegion, 0x55806f, 0x557cff);
     char* const addressLoadTimeStepForActiveVoice =
         GetCodeAddressJpEn(version, textRegion, 0x5584f8, 0x558188);
+    char* const addressLoadTimeStepForGameplayTimer =
+        GetCodeAddressJpEn(version, textRegion, 0x581bdc, 0x581f9c);
     float* const addrRealTimeStep = &RealTimeStep;
     float* const addrTempStoreMul = &TempStoreMul;
 
@@ -184,6 +186,7 @@ void PatchTurboMode(PatchExecData& execData,
         WriteInstruction32(codespace, 0xf30f100d); // movss xmm1,dword ptr[&RealTimeStep]
         std::memcpy(codespace, &addrRealTimeStep, 4);
         codespace += 4;
+        // WriteInstruction40(codespace, 0xf30f114d08); // movss dword ptr[ebp+8],xmm1
         WriteInstruction32(codespace, 0xf30f59c8); // mulss xmm1,xmm0
         WriteInstruction32(codespace, 0xf30f110d); // movss dword ptr[&TempStoreMul],xmm1
         std::memcpy(codespace, &addrTempStoreMul, 4);
@@ -250,6 +253,22 @@ void PatchTurboMode(PatchExecData& execData,
         char* codespace = execData.Codespace;
         const auto inject =
             InjectJumpIntoCode<5>(logger, addressLoadTimeStepForActiveVoice, codespace);
+
+        WriteInstruction32(codespace, 0xf30f1005); // movss xmm0,dword ptr[&RealTimeStep]
+        std::memcpy(codespace, &addrRealTimeStep, 4);
+        codespace += 4;
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+
+    // use unscaled timestep for gameplay timer
+    if (adjustTimersForTurbo) {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForGameplayTimer, codespace);
 
         WriteInstruction32(codespace, 0xf30f1005); // movss xmm0,dword ptr[&RealTimeStep]
         std::memcpy(codespace, &addrRealTimeStep, 4);
