@@ -39,7 +39,8 @@ void PatchTurboMode(PatchExecData& execData,
                     bool removeAutoSkip,
                     int turboModeButton,
                     bool enableR2,
-                    bool makeToggle);
+                    bool makeToggle,
+                    bool adjustTimersForTurbo);
 void PatchThorMasterQuartzString(PatchExecData& execData);
 void FixTextboxAdvancePrompt(PatchExecData& execData);
 void PatchDisableMouseCapture(PatchExecData& execData);
