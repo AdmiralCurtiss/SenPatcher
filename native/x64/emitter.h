@@ -171,6 +171,27 @@ private:
     void Commit(char* source);
 };
 
+inline void WriteInstruction64(char*& codepos, uint64_t instr) {
+    *codepos++ = (char)((instr >> 56) & 0xff);
+    *codepos++ = (char)((instr >> 48) & 0xff);
+    *codepos++ = (char)((instr >> 40) & 0xff);
+    *codepos++ = (char)((instr >> 32) & 0xff);
+    *codepos++ = (char)((instr >> 24) & 0xff);
+    *codepos++ = (char)((instr >> 16) & 0xff);
+    *codepos++ = (char)((instr >> 8) & 0xff);
+    *codepos++ = (char)(instr & 0xff);
+}
+
+inline void WriteInstruction56(char*& codepos, uint64_t instr) {
+    *codepos++ = (char)((instr >> 48) & 0xff);
+    *codepos++ = (char)((instr >> 40) & 0xff);
+    *codepos++ = (char)((instr >> 32) & 0xff);
+    *codepos++ = (char)((instr >> 24) & 0xff);
+    *codepos++ = (char)((instr >> 16) & 0xff);
+    *codepos++ = (char)((instr >> 8) & 0xff);
+    *codepos++ = (char)(instr & 0xff);
+}
+
 inline void WriteInstruction48(char*& codepos, uint64_t instr) {
     *codepos++ = (char)((instr >> 40) & 0xff);
     *codepos++ = (char)((instr >> 32) & 0xff);

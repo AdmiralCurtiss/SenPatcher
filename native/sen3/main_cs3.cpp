@@ -522,6 +522,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool assetFixes = true;
     bool fixInGameButtonMappingValidity = true;
     bool makeTurboToggle = false;
+    bool adjustTimersForTurbo = true;
     bool allowSwitchToNightmare = true;
     bool fixControllerMapping = true;
     bool disableMouseCapture = false;
@@ -590,6 +591,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("CS3", "AssetFixes", assetFixes);
                 check_boolean("CS3", "FixInGameButtonRemapping", fixInGameButtonMappingValidity);
                 check_boolean("CS3", "MakeTurboToggle", makeTurboToggle);
+                check_boolean("CS3", "AdjustTimersForTurbo", adjustTimersForTurbo);
                 check_boolean("CS3", "AllowSwitchToNightmare", allowSwitchToNightmare);
                 check_boolean("CS3", "FixControllerMapping", fixControllerMapping);
                 check_boolean("CS3", "DisableMouseCapture", disableMouseCapture);
@@ -635,7 +637,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     Align16CodePage(logger, patchExecData.Codespace);
     AddSenPatcherVersionToTitle(patchExecData, s_LoadedModsData, !assetCreationSuccess);
     Align16CodePage(logger, patchExecData.Codespace);
-    PatchTurboMode(patchExecData, makeTurboToggle);
+    PatchTurboMode(patchExecData, makeTurboToggle, adjustTimersForTurbo);
     Align16CodePage(logger, patchExecData.Codespace);
 
     if (fixInGameButtonMappingValidity) {
