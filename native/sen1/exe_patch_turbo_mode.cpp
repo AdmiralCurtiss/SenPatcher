@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "util/memread.h"
+#include "util/memwrite.h"
 
 #include "x86/emitter.h"
 #include "x86/inject_jump_into.h"
@@ -72,14 +73,25 @@ void PatchTurboMode(PatchExecData& execData,
     // hook the function that checks for turbo button held
     {
         char* codespace = execData.Codespace;
+
+        char* const clampValuePtr = codespace;
+        HyoutaUtils::MemWrite::WriteAdvUInt32(codespace, 0x3d888889); // 1.0f / 15.0f
+
         const auto inject = InjectJumpIntoCode<5>(logger, addressCallCheckButtonPressed, codespace);
         const int32_t relativeOffsetForCall = static_cast<int32_t>(
             HyoutaUtils::MemRead::ReadUInt32(&inject.OverwrittenInstructions[1]));
         char* const absolutePositionForCall = inject.JumpBackAddress + relativeOffsetForCall;
 
-        // store the unscaled timestep so we can use it later for the functions that want that
-        WriteInstruction24(codespace, 0x8b4508); // mov eax,dword ptr[ebp+8]
-        WriteInstruction8(codespace, 0xa3);      // mov dword ptr[&RealTimeStep],eax
+        // store the unscaled timestep so we can use it later for the functions that want that.
+        // clamp to 1.0f / 15.0f so long pauses don't cause havoc.
+        // note that this is using SSE even though CS1 uses x87, but since senpatcher itself is
+        // compiled with SSE enabled I don't think this matters.
+        // (does Windows itself even work without SSE these days?)
+        WriteInstruction40(codespace, 0xf30f104508); // movss xmm0,dword ptr[ebp+8]
+        WriteInstruction32(codespace, 0xf30f5d05);   // minss xmm0,dword ptr[clampValuePtr]
+        std::memcpy(codespace, &clampValuePtr, 4);
+        codespace += 4;
+        WriteInstruction32(codespace, 0xf30f1105); // movss dword ptr[&RealTimeStep],xmm0
         std::memcpy(codespace, &addrRealTimeStep, 4);
         codespace += 4;
 

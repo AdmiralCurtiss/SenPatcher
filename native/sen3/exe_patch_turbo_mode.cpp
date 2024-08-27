@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "util/memread.h"
+#include "util/memwrite.h"
 
 #include "x64/emitter.h"
 #include "x64/inject_jump_into.h"
@@ -41,6 +42,9 @@ void PatchTurboMode(PatchExecData& execData, bool makeToggle, bool adjustTimersF
     {
         char* codespace = execData.Codespace;
 
+        char* const clampValuePtr = codespace;
+        HyoutaUtils::MemWrite::WriteAdvUInt32(codespace, 0x3d888889); // 1.0f / 15.0f
+
         const auto inject = InjectJumpIntoCode<12>(
             logger, addressJumpAfterTestCheckButtonPressed, R64::RCX, codespace);
         const int32_t relativeOffsetForJump =
@@ -48,9 +52,15 @@ void PatchTurboMode(PatchExecData& execData, bool makeToggle, bool adjustTimersF
         char* const absolutePositionForJump =
             addressJumpAfterTestCheckButtonPressed + 2 + relativeOffsetForJump;
 
-        // store the unscaled timestep so we can use it later for the functions that want that
+        // store the unscaled timestep so we can use it later for the functions that want that.
+        // clamp to 1.0f / 15.0f so long pauses don't cause havoc.
         Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(&RealTimeStep));
-        WriteInstruction32(codespace, 0xf30f1131); // movss dword ptr[rcx],xmm6
+        WriteInstruction24(codespace, 0x0f28c6);   // movaps xmm0,xmm6
+        WriteInstruction32(codespace, 0xf30f5d05); // minss xmm0,dword ptr[clampValuePtr]
+        int32_t clampValuePtrRelative = static_cast<int32_t>(clampValuePtr - (codespace + 4));
+        std::memcpy(codespace, &clampValuePtrRelative, 4);
+        codespace += 4;
+        WriteInstruction32(codespace, 0xf30f1101); // movss dword ptr[rcx],xmm0
 
         // al is now nonzero if the turbo button is held, or zero if it's not
         // we need to return in al whether turbo should be active for the next frame
