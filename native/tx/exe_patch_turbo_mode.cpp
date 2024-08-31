@@ -9,8 +9,11 @@
 #include "x86/inject_jump_into.h"
 #include "x86/page_unprotect.h"
 
+// #define TX_DEBUG_NEW_BUTTONS
+#ifdef TX_DEBUG_NEW_BUTTONS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#endif
 
 namespace SenLib::TX {
 static bool TurboActive = false;
@@ -20,7 +23,7 @@ static float TurboFactor = 0.0f;
 static float RealTimeStep = 0.0f;
 static float TempStoreMul = 0.0f;
 
-using PCheckPcButtonMapping = int8_t*(__cdecl*)(uint32_t button);
+using PCheckPcButtonMapping = int8_t(__cdecl*)(uint32_t button);
 
 static PCheckPcButtonMapping s_CheckPcButtonMapping = nullptr;
 
@@ -100,6 +103,7 @@ static void __fastcall HandleTurbo(float* timestep,
 //     return;
 // }
 
+#ifdef TX_DEBUG_NEW_BUTTONS
 static void __fastcall DebugFunc2(int* stack) {
     uint32_t return_address = (uint32_t)stack[1];
     const int button_to_check = stack[2];
@@ -125,6 +129,7 @@ static void __fastcall DebugFunc2(int* stack) {
 
     return;
 }
+#endif
 
 static const char EN_ButtonName_MenuAction1[] = "Menu - Action 1";
 static const char JP_ButtonName_MenuAction1[] =
@@ -277,9 +282,6 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
 
     // TODO: Add default bindings when launching without ini or resetting to default.
     // TODO: Prompts need to be changed, too.
-    // TODO: The function at openMessageLogInDialogueAddress uses 'menu up' for opening the message
-    // log (while textboxes are displayed) and ignores the configured button. Construct a workaround
-    // for that.
 
     s_CheckPcButtonMapping = reinterpret_cast<PCheckPcButtonMapping>(
         GetCodeAddressSteamGog(version, textRegion, 0x438070, 0x4368a0));
@@ -437,6 +439,38 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     //    jump_back_dbg.WriteJump(codespace, JumpCondition::JMP);
     //}
 
+    // fix the message log so it actually obeys the configured mapping while textboxes are open.
+    // by default it uses 'menu up'...
+    {
+        char* codespace = execData.Codespace;
+
+        // hook the function that translates the PC button mappings into the in-engine controller
+        // buttons, and replace case 10 in the switch with code that checks the Message Log button
+        char* addressOfPush = codespace;
+        WriteInstruction16(codespace, 0x6a00); // push 0 (index of Message Log mapping)
+        BranchHelper4Byte go_to_common_call;
+        go_to_common_call.SetTarget(readInputCommonCall);
+        go_to_common_call.WriteJump(codespace, JumpCondition::JMP);
+        {
+            PageUnprotect page(logger, readInputCase10, 1);
+            std::memcpy(readInputCase10, &addressOfPush, 4);
+        }
+
+        execData.Codespace = codespace;
+
+        // replace the code that does this weird two-step indirection to check for the message log
+        // button to just call the standard button check function
+        {
+            char* tmp = openMessageLogInDialogueAddress;
+            PageUnprotect page(logger, tmp, 13);
+            WriteInstruction16(tmp, 0x6a00);   // push 0
+            WriteInstruction16(tmp, 0x6a01);   // push 1
+            WriteInstruction16(tmp, 0x6a0a);   // push 10
+            WriteInstruction16(tmp, 0x8b01);   // mov eax,dword ptr[ecx]
+            WriteInstruction24(tmp, 0x8b404c); // mov eax,dword ptr[eax + 0x4c]
+            WriteInstruction16(tmp, 0xffd0);   // call eax
+        }
+    }
 
     // hook the button update function and update the state of our new buttons at the end
     {
@@ -465,7 +499,7 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         auto injectResult = InjectJumpIntoCode<5>(logger, addressCheckButton, codespace);
 
 
-        // debug to find the call sites for the buttons
+#ifdef TX_DEBUG_NEW_BUTTONS
         Emit_PUSH_R32(codespace, R32::EAX);
         Emit_PUSH_R32(codespace, R32::EBX);
         Emit_PUSH_R32(codespace, R32::ECX);
@@ -487,7 +521,7 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         Emit_POP_R32(codespace, R32::ECX);
         Emit_POP_R32(codespace, R32::EBX);
         Emit_POP_R32(codespace, R32::EAX);
-        // end debug
+#endif
 
 
         const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
@@ -777,20 +811,19 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     //   - 0x1c / 28 = hardcoded to middle mouse button
     //   - 0x1d / 29 = hardcoded to mouse wheel up
     //   - 0x1e / 30 = hardcoded to mouse wheel down
-    //   - 0x1f / 31 = (not mapped to anything)
-    //   Since button 10 appears to be completely unused, we'll use that for our internal Turbo key.
     //   For completeness, the actions that don't show up in this list are:
     //   Message Log, Cross Drive, Items Menu, NiAR, Jump, Attack, Talk, Skill, Lock Target,
     //   Voicemail, X-Strike Lock, Dodge, Dash, X-Strike Attack
+    //   Note that button 0xa/10 is mapped to Open Message Log in SenPatcher!
     // - enum check_type
     //   - 0 == currently held
     //   - 1 == unconsumed new press (consumes it)
     //   - 2 == some kind of auto-repeat every x frames?
     // - bool also_check_stick_on_dpad
-    WriteInstruction16(codespace, 0x6a00); // push 0
-    WriteInstruction16(codespace, 0x6a00); // push 0
-    WriteInstruction16(codespace, 0x6a0a); // push 10
-    WriteInstruction16(codespace, 0x8b0d); // mov ecx,dword ptr[ed8appPtr]
+    WriteInstruction16(codespace, 0x6a00);                   // push 0
+    WriteInstruction16(codespace, 0x6a00);                   // push 0
+    WriteInstruction16(codespace, 0x6a00 | Index_TurboMode); // push Index_TurboMode
+    WriteInstruction16(codespace, 0x8b0d);                   // mov ecx,dword ptr[ed8appPtr]
     std::memcpy(codespace, &ed8appPtr, 4);
     codespace += 4;
     WriteInstruction16(codespace, 0x8b01);   // mov eax,dword ptr[ecx]
@@ -810,18 +843,6 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     jump_back.WriteJump(codespace, JumpCondition::JMP);
-
-    // finally, hook the function that translates the PC button mappings into the in-engine
-    // controller buttons, and replace case 10 in the switch with code that checks the turbo button
-    char* addressOfTurboCheckPush = codespace;
-    WriteInstruction16(codespace, 0x6a00 | Index_TurboMode); // push Index_TurboMode
-    BranchHelper4Byte go_to_common_call;
-    go_to_common_call.SetTarget(readInputCommonCall);
-    go_to_common_call.WriteJump(codespace, JumpCondition::JMP);
-    {
-        PageUnprotect page(logger, readInputCase10, 1);
-        std::memcpy(readInputCase10, &addressOfTurboCheckPush, 4);
-    }
 
     execData.Codespace = codespace;
 }
