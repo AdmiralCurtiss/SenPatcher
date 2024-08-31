@@ -9,6 +9,9 @@
 #include "x86/inject_jump_into.h"
 #include "x86/page_unprotect.h"
 
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
 namespace SenLib::TX {
 static bool TurboActive = false;
 static bool TurboIsToggle = false;
@@ -16,6 +19,10 @@ static bool TurboButtonPressedLastFrame = false;
 static float TurboFactor = 0.0f;
 static float RealTimeStep = 0.0f;
 static float TempStoreMul = 0.0f;
+
+using PCheckPcButtonMapping = int8_t*(__cdecl*)(uint32_t button);
+
+static PCheckPcButtonMapping s_CheckPcButtonMapping = nullptr;
 
 namespace {
 struct TimestepCounterStruct {
@@ -93,6 +100,32 @@ static void __fastcall HandleTurbo(float* timestep,
 //     return;
 // }
 
+static void __fastcall DebugFunc2(int* stack) {
+    uint32_t return_address = (uint32_t)stack[1];
+    const int button_to_check = stack[2];
+    const int check_type = stack[3];
+    const int also_check_stick = stack[4] & 0xff;
+
+    if (button_to_check == 10) {
+        return;
+    }
+
+    if (return_address == 0x0048d137 || return_address == 0x0048e537) {
+        return_address = (uint32_t)stack[6];
+    }
+
+    char buffer[200];
+    sprintf(buffer,
+            " 0x%08x -> CheckButton(button = %d, type = %d, also_stick = %d)\n",
+            return_address,
+            button_to_check,
+            check_type,
+            also_check_stick);
+    OutputDebugStringA(buffer);
+
+    return;
+}
+
 static const char EN_ButtonName_MenuAction1[] = "Menu - Action 1";
 static const char JP_ButtonName_MenuAction1[] =
     "\xE3\x83\xA1\xE3\x83\x8B\xE3\x83\xA5\xE3\x83\xBC\xE3\x83\xBB"
@@ -109,9 +142,31 @@ static const char EN_ButtonName_MenuZoomOut[] = "Menu - Zoom Out";
 static const char JP_ButtonName_MenuZoomOut[] =
     "\xE3\x83\xA1\xE3\x83\x8B\xE3\x83\xA5\xE3\x83\xBC\xE3\x83\xBB"
     "\xE7\xB8\xAE\xE5\xB0\x8F";
+static const char EN_ButtonName_SysAction1[] = "System 1 (Pause/Skip)";
+static const char JP_ButtonName_SysAction1[] = "System 1 (Pause/Skip)";
+static const char EN_ButtonName_SysAction2[] = "System 2 (Reset/Details)";
+static const char JP_ButtonName_SysAction2[] = "System 2 (Reset/Details)";
+static const char EN_ButtonName_ToggleAutoAdvance[] = "Toggle Auto-Advance";
+static const char JP_ButtonName_ToggleAutoAdvance[] = "Toggle Auto-Advance";
+static const char EN_ButtonName_ToggleFastForward[] = "Toggle Fast Forward";
+static const char JP_ButtonName_ToggleFastForward[] = "Toggle Fast Forward";
+static const char EN_ButtonName_ZoomIn[] = "Zoom In";
+static const char JP_ButtonName_ZoomIn[] = "\xE6\x8B\xA1\xE5\xA4\xA7";
+static const char EN_ButtonName_ZoomOut[] = "Zoom Out";
+static const char JP_ButtonName_ZoomOut[] = "\xE7\xB8\xAE\xE5\xB0\x8F";
+static const char EN_ButtonName_OpenGate[] = "Open Gate";
+static const char JP_ButtonName_OpenGate[] = "Open Gate";
+static const char EN_ButtonName_XStrikeLeft[] = "X-Strike Chain (Left)";
+static const char JP_ButtonName_XStrikeLeft[] = "X-Strike Chain (Left)";
+static const char EN_ButtonName_XStrikeRight[] = "X-Strike Chain (Right)";
+static const char JP_ButtonName_XStrikeRight[] = "X-Strike Chain (Right)";
 static const char EN_ButtonName_TurboMode[] = "Turbo Mode";
 static const char JP_ButtonName_TurboMode[] =
     "\xE3\x82\xBF\xE3\x83\xBC\xE3\x83\x9C\xE3\x83\xA2\xE3\x83\xBC\xE3\x83\x89";
+static const char EN_ButtonName_SwimmingLeft[] = "Swimming - Left";
+static const char JP_ButtonName_SwimmingLeft[] = "Swimming - Left";
+static const char EN_ButtonName_SwimmingRight[] = "Swimming - Right";
+static const char JP_ButtonName_SwimmingRight[] = "Swimming - Right";
 static const char EN_ButtonName_FishingUp[] = "Fishing - Up";
 static const char JP_ButtonName_FishingUp[] = "Fishing\xE3\x83\xBB\xE4\xB8\x8A";
 static const char EN_ButtonName_FishingDown[] = "Fishing - Down";
@@ -120,16 +175,87 @@ static const char EN_ButtonName_FishingLeft[] = "Fishing - Left";
 static const char JP_ButtonName_FishingLeft[] = "Fishing\xE3\x83\xBB\xE5\xB7\xA6";
 static const char EN_ButtonName_FishingRight[] = "Fishing - Right";
 static const char JP_ButtonName_FishingRight[] = "Fishing\xE3\x83\xBB\xE5\x8F\xB3";
-static constexpr uint32_t Index_MenuAction1 = 0x25 + 0;
-static constexpr uint32_t Index_MenuAction2 = 0x25 + 1;
-static constexpr uint32_t Index_MenuZoomIn = 0x25 + 2;
-static constexpr uint32_t Index_MenuZoomOut = 0x25 + 3;
-static constexpr uint32_t Index_TurboMode = 0x25 + 4;
-static constexpr uint32_t Index_FishingUp = 0x25 + 5;
-static constexpr uint32_t Index_FishingDown = 0x25 + 6;
-static constexpr uint32_t Index_FishingLeft = 0x25 + 7;
-static constexpr uint32_t Index_FishingRight = 0x25 + 8;
-static constexpr uint32_t ButtonsToAdd = 9;
+static const char EN_ButtonName_SkateboardAccel[] = "Skateboard - Accelerate";
+static const char JP_ButtonName_SkateboardAccel[] = "Skateboard - Accelerate";
+static const char EN_ButtonName_SkateboardJump[] = "Skateboard - Jump";
+static const char JP_ButtonName_SkateboardJump[] = "Skateboard - Jump";
+static const char EN_ButtonName_SkateboardBrake[] = "Skateboard - Brake";
+static const char JP_ButtonName_SkateboardBrake[] = "Skateboard - Brake";
+
+static constexpr uint32_t OldNumberOfButtons = 0x25;
+static constexpr uint32_t Index_MenuAction1 = OldNumberOfButtons + 0;
+static constexpr uint32_t Index_MenuAction2 = OldNumberOfButtons + 1;
+static constexpr uint32_t Index_MenuZoomIn = OldNumberOfButtons + 2;
+static constexpr uint32_t Index_MenuZoomOut = OldNumberOfButtons + 3;
+static constexpr uint32_t Index_SysAction1 = OldNumberOfButtons + 4;
+static constexpr uint32_t Index_SysAction2 = OldNumberOfButtons + 5;
+static constexpr uint32_t Index_ToggleAutoAdvance = OldNumberOfButtons + 6;
+static constexpr uint32_t Index_ToggleFastForward = OldNumberOfButtons + 7;
+static constexpr uint32_t Index_ZoomIn = OldNumberOfButtons + 8;
+static constexpr uint32_t Index_ZoomOut = OldNumberOfButtons + 9;
+static constexpr uint32_t Index_OpenGate = OldNumberOfButtons + 10;
+static constexpr uint32_t Index_XStrikeLeft = OldNumberOfButtons + 11;
+static constexpr uint32_t Index_XStrikeRight = OldNumberOfButtons + 12;
+static constexpr uint32_t Index_TurboMode = OldNumberOfButtons + 13;
+static constexpr uint32_t Index_SwimmingLeft = OldNumberOfButtons + 14;
+static constexpr uint32_t Index_SwimmingRight = OldNumberOfButtons + 15;
+static constexpr uint32_t Index_FishingUp = OldNumberOfButtons + 16;
+static constexpr uint32_t Index_FishingDown = OldNumberOfButtons + 17;
+static constexpr uint32_t Index_FishingLeft = OldNumberOfButtons + 18;
+static constexpr uint32_t Index_FishingRight = OldNumberOfButtons + 19;
+static constexpr uint32_t Index_SkateboardAccel = OldNumberOfButtons + 20;
+static constexpr uint32_t Index_SkateboardJump = OldNumberOfButtons + 21;
+static constexpr uint32_t Index_SkateboardBrake = OldNumberOfButtons + 22;
+static constexpr uint32_t ButtonsToAdd = 23;
+
+// if this is triggered we need to remap the lookup array for button names
+static_assert(ButtonsToAdd <= OldNumberOfButtons);
+
+namespace {
+struct ButtonStateData {
+    uint8_t Pressed = 0; // 0 == not pressed, 1 == pressed and unconsumed, 2 == pressed and consumed
+};
+} // namespace
+
+static ButtonStateData s_NewButtonStates[ButtonsToAdd];
+
+static void __fastcall UpdateNewButtons() {
+    auto& states = s_NewButtonStates;
+    auto func = s_CheckPcButtonMapping;
+    for (uint32_t i = 0; i < ButtonsToAdd; ++i) {
+        if (func(i + OldNumberOfButtons) != 0) {
+            // if it's consumed but still held keep it consumed
+            if (states[i].Pressed == 0) {
+                states[i].Pressed = 1;
+            }
+        } else {
+            states[i].Pressed = 0;
+        }
+    }
+}
+
+static int32_t __fastcall CheckNewButtons(uint32_t button_to_check, uint32_t check_type) {
+    const uint32_t button = button_to_check - OldNumberOfButtons;
+    if (button >= ButtonsToAdd) {
+        return 0;
+    }
+
+    auto& state = s_NewButtonStates[button];
+    if (check_type == 0) {
+        return (state.Pressed != 0) ? 1 : 0;
+    }
+    if (check_type == 1) {
+        if (state.Pressed == 1) {
+            state.Pressed = 2;
+            return 1;
+        }
+        return 0;
+    }
+
+    // TODO: There's also a check_type 2 for periodic repeat, not sure if we need that?
+
+    return 0;
+}
 
 void PatchTurboAndButtonMappings(PatchExecData& execData,
                                  bool makeToggle,
@@ -149,8 +275,18 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     using namespace SenPatcher::x86;
     using JC = JumpCondition;
 
-    // TODO: Actually make the new bindings work.
     // TODO: Add default bindings when launching without ini or resetting to default.
+    // TODO: Prompts need to be changed, too.
+    // TODO: The function at openMessageLogInDialogueAddress uses 'menu up' for opening the message
+    // log (while textboxes are displayed) and ignores the configured button. Construct a workaround
+    // for that.
+
+    s_CheckPcButtonMapping = reinterpret_cast<PCheckPcButtonMapping>(
+        GetCodeAddressSteamGog(version, textRegion, 0x438070, 0x4368a0));
+    char* const addressUpdateButtons =
+        GetCodeAddressSteamGog(version, textRegion, 0x438eba, 0x4376ea);
+    char* const addressCheckButton =
+        GetCodeAddressSteamGog(version, textRegion, 0x4386ca, 0x436efa);
 
     char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x437521, 0x435d41);
     char* const ed8appPtr = GetCodeAddressSteamGog(version, textRegion, 0xb4d888, 0xb4c888);
@@ -167,6 +303,8 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         GetCodeAddressSteamGog(version, textRegion, 0x40724f, 0x406d8f) + 2;
     char* const getButtonMappingNameFunction =
         GetCodeAddressSteamGog(version, textRegion, 0x405770, 0x4052b0);
+    char* const openMessageLogInDialogueAddress =
+        GetCodeAddressSteamGog(version, textRegion, 0x6525e8, 0x650af8);
 
     // TODO: are all of these needed?
     char* const countButtonMappingsInRemappingGUI1 =
@@ -192,6 +330,77 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         GetCodeAddressSteamGog(version, textRegion, 0x5373f9, 0x535a09);
     float* const addrRealTimeStep = &RealTimeStep;
     float* const addrTempStoreMul = &TempStoreMul;
+
+    // change buttons that are being checked
+    const auto change_button = [&](char* address, uint32_t button) -> void {
+        if (address == nullptr || address == (char*)1) {
+            return;
+        }
+        PageUnprotect page(logger, address, 1);
+        *address = static_cast<char>(button);
+    };
+    const auto ga = [&](uint32_t addressSteam, uint32_t addressGog) -> char* {
+        if (version == GameVersion::Steam && addressSteam == 0) {
+            return nullptr;
+        }
+        return GetCodeAddressSteamGog(version, textRegion, addressSteam, addressGog);
+    };
+    // clang-format off
+    change_button(ga(0x49aa44, 0x499624) + 1, Index_MenuAction2);       // camp menu (on character), change equipment
+    change_button(ga(0x497a87, 0x496667) + 1, Index_MenuAction1);       // item menu, discard
+    change_button(ga(0x49936e, 0x497f4e) + 1, Index_MenuAction1);       // status menu, check soul level
+    change_button(ga(0x499509, 0x4980e9) + 1, Index_MenuAction1);       // status menu, check skill info
+    change_button(ga(0x5a27d6, 0x5a0cb6) + 1, Index_MenuAction2);       // quick travel menu, hide icons
+    change_button(ga(0x64ea9e, 0x64cf6e) + 1, Index_MenuAction1);       // eclipse start menu, greed info
+    change_button(ga(0x64ed1c, 0x64d1ec) + 1, Index_MenuAction2);       // eclipse start menu, change equipment
+    change_button(ga(0x64e5a8, 0x64ca78) + 1, Index_MenuAction2);       // eclipse start menu (on character), change equipment
+    change_button(ga(0x64ebeb, 0x64d0bb) + 1, Index_SysAction1);        // eclipse start menu, open system menu
+    change_button(ga(0x64e980, 0x64ce50) + 1, Index_SysAction2);        // eclipse start menu, detailed results
+    change_button(ga(0x48bbe2, 0x48a7c2) + 1, Index_MenuZoomIn);        // equip menu, zoom in
+    change_button(ga(0x48bb9e, 0x48a77e) + 1, Index_MenuZoomOut);       // equip menu, zoom out
+    change_button(ga(0x495c15, 0x4947f5) + 1, Index_SysAction1);        // orbment menu, auto-equip
+    change_button(ga(0x495c7c, 0x49485c) + 1, Index_SysAction2);        // orbment menu, remove all
+    change_button(ga(0x51c9b0, 0x51b0d0) + 1, Index_OpenGate);          // open hidden eclipse gate
+    change_button(ga(0x5cac7f, 0x5c911f) + 1, Index_FishingLeft);       // fishing, left button
+    change_button(ga(0x5cac9d, 0x5c913d) + 1, Index_FishingDown);       // fishing, bottom button
+    change_button(ga(0x5cacbb, 0x5c915b) + 1, Index_FishingRight);      // fishing, right button
+    change_button(ga(0x5cacd9, 0x5c9179) + 1, Index_FishingUp);         // fishing, top button
+    change_button(ga(0x56b944, 0x569f84) + 1, Index_SwimmingLeft);      // swimming, left button
+    change_button(ga(0x56b95f, 0x569f9f) + 1, Index_SwimmingRight);     // swimming, right button
+    change_button(ga(0x5af9d5, 0x5ade75) + 1, Index_SysAction1);        // skateboarding, pause
+    change_button(ga(0x986e3a, 0x985d9a),     Index_SkateboardAccel);   // skateboarding, accelerate
+    change_button(ga(0x986e3b, 0x985d9b),     Index_SkateboardJump);    // skateboarding, jump
+    change_button(ga(0x986e3c, 0x985d9c),     Index_MenuAction1);       // skateboarding, ????, no idea what this is
+    change_button(ga(0x986e3d, 0x985d9d),     Index_SkateboardBrake);   // skateboarding, brake
+    change_button(ga(0x986e3e, 0x985d9e),     Index_SkateboardBrake);   // skateboarding, reverse
+    change_button(ga(0x4a7dbb, 0x4a693b) + 1, Index_MenuAction1);       // character viewer, perform action
+    change_button(ga(0x4a7cbf, 0x4a683f) + 1, Index_MenuAction2);       // character viewer, take screenshot
+    change_button(ga(0x4a7b82, 0x4a6702) + 1, Index_SysAction1);        // character viewer, open/close menu
+    change_button(ga(0x4a32dc, 0x4a1e5c) + 1, Index_ZoomIn);            // character viewer, zoom in
+    change_button(ga(0x4a3294, 0x4a1e14) + 1, Index_ZoomOut);           // character viewer, zoom out
+    change_button(ga(0x45813b, 0x45698b) + 1, Index_MenuAction1);       // boss battle menu, switch category
+    change_button(ga(0x499ebf, 0x498a9f) + 1, Index_SysAction2);        // button remapping menu (camp), restore defaults
+    change_button(ga(0x65da69, 0x65bf79) + 1, Index_SysAction2);        // button remapping menu (title), restore defaults
+    change_button(ga(0x573e6a, 0x57247a) + 1, Index_SysAction1);        // skip scene
+    change_button(ga(0x56e74d, 0x56cd8d) + 1, Index_SysAction1);        // skip X-Strike
+    change_button(ga(0x601e4b, 0x6002cb) + 1, Index_SysAction1);        // skip FMV (Start)
+    change_button(ga(0x601e1d, 0x60029d) + 1, Index_SysAction2);        // skip FMV (Select)
+    change_button(ga(0x601e06, 0x600286) + 1, Index_MenuAction1);       // skip FMV (Triangle)
+    change_button(ga(0x601dbd, 0x60023d) + 1, Index_MenuAction2);       // skip FMV (Square)
+    change_button(ga(0x573ddb, 0x5723eb) + 1, Index_ToggleFastForward); // enable fast-forward scene
+    change_button(ga(0x573ccc, 0x5722dc) + 1, Index_MenuAction1);       // disable fast-forward scene (Triangle)
+    change_button(ga(0x573c89, 0x572299) + 1, Index_MenuAction2);       // disable fast-forward scene (Square)
+    change_button(ga(0x573ce3, 0x5722f3) + 1, Index_ToggleFastForward); // disable fast-forward scene (L1)
+    change_button(ga(0x573cfa, 0x57230a) + 1, Index_ToggleAutoAdvance); // disable fast-forward scene (R1)
+    change_button(ga(0x5699b4, 0x567ff4) + 1, Index_XStrikeLeft);       // X-Strike Followup (Left Only)
+    change_button(ga(0x5699c1, 0x568001) + 1, Index_XStrikeRight);      // X-Strike Followup (Right Only)
+    change_button(ga(0x569982, 0x567fc2) + 1, Index_XStrikeLeft);       // X-Strike Followup (Left Both)
+    change_button(ga(0x569999, 0x567fd9) + 1, Index_XStrikeRight);      // X-Strike Followup (Right Both)
+    change_button(ga(0x5e4b3a, 0x5e2fda) + 1, Index_ZoomIn);            // minimap, zoom in
+    change_button(ga(0x5e4b86, 0x5e3026) + 1, Index_ZoomOut);           // minimap, zoom out
+    change_button(ga(0x5753c9, 0x573999) + 1, Index_ToggleAutoAdvance); // textbox, toggle auto-advance
+    // clang-format on
+
 
     // debug
     //{
@@ -229,6 +438,84 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     //}
 
 
+    // hook the button update function and update the state of our new buttons at the end
+    {
+        char* codespace = execData.Codespace;
+        const auto inject = InjectJumpIntoCode<5>(logger, addressUpdateButtons, codespace);
+
+        BranchHelper4Byte updateButtons;
+        void* updateNewButtonsFunc = UpdateNewButtons;
+        updateButtons.SetTarget(static_cast<char*>(updateNewButtonsFunc));
+        updateButtons.WriteJump(codespace, JC::CALL);
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+
+    // hook the button check function to handle the new buttons
+    {
+        char* codespace = execData.Codespace;
+        auto injectResult = InjectJumpIntoCode<5>(logger, addressCheckButton, codespace);
+
+
+        // debug to find the call sites for the buttons
+        Emit_PUSH_R32(codespace, R32::EAX);
+        Emit_PUSH_R32(codespace, R32::EBX);
+        Emit_PUSH_R32(codespace, R32::ECX);
+        Emit_PUSH_R32(codespace, R32::EDX);
+        Emit_PUSH_R32(codespace, R32::ESI);
+        Emit_PUSH_R32(codespace, R32::EDI);
+        Emit_PUSH_R32(codespace, R32::EBP);
+
+        BranchHelper4Byte call_dbg;
+        void* debug_func_ptr = DebugFunc2;
+        call_dbg.SetTarget(static_cast<char*>(debug_func_ptr));
+        Emit_MOV_R32_R32(codespace, R32::ECX, R32::EBP);
+        call_dbg.WriteJump(codespace, JumpCondition::CALL);
+
+        Emit_POP_R32(codespace, R32::EBP);
+        Emit_POP_R32(codespace, R32::EDI);
+        Emit_POP_R32(codespace, R32::ESI);
+        Emit_POP_R32(codespace, R32::EDX);
+        Emit_POP_R32(codespace, R32::ECX);
+        Emit_POP_R32(codespace, R32::EBX);
+        Emit_POP_R32(codespace, R32::EAX);
+        // end debug
+
+
+        const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+        std::memcpy(codespace, overwrittenInstructions.data(), 3); // cmp edi,0x1f
+        codespace += 3;
+
+        BranchHelper4Byte jump_back_not_new_button;
+        jump_back_not_new_button.SetTarget(injectResult.JumpBackAddress);
+        jump_back_not_new_button.WriteJump(codespace, JC::JNGE);
+
+        BranchHelper4Byte checkNewButtons;
+        void* checkNewButtonsFunc = CheckNewButtons;
+        checkNewButtons.SetTarget(static_cast<char*>(checkNewButtonsFunc));
+
+        // call our new button check function
+        Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::EBP, 0xc);
+        Emit_MOV_R32_R32(codespace, R32::ECX, R32::EDI);
+        checkNewButtons.WriteJump(codespace, JumpCondition::CALL);
+
+        // return the result directly
+        Emit_POP_R32(codespace, R32::EDI);
+        Emit_POP_R32(codespace, R32::ESI);
+        Emit_POP_R32(codespace, R32::EBP);
+        Emit_RET_IMM16(codespace, 0xc);
+
+        execData.Codespace = codespace;
+    }
+
     // some extra notes:
     // - call at 0x673c07 positions the remapping UI table rows
     // - call at 0x67d7eb controls the size of the background window
@@ -240,7 +527,7 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         PageUnprotect page(logger, getButtonMappingNameFunction, 0x21);
         const char** enArrayLocation;
         std::memcpy(&enArrayLocation, getButtonMappingNameFunction + 0x1b, 4);
-        static constexpr uint32_t actionNameArrayLength = 0x25;
+        static constexpr uint32_t actionNameArrayLength = OldNumberOfButtons;
         PageUnprotect page2(logger, enArrayLocation, actionNameArrayLength * sizeof(char*) * 2);
 
         if (useJapanese) {
@@ -253,21 +540,49 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
             *(enArrayLocation + Index_MenuAction2) = JP_ButtonName_MenuAction2;
             *(enArrayLocation + Index_MenuZoomIn) = JP_ButtonName_MenuZoomIn;
             *(enArrayLocation + Index_MenuZoomOut) = JP_ButtonName_MenuZoomOut;
+            *(enArrayLocation + Index_SysAction1) = JP_ButtonName_SysAction1;
+            *(enArrayLocation + Index_SysAction2) = JP_ButtonName_SysAction2;
+            *(enArrayLocation + Index_ToggleAutoAdvance) = JP_ButtonName_ToggleAutoAdvance;
+            *(enArrayLocation + Index_ToggleFastForward) = JP_ButtonName_ToggleFastForward;
+            *(enArrayLocation + Index_ZoomIn) = JP_ButtonName_ZoomIn;
+            *(enArrayLocation + Index_ZoomOut) = JP_ButtonName_ZoomOut;
+            *(enArrayLocation + Index_OpenGate) = JP_ButtonName_OpenGate;
+            *(enArrayLocation + Index_XStrikeLeft) = JP_ButtonName_XStrikeLeft;
+            *(enArrayLocation + Index_XStrikeRight) = JP_ButtonName_XStrikeRight;
             *(enArrayLocation + Index_TurboMode) = JP_ButtonName_TurboMode;
+            *(enArrayLocation + Index_SwimmingLeft) = JP_ButtonName_SwimmingLeft;
+            *(enArrayLocation + Index_SwimmingRight) = JP_ButtonName_SwimmingRight;
             *(enArrayLocation + Index_FishingUp) = JP_ButtonName_FishingUp;
             *(enArrayLocation + Index_FishingDown) = JP_ButtonName_FishingDown;
             *(enArrayLocation + Index_FishingLeft) = JP_ButtonName_FishingLeft;
             *(enArrayLocation + Index_FishingRight) = JP_ButtonName_FishingRight;
+            *(enArrayLocation + Index_SkateboardAccel) = JP_ButtonName_SkateboardAccel;
+            *(enArrayLocation + Index_SkateboardJump) = JP_ButtonName_SkateboardJump;
+            *(enArrayLocation + Index_SkateboardBrake) = JP_ButtonName_SkateboardBrake;
         } else {
             *(enArrayLocation + Index_MenuAction1) = EN_ButtonName_MenuAction1;
             *(enArrayLocation + Index_MenuAction2) = EN_ButtonName_MenuAction2;
             *(enArrayLocation + Index_MenuZoomIn) = EN_ButtonName_MenuZoomIn;
             *(enArrayLocation + Index_MenuZoomOut) = EN_ButtonName_MenuZoomOut;
+            *(enArrayLocation + Index_SysAction1) = EN_ButtonName_SysAction1;
+            *(enArrayLocation + Index_SysAction2) = EN_ButtonName_SysAction2;
+            *(enArrayLocation + Index_ToggleAutoAdvance) = EN_ButtonName_ToggleAutoAdvance;
+            *(enArrayLocation + Index_ToggleFastForward) = EN_ButtonName_ToggleFastForward;
+            *(enArrayLocation + Index_ZoomIn) = EN_ButtonName_ZoomIn;
+            *(enArrayLocation + Index_ZoomOut) = EN_ButtonName_ZoomOut;
+            *(enArrayLocation + Index_OpenGate) = EN_ButtonName_OpenGate;
+            *(enArrayLocation + Index_XStrikeLeft) = EN_ButtonName_XStrikeLeft;
+            *(enArrayLocation + Index_XStrikeRight) = EN_ButtonName_XStrikeRight;
             *(enArrayLocation + Index_TurboMode) = EN_ButtonName_TurboMode;
+            *(enArrayLocation + Index_SwimmingLeft) = EN_ButtonName_SwimmingLeft;
+            *(enArrayLocation + Index_SwimmingRight) = EN_ButtonName_SwimmingRight;
             *(enArrayLocation + Index_FishingUp) = EN_ButtonName_FishingUp;
             *(enArrayLocation + Index_FishingDown) = EN_ButtonName_FishingDown;
             *(enArrayLocation + Index_FishingLeft) = EN_ButtonName_FishingLeft;
             *(enArrayLocation + Index_FishingRight) = EN_ButtonName_FishingRight;
+            *(enArrayLocation + Index_SkateboardAccel) = EN_ButtonName_SkateboardAccel;
+            *(enArrayLocation + Index_SkateboardJump) = EN_ButtonName_SkateboardJump;
+            *(enArrayLocation + Index_SkateboardBrake) = EN_ButtonName_SkateboardBrake;
         }
 
         // always use the (now extended and possibly overwritten) EN strings
