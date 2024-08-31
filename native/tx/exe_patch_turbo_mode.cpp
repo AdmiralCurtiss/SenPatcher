@@ -103,34 +103,6 @@ static void __fastcall HandleTurbo(float* timestep,
 //     return;
 // }
 
-#ifdef TX_DEBUG_NEW_BUTTONS
-static void __fastcall DebugFunc2(int* stack) {
-    uint32_t return_address = (uint32_t)stack[1];
-    const int button_to_check = stack[2];
-    const int check_type = stack[3];
-    const int also_check_stick = stack[4] & 0xff;
-
-    if (button_to_check == 10) {
-        return;
-    }
-
-    if (return_address == 0x0048d137 || return_address == 0x0048e537) {
-        return_address = (uint32_t)stack[6];
-    }
-
-    char buffer[200];
-    sprintf(buffer,
-            " 0x%08x -> CheckButton(button = %d, type = %d, also_stick = %d)\n",
-            return_address,
-            button_to_check,
-            check_type,
-            also_check_stick);
-    OutputDebugStringA(buffer);
-
-    return;
-}
-#endif
-
 static const char EN_ButtonName_MenuAction1[] = "Menu - Action 1";
 static const char JP_ButtonName_MenuAction1[] =
     "\xE3\x83\xA1\xE3\x83\x8B\xE3\x83\xA5\xE3\x83\xBC\xE3\x83\xBB"
@@ -216,6 +188,34 @@ static constexpr uint32_t ButtonsToAdd = 23;
 // if this is triggered we need to remap the lookup array for button names
 static_assert(ButtonsToAdd <= OldNumberOfButtons);
 
+#ifdef TX_DEBUG_NEW_BUTTONS
+static void __fastcall DebugFunc2(int* stack) {
+    uint32_t return_address = (uint32_t)stack[1];
+    const int button_to_check = stack[2];
+    const int check_type = stack[3];
+    const int also_check_stick = stack[4] & 0xff;
+
+    if (button_to_check == (int)Index_TurboMode) {
+        return;
+    }
+
+    if (return_address == 0x0048d137 || return_address == 0x0048e537) {
+        return_address = (uint32_t)stack[6];
+    }
+
+    char buffer[200];
+    sprintf(buffer,
+            " 0x%08x -> CheckButton(button = %d, type = %d, also_stick = %d)\n",
+            return_address,
+            button_to_check,
+            check_type,
+            also_check_stick);
+    OutputDebugStringA(buffer);
+
+    return;
+}
+#endif
+
 namespace {
 struct ButtonStateData {
     uint8_t Pressed = 0; // 0 == not pressed, 1 == pressed and unconsumed, 2 == pressed and consumed
@@ -281,7 +281,14 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     using JC = JumpCondition;
 
     // TODO: Add default bindings when launching without ini or resetting to default.
-    // TODO: Prompts need to be changed, too.
+    // TODO: Incorrect prompts I'm aware of:
+    // - We have two clashing L1/R1 prompts that attempt to use the same mappings, one of them needs
+    //   to be remapped somehow. (Zoom In/Out and Menu Tab Left/Right)
+    //   -> Can be seen in most menus with tabs, as well as the Message Log.
+    // - The 'Open Gate' prompt has the same problem, it needs a bespoke prompt.
+    // - I haven't checked the S-Craft followups but I'm sure they have the same issue.
+    // - Fishing, Swimming, and Skateboarding minigames are all still wrong.
+    // - I'm sure there are a million errors in tutorial messages now...
 
     s_CheckPcButtonMapping = reinterpret_cast<PCheckPcButtonMapping>(
         GetCodeAddressSteamGog(version, textRegion, 0x438070, 0x4368a0));
@@ -381,8 +388,8 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     change_button(ga(0x4a32dc, 0x4a1e5c) + 1, Index_ZoomIn);            // character viewer, zoom in
     change_button(ga(0x4a3294, 0x4a1e14) + 1, Index_ZoomOut);           // character viewer, zoom out
     change_button(ga(0x45813b, 0x45698b) + 1, Index_MenuAction1);       // boss battle menu, switch category
-    change_button(ga(0x499ebf, 0x498a9f) + 1, Index_SysAction2);        // button remapping menu (camp), restore defaults
-    change_button(ga(0x65da69, 0x65bf79) + 1, Index_SysAction2);        // button remapping menu (title), restore defaults
+    change_button(ga(0x499ebf, 0x498a9f) + 1, Index_SysAction1);        // button remapping menu (camp), restore defaults
+    change_button(ga(0x65da69, 0x65bf79) + 1, Index_SysAction1);        // button remapping menu (title), restore defaults
     change_button(ga(0x573e6a, 0x57247a) + 1, Index_SysAction1);        // skip scene
     change_button(ga(0x56e74d, 0x56cd8d) + 1, Index_SysAction1);        // skip X-Strike
     change_button(ga(0x601e4b, 0x6002cb) + 1, Index_SysAction1);        // skip FMV (Start)
@@ -401,6 +408,19 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     change_button(ga(0x5e4b3a, 0x5e2fda) + 1, Index_ZoomIn);            // minimap, zoom in
     change_button(ga(0x5e4b86, 0x5e3026) + 1, Index_ZoomOut);           // minimap, zoom out
     change_button(ga(0x5753c9, 0x573999) + 1, Index_ToggleAutoAdvance); // textbox, toggle auto-advance
+    change_button(ga(0x5e4bce, 0x5e306e) + 1, Index_SysAction1);        // minimap, escape dungeon
+    change_button(ga(0x641795, 0x63fc65) + 1, Index_MenuAction1);       // regular shop, change item display
+    change_button(ga(0x644a5d, 0x642f2d) + 1, Index_MenuAction1);       // trade shop, change item display
+    change_button(ga(0x643a78, 0x641f48) + 1, Index_MenuAction1);       // upgrade grid/skills, change item display
+
+    change_button(ga(0xa6bb7c + 0xff8, 0xa6bb7c), Index_SysAction2);    // button prompt used for #110I
+    change_button(ga(0xa6bb18 + 0xff8, 0xa6bb18), Index_MenuAction1);   // button prompt used for #162I
+    change_button(ga(0xa6bb2c + 0xff8, 0xa6bb2c), Index_MenuAction2);   // button prompt used for #163I
+    change_button(ga(0xa6bbb8 + 0xff8, 0xa6bbb8), Index_ZoomOut);       // button prompt used for #164I
+    change_button(ga(0xa6bbcc + 0xff8, 0xa6bbcc), Index_ZoomIn);        // button prompt used for #166I
+    change_button(ga(0xa6bbe0 + 0xff8, 0xa6bbe0), Index_MenuZoomOut);   // button prompt used for #180I
+    change_button(ga(0xa6bbf4 + 0xff8, 0xa6bbf4), Index_MenuZoomIn);    // button prompt used for #182I
+    change_button(ga(0xa6bb54 + 0xff8, 0xa6bb54), Index_SysAction1);    // button prompt used for #203I
     // clang-format on
 
 
