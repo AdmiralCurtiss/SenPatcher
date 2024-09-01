@@ -225,6 +225,7 @@
     <Compile Include="SenUtils.cs" />
     <Compile Include="SHA256.cs" />
     <Compile Include="Sen3\Tbl.cs" />
+    <Compile Include="TX\Tbl.cs" />
     <Compile Include="UnpatchGame.cs" />
     <Compile Include="Version.cs" />
     <Compile Include="VoiceTiming.cs" />
@@ -254,6 +255,7 @@
     <None Include="Sen3\senpatcher_settings.ini" />
     <None Include="Sen4\senpatcher_settings.ini" />
     <None Include="Sen5\senpatcher_settings.ini" />
+    <None Include="TX\senpatcher_settings.ini" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

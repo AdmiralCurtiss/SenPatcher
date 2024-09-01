@@ -81,6 +81,52 @@ namespace SenPatcherCli {
 
 	public static class Playground {
 		public static void Run() {
+			//SenPatcherCli.TX.TblDumper.AdaptSwitchFilesForPC(@"c:\__ed8\tx\text\switch\", @"c:\__ed8\tx\text\pc\");
+
+			//foreach (TblFileInfo tfi in new TblFileInfo[] {
+			//	new TblFileInfo(@"c:\__ed8\tx\text\pc\", EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8),
+			//	new TblFileInfo(@"c:\__ed8\tx\text\switch\", EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8),
+			//}) {
+			//	foreach (string s in new string[] {
+			//		"t_active.tbl",
+			//		"t_book.tbl",
+			//		"t_cv.tbl",
+			//		"t_dlc.tbl",
+			//		"t_dlc.tbl.mod",
+			//		"t_dungeon.tbl",
+			//		"t_hikitugi.tbl",
+			//		"t_item.tbl",
+			//		"t_itemhelp.tbl",
+			//		"t_jump.tbl",
+			//		"t_linkab.tbl",
+			//		"t_magic.tbl",
+			//		"t_main.tbl",
+			//		"t_mg01.tbl",
+			//		"t_mg02.tbl",
+			//		"t_mg03.tbl",
+			//		"t_mg04.tbl",
+			//		"t_mons.tbl",
+			//		"t_name.tbl",
+			//		"t_navi.tbl",
+			//		"t_notechar.tbl",
+			//		"t_notecook.tbl",
+			//		"t_notehelp.tbl",
+			//		"t_notehelp.tbl.mod",
+			//		"t_notemons.tbl",
+			//		"t_orblv.tbl",
+			//		"t_place.tbl",
+			//		"t_quest.tbl",
+			//		"t_text.tbl",
+			//		"t_text.tbl.mod",
+			//	}) {
+			//		SenPatcherCli.TX.TblDumper.Dump(
+			//			Path.Combine(tfi.Filename, s + ".txt"),
+			//			Path.Combine(tfi.Filename, s),
+			//			tfi.Endian, tfi.Encoding
+			//		);
+			//	}
+			//}
+
 			//foreach (string s in new string[] {
 			//	  @"d:\SteamLibrary\steamapps\common\The Legend of Heroes Trails of Cold Steel IV\data\text\dat_en\t_item_en.tbl",
 			//	  @"d:\SteamLibrary\steamapps\common\The Legend of Heroes Trails of Cold Steel IV\data\text\dat_en\t_mstqrt.tbl",
