@@ -214,6 +214,17 @@ static void __fastcall DebugFunc2(int* stack) {
 
     return;
 }
+
+static void __fastcall DebugFunc3(int* stack) {
+    uint32_t return_address = (uint32_t)stack[1];
+    const int button_to_check = stack[2];
+
+    char buffer[200];
+    sprintf(buffer, " 0x%08x -> GetIcon(icon = %d)\n", return_address, button_to_check);
+    OutputDebugStringA(buffer);
+
+    return;
+}
 #endif
 
 namespace {
@@ -261,6 +272,22 @@ static int32_t __fastcall CheckNewButtons(uint32_t button_to_check, uint32_t che
 
     return 0;
 }
+
+namespace {
+struct PcButtonPromptOverride {
+    // the icon index this override triggers on
+    int32_t IconIndex = -1;
+
+    // the button it maps to. if multiple are set (must be in order), it switches between them over
+    // time; this is used for the prompts that switch between keyboard and mouse prompt and the
+    // stick prompts that switch over the four directions
+    int32_t ButtonMappingIndex1 = -1;
+    int32_t ButtonMappingIndex2 = -1;
+    int32_t ButtonMappingIndex3 = -1;
+    int32_t ButtonMappingIndex4 = -1;
+};
+static_assert(sizeof(PcButtonPromptOverride) == 20);
+} // namespace
 
 void PatchTurboAndButtonMappings(PatchExecData& execData,
                                  bool makeToggle,
@@ -340,6 +367,101 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     float* const addrRealTimeStep = &RealTimeStep;
     float* const addrTempStoreMul = &TempStoreMul;
 
+    char* const addressButtonMappingIconLookupArray1 =
+        GetCodeAddressSteamGog(version, textRegion, 0x580601, 0x57eba1) + 2;
+    char* const addressButtonMappingIconLookupLength1 =
+        GetCodeAddressSteamGog(version, textRegion, 0x580610, 0x57ebb0) + 1;
+    char* const addressButtonMappingIconLookupArray2a =
+        GetCodeAddressSteamGog(version, textRegion, 0x581990, 0x57ff30) + 2;
+    char* const addressButtonMappingIconLookupArray2b =
+        GetCodeAddressSteamGog(version, textRegion, 0x58199c, 0x57ff3c) + 2;
+    char* const addressButtonMappingIconLookupArray2c =
+        GetCodeAddressSteamGog(version, textRegion, 0x5819ac, 0x57ff4c) + 2;
+    char* const addressButtonMappingIconLookupArray2d =
+        GetCodeAddressSteamGog(version, textRegion, 0x5819be, 0x57ff5e) + 2;
+    char* const addressButtonMappingIconLookupArray2e =
+        GetCodeAddressSteamGog(version, textRegion, 0x581a13, 0x57ffb3) + 3;
+    char* const addressButtonMappingIconLookupArray2f =
+        GetCodeAddressSteamGog(version, textRegion, 0x581a1c, 0x57ffbc) + 2;
+    char* const addressButtonMappingIconLookupLength2 =
+        GetCodeAddressSteamGog(version, textRegion, 0x581abf, 0x58005f) + 2;
+
+    // Add new buttons to list of button prompts.
+    // The implementation here is quite convoluted. In order to make the PC button prompts work, the
+    // game has hijacked the function that's responsible for determining the texture and x/y
+    // location to draw for any given icon ID and manually checks the IDs that need replacement to
+    // point them to the correct icon in the PC prompt texture.
+    // We're gonna extend that mapping array with our buttons and use a few unused IDs for them.
+    {
+        char* codespace = execData.Codespace;
+
+        // copy into codespace
+        PcButtonPromptOverride* originalLocationOfOverrides;
+        std::memcpy(&originalLocationOfOverrides, addressButtonMappingIconLookupArray1, 4);
+        static constexpr size_t originalOverrideArrayLength = 35;
+        static constexpr size_t originalOverrideArrayByteLength =
+            originalOverrideArrayLength * sizeof(PcButtonPromptOverride);
+        std::memcpy(codespace, originalLocationOfOverrides, originalOverrideArrayByteLength);
+        PcButtonPromptOverride* newLocationOfOverrides =
+            reinterpret_cast<PcButtonPromptOverride*>(codespace);
+        codespace += originalOverrideArrayByteLength;
+
+        // add space for more mappings
+        static constexpr size_t numberOfPromptsToAdd = 2;
+        PcButtonPromptOverride dummyPrompt;
+        for (size_t i = 0; i < numberOfPromptsToAdd; ++i) {
+            std::memcpy(codespace, &dummyPrompt, sizeof(PcButtonPromptOverride));
+            codespace += sizeof(PcButtonPromptOverride);
+        }
+
+        // update some existing mappings to point to more useful mappings
+        newLocationOfOverrides[3].ButtonMappingIndex1 = Index_MenuAction1;  // #162I
+        newLocationOfOverrides[4].ButtonMappingIndex1 = Index_MenuAction2;  // #163I
+        newLocationOfOverrides[6].ButtonMappingIndex1 = Index_SysAction1;   // #203I
+        newLocationOfOverrides[8].ButtonMappingIndex1 = Index_SysAction2;   // #110I
+        newLocationOfOverrides[11].ButtonMappingIndex1 = Index_ZoomOut;     // #164I
+        newLocationOfOverrides[12].ButtonMappingIndex1 = Index_ZoomIn;      // #166I
+        newLocationOfOverrides[13].ButtonMappingIndex1 = Index_MenuZoomOut; // #180I
+        newLocationOfOverrides[14].ButtonMappingIndex1 = Index_MenuZoomIn;  // #182I
+
+        // add new icon -> prompt mappings
+        newLocationOfOverrides[35].IconIndex = 165;
+        newLocationOfOverrides[35].ButtonMappingIndex1 = 0x23; // menu tab left
+        newLocationOfOverrides[36].IconIndex = 167;
+        newLocationOfOverrides[36].ButtonMappingIndex1 = 0x24; // menu tab right
+
+        // update references to array
+        const auto update_ref = [&](char* const addr) -> void {
+            PageUnprotect page(logger, addr, 4);
+            uint32_t oldLoc = std::bit_cast<uint32_t>(originalLocationOfOverrides);
+            uint32_t tmp;
+            std::memcpy(&tmp, addr, 4);
+            uint32_t offset = tmp - oldLoc;
+            uint32_t newLoc = std::bit_cast<uint32_t>(newLocationOfOverrides) + offset;
+            std::memcpy(addr, &newLoc, 4);
+        };
+        update_ref(addressButtonMappingIconLookupArray1);
+        update_ref(addressButtonMappingIconLookupArray2a);
+        update_ref(addressButtonMappingIconLookupArray2b);
+        update_ref(addressButtonMappingIconLookupArray2c);
+        update_ref(addressButtonMappingIconLookupArray2d);
+        update_ref(addressButtonMappingIconLookupArray2e);
+        update_ref(addressButtonMappingIconLookupArray2f);
+        uint32_t newByteLength = originalOverrideArrayByteLength
+                                 + (numberOfPromptsToAdd * sizeof(PcButtonPromptOverride));
+        {
+            PageUnprotect page(logger, addressButtonMappingIconLookupLength1, 4);
+            std::memcpy(addressButtonMappingIconLookupLength1, &newByteLength, 4);
+        }
+        {
+            PageUnprotect page(logger, addressButtonMappingIconLookupLength2, 4);
+            std::memcpy(addressButtonMappingIconLookupLength2, &newByteLength, 4);
+        }
+
+        execData.Codespace = codespace;
+    }
+
+
     // change buttons that are being checked
     const auto change_button = [&](char* address, uint32_t button) -> void {
         if (address == nullptr || address == (char*)1) {
@@ -412,15 +534,6 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     change_button(ga(0x641795, 0x63fc65) + 1, Index_MenuAction1);       // regular shop, change item display
     change_button(ga(0x644a5d, 0x642f2d) + 1, Index_MenuAction1);       // trade shop, change item display
     change_button(ga(0x643a78, 0x641f48) + 1, Index_MenuAction1);       // upgrade grid/skills, change item display
-
-    change_button(ga(0xa6bb7c + 0xff8, 0xa6bb7c), Index_SysAction2);    // button prompt used for #110I
-    change_button(ga(0xa6bb18 + 0xff8, 0xa6bb18), Index_MenuAction1);   // button prompt used for #162I
-    change_button(ga(0xa6bb2c + 0xff8, 0xa6bb2c), Index_MenuAction2);   // button prompt used for #163I
-    change_button(ga(0xa6bbb8 + 0xff8, 0xa6bbb8), Index_ZoomOut);       // button prompt used for #164I
-    change_button(ga(0xa6bbcc + 0xff8, 0xa6bbcc), Index_ZoomIn);        // button prompt used for #166I
-    change_button(ga(0xa6bbe0 + 0xff8, 0xa6bbe0), Index_MenuZoomOut);   // button prompt used for #180I
-    change_button(ga(0xa6bbf4 + 0xff8, 0xa6bbf4), Index_MenuZoomIn);    // button prompt used for #182I
-    change_button(ga(0xa6bb54 + 0xff8, 0xa6bb54), Index_SysAction1);    // button prompt used for #203I
     // clang-format on
 
 
@@ -569,6 +682,47 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
 
         execData.Codespace = codespace;
     }
+
+#ifdef TX_DEBUG_NEW_BUTTONS
+    {
+        char* codespace = execData.Codespace;
+        char* const getIconFunctionAddress =
+            GetCodeAddressSteamGog(version, textRegion, 0x5817a1, 0x57fd41);
+        auto injectResult = InjectJumpIntoCode<5>(logger, getIconFunctionAddress, codespace);
+
+        const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+        std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+        codespace += overwrittenInstructions.size();
+
+        Emit_PUSH_R32(codespace, R32::EAX);
+        Emit_PUSH_R32(codespace, R32::EBX);
+        Emit_PUSH_R32(codespace, R32::ECX);
+        Emit_PUSH_R32(codespace, R32::EDX);
+        Emit_PUSH_R32(codespace, R32::ESI);
+        Emit_PUSH_R32(codespace, R32::EDI);
+        Emit_PUSH_R32(codespace, R32::EBP);
+
+        BranchHelper4Byte call_dbg;
+        void* debug_func_ptr = DebugFunc3;
+        call_dbg.SetTarget(static_cast<char*>(debug_func_ptr));
+        Emit_MOV_R32_R32(codespace, R32::ECX, R32::EBP);
+        call_dbg.WriteJump(codespace, JumpCondition::CALL);
+
+        Emit_POP_R32(codespace, R32::EBP);
+        Emit_POP_R32(codespace, R32::EDI);
+        Emit_POP_R32(codespace, R32::ESI);
+        Emit_POP_R32(codespace, R32::EDX);
+        Emit_POP_R32(codespace, R32::ECX);
+        Emit_POP_R32(codespace, R32::EBX);
+        Emit_POP_R32(codespace, R32::EAX);
+
+        BranchHelper4Byte jump_back;
+        jump_back.SetTarget(injectResult.JumpBackAddress);
+        jump_back.WriteJump(codespace, JC::JMP);
+
+        execData.Codespace = codespace;
+    }
+#endif
 
     // some extra notes:
     // - call at 0x673c07 positions the remapping UI table rows
