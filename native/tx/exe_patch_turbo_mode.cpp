@@ -336,7 +336,6 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
 
     // TODO: Add default bindings when launching without ini or resetting to default.
     // TODO: Incorrect prompts I'm aware of:
-    // - Skateboarding minigame is still wrong.
     // - I'm sure there are a million errors in tutorial messages now...
 
     s_CheckPcButtonMapping = reinterpret_cast<PCheckPcButtonMapping>(
@@ -456,13 +455,13 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         newLocationOfOverrides[36].ButtonMappingIndex1 = 0x24; // menu tab right
         newLocationOfOverrides[37].IconIndex = 111;
         newLocationOfOverrides[37].ButtonMappingIndex1 = Index_OpenGate;
-        newLocationOfOverrides[38].IconIndex = 169;
+        newLocationOfOverrides[38].IconIndex = 854;
         newLocationOfOverrides[38].ButtonMappingIndex1 = Index_XStrikeLeft;
-        newLocationOfOverrides[39].IconIndex = 171;
+        newLocationOfOverrides[39].IconIndex = 855;
         newLocationOfOverrides[39].ButtonMappingIndex1 = Index_XStrikeRight;
-        newLocationOfOverrides[40].IconIndex = 181;
+        newLocationOfOverrides[40].IconIndex = 856;
         newLocationOfOverrides[40].ButtonMappingIndex1 = Index_SwimmingLeft;
-        newLocationOfOverrides[41].IconIndex = 183;
+        newLocationOfOverrides[41].IconIndex = 857;
         newLocationOfOverrides[41].ButtonMappingIndex1 = Index_SwimmingRight;
         newLocationOfOverrides[42].IconIndex = 850;
         newLocationOfOverrides[42].ButtonMappingIndex1 = Index_FishingUp;
@@ -472,11 +471,11 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         newLocationOfOverrides[44].ButtonMappingIndex1 = Index_FishingLeft;
         newLocationOfOverrides[45].IconIndex = 853;
         newLocationOfOverrides[45].ButtonMappingIndex1 = Index_FishingRight;
-        newLocationOfOverrides[46].IconIndex = 854;
+        newLocationOfOverrides[46].IconIndex = 169;
         newLocationOfOverrides[46].ButtonMappingIndex1 = Index_SkateboardAccel;
-        newLocationOfOverrides[47].IconIndex = 855;
+        newLocationOfOverrides[47].IconIndex = 171;
         newLocationOfOverrides[47].ButtonMappingIndex1 = Index_SkateboardJump;
-        newLocationOfOverrides[48].IconIndex = 856;
+        newLocationOfOverrides[48].IconIndex = 181;
         newLocationOfOverrides[48].ButtonMappingIndex1 = Index_SkateboardBrake;
 
         // update references to array
@@ -606,14 +605,20 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     change_prompt(ga(0x682560, 0x680a40) + 1, 167); // status menu R1
     change_prompt(ga(0x5edc36, 0x5ec0f6) + 1, 165); // niar menu L1
     change_prompt(ga(0x5edd14, 0x5ec1d4) + 1, 167); // niar menu R1
-    change_prompt(ga(0x560211, 0x55e851) + 1, 169); // X-Strike L1
-    change_prompt(ga(0x560265, 0x55e8a5) + 1, 171); // X-Strike R1
-    change_prompt(ga(0x55af44, 0x559584) + 1, 181); // swimming L1
-    change_prompt(ga(0x55b053, 0x559693) + 1, 183); // swimming R1
+    change_prompt(ga(0x560211, 0x55e851) + 1, 854); // X-Strike L1
+    change_prompt(ga(0x560265, 0x55e8a5) + 1, 855); // X-Strike R1
+    change_prompt(ga(0x55af44, 0x559584) + 1, 856); // swimming L1
+    change_prompt(ga(0x55b053, 0x559693) + 1, 857); // swimming R1
     change_prompt(ga(0x5c44fc, 0x5c299c) + 1, 850); // fishing up
     change_prompt(ga(0x5c42ea, 0x5c278a) + 1, 851); // fishing down
     change_prompt(ga(0x5c41e4, 0x5c2684) + 1, 852); // fishing left
     change_prompt(ga(0x5c43f3, 0x5c2893) + 1, 853); // fishing right
+    change_prompt(ga(0x5adb5b, 0x5abffb) + 1, 169); // skateboarding accelerate on the left bar
+
+    // these are intentionally using change_button():
+    change_button(ga(0x5aad57, 0x5a91f7), 169); // skateboarding accelerate
+    change_button(ga(0x5aad7d, 0x5a921d), 181); // skateboarding brake/reverse
+    change_button(ga(0x5aad8e, 0x5a922e), 171); // skateboarding jump
     // clang-format on
 
     // hook the function that reads t_text.tbl to replace a few prompts that are stored in there
