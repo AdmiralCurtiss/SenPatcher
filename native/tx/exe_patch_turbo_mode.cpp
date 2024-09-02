@@ -231,6 +231,29 @@ static void __fastcall DebugFunc3(int* stack) {
 }
 #endif
 
+static void __fastcall ReplaceTTextTbl(char* string, uint16_t index) {
+    if (index == 0x12) {
+        // Open Gate prompt
+        char* offset = strstr(string, "#164I");
+        if (offset) {
+            offset[2] = '1';
+            offset[3] = '1';
+        }
+    }
+    if (index == 0x17c || index == 0x32b) {
+        // Both of these should use the tab left/right prompts
+        char* offset1 = strstr(string, "#164I");
+        if (offset1) {
+            offset1[3] = '5';
+        }
+        char* offset2 = strstr(string, "#166I");
+        if (offset2) {
+            offset2[3] = '7';
+        }
+    }
+    return;
+}
+
 namespace {
 struct ButtonStateData {
     uint8_t Pressed = 0; // 0 == not pressed, 1 == pressed and unconsumed, 2 == pressed and consumed
@@ -313,10 +336,6 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
 
     // TODO: Add default bindings when launching without ini or resetting to default.
     // TODO: Incorrect prompts I'm aware of:
-    // - We have two clashing L1/R1 prompts that attempt to use the same mappings, one of them needs
-    //   to be remapped somehow. (Zoom In/Out and Menu Tab Left/Right)
-    //   -> Can be seen in most menus with tabs, as well as the Message Log.
-    // - The 'Open Gate' prompt has the same problem, it needs a bespoke prompt.
     // - Skateboarding minigame is still wrong.
     // - I'm sure there are a million errors in tutorial messages now...
 
@@ -388,6 +407,9 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         GetCodeAddressSteamGog(version, textRegion, 0x581a1c, 0x57ffbc) + 2;
     char* const addressButtonMappingIconLookupLength2 =
         GetCodeAddressSteamGog(version, textRegion, 0x581abf, 0x58005f) + 2;
+
+    char* const addressTTextReadinHook =
+        GetCodeAddressSteamGog(version, textRegion, 0x4d5270, 0x4d3d70);
 
     // Add new buttons to list of button prompts.
     // The implementation here is quite convoluted. In order to make the PC button prompts work, the
@@ -593,6 +615,30 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     change_prompt(ga(0x5c41e4, 0x5c2684) + 1, 852); // fishing left
     change_prompt(ga(0x5c43f3, 0x5c2893) + 1, 853); // fishing right
     // clang-format on
+
+    // hook the function that reads t_text.tbl to replace a few prompts that are stored in there
+    {
+        char* codespace = execData.Codespace;
+        const auto inject = InjectJumpIntoCode<6, PaddingInstruction::Nop>(
+            logger, addressTTextReadinHook, codespace);
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte updateButtons;
+        void* replaceTTextTblFunc = ReplaceTTextTbl;
+        updateButtons.SetTarget(static_cast<char*>(replaceTTextTblFunc));
+        Emit_MOV_R32_R32(codespace, R32::ECX, R32::EBX);
+        Emit_MOV_R32_R32(codespace, R32::EDX, R32::EAX);
+        updateButtons.WriteJump(codespace, JC::CALL);
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
 
     // debug
     //{
