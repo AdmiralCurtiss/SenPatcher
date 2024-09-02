@@ -1296,6 +1296,29 @@ namespace SenPatcherCli.TX {
 			using (FileStream fs = new FileStream(Path.Combine(path_switch, "t_text.tbl.mod"), FileMode.Create)) {
 				t_text_sw.WriteToStream(fs, EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
 			}
+
+
+
+			var t_main_sw = new Tbl(new DuplicatableFileStream(Path.Combine(path_switch, "t_main.tbl")).CopyToByteArrayStreamAndDispose(), EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
+			var q = new QSText(t_main_sw.Entries[14].Data);
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < 1000; ++i) {
+				if (i % 10 == 0) {
+					sb.Append(i);
+					sb.Append(" -> ");
+				}
+				sb.Append("#");
+				sb.Append(i);
+				sb.Append("I ");
+				if (i % 10 == 9) {
+					sb.Append("\n");
+				}
+			}
+			q.str = sb.ToString();
+			t_main_sw.Entries[14].Data = q.ToBinary();
+			using (FileStream fs = new FileStream(Path.Combine(path_switch, "t_main.tbl.mod"), FileMode.Create)) {
+				t_main_sw.WriteToStream(fs, EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
+			}
 		}
 	}
 
@@ -1314,6 +1337,30 @@ namespace SenPatcherCli.TX {
 		internal byte[] ToBinary() {
 			MemoryStream ms = new MemoryStream();
 			ms.WriteUInt16(idx);
+			ms.WriteUTF8Nullterm(str);
+			ms.Write(d);
+			return ms.CopyToByteArrayAndDispose();
+		}
+	}
+
+	internal class QSText {
+		public ushort idx;
+		public byte unknown;
+		public string str;
+		public byte[] d;
+
+		internal QSText(byte[] data) {
+			var stream = new DuplicatableByteArrayStream(data);
+			idx = stream.ReadUInt16();
+			unknown = stream.ReadUInt8();
+			str = stream.ReadUTF8Nullterm();
+			d = stream.ReadBytes(stream.Length - stream.Position);
+		}
+
+		internal byte[] ToBinary() {
+			MemoryStream ms = new MemoryStream();
+			ms.WriteUInt16(idx);
+			ms.WriteUInt8(unknown);
 			ms.WriteUTF8Nullterm(str);
 			ms.Write(d);
 			return ms.CopyToByteArrayAndDispose();
