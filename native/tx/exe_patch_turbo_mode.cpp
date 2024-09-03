@@ -185,6 +185,31 @@ static constexpr uint32_t Index_SkateboardJump = OldNumberOfButtons + 21;
 static constexpr uint32_t Index_SkateboardBrake = OldNumberOfButtons + 22;
 static constexpr uint32_t ButtonsToAdd = 23;
 
+// TODO: Some of these default keyboard binds feel like nonsense even though I think they largely
+// match what the default mappings were before my changes. Maybe we can make better ones?
+#define MAKE_DEFAULT_BIND(x, y) (unsigned char)x, (unsigned char)y
+static const unsigned char NewDefaultsKeyboard[ButtonsToAdd * 2] = {
+    MAKE_DEFAULT_BIND(1, 33),  MAKE_DEFAULT_BIND(1, 50),  MAKE_DEFAULT_BIND(1, 45),
+    MAKE_DEFAULT_BIND(1, 44),  MAKE_DEFAULT_BIND(1, 1),   MAKE_DEFAULT_BIND(1, 15),
+    MAKE_DEFAULT_BIND(1, 209), MAKE_DEFAULT_BIND(1, 201), MAKE_DEFAULT_BIND(1, 209),
+    MAKE_DEFAULT_BIND(1, 201), MAKE_DEFAULT_BIND(1, 201), MAKE_DEFAULT_BIND(1, 42),
+    MAKE_DEFAULT_BIND(1, 54),  MAKE_DEFAULT_BIND(1, 29),  MAKE_DEFAULT_BIND(1, 42),
+    MAKE_DEFAULT_BIND(1, 54),  MAKE_DEFAULT_BIND(1, 200), MAKE_DEFAULT_BIND(1, 208),
+    MAKE_DEFAULT_BIND(1, 203), MAKE_DEFAULT_BIND(1, 205), MAKE_DEFAULT_BIND(1, 28),
+    MAKE_DEFAULT_BIND(1, 57),  MAKE_DEFAULT_BIND(1, 14),
+};
+static const unsigned char NewDefaultsController[ButtonsToAdd * 2] = {
+    MAKE_DEFAULT_BIND(3, 3), MAKE_DEFAULT_BIND(3, 2), MAKE_DEFAULT_BIND(2, 4),
+    MAKE_DEFAULT_BIND(2, 5), MAKE_DEFAULT_BIND(3, 7), MAKE_DEFAULT_BIND(3, 6),
+    MAKE_DEFAULT_BIND(3, 5), MAKE_DEFAULT_BIND(3, 4), MAKE_DEFAULT_BIND(3, 5),
+    MAKE_DEFAULT_BIND(3, 4), MAKE_DEFAULT_BIND(3, 4), MAKE_DEFAULT_BIND(3, 4),
+    MAKE_DEFAULT_BIND(3, 5), MAKE_DEFAULT_BIND(3, 8), MAKE_DEFAULT_BIND(3, 4),
+    MAKE_DEFAULT_BIND(3, 5), MAKE_DEFAULT_BIND(3, 3), MAKE_DEFAULT_BIND(3, 0),
+    MAKE_DEFAULT_BIND(3, 2), MAKE_DEFAULT_BIND(3, 1), MAKE_DEFAULT_BIND(3, 0),
+    MAKE_DEFAULT_BIND(3, 1), MAKE_DEFAULT_BIND(3, 2),
+};
+#undef MAKE_DEFAULT_BIND
+
 // if this is triggered we need to remap the lookup array for button names
 static_assert(ButtonsToAdd <= OldNumberOfButtons);
 
@@ -334,7 +359,6 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     using namespace SenPatcher::x86;
     using JC = JumpCondition;
 
-    // TODO: Add default bindings when launching without ini or resetting to default.
     // TODO: Incorrect prompts I'm aware of:
     // - I'm sure there are a million errors in tutorial messages now...
 
@@ -358,6 +382,8 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         GetCodeAddressSteamGog(version, textRegion, 0x407393, 0x406ed3) + 2;
     char* const countButtonMappingsToReadFromIni =
         GetCodeAddressSteamGog(version, textRegion, 0x40724f, 0x406d8f) + 2;
+    char* const addressCallForButtonDefaults =
+        GetCodeAddressSteamGog(version, textRegion, 0x406940, 0x406480);
     char* const getButtonMappingNameFunction =
         GetCodeAddressSteamGog(version, textRegion, 0x405770, 0x4052b0);
     char* const openMessageLogInDialogueAddress =
@@ -510,6 +536,75 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     }
 
 
+    // set up default mappings for the new buttons
+    {
+        char* codespace = execData.Codespace;
+        const auto inject = InjectJumpIntoCode<5>(logger, addressCallForButtonDefaults, codespace);
+
+        int32_t jumpOffset;
+        std::memcpy(&jumpOffset, inject.OverwrittenInstructions.data() + 1, 4);
+        BranchHelper4Byte setupDefaults;
+        setupDefaults.SetTarget(inject.JumpBackAddress + jumpOffset);
+
+        // code has already pushed 2 parameters, pop those back
+        Emit_POP_R32(codespace, R32::EAX);
+        Emit_POP_R32(codespace, R32::EDX);
+
+        // free up some registers for local usage
+        Emit_PUSH_R32(codespace, R32::EDI);
+        Emit_PUSH_R32(codespace, R32::EBX);
+
+        // the last parameter tells us whether we're initializing keyboard controls or controller
+        // controls, set up a pointer in EDI to the correct array based on that
+        Emit_MOV_R32_IMM32(codespace,
+                           R32::EDI,
+                           std::bit_cast<uint32_t>(&NewDefaultsKeyboard[0])
+                               - OldNumberOfButtons * 2);
+        Emit_MOV_R32_IMM32(codespace, R32::EBX, 1);
+        Emit_CMP_R32_R32(codespace, R32::EAX, R32::EBX);
+        BranchHelper1Byte is_keyboard;
+        is_keyboard.WriteJump(codespace, JC::JE);
+        Emit_MOV_R32_IMM32(codespace,
+                           R32::EDI,
+                           std::bit_cast<uint32_t>(&NewDefaultsController[0])
+                               - OldNumberOfButtons * 2);
+        is_keyboard.SetTarget(codespace);
+
+        // finish up the call we interrupted
+        Emit_PUSH_R32(codespace, R32::EDX);
+        Emit_PUSH_R32(codespace, R32::EAX);
+        setupDefaults.WriteJump(codespace, JC::CALL);
+
+        // now loop for every new button
+        Emit_MOV_R32_IMM32(codespace, R32::EBX, OldNumberOfButtons);
+        BranchHelper1Byte continue_loop;
+        continue_loop.SetTarget(codespace);
+        WriteInstruction24(codespace, 0x8d0c5f);   // lea ecx,dword ptr[edi+ebx*2]
+        WriteInstruction32(codespace, 0x0fb64101); // movzx eax,byte ptr[ecx+1]
+        Emit_PUSH_R32(codespace, R32::EAX);
+        WriteInstruction24(codespace, 0x0fb601); // movzx eax,byte ptr[ecx]
+        Emit_PUSH_R32(codespace, R32::EAX);
+        WriteInstruction24(codespace, 0x8b4e0c); // mov ecx,dword ptr[esi+0xc]
+        WriteInstruction24(codespace, 0x8b0c99); // mov ecx,dword ptr[ecx+ebx*4]
+        setupDefaults.WriteJump(codespace, JC::CALL);
+        WriteInstruction8(codespace, 0x43); // inc ebx
+        uint32_t totalNumberOfButtons = OldNumberOfButtons + ButtonsToAdd;
+        WriteInstruction16(codespace, 0x81fb); // cmp ebx,totalNumberOfButtons
+        std::memcpy(codespace, &totalNumberOfButtons, 4);
+        codespace += 4;
+        continue_loop.WriteJump(codespace, JC::JB);
+
+        // restore registers
+        Emit_POP_R32(codespace, R32::EBX);
+        Emit_POP_R32(codespace, R32::EDI);
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+
+
     // change buttons that are being checked
     const auto change_button = [&](char* address, uint32_t button) -> void {
         if (address == nullptr || address == (char*)1) {
@@ -582,6 +677,7 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     change_button(ga(0x641795, 0x63fc65) + 1, Index_MenuAction1);       // regular shop, change item display
     change_button(ga(0x644a5d, 0x642f2d) + 1, Index_MenuAction1);       // trade shop, change item display
     change_button(ga(0x643a78, 0x641f48) + 1, Index_MenuAction1);       // upgrade grid/skills, change item display
+    change_button(ga(0x56d03e, 0x56b67e) + 1, Index_MenuAction2);       // chapter 7 map selection, increase cursor speed
     // clang-format on
 
     // change some prompts that are hardcoded in the executable
