@@ -279,6 +279,17 @@ static void __fastcall ReplaceTTextTbl(char* string, uint16_t index) {
     return;
 }
 
+static void __fastcall ReplaceTMg01Tbl(char* string, uint16_t index) {
+    if (index == 0x5 || index == 0x9) {
+        // skateboarding jump prompt
+        char* offset = strstr(string, "#161I");
+        if (offset) {
+            offset[2] = '7';
+        }
+    }
+    return;
+}
+
 namespace {
 struct ButtonStateData {
     uint8_t Pressed = 0; // 0 == not pressed, 1 == pressed and unconsumed, 2 == pressed and consumed
@@ -435,6 +446,8 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
 
     char* const addressTTextReadinHook =
         GetCodeAddressSteamGog(version, textRegion, 0x4d5270, 0x4d3d70);
+    char* const addressTMg01ReadinHook =
+        GetCodeAddressSteamGog(version, textRegion, 0x5aa8ae, 0x5a8d8e);
 
     // Add new buttons to list of button prompts.
     // The implementation here is quite convoluted. In order to make the PC button prompts work, the
@@ -732,6 +745,29 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         void* replaceTTextTblFunc = ReplaceTTextTbl;
         updateButtons.SetTarget(static_cast<char*>(replaceTTextTblFunc));
         Emit_MOV_R32_R32(codespace, R32::ECX, R32::EBX);
+        Emit_MOV_R32_R32(codespace, R32::EDX, R32::EAX);
+        updateButtons.WriteJump(codespace, JC::CALL);
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+
+    // hook the function that reads t_mg01.tbl to replace a few prompts that are stored in there
+    {
+        char* codespace = execData.Codespace;
+        const auto inject = InjectJumpIntoCode<5>(logger, addressTMg01ReadinHook, codespace);
+
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        BranchHelper4Byte updateButtons;
+        void* replaceTMg01TblFunc = ReplaceTMg01Tbl;
+        updateButtons.SetTarget(static_cast<char*>(replaceTMg01TblFunc));
+        Emit_MOV_R32_R32(codespace, R32::ECX, R32::EDI);
         Emit_MOV_R32_R32(codespace, R32::EDX, R32::EAX);
         updateButtons.WriteJump(codespace, JC::CALL);
 
