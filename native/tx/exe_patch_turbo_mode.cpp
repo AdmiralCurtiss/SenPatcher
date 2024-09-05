@@ -422,6 +422,8 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         GetCodeAddressSteamGog(version, textRegion, 0x536e26, 0x535436);
     char* const addressLoadTimeStepForActiveVoice =
         GetCodeAddressSteamGog(version, textRegion, 0x5373f9, 0x535a09);
+    char* const addressLoadTimeStepForGameplayTimer =
+        GetCodeAddressSteamGog(version, textRegion, 0x58efca, 0x58d4ca);
     float* const addrRealTimeStep = &RealTimeStep;
     float* const addrTempStoreMul = &TempStoreMul;
 
@@ -1164,6 +1166,23 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         char* codespace = execData.Codespace;
         const auto inject =
             InjectJumpIntoCode<5>(logger, addressLoadTimeStepForActiveVoice, codespace);
+
+        WriteInstruction32(codespace, 0xf30f1005); // movss xmm0,dword ptr[&RealTimeStep]
+        std::memcpy(codespace, &addrRealTimeStep, 4);
+        codespace += 4;
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+        execData.Codespace = codespace;
+    }
+
+    // use unscaled timestep for gameplay timer
+    // FIXME: This makes the timer too slow for some reason.
+    if (false) {
+        char* codespace = execData.Codespace;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressLoadTimeStepForGameplayTimer, codespace);
 
         WriteInstruction32(codespace, 0xf30f1005); // movss xmm0,dword ptr[&RealTimeStep]
         std::memcpy(codespace, &addrRealTimeStep, 4);
