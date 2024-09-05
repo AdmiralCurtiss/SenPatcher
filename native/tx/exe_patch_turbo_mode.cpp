@@ -547,6 +547,7 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
             std::memcpy(addressButtonMappingIconLookupLength2, &newByteLength, 4);
         }
 
+        Align16CodePage(codespace);
         execData.Codespace = codespace;
     }
 

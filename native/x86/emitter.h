@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bit>
 #include <cstdint>
 #include <vector>
 
@@ -186,5 +187,13 @@ inline void WriteInstruction16(char*& codepos, uint32_t instr) {
 
 inline void WriteInstruction8(char*& codepos, uint32_t instr) {
     *codepos++ = (char)(instr & 0xff);
+}
+
+inline void Align16CodePage(char*& codepos) {
+    char* p = codepos;
+    while ((std::bit_cast<uint32_t>(p) & 0xf) != 0) {
+        *p++ = static_cast<char>(0xcc);
+    }
+    codepos = p;
 }
 } // namespace SenPatcher::x86
