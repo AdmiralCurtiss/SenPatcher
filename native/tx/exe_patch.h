@@ -39,4 +39,7 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
                                  bool makeToggle,
                                  float factor,
                                  bool useJapanese);
+void AddSenPatcherVersionToTitle(PatchExecData& execData,
+                                 const SenLib::ModLoad::LoadedModsData& loadedModsData,
+                                 bool assetFixCreatingFailed);
 } // namespace SenLib::TX

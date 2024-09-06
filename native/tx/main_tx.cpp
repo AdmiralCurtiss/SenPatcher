@@ -850,6 +850,9 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     SenLib::TX::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
 
+    SenLib::TX::AddSenPatcherVersionToTitle(patchExecData, s_LoadedModsData, !assetCreationSuccess);
+    Align16CodePage(logger, patchExecData.Codespace);
+
     SenLib::TX::PatchSkipMovies(patchExecData, skipLogos, skipAllMovies);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::PatchTurboAndButtonMappings(
