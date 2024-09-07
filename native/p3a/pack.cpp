@@ -245,6 +245,22 @@ struct ZSTD_CCtx_Deleter {
     }
 };
 using ZSTD_CCtx_UniquePtr = std::unique_ptr<ZSTD_CCtx, ZSTD_CCtx_Deleter>;
+
+static std::array<char, 0x100> NormalizeFilename(const std::array<char, 0x100>& filename) {
+    std::array<char, 0x100> output{};
+    for (size_t i = 0; i < filename.size(); ++i) {
+        char c = filename[i];
+        if (c == '\0') {
+            break;
+        }
+        if (c >= 'A' && c <= 'Z') {
+            output[i] = static_cast<char>(c + ('a' - 'A'));
+        } else {
+            output[i] = c;
+        }
+    }
+    return output;
+}
 } // namespace
 
 HyoutaUtils::Result<P3ACompressionResult, P3ACompressionError>
@@ -655,7 +671,7 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
 
             // fill in header
             P3AFileInfo tmp{};
-            tmp.Filename = fileinfo.GetFilename();
+            tmp.Filename = NormalizeFilename(fileinfo.GetFilename());
             tmp.CompressionType = compressionType;
             tmp.CompressedSize = compressedSize;
             tmp.UncompressedSize = data.UncompressedSize;
@@ -905,7 +921,7 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t de
 
         // fill in header
         P3AFileInfo tmp{};
-        tmp.Filename = fileinfo.GetFilename();
+        tmp.Filename = NormalizeFilename(fileinfo.GetFilename());
         tmp.CompressionType = compressionType;
         tmp.CompressedSize = compressedSize;
         tmp.UncompressedSize = uncompressedSize;
