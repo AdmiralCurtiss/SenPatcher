@@ -43,4 +43,5 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
 void PatchDisableMouseCamera(PatchExecData& execData);
+void PatchShowMouseCursor(PatchExecData& execData);
 } // namespace SenLib::TX

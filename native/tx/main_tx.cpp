@@ -796,7 +796,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                     };
                 // check_boolean("TX", "AssetFixes", assetFixes);
                 check_boolean("TX", "DisableMouseCamera", disableMouseCamera);
-                // check_boolean("TX", "ShowMouseCursor", showMouseCursor);
+                check_boolean("TX", "ShowMouseCursor", showMouseCursor);
                 // check_boolean("TX", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
                 check_language("TX", "Language", useJapaneseLanguage);
                 check_boolean("TX", "SkipLogos", skipLogos);
@@ -861,6 +861,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
 
     if (disableMouseCamera) {
         SenLib::TX::PatchDisableMouseCamera(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (showMouseCursor) {
+        SenLib::TX::PatchShowMouseCursor(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 
