@@ -13,19 +13,13 @@ void PatchDisableMouseCamera(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x86;
-    char* captureMouseCursorPos1 = GetCodeAddressSteamGog(version, textRegion, 0x47cd99, 0x47b7b9);
-    char* captureMouseCursorPos2 = GetCodeAddressSteamGog(version, textRegion, 0x47d05d, 0x47ba7d);
+    char* handleMouseCamPos = GetCodeAddressSteamGog(version, textRegion, 0x47cd99, 0x47b7b9);
 
-    // change function that captures the mouse cursor to not do that
+    // change function that handles mouse camera to not do that
     {
-        PageUnprotect page(logger, captureMouseCursorPos1, 2);
-        *captureMouseCursorPos1 = static_cast<char>(0x90);       // nop
-        *(captureMouseCursorPos1 + 1) = static_cast<char>(0xe9); // jnz -> jmp
-    }
-    {
-        PageUnprotect page(logger, captureMouseCursorPos2, 2);
-        *captureMouseCursorPos2 = static_cast<char>(0x90);       // nop
-        *(captureMouseCursorPos2 + 1) = static_cast<char>(0xe9); // jnz -> jmp
+        PageUnprotect page(logger, handleMouseCamPos, 2);
+        *handleMouseCamPos = static_cast<char>(0x90);       // nop
+        *(handleMouseCamPos + 1) = static_cast<char>(0xe9); // jnz -> jmp
     }
 }
 } // namespace SenLib::TX
