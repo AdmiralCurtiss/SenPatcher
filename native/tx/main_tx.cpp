@@ -819,6 +819,57 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 check_boolean("TX", "SkipAllMovies", skipAllMovies);
                 check_boolean("TX", "MakeTurboToggle", makeTurboToggle);
                 check_float("TX", "TurboModeFactor", turboModeFactor);
+
+                // read valid DLC bitfields from the ini
+                {
+                    const auto* kvp = ini.FindValue("TX", "ValidDlcIds");
+                    if (kvp) {
+                        // reset bitfield
+                        std::memset(dlcValidBitfield, 0, dlcValidBitfieldSize);
+
+                        const char* strBegin = kvp->Value.data();
+                        const char* strEnd = kvp->Value.data() + kvp->Value.size();
+                        while (strBegin != strEnd) {
+                            int rangeBegin = 0;
+                            const auto [end1, ec1] = std::from_chars(strBegin, strEnd, rangeBegin);
+                            if (ec1 != std::errc()) {
+                                break;
+                            }
+                            int rangeEnd = rangeBegin;
+                            const char* tmp = end1;
+                            if (tmp != strEnd && *tmp == '-') {
+                                const auto [end2, ec2] = std::from_chars(tmp + 1, strEnd, rangeEnd);
+                                if (ec2 != std::errc()) {
+                                    break;
+                                }
+                                tmp = end2;
+                            }
+
+                            rangeBegin = std::clamp(rangeBegin, 0, 4095);
+                            rangeEnd = std::clamp(rangeEnd, 0, 4095);
+                            if (rangeBegin <= rangeEnd) {
+                                logger.Log("Making DLC ");
+                                if (rangeBegin != rangeEnd) {
+                                    logger.Log("range ");
+                                    logger.LogInt(rangeBegin);
+                                    logger.Log("-");
+                                }
+                                logger.LogInt(rangeEnd);
+                                logger.Log(" valid.\n");
+
+                                for (int i = rangeBegin; i <= rangeEnd; ++i) {
+                                    dlcValidBitfield[i >> 3] |= static_cast<char>(1 << (i & 7));
+                                }
+                            }
+
+                            if (tmp != strEnd && *tmp == ',') {
+                                strBegin = tmp + 1;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
