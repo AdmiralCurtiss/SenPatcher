@@ -44,4 +44,5 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  bool assetFixCreatingFailed);
 void PatchDisableMouseCamera(PatchExecData& execData);
 void PatchShowMouseCursor(PatchExecData& execData);
+void PatchEnableBackgroundControllerInput(PatchExecData& execData);
 } // namespace SenLib::TX

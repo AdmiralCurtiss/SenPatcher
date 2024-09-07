@@ -780,6 +780,7 @@ if (SENPATCHER_BUILD_TXHOOK)
 		tx/exe_patch.h
 		tx/exe_patch_add_senpatcher_version_to_title.cpp
 		tx/exe_patch_disable_mouse_camera.cpp
+		tx/exe_patch_enable_background_input.cpp
 		tx/exe_patch_override_language.cpp
 		tx/exe_patch_show_mouse_cursor.cpp
 		tx/exe_patch_skip_movies.cpp

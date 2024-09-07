@@ -716,7 +716,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool assetFixes = true;
     bool disableMouseCamera = false;
     bool showMouseCursor = false;
-    bool disablePauseOnFocusLoss = false;
+    bool enableBackgroundControllerInput = false;
     bool useJapaneseLanguage = false;
     bool skipLogos = true;
     bool skipAllMovies = false;
@@ -797,7 +797,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 // check_boolean("TX", "AssetFixes", assetFixes);
                 check_boolean("TX", "DisableMouseCamera", disableMouseCamera);
                 check_boolean("TX", "ShowMouseCursor", showMouseCursor);
-                // check_boolean("TX", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
+                check_boolean(
+                    "TX", "EnableBackgroundControllerInput", enableBackgroundControllerInput);
                 check_language("TX", "Language", useJapaneseLanguage);
                 check_boolean("TX", "SkipLogos", skipLogos);
                 check_boolean("TX", "SkipAllMovies", skipAllMovies);
@@ -865,6 +866,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     }
     if (showMouseCursor) {
         SenLib::TX::PatchShowMouseCursor(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (enableBackgroundControllerInput) {
+        SenLib::TX::PatchEnableBackgroundControllerInput(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 
