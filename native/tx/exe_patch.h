@@ -42,4 +42,5 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
 void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
+void PatchDisableMouseCamera(PatchExecData& execData);
 } // namespace SenLib::TX

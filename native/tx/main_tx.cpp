@@ -714,7 +714,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     std::string_view baseDirUtf8 = ".";
 
     bool assetFixes = true;
-    bool disableMouseCapture = false;
+    bool disableMouseCamera = false;
     bool showMouseCursor = false;
     bool disablePauseOnFocusLoss = false;
     bool useJapaneseLanguage = false;
@@ -795,7 +795,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                         }
                     };
                 // check_boolean("TX", "AssetFixes", assetFixes);
-                // check_boolean("TX", "DisableMouseCapture", disableMouseCapture);
+                check_boolean("TX", "DisableMouseCamera", disableMouseCamera);
                 // check_boolean("TX", "ShowMouseCursor", showMouseCursor);
                 // check_boolean("TX", "DisablePauseOnFocusLoss", disablePauseOnFocusLoss);
                 check_language("TX", "Language", useJapaneseLanguage);
@@ -858,6 +858,11 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     SenLib::TX::PatchTurboAndButtonMappings(
         patchExecData, makeTurboToggle, turboModeFactor, useJapaneseLanguage);
     Align16CodePage(logger, patchExecData.Codespace);
+
+    if (disableMouseCamera) {
+        SenLib::TX::PatchDisableMouseCamera(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
 
     // mark newly allocated page as executable
     {
