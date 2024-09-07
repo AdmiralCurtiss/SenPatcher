@@ -713,6 +713,21 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     // TX always runs in root
     std::string_view baseDirUtf8 = ".";
 
+    // reserve 0x200 bytes at the start of newPage for use as a bitfield lookup for which DLC IDs
+    // are valid to be loaded
+    static constexpr size_t dlcValidBitfieldSize = 0x200;
+    static constexpr size_t maxDlcId = dlcValidBitfieldSize * 8;
+    char* dlcValidBitfield = newPage;
+    newPage += dlcValidBitfieldSize;
+
+    // initialize to a sane default: all IDs that are not used by any of the DLCs included in the
+    // game, plus the 6 IDs that are checked by the unpatched game
+    std::memset(dlcValidBitfield, 0xff, dlcValidBitfieldSize);
+    dlcValidBitfield[21] = static_cast<char>(0xcf);
+    dlcValidBitfield[22] = static_cast<char>(0xfc);
+    dlcValidBitfield[26] = static_cast<char>(0x03);
+    dlcValidBitfield[27] = static_cast<char>(0xfe);
+
     bool assetFixes = true;
     bool disableMouseCamera = false;
     bool showMouseCursor = false;
@@ -852,6 +867,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::TX::AddSenPatcherVersionToTitle(patchExecData, s_LoadedModsData, !assetCreationSuccess);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::TX::PatchValidDlcIds(patchExecData, dlcValidBitfield, maxDlcId);
     Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::TX::PatchSkipMovies(patchExecData, skipLogos, skipAllMovies);

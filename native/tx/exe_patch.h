@@ -45,4 +45,5 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
 void PatchDisableMouseCamera(PatchExecData& execData);
 void PatchShowMouseCursor(PatchExecData& execData);
 void PatchEnableBackgroundControllerInput(PatchExecData& execData);
+void PatchValidDlcIds(PatchExecData& execData, char* validDlcBitfield, size_t maxDlcId);
 } // namespace SenLib::TX
