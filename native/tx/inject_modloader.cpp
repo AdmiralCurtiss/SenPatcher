@@ -17,11 +17,12 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
 
     using namespace SenPatcher::x86;
 
-    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x44b964, 0x44a2b4);
+    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x44b94c, 0x44a29c);
     char* const exitPoint = GetCodeAddressSteamGog(version, textRegion, 0x44b95b, 0x44a2ab);
 
     char* codespaceBegin = codespace;
-    auto injectResult = InjectJumpIntoCode<5>(logger, entryPoint, codespaceBegin);
+    auto injectResult =
+        InjectJumpIntoCode<6, PaddingInstruction::Nop>(logger, entryPoint, codespaceBegin);
     BranchHelper4Byte jump_back;
     jump_back.SetTarget(injectResult.JumpBackAddress);
     const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
@@ -46,7 +47,6 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
 
     // if we have an injected file go to return code, return value is already correct in EAX
     success.SetTarget(codespace);
-    Emit_ADD_R32_IMM32(codespace, R32::ESP, 8); // fixup stack
     BranchHelper4Byte success_exit;
     success_exit.SetTarget(exitPoint);
     success_exit.WriteJump(codespace, JumpCondition::JMP);
