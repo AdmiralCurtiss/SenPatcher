@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "util/logger.h"
 
 namespace SenPatcher::x86 {
@@ -13,8 +15,9 @@ struct PageUnprotect {
 
 private:
     HyoutaUtils::Logger& Log;
-    void* Address;
-    size_t Length;
-    unsigned long Attributes;
+    uint32_t FirstPageAddress = 0;
+    uint32_t LastPageAddress = 0;
+    unsigned long PageSize = 0;
+    unsigned long Attributes = 0;
 };
 } // namespace SenPatcher::x86

@@ -1,6 +1,7 @@
 #include "page_unprotect.h"
 
 #include <bit>
+#include <cstdlib>
 
 #include "util/logger.h"
 
@@ -9,25 +10,82 @@
 
 namespace SenPatcher::x64 {
 PageUnprotect::PageUnprotect(HyoutaUtils::Logger& logger, void* addr, size_t length) : Log(logger) {
-    // FIXME: check length/alignment, this might span multiple pages!
-    Length = 0x1000;
-    Address = std::bit_cast<void*>(std::bit_cast<uint64_t>(addr) & (~(Length - 1)));
-    Log.Log("Unprotecting ").LogHex(Length).Log(" bytes at ").LogPtr(Address);
-    if (VirtualProtect(Address, Length, PAGE_READWRITE, &Attributes)) {
-        Log.Log(" -> Success, previous attributes were ").LogHex(Attributes).Log(".\n");
-    } else {
+    if (length == 0) {
+        return;
+    }
+
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    const unsigned long pageSize = sysinfo.dwPageSize;
+    const uint64_t firstPageAddress =
+        std::bit_cast<uint64_t>(addr) & (~(static_cast<uint64_t>(pageSize) - 1));
+    const uint64_t lastPageAddress =
+        (std::bit_cast<uint64_t>(addr) + (length - 1)) & (~(static_cast<uint64_t>(pageSize) - 1));
+
+    FirstPageAddress = firstPageAddress;
+    LastPageAddress = lastPageAddress;
+    PageSize = pageSize;
+
+    // unprotect first page
+    Log.Log("Requested unprotect of ")
+        .LogHex(length)
+        .Log(" bytes at ")
+        .LogPtr(addr)
+        .Log(". Page size is ")
+        .LogHex(pageSize)
+        .Log(". Unprotecting ")
+        .LogPtr(std::bit_cast<void*>(firstPageAddress));
+    if (!VirtualProtect(
+            std::bit_cast<void*>(firstPageAddress), pageSize, PAGE_READWRITE, &Attributes)) {
         Log.Log(" -> Failed.\n");
+        std::exit(-1);
+    }
+    Log.Log(" -> Success, previous attributes were ").LogHex(Attributes).Log(".\n");
+
+    // unprotect remaining pages, if any, and make sure their attributes match the first page
+    // (otherwise we have a logic error somewhere)
+    uint64_t currentPageAddress = firstPageAddress;
+    while (true) {
+        if (currentPageAddress == lastPageAddress) {
+            break;
+        }
+        currentPageAddress += pageSize;
+
+        unsigned long attr;
+        Log.Log("Unprotecting next page ").LogPtr(std::bit_cast<void*>(currentPageAddress));
+        if (!VirtualProtect(
+                std::bit_cast<void*>(currentPageAddress), pageSize, PAGE_READWRITE, &attr)) {
+            Log.Log(" -> Failed.\n");
+            std::exit(-1);
+        }
+        if (Attributes != attr) {
+            Log.Log(" -> Success, but attributes differ (were ").LogHex(attr).Log(").\n");
+            std::exit(-1);
+        }
+        Log.Log(" -> Success.\n");
     }
 }
 
 PageUnprotect::~PageUnprotect() {
-    DWORD tmp;
-    Log.Log("Reprotecting ").LogHex(Length).Log(" bytes at ").LogPtr(Address);
-    Log.Log(" to attributes ").LogHex(Attributes);
-    if (VirtualProtect(Address, Length, Attributes, &tmp)) {
+    uint64_t currentPageAddress = FirstPageAddress;
+    const uint64_t lastPageAddress = LastPageAddress;
+    const unsigned long pageSize = PageSize;
+    const unsigned long reprotectAttributes = Attributes;
+
+    while (true) {
+        unsigned long attr;
+        Log.Log("Reprotecting page ").LogPtr(std::bit_cast<void*>(currentPageAddress));
+        if (!VirtualProtect(
+                std::bit_cast<void*>(currentPageAddress), pageSize, reprotectAttributes, &attr)) {
+            Log.Log(" -> Failed.\n");
+            std::exit(-1);
+        }
         Log.Log(" -> Success.\n");
-    } else {
-        Log.Log(" -> Failed.\n");
+
+        if (currentPageAddress == lastPageAddress) {
+            break;
+        }
+        currentPageAddress += pageSize;
     }
 }
 } // namespace SenPatcher::x64
