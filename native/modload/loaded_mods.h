@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <span>
@@ -110,5 +111,6 @@ bool FilterGamePath(char* out_path, const char* in_path, size_t length);
 
 void AppendLoadedModInfo(char*& string,
                          const LoadedModsData& loadedModsData,
+                         const std::function<bool(const SenPatcher::P3AFileInfo& fi)>& shouldDisplayCallback,
                          bool assetFixCreatingFailed);
 } // namespace SenLib::ModLoad

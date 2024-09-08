@@ -817,21 +817,21 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
     }
 }
 
-void AppendLoadedModInfo(char*& string,
-                         const LoadedModsData& loadedModsData,
-                         bool assetFixCreatingFailed) {
+void AppendLoadedModInfo(
+    char*& string,
+    const LoadedModsData& loadedModsData,
+    const std::function<bool(const SenPatcher::P3AFileInfo& fi)>& shouldDisplayCallback,
+    bool assetFixCreatingFailed) {
     size_t modfileCountExternal = 0;
     size_t modfileCountSenPatcher = 0;
 
     for (size_t i = 0; i < loadedModsData.LoadedP3As.CombinedFileInfoCount; ++i) {
-        const auto& filename = loadedModsData.LoadedP3As.CombinedFileInfos[i].FileInfo->Filename;
-        if (memcmp("data/", filename.data(), 5) != 0) {
-            // ignore files that are not in the data directory, the file injection ignores them too
+        const auto& cfi = loadedModsData.LoadedP3As.CombinedFileInfos[i];
+        if (!shouldDisplayCallback(*cfi.FileInfo)) {
             continue;
         }
 
-        if (loadedModsData.LoadedP3As.CombinedFileInfos[i].ArchiveData->Flags
-            & P3AFlag_IsSenPatcherAssetMod) {
+        if (cfi.ArchiveData->Flags & P3AFlag_IsSenPatcherAssetMod) {
             ++modfileCountSenPatcher;
         } else {
             ++modfileCountExternal;

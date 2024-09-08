@@ -2,6 +2,7 @@
 
 #include <bit>
 #include <cassert>
+#include <cstring>
 
 #include "modload/loaded_mods.h"
 
@@ -44,7 +45,13 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
     constexpr char senpatcherVersionString[] = "  SenPatcher " SENPATCHER_VERSION;
     std::memcpy(codespace, senpatcherVersionString, sizeof(senpatcherVersionString));
     codespace += (sizeof(senpatcherVersionString) - 1);
-    SenLib::ModLoad::AppendLoadedModInfo(codespace, loadedModsData, assetFixCreatingFailed);
+    SenLib::ModLoad::AppendLoadedModInfo(
+        codespace,
+        loadedModsData,
+        [](const SenPatcher::P3AFileInfo& fi) {
+            return memcmp("data/", fi.Filename.data(), 5) == 0;
+        },
+        assetFixCreatingFailed);
     *codespace = 0;
     ++codespace;
 
