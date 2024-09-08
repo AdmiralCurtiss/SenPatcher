@@ -95,6 +95,10 @@ private:
     std::unique_ptr<Impl> Data;
 };
 
+// Replaces uppercase with lowercase, replaces backslash with forward slash for path separator, and
+// strips data past the first null byte.
+std::array<char, 0x100> NormalizeP3AFilename(const std::array<char, 0x100>& filename);
+
 struct P3ACompressionResult {
     std::unique_ptr<char[]> Buffer;
     size_t DataLength;

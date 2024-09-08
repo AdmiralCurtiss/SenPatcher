@@ -91,12 +91,13 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
             if (c == '\0') {
                 break;
             }
-            fn[i] = (c == '\\' ? '/' : c);
+            fn[i] = c;
         }
 
         auto& entryPath = entry.path();
-        fileinfos.emplace_back(
-            entryPath, fn, DetermineCompressionTypeForFile(entryPath, desiredCompressionType));
+        fileinfos.emplace_back(entryPath,
+                               NormalizeP3AFilename(fn),
+                               DetermineCompressionTypeForFile(entryPath, desiredCompressionType));
     }
     return true;
 }
