@@ -261,6 +261,9 @@ if (SENPATCHER_BUILD_TOOLS)
 	target_compile_definitions(sentools
 		PUBLIC P3A_PACKER_WITH_STD_FILESYSTEM FILE_WRAPPER_WITH_STD_FILESYSTEM ${DEFINES_ZSTD}
 	)
+	if (WIN32)
+		target_compile_definitions(sentools PUBLIC BUILD_FOR_WINDOWS)
+	endif()
 	target_compile_options(sentools PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(sentools
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -603,6 +606,9 @@ if (SENPATCHER_BUILD_CS1TEST)
 	target_compile_definitions(cs1test
 		PUBLIC ${DEFINES_ZSTD}
 	)
+	if (WIN32)
+		target_compile_definitions(cs1test PUBLIC BUILD_FOR_WINDOWS)
+	endif()
 	target_compile_options(cs1test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs1test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -650,7 +656,7 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		${SOURCES_ZSTD_COMPRESSION}
 	)
 	target_compile_definitions(cs1hook
-		PUBLIC ${DEFINES_ZSTD}
+		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
 	target_compile_options(cs1hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs1hook
@@ -677,6 +683,9 @@ if (SENPATCHER_BUILD_CS2TEST)
 	target_compile_definitions(cs2test
 		PUBLIC ${DEFINES_ZSTD}
 	)
+	if (WIN32)
+		target_compile_definitions(cs2test PUBLIC BUILD_FOR_WINDOWS)
+	endif()
 	target_compile_options(cs2test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs2test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -728,7 +737,7 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		${SOURCES_ZSTD_COMPRESSION}
 	)
 	target_compile_definitions(cs2hook
-		PUBLIC ${DEFINES_ZSTD}
+		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
 	target_compile_options(cs2hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs2hook
@@ -755,6 +764,9 @@ if (SENPATCHER_BUILD_TXTEST)
 	target_compile_definitions(txtest
 		PUBLIC ${DEFINES_ZSTD}
 	)
+	if (WIN32)
+		target_compile_definitions(txtest PUBLIC BUILD_FOR_WINDOWS)
+	endif()
 	target_compile_options(txtest PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(txtest
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -797,7 +809,7 @@ if (SENPATCHER_BUILD_TXHOOK)
 		${SOURCES_ZSTD_COMPRESSION}
 	)
 	target_compile_definitions(txhook
-		PUBLIC ${DEFINES_ZSTD}
+		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
 	target_compile_options(txhook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(txhook
@@ -824,6 +836,9 @@ if (SENPATCHER_BUILD_CS3TEST)
 	target_compile_definitions(cs3test
 		PUBLIC ${DEFINES_ZSTD}
 	)
+	if (WIN32)
+		target_compile_definitions(cs3test PUBLIC BUILD_FOR_WINDOWS)
+	endif()
 	target_compile_options(cs3test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs3test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -870,7 +885,7 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		${SOURCES_ZSTD_COMPRESSION}
 	)
 	target_compile_definitions(cs3hook
-		PUBLIC ${DEFINES_ZSTD}
+		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
 	target_compile_options(cs3hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs3hook
@@ -897,6 +912,9 @@ if (SENPATCHER_BUILD_CS4TEST)
 	target_compile_definitions(cs4test
 		PUBLIC ${DEFINES_ZSTD}
 	)
+	if (WIN32)
+		target_compile_definitions(cs4test PUBLIC BUILD_FOR_WINDOWS)
+	endif()
 	target_compile_options(cs4test PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs4test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -940,7 +958,7 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		${SOURCES_ZSTD_COMPRESSION}
 	)
 	target_compile_definitions(cs4hook
-		PUBLIC ${DEFINES_ZSTD}
+		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
 	target_compile_options(cs4hook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(cs4hook
@@ -967,6 +985,9 @@ if (SENPATCHER_BUILD_REVTEST)
 	target_compile_definitions(reverietest
 		PUBLIC ${DEFINES_ZSTD}
 	)
+	if (WIN32)
+		target_compile_definitions(reverietest PUBLIC BUILD_FOR_WINDOWS)
+	endif()
 	target_compile_options(reverietest PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(reverietest
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
@@ -1006,7 +1027,7 @@ if (SENPATCHER_BUILD_REVHOOK)
 		${SOURCES_ZSTD_COMPRESSION}
 	)
 	target_compile_definitions(reveriehook
-		PUBLIC ${DEFINES_ZSTD}
+		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
 	target_compile_options(reveriehook PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(reveriehook
@@ -1045,6 +1066,9 @@ if (SENPATCHER_BUILD_GTESTS)
 	target_compile_definitions(tests
 		PUBLIC ${DEFINES_ZSTD}
 	)
+	if (WIN32)
+		target_compile_definitions(tests PUBLIC BUILD_FOR_WINDOWS)
+	endif()
 	target_include_directories(tests
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds" "gtest/googletest/include"
 	)

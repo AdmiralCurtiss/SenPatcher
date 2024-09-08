@@ -270,7 +270,7 @@ static std::vector<std::string> CollectModPaths(HyoutaUtils::Logger& logger,
             && string[string.size() - 2] == L'3'
             && (string[string.size() - 1] == L'A' || string[string.size() - 1] == L'a')) {
             auto filenamepath = path.filename();
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
             auto filename = HyoutaUtils::TextUtils::WStringToUtf8(filenamepath.native().data(),
                                                                   filenamepath.native().size());
 #else

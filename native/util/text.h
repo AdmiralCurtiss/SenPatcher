@@ -19,7 +19,7 @@ std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length);
 std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length);
 std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length);
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 // this is technically identical to the utf16 variants, but the compiler considers them separate
 // types...
 std::optional<std::string> WStringToUtf8(const wchar_t* data, size_t length);

@@ -4,7 +4,7 @@
 #include <optional>
 #include <string_view>
 
-#ifndef _MSC_VER
+#ifndef BUILD_FOR_WINDOWS
 #include <string>
 #endif
 
@@ -53,20 +53,20 @@ public:
     bool Rename(const std::filesystem::path& p) noexcept;
 #endif
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     // Construct a File from an existing Win32 HANDLE.
     // The File instance will take ownership of the handle.
     static File FromHandle(void* handle) noexcept;
 #endif
 
 private:
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     explicit File(void* handle) noexcept;
 #endif
 
     void* Filehandle;
 
-#ifndef _MSC_VER
+#ifndef BUILD_FOR_WINDOWS
     std::string Path;
 #endif
 };

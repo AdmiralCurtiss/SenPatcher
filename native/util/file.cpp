@@ -1,4 +1,4 @@
-#ifndef _MSC_VER
+#ifndef BUILD_FOR_WINDOWS
 #define _FILE_OFFSET_BITS 64
 #endif
 
@@ -16,7 +16,7 @@
 
 #include "util/text.h"
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -45,7 +45,7 @@ File::File(const std::filesystem::path& p, OpenMode mode) noexcept
 }
 #endif
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 File::File(void* handle) noexcept : Filehandle(handle) {}
 
 File File::FromHandle(void* handle) noexcept {
@@ -55,7 +55,7 @@ File File::FromHandle(void* handle) noexcept {
 
 File::File(File&& other) noexcept
   : Filehandle(other.Filehandle)
-#ifndef _MSC_VER
+#ifndef BUILD_FOR_WINDOWS
   , Path(std::move(other.Path))
 #endif
 {
@@ -66,7 +66,7 @@ File& File::operator=(File&& other) noexcept {
     Close();
     this->Filehandle = other.Filehandle;
     other.Filehandle = INVALID_HANDLE_VALUE;
-#ifndef _MSC_VER
+#ifndef BUILD_FOR_WINDOWS
     this->Path = std::move(other.Path);
 #endif
     return *this;
@@ -80,7 +80,7 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
     Close();
     switch (mode) {
         case OpenMode::Read: {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
             auto s = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
             if (!s) {
                 return false;
@@ -102,7 +102,7 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
             return Filehandle != INVALID_HANDLE_VALUE;
         }
         case OpenMode::Write: {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
             auto s = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
             if (!s) {
                 return false;
@@ -132,7 +132,7 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
     Close();
     switch (mode) {
         case OpenMode::Read: {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
             Filehandle = CreateFileW(p.c_str(),
                                      GENERIC_READ,
                                      FILE_SHARE_READ,
@@ -150,7 +150,7 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
             return Filehandle != INVALID_HANDLE_VALUE;
         }
         case OpenMode::Write: {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
             Filehandle = CreateFileW(p.c_str(),
                                      GENERIC_WRITE | DELETE,
                                      0,
@@ -178,13 +178,13 @@ bool File::IsOpen() const noexcept {
 
 void File::Close() noexcept {
     if (IsOpen()) {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
         CloseHandle(Filehandle);
 #else
         fclose((FILE*)Filehandle);
 #endif
         Filehandle = INVALID_HANDLE_VALUE;
-#ifndef _MSC_VER
+#ifndef BUILD_FOR_WINDOWS
         Path.clear();
 #endif
     }
@@ -192,7 +192,7 @@ void File::Close() noexcept {
 
 std::optional<uint64_t> File::GetPosition() noexcept {
     assert(IsOpen());
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     LARGE_INTEGER offset;
     offset.QuadPart = static_cast<LONGLONG>(0);
     LARGE_INTEGER position;
@@ -217,7 +217,7 @@ bool File::SetPosition(uint64_t position) noexcept {
 
 bool File::SetPosition(int64_t position, SetPositionMode mode) noexcept {
     assert(IsOpen());
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     DWORD moveMethod;
     switch (mode) {
         case SetPositionMode::Begin: moveMethod = FILE_BEGIN; break;
@@ -248,7 +248,7 @@ bool File::SetPosition(int64_t position, SetPositionMode mode) noexcept {
 
 std::optional<uint64_t> File::GetLength() noexcept {
     assert(IsOpen());
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     LARGE_INTEGER size;
     if (GetFileSizeEx(Filehandle, &size) != 0) {
         return static_cast<uint64_t>(size.QuadPart);
@@ -280,7 +280,7 @@ size_t File::Read(void* data, size_t length) noexcept {
     while (rest > 0) {
         DWORD blockSize = rest > 0xffff'0000 ? 0xffff'0000 : static_cast<DWORD>(rest);
         DWORD blockRead = 0;
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
         if (ReadFile(Filehandle, buffer, blockSize, &blockRead, nullptr) == 0) {
             return totalRead;
         }
@@ -307,7 +307,7 @@ size_t File::Write(const void* data, size_t length) noexcept {
     while (rest > 0) {
         DWORD blockSize = rest > 0xffff'0000 ? 0xffff'0000 : static_cast<DWORD>(rest);
         DWORD blockWritten = 0;
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
         if (WriteFile(Filehandle, buffer, blockSize, &blockWritten, nullptr) == 0) {
             return totalWritten;
         }
@@ -328,7 +328,7 @@ size_t File::Write(const void* data, size_t length) noexcept {
 bool File::Delete() noexcept {
     assert(IsOpen());
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     FILE_DISPOSITION_INFO info{};
     info.DeleteFile = TRUE;
     if (SetFileInformationByHandle(Filehandle, FileDispositionInfo, &info, sizeof(info)) != 0) {
@@ -344,7 +344,7 @@ bool File::Delete() noexcept {
     return false;
 }
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t wstr_len) {
     // This struct has a very odd definition, because its size is dynamic, so we must do something
     // like this...
@@ -383,7 +383,7 @@ bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t ws
 bool File::Rename(const std::string_view p) noexcept {
     assert(IsOpen());
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
     if (!wstr) {
         return false;
@@ -400,7 +400,7 @@ bool File::Rename(const std::string_view p) noexcept {
 bool File::Rename(const std::filesystem::path& p) noexcept {
     assert(IsOpen());
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     const auto& wstr = p.native();
     return RenameInternalWindows(Filehandle, wstr.data(), wstr.size());
 #else
@@ -413,13 +413,13 @@ bool File::Rename(const std::filesystem::path& p) noexcept {
 void* File::ReleaseHandle() noexcept {
     void* h = Filehandle;
     Filehandle = INVALID_HANDLE_VALUE;
-#ifndef _MSC_VER
+#ifndef BUILD_FOR_WINDOWS
     Path.clear();
 #endif
     return h;
 }
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 static bool FileExistsWindows(const wchar_t* path) {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
@@ -441,7 +441,7 @@ static bool FileExistsLinux(const char* path) {
 #endif
 
 bool FileExists(std::string_view p) noexcept {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
     if (!wstr) {
         return false;
@@ -455,7 +455,7 @@ bool FileExists(std::string_view p) noexcept {
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 bool FileExists(const std::filesystem::path& p) noexcept {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     return FileExistsWindows(p.native().data());
 #else
     return FileExistsLinux(p.c_str());
@@ -463,7 +463,7 @@ bool FileExists(const std::filesystem::path& p) noexcept {
 }
 #endif
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 static bool DirectoryExistsWindows(const wchar_t* path) {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
@@ -485,7 +485,7 @@ static bool DirectoryExistsLinux(const char* path) {
 #endif
 
 bool DirectoryExists(std::string_view p) noexcept {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
     if (!wstr) {
         return false;
@@ -499,7 +499,7 @@ bool DirectoryExists(std::string_view p) noexcept {
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 bool DirectoryExists(const std::filesystem::path& p) noexcept {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     return DirectoryExistsWindows(p.native().data());
 #else
     return DirectoryExistsLinux(p.c_str());
@@ -507,7 +507,7 @@ bool DirectoryExists(const std::filesystem::path& p) noexcept {
 }
 #endif
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 static bool CreateDirectoryWindows(const wchar_t* path) {
     return CreateDirectoryW(path, nullptr);
 }
@@ -525,7 +525,7 @@ static bool CreateDirectoryLinux(const char* path) {
 #endif
 
 bool CreateDirectory(std::string_view p) noexcept {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
     if (!wstr) {
         return false;
@@ -539,7 +539,7 @@ bool CreateDirectory(std::string_view p) noexcept {
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 bool CreateDirectory(const std::filesystem::path& p) noexcept {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     return CreateDirectoryWindows(p.native().data());
 #else
     return CreateDirectoryLinux(p.c_str());

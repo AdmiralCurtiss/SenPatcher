@@ -17,7 +17,7 @@
 #include "pkg_pack.h"
 #include "pkg_repack.h"
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
@@ -62,7 +62,7 @@ static void PrintUsage() {
     }
 }
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 static const char* StripPathToFilename(const char* path) {
     const char* tmp = path;
     const char* rv = path;
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
         if (argc < 2) {
             PrintUsage();
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
             // https://devblogs.microsoft.com/oldnewthing/20160125-00/?p=92922
             // Check to see if the user launched this by double-clicking so we can tell them that
             // this is a command line app -- you won't believe how many times I've seen someone be

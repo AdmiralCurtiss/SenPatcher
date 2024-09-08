@@ -7,7 +7,7 @@
 #include <string_view>
 #include <vector>
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
@@ -15,7 +15,7 @@
 #endif
 
 namespace HyoutaUtils::TextUtils {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 static std::optional<std::string>
     WStringToCodepage(const wchar_t* data, size_t length, UINT codepage) {
     if (length == 0) {
@@ -133,7 +133,7 @@ static std::optional<std::string> ConvertString(const char* data,
 #endif
 
 std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, CP_UTF8);
 #else
     return ConvertString(reinterpret_cast<const char*>(data), length * 2, "UTF-16LE", "UTF-8");
@@ -141,7 +141,7 @@ std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) {
 }
 
 std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     return CodepageToString16<std::u16string>(data, length, CP_UTF8);
 #else
     const auto str = ConvertString(data, length, "UTF-8", "UTF-16LE");
@@ -160,7 +160,7 @@ std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) {
 }
 
 std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length) {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, 932);
 #else
     auto str8 = Utf16ToUtf8(data, length);
@@ -172,7 +172,7 @@ std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length) 
 }
 
 std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length) {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     return CodepageToString16<std::u16string>(data, length, 932);
 #else
     auto str8 = ShiftJisToUtf8(data, length);
@@ -183,7 +183,7 @@ std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length) {
 #endif
 }
 
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
 std::optional<std::string> WStringToUtf8(const wchar_t* data, size_t length) {
     return WStringToCodepage(data, length, CP_UTF8);
 }
@@ -202,7 +202,7 @@ std::optional<std::wstring> ShiftJisToWString(const char* data, size_t length) {
 #endif
 
 std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length) {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     auto wstr = ShiftJisToWString(data, length);
     if (!wstr) {
         return std::nullopt;
@@ -214,7 +214,7 @@ std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length) {
 }
 
 std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length) {
-#ifdef _MSC_VER
+#ifdef BUILD_FOR_WINDOWS
     auto wstr = Utf8ToWString(data, length);
     if (!wstr) {
         return std::nullopt;
