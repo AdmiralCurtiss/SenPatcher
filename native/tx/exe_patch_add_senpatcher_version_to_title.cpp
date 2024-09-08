@@ -17,8 +17,8 @@ namespace SenLib::TX {
 void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed) {
-    // this doesn't work yet
-    return;
+    // This attaches the SenPatcher version string to the 'Quit Game' option on the title screen,
+    // displayed when hovering over that option.
 
     HyoutaUtils::Logger& logger = *execData.Logger;
     char* textRegion = execData.TextRegion;
@@ -26,11 +26,11 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
     char* codespace = execData.Codespace;
     using namespace SenPatcher::x86;
 
-    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0, 0x65811f);
-    char* const createUiStringFunc = GetCodeAddressSteamGog(version, textRegion, 0, 0x680170);
-    char* const addressVersionString = GetCodeAddressSteamGog(version, textRegion, 0, 0x9ebf28);
+    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x658f06, 0x657416);
+    char* const addressVersionString =
+        GetCodeAddressSteamGog(version, textRegion, 0x9ed34c, 0x9ebf28);
 
-    // copy the title screen string into our codespace and expand with senpatcher version
+    // copy the version string into our codespace and expand with senpatcher version
     uint32_t addressNewVersionString = std::bit_cast<uint32_t>(codespace);
     {
         const char* tmp = std::bit_cast<const char*>(addressVersionString);
@@ -46,33 +46,25 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
     SenLib::ModLoad::AppendLoadedModInfo(
         codespace,
         loadedModsData,
-        [](const SenPatcher::P3AFileInfo& fi) { return true; },
+        [](const SenPatcher::P3AFileInfo& fi) {
+            return strncmp("_senpatcher_version.txt", fi.Filename.data(), fi.Filename.size()) != 0
+                   && strncmp("senpatcher_mod.ini", fi.Filename.data(), fi.Filename.size()) != 0;
+        },
         assetFixCreatingFailed);
     *codespace = 0;
     ++codespace;
 
     const auto inject = InjectJumpIntoCode<5>(logger, entryPoint, codespace);
 
-    WriteInstruction16(codespace, 0x6aff);           // push -1
-    WriteInstruction16(codespace, 0x6a00);           // push 0
-    WriteInstruction16(codespace, 0x6a00);           // push 0
-    WriteInstruction16(codespace, 0x6a00);           // push 0
-    WriteInstruction8(codespace, 0x51);              // push ecx, just to advance esp
-    WriteInstruction56(codespace, 0xc7042400008041); // mov dword ptr[esp],float(16)
-    WriteInstruction8(codespace, 0x68);              // push addressNewVersionString
+    WriteInstruction8(codespace, 0x57); // push edi
+    WriteInstruction8(codespace, 0x68); // push addressNewVersionString
     std::memcpy(codespace, &addressNewVersionString, 4);
     codespace += 4;
-    WriteInstruction16(codespace, 0x6a41); // push 0x41
+    WriteInstruction16(codespace, 0x6a00); // push 0
 
-    // err what do we put in ecx here? we want a UIScript instance but I don't see one...?
-
-    BranchHelper4Byte createUiString;
-    createUiString.SetTarget(createUiStringFunc);
-    createUiString.WriteJump(codespace, JumpCondition::CALL);
-
-    // finish up function
-    Emit_POP_R32(codespace, R32::ESI);
-    Emit_RET(codespace);
+    BranchHelper4Byte jumpBack;
+    jumpBack.SetTarget(inject.JumpBackAddress);
+    jumpBack.WriteJump(codespace, JumpCondition::JMP);
 
     execData.Codespace = codespace;
 }
