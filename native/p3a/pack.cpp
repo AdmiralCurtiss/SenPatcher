@@ -112,6 +112,9 @@ P3APackFile::~P3APackFile() = default;
 const std::array<char, 0x100>& P3APackFile::GetFilename() const {
     return Data->Filename;
 }
+void P3APackFile::SetFilename(const std::array<char, 0x100>& filename) {
+    Data->Filename = filename;
+}
 P3ACompressionType P3APackFile::GetDesiredCompressionType() const {
     return Data->DesiredCompressionType;
 }

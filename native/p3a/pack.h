@@ -45,6 +45,7 @@ struct P3APackFile {
 #endif
 
     const std::array<char, 0x100>& GetFilename() const;
+    void SetFilename(const std::array<char, 0x100>& filename);
     P3ACompressionType GetDesiredCompressionType() const;
     bool IsPrecompressed() const;
     uint64_t GetDecompressedFilesizeForPrecompressed() const;

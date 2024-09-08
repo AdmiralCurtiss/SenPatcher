@@ -103,6 +103,10 @@ bool CreateArchiveIfNeeded(
     }
 
     auto& packFiles = packData.GetMutableFiles();
+    for (auto& pf : packFiles) {
+        auto normalized = SenPatcher::NormalizeP3AFilename(pf.GetFilename());
+        pf.SetFilename(normalized);
+    }
     std::stable_sort(packFiles.begin(),
                      packFiles.end(),
                      [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
