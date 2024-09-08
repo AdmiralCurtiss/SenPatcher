@@ -36,6 +36,7 @@ void DeglobalizeMutexes(PatchExecData& execData);
 void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
+void DisableCrashReporter(PatchExecData& execData);
 void FixInGameButtonMappingValidity(PatchExecData& execData);
 void PatchTurboMode(PatchExecData& execData, bool makeToggle, bool adjustTimersForTurbo);
 void AllowSwitchToNightmare(PatchExecData& execData);

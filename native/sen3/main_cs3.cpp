@@ -637,6 +637,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     Align16CodePage(logger, patchExecData.Codespace);
     AddSenPatcherVersionToTitle(patchExecData, s_LoadedModsData, !assetCreationSuccess);
     Align16CodePage(logger, patchExecData.Codespace);
+    DisableCrashReporter(patchExecData);
+    Align16CodePage(logger, patchExecData.Codespace);
     PatchTurboMode(patchExecData, makeTurboToggle, adjustTimersForTurbo);
     Align16CodePage(logger, patchExecData.Codespace);
 

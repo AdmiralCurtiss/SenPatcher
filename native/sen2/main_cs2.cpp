@@ -769,6 +769,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::Sen2::PatchRemoveDebugLeftovers(patchExecData);
     Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen2::DisableCrashReporter(patchExecData);
+    Align16CodePage(logger, patchExecData.Codespace);
     SenLib::Sen2::PatchTurboMode(
         patchExecData, removeTurboSkip, makeTurboToggle, adjustTimersForTurbo);
     Align16CodePage(logger, patchExecData.Codespace);

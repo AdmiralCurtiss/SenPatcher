@@ -37,6 +37,7 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
                                  const SenLib::ModLoad::LoadedModsData& loadedModsData,
                                  bool assetFixCreatingFailed);
 void AddCS2ToTitleBar(PatchExecData& execData);
+void DisableCrashReporter(PatchExecData& execData);
 void PatchTurboMode(PatchExecData& execData,
                     bool removeAutoSkip,
                     bool makeToggle,

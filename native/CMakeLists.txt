@@ -712,6 +712,7 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		sen2/exe_patch_add_cs2_to_title_bar.cpp
 		sen2/exe_patch_add_senpatcher_version_to_title.cpp
 		sen2/exe_patch_deglobalize_mutexes.cpp
+		sen2/exe_patch_disable_crash_reporter.cpp
 		sen2/exe_patch_disable_mouse_capture.cpp
 		sen2/exe_patch_disable_pause_on_focus_loss.cpp
 		sen2/exe_patch_fix_arts_support_cutin.cpp
@@ -863,6 +864,7 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		sen3/exe_patch_add_senpatcher_version_to_title.cpp
 		sen3/exe_patch_allow_switch_to_nightmare.cpp
 		sen3/exe_patch_deglobalize_mutexes.cpp
+		sen3/exe_patch_disable_crash_reporter.cpp
 		sen3/exe_patch_disable_mouse_capture.cpp
 		sen3/exe_patch_disable_pause_on_focus_loss.cpp
 		sen3/exe_patch_dlc_costume_crash.cpp
