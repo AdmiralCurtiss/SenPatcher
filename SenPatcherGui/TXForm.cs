@@ -51,6 +51,16 @@ namespace SenPatcherGui {
 				comboBoxGameLanguage.SelectedIndex = (ini.GetString("TX", "Language", "English").ToLowerInvariant() == "japanese") ? 0 : 1;
 				checkBoxSkipLogos.Checked = ini.GetBool("TX", "SkipLogos", true);
 				checkBoxSkipMovies.Checked = ini.GetBool("TX", "SkipAllMovies", false);
+				checkBoxTurboToggle.Checked = ini.GetBool("TX", "MakeTurboToggle", false);
+				checkBoxDisableMouseCam.Checked = ini.GetBool("TX", "DisableMouseCamera", false);
+				checkBoxShowMouseCursor.Checked = ini.GetBool("TX", "ShowMouseCursor", false);
+				checkBoxEnableBackgroundControllerInput.Checked = ini.GetBool("TX", "EnableBackgroundControllerInput", false);
+				numericUpDownTurboFactor.Value = 2;
+
+				double iniFactor = ini.GetDouble("TX", "TurboModeFactor", 2.0);
+				if (iniFactor >= 2.0 && iniFactor <= 6.0) {
+					numericUpDownTurboFactor.Value = (decimal)iniFactor;
+				}
 			} catch (Exception) { }
 		}
 		private void WriteToIni() {
@@ -64,6 +74,11 @@ namespace SenPatcherGui {
 				ini.SetString("TX", "Language", comboBoxGameLanguage.SelectedIndex == 0 ? "Japanese" : "English");
 				ini.SetBool("TX", "SkipLogos", checkBoxSkipLogos.Checked);
 				ini.SetBool("TX", "SkipAllMovies", checkBoxSkipMovies.Checked);
+				ini.SetDouble("TX", "TurboModeFactor", (double)numericUpDownTurboFactor.Value);
+				ini.SetBool("TX", "MakeTurboToggle", checkBoxTurboToggle.Checked);
+				ini.SetBool("TX", "DisableMouseCamera", checkBoxDisableMouseCam.Checked);
+				ini.SetBool("TX", "ShowMouseCursor", checkBoxShowMouseCursor.Checked);
+				ini.SetBool("TX", "EnableBackgroundControllerInput", checkBoxEnableBackgroundControllerInput.Checked);
 				ini.WriteToFile(inipath);
 			} catch (Exception) { }
 		}

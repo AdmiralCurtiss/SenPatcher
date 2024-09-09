@@ -46,7 +46,7 @@ Windows (using the GUI)
 - Hit the big 'Patch!' button at the bottom.
 - Run the game as usual.
 
-You can verify that SenPatcher is running correctly by checking the lower-right corner of the title screen. If SenPatcher is successfully running, it will display its version information as well as information about loaded mods next to the game's version string.
+You can verify that SenPatcher is running correctly by checking the lower-right corner of the title screen. If SenPatcher is successfully running, it will display its version information as well as information about loaded mods next to the game's version. In Tokyo Xanadu, you have to highlight the Quit option on the title screen to see this description.
 
 To uninstall, launch SenPatcherGui.exe again, click 'Patch game' for the relevant game, and use the 'Remove Patches / Restore Original' button at the top.
 
@@ -100,6 +100,7 @@ Feature Set for Trails of Cold Steel
 
 * Built-in mod loader for p3a mods.
 * Option to remove the forced animation skip in Turbo mode.
+* Option to make Turbo a toggle instead of a hold.
 * Option to fix the internal Thor master quartz HD texture ID to allow usage of the HD texture pack for it.
 * Option to fix various minor script and asset file errors, such as missing sound effects, incorrect voice clips, text typos, etc.
 * Option to remap the button used for triggering Turbo mode and to re-enable the 2nd Notebook shortcut even when Turbo is on.
@@ -120,6 +121,7 @@ Feature Set for Trails of Cold Steel II
 
 * Built-in mod loader for p3a mods.
 * Option to remove the forced animation skip in Turbo mode.
+* Option to make Turbo a toggle instead of a hold.
 * Option to fix two audio-related bugs, which cause missing or incorrect BGM/SFX and overlong track transitions.
 * Option to fix a few minor script errors.
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
@@ -139,6 +141,7 @@ Feature Set for Trails of Cold Steel III
 ========================================
 
 * Built-in mod loader for p3a mods.
+* Option to make Turbo a toggle instead of a hold.
 * Option to fix various minor script and asset file errors, such as incorrect textures, incorrect voice clips, item description errors, broken Master Quartz effects, etc.
 * Option to fix the in-game button remapping options being incorrectly enabled/disabled, disallowing various sensible mappings.
 * Option to fix a bug that causes incorrect music playback when you switch areas too quickly.
@@ -176,8 +179,12 @@ Feature Set for Tokyo Xanadu eX+
 ================================
 
 * Built-in mod loader for p3a mods.
-* Option to set the game language to English or Japanese instead of the game reading it from Steam/GOG Galaxy.
+* Added a Turbo Mode, similar to the one in the Trails games.
+* Added a lot of new entries to the Button Configurations list, allowing customization of combat controls without it also affecting things like menu actions and minigames.
 * Option to skip the startup logos and/or all FMVs.
+* Option to disable the mouse movement being used for the game camera.
+* Option to keep processing controller input while the game is in the background.
+* Option to set the game language to English or Japanese instead of the game reading it from Steam/GOG Galaxy.
 
 Note: Compatible with version 1.08 of the game only.
 

@@ -173,6 +173,21 @@ namespace SenPatcherGui {
 			return defaultValue;
 		}
 
+		public double GetDouble(string sectionName, string keyName, double defaultValue) {
+			Section section = GetSection(sectionName);
+			if (section != null) {
+				string value;
+				if (section.TryGet(keyName, out value)) {
+					double r;
+					if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out r)) {
+						return r;
+					}
+				}
+			}
+
+			return defaultValue;
+		}
+
 		public string GetString(string sectionName, string keyName, string defaultValue) {
 			Section section = GetSection(sectionName);
 			if (section != null) {
@@ -191,6 +206,10 @@ namespace SenPatcherGui {
 
 		public void SetInt(string sectionName, string keyName, int intValue) {
 			SetString(sectionName, keyName, intValue.ToString());
+		}
+
+		public void SetDouble(string sectionName, string keyName, double doubleValue) {
+			SetString(sectionName, keyName, doubleValue.ToString("F1", CultureInfo.InvariantCulture.NumberFormat));
 		}
 
 		public void SetString(string sectionName, string keyName, string stringValue) {

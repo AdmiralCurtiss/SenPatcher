@@ -33,6 +33,14 @@
 			this.buttonAssetFixDetails = new System.Windows.Forms.Button();
 			this.comboBoxGameLanguage = new System.Windows.Forms.ComboBox();
 			this.label4 = new System.Windows.Forms.Label();
+			this.numericUpDownTurboFactor = new System.Windows.Forms.NumericUpDown();
+			this.labelTurboFactor = new System.Windows.Forms.Label();
+			this.checkBoxTurboToggle = new System.Windows.Forms.CheckBox();
+			this.checkBoxShowMouseCursor = new System.Windows.Forms.CheckBox();
+			this.checkBoxEnableBackgroundControllerInput = new System.Windows.Forms.CheckBox();
+			this.checkBoxDisableMouseCam = new System.Windows.Forms.CheckBox();
+			this.labelTurboDescription = new System.Windows.Forms.Label();
+			((System.ComponentModel.ISupportInitialize)(this.numericUpDownTurboFactor)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// label2
@@ -47,12 +55,10 @@
 			// checkBoxSkipMovies
 			// 
 			this.checkBoxSkipMovies.AutoSize = true;
-			this.checkBoxSkipMovies.Checked = true;
-			this.checkBoxSkipMovies.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxSkipMovies.Location = new System.Drawing.Point(97, 122);
+			this.checkBoxSkipMovies.Location = new System.Drawing.Point(97, 209);
 			this.checkBoxSkipMovies.Name = "checkBoxSkipMovies";
 			this.checkBoxSkipMovies.Size = new System.Drawing.Size(96, 17);
-			this.checkBoxSkipMovies.TabIndex = 6;
+			this.checkBoxSkipMovies.TabIndex = 9;
 			this.checkBoxSkipMovies.Text = "Skip all movies";
 			this.checkBoxSkipMovies.UseVisualStyleBackColor = true;
 			// 
@@ -78,10 +84,10 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 178);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 335);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
-			this.buttonPatch.TabIndex = 20;
+			this.buttonPatch.TabIndex = 15;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -103,10 +109,10 @@
 			this.checkBoxSkipLogos.AutoSize = true;
 			this.checkBoxSkipLogos.Checked = true;
 			this.checkBoxSkipLogos.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxSkipLogos.Location = new System.Drawing.Point(97, 99);
+			this.checkBoxSkipLogos.Location = new System.Drawing.Point(97, 186);
 			this.checkBoxSkipLogos.Name = "checkBoxSkipLogos";
 			this.checkBoxSkipLogos.Size = new System.Drawing.Size(110, 17);
-			this.checkBoxSkipLogos.TabIndex = 4;
+			this.checkBoxSkipLogos.TabIndex = 8;
 			this.checkBoxSkipLogos.Text = "Skip startup logos";
 			this.checkBoxSkipLogos.UseVisualStyleBackColor = true;
 			// 
@@ -116,7 +122,7 @@
 			this.buttonAssetFixDetails.Location = new System.Drawing.Point(385, 83);
 			this.buttonAssetFixDetails.Name = "buttonAssetFixDetails";
 			this.buttonAssetFixDetails.Size = new System.Drawing.Size(137, 44);
-			this.buttonAssetFixDetails.TabIndex = 5;
+			this.buttonAssetFixDetails.TabIndex = 16;
 			this.buttonAssetFixDetails.Text = "Show asset fix details... (may contain spoilers)";
 			this.buttonAssetFixDetails.UseVisualStyleBackColor = true;
 			this.buttonAssetFixDetails.Click += new System.EventHandler(this.buttonAssetFixDetails_Click);
@@ -125,25 +131,113 @@
 			// 
 			this.comboBoxGameLanguage.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboBoxGameLanguage.FormattingEnabled = true;
-			this.comboBoxGameLanguage.Location = new System.Drawing.Point(187, 144);
+			this.comboBoxGameLanguage.Location = new System.Drawing.Point(185, 299);
 			this.comboBoxGameLanguage.Name = "comboBoxGameLanguage";
 			this.comboBoxGameLanguage.Size = new System.Drawing.Size(126, 21);
-			this.comboBoxGameLanguage.TabIndex = 22;
+			this.comboBoxGameLanguage.TabIndex = 14;
 			// 
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(94, 147);
+			this.label4.Location = new System.Drawing.Point(94, 302);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(85, 13);
-			this.label4.TabIndex = 21;
+			this.label4.TabIndex = 13;
 			this.label4.Text = "Game language:";
+			// 
+			// numericUpDownTurboFactor
+			// 
+			this.numericUpDownTurboFactor.Location = new System.Drawing.Point(171, 97);
+			this.numericUpDownTurboFactor.Maximum = new decimal(new int[] {
+            6,
+            0,
+            0,
+            0});
+			this.numericUpDownTurboFactor.Minimum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+			this.numericUpDownTurboFactor.Name = "numericUpDownTurboFactor";
+			this.numericUpDownTurboFactor.Size = new System.Drawing.Size(33, 20);
+			this.numericUpDownTurboFactor.TabIndex = 5;
+			this.numericUpDownTurboFactor.Value = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+			// 
+			// labelTurboFactor
+			// 
+			this.labelTurboFactor.AutoSize = true;
+			this.labelTurboFactor.Location = new System.Drawing.Point(94, 99);
+			this.labelTurboFactor.Name = "labelTurboFactor";
+			this.labelTurboFactor.Size = new System.Drawing.Size(71, 13);
+			this.labelTurboFactor.TabIndex = 4;
+			this.labelTurboFactor.Text = "Turbo Factor:";
+			// 
+			// checkBoxTurboToggle
+			// 
+			this.checkBoxTurboToggle.AutoSize = true;
+			this.checkBoxTurboToggle.Location = new System.Drawing.Point(97, 123);
+			this.checkBoxTurboToggle.Name = "checkBoxTurboToggle";
+			this.checkBoxTurboToggle.Size = new System.Drawing.Size(222, 17);
+			this.checkBoxTurboToggle.TabIndex = 6;
+			this.checkBoxTurboToggle.Text = "Make turbo mode a toggle instead of hold";
+			this.checkBoxTurboToggle.UseVisualStyleBackColor = true;
+			// 
+			// checkBoxShowMouseCursor
+			// 
+			this.checkBoxShowMouseCursor.AutoSize = true;
+			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(97, 254);
+			this.checkBoxShowMouseCursor.Name = "checkBoxShowMouseCursor";
+			this.checkBoxShowMouseCursor.Size = new System.Drawing.Size(121, 17);
+			this.checkBoxShowMouseCursor.TabIndex = 11;
+			this.checkBoxShowMouseCursor.Text = "Show Mouse Cursor";
+			this.checkBoxShowMouseCursor.UseVisualStyleBackColor = true;
+			// 
+			// checkBoxEnableBackgroundControllerInput
+			// 
+			this.checkBoxEnableBackgroundControllerInput.AutoSize = true;
+			this.checkBoxEnableBackgroundControllerInput.Location = new System.Drawing.Point(97, 276);
+			this.checkBoxEnableBackgroundControllerInput.Name = "checkBoxEnableBackgroundControllerInput";
+			this.checkBoxEnableBackgroundControllerInput.Size = new System.Drawing.Size(278, 17);
+			this.checkBoxEnableBackgroundControllerInput.TabIndex = 12;
+			this.checkBoxEnableBackgroundControllerInput.Text = "Keep processing controller input when in Background";
+			this.checkBoxEnableBackgroundControllerInput.UseVisualStyleBackColor = true;
+			// 
+			// checkBoxDisableMouseCam
+			// 
+			this.checkBoxDisableMouseCam.AutoSize = true;
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(97, 232);
+			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
+			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(135, 17);
+			this.checkBoxDisableMouseCam.TabIndex = 10;
+			this.checkBoxDisableMouseCam.Text = "Disable Mouse Camera";
+			this.checkBoxDisableMouseCam.UseVisualStyleBackColor = true;
+			// 
+			// labelTurboDescription
+			// 
+			this.labelTurboDescription.AutoSize = true;
+			this.labelTurboDescription.Location = new System.Drawing.Point(94, 143);
+			this.labelTurboDescription.Name = "labelTurboDescription";
+			this.labelTurboDescription.Size = new System.Drawing.Size(381, 26);
+			this.labelTurboDescription.TabIndex = 7;
+			this.labelTurboDescription.Text = "The default button for Turbo Mode is L3 on controller and Left Ctrl on keyboard.\r" +
+    "\nThis can be changed in the in-game Button Configuration options.";
 			// 
 			// TXForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 231);
+			this.ClientSize = new System.Drawing.Size(534, 388);
+			this.Controls.Add(this.labelTurboDescription);
+			this.Controls.Add(this.checkBoxShowMouseCursor);
+			this.Controls.Add(this.checkBoxEnableBackgroundControllerInput);
+			this.Controls.Add(this.checkBoxDisableMouseCam);
+			this.Controls.Add(this.checkBoxTurboToggle);
+			this.Controls.Add(this.labelTurboFactor);
+			this.Controls.Add(this.numericUpDownTurboFactor);
 			this.Controls.Add(this.comboBoxGameLanguage);
 			this.Controls.Add(this.label4);
 			this.Controls.Add(this.buttonAssetFixDetails);
@@ -156,6 +250,7 @@
 			this.Controls.Add(this.label1);
 			this.Name = "TXForm";
 			this.Text = "Patch Tokyo Xanadu eX+";
+			((System.ComponentModel.ISupportInitialize)(this.numericUpDownTurboFactor)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -172,5 +267,12 @@
 		private System.Windows.Forms.Button buttonAssetFixDetails;
 		private System.Windows.Forms.ComboBox comboBoxGameLanguage;
 		private System.Windows.Forms.Label label4;
+		private System.Windows.Forms.NumericUpDown numericUpDownTurboFactor;
+		private System.Windows.Forms.Label labelTurboFactor;
+		private System.Windows.Forms.CheckBox checkBoxTurboToggle;
+		private System.Windows.Forms.CheckBox checkBoxShowMouseCursor;
+		private System.Windows.Forms.CheckBox checkBoxEnableBackgroundControllerInput;
+		private System.Windows.Forms.CheckBox checkBoxDisableMouseCam;
+		private System.Windows.Forms.Label labelTurboDescription;
 	}
 }
