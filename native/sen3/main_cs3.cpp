@@ -720,4 +720,15 @@ HRESULT DirectInput8Create(HINSTANCE hinst,
     }
     return addr(hinst, dwVersion, riidltf, ppvOut, punkOuter);
 }
+
+// Old API for DInput <= 7.0
+// We don't actually use this, but exporting this symbol makes GOG Galaxy think we're an old version
+// of DInput, which avoids the crash for the GOG Galaxy overlay described in issue #142.
+HRESULT __stdcall DirectInputCreateEx(HINSTANCE hinst,
+                                      DWORD dwVersion,
+                                      REFIID riidltf,
+                                      LPVOID* ppvOut,
+                                      void* punkOuter) {
+    return 0x8007000EL; // DIERR_OUTOFMEMORY
+}
 }
