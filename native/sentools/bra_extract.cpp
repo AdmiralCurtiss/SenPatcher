@@ -18,6 +18,7 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
+#include "util/endian.h"
 #include "util/file.h"
 #include "util/memread.h"
 #include "util/text.h"
@@ -115,6 +116,8 @@ static bool InflateToFile(const char* buffer, size_t length, HyoutaUtils::IO::Fi
 namespace SenTools {
 int BRA_Extract_Function(int argc, char** argv) {
     using namespace HyoutaUtils::MemRead;
+    using HyoutaUtils::EndianUtils::FromEndian;
+    static constexpr auto LE = HyoutaUtils::EndianUtils::Endianness::LittleEndian;
 
     optparse::OptionParser parser;
     parser.description(BRA_Extract_ShortDescription);
@@ -179,8 +182,8 @@ int BRA_Extract_Function(int argc, char** argv) {
         return -1;
     }
 
-    const uint32_t footerPosition = ReadUInt32(&header[0x8]);
-    const uint32_t fileCount = ReadUInt32(&header[0xc]);
+    const uint32_t footerPosition = FromEndian(ReadUInt32(&header[0x8]), LE);
+    const uint32_t fileCount = FromEndian(ReadUInt32(&header[0xc]), LE);
     if (footerPosition >= *filesize) {
         printf("Invalid header.\n");
         return -1;
@@ -211,13 +214,14 @@ int BRA_Extract_Function(int argc, char** argv) {
                 break;
             }
 
-            const uint32_t unknown1 = ReadUInt32(&footerMemory[offset]);
-            const uint32_t unknown2 = ReadUInt32(&footerMemory[offset + 0x4]);
-            const uint32_t compressedSize = ReadUInt32(&footerMemory[offset + 0x8]);
-            const uint32_t uncompressedSize = ReadUInt32(&footerMemory[offset + 0xc]);
-            const uint16_t pathLength = ReadUInt16(&footerMemory[offset + 0x10]);
-            const uint16_t unknown3 = ReadUInt16(&footerMemory[offset + 0x12]);
-            const uint32_t dataPosition = ReadUInt32(&footerMemory[offset + 0x14]);
+            const uint32_t unknown1 = FromEndian(ReadUInt32(&footerMemory[offset]), LE);
+            const uint32_t unknown2 = FromEndian(ReadUInt32(&footerMemory[offset + 0x4]), LE);
+            const uint32_t compressedSize = FromEndian(ReadUInt32(&footerMemory[offset + 0x8]), LE);
+            const uint32_t uncompressedSize =
+                FromEndian(ReadUInt32(&footerMemory[offset + 0xc]), LE);
+            const uint16_t pathLength = FromEndian(ReadUInt16(&footerMemory[offset + 0x10]), LE);
+            const uint16_t unknown3 = FromEndian(ReadUInt16(&footerMemory[offset + 0x12]), LE);
+            const uint32_t dataPosition = FromEndian(ReadUInt32(&footerMemory[offset + 0x14]), LE);
             offset += 0x18;
 
             if (offset + pathLength > footerSize) {
@@ -312,12 +316,12 @@ int BRA_Extract_Function(int argc, char** argv) {
         // there's a bunch of redundant information in the first 0x10 bytes of each file, not sure
         // which is actually used by the game though. i think the byte at 0xc is the compression
         // type? see 0x41190a, deflate decompression loop at 0x4119c7
-        fileInfo.FileHeader_UncompressedSize = ReadUInt32(&buffer[0x0]);
-        fileInfo.FileHeader_CompressedSize = ReadUInt32(&buffer[0x4]);
-        fileInfo.FileHeader_Unknown2 = ReadUInt32(&buffer[0x8]);
+        fileInfo.FileHeader_UncompressedSize = FromEndian(ReadUInt32(&buffer[0x0]), LE);
+        fileInfo.FileHeader_CompressedSize = FromEndian(ReadUInt32(&buffer[0x4]), LE);
+        fileInfo.FileHeader_Unknown2 = FromEndian(ReadUInt32(&buffer[0x8]), LE);
         fileInfo.FileHeader_CompressionType = ReadUInt8(&buffer[0xc]);
         fileInfo.FileHeader_Unknown4 = ReadUInt8(&buffer[0xd]);
-        fileInfo.FileHeader_Unknown5 = ReadUInt16(&buffer[0xe]);
+        fileInfo.FileHeader_Unknown5 = FromEndian(ReadUInt16(&buffer[0xe]), LE);
 
         HyoutaUtils::IO::File outfile(p, HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
@@ -325,7 +329,27 @@ int BRA_Extract_Function(int argc, char** argv) {
             return -1;
         }
 
+        if (fileInfo.FileHeader_UncompressedSize != fileInfo.UncompressedSize) {
+            printf(
+                "WARNING: File '%s': Uncompressed filesize mismatch between BRA header and file "
+                "header.\n",
+                pathUtf8->c_str());
+        }
+        if (fileInfo.FileHeader_CompressedSize != (fileInfo.CompressedSize - 0x10)) {
+            printf(
+                "WARNING: File '%s': Compressed filesize mismatch between BRA header and file "
+                "header.\n",
+                pathUtf8->c_str());
+        }
+
         if (fileInfo.FileHeader_CompressionType == 0) {
+            if ((fileInfo.CompressedSize - 0x10) != fileInfo.UncompressedSize) {
+                printf(
+                    "WARNING: File '%s': Compressed/uncompressed size mismatch for uncompressed "
+                    "file.\n",
+                    pathUtf8->c_str());
+            }
+
             if (outfile.Write(buffer.get() + 0x10, fileInfo.CompressedSize - 0x10)
                 != (fileInfo.CompressedSize - 0x10)) {
                 printf("Failed to write to output file.\n");
@@ -335,6 +359,11 @@ int BRA_Extract_Function(int argc, char** argv) {
             if (!InflateToFile(buffer.get() + 0x10, fileInfo.CompressedSize - 0x10, outfile)) {
                 printf("Failed to decompress to output file.\n");
                 return -1;
+            }
+
+            if (outfile.GetLength() != fileInfo.UncompressedSize) {
+                printf("WARNING: File '%s': Decompressed into unexpected filesize.\n",
+                       pathUtf8->c_str());
             }
         }
 
