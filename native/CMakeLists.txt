@@ -750,6 +750,10 @@ endif()
 if (SENPATCHER_BUILD_TXTEST)
 	add_executable(txtest)
 	target_sources(txtest PRIVATE
+		tx/bra.cpp
+		tx/bra.h
+		tx/bra_extract.cpp
+		tx/bra_extract.h
 		tx/main_tx_test.cpp
 
 		modload/loaded_mods.cpp
@@ -772,6 +776,7 @@ if (SENPATCHER_BUILD_TXTEST)
 	target_include_directories(txtest
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
+	target_link_libraries(txtest zlibstatic)
 	add_dependencies(txtest GenerateGitRevisionHeader)
 endif()
 
@@ -790,6 +795,10 @@ if (SENPATCHER_BUILD_TXHOOK)
 		x86/page_unprotect.cpp
 		x86/page_unprotect.h
 
+		tx/bra.cpp
+		tx/bra.h
+		tx/bra_extract.cpp
+		tx/bra_extract.h
 		tx/exe_patch.h
 		tx/exe_patch_add_senpatcher_version_to_title.cpp
 		tx/exe_patch_disable_mouse_camera.cpp
@@ -816,6 +825,7 @@ if (SENPATCHER_BUILD_TXHOOK)
 	target_include_directories(txhook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
+	target_link_libraries(txhook zlibstatic)
 	add_dependencies(txhook GenerateGitRevisionHeader)
 endif()
 
