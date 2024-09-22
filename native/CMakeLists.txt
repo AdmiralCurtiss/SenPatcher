@@ -533,6 +533,8 @@ set(SOURCES_TX_FIXES
 	tx/file_fixes/a0000.cpp
 	tx/file_fixes.cpp
 	tx/file_fixes.h
+	tx/tbl.cpp
+	tx/tbl.h
 )
 
 set(SOURCES_BASE_FIXES
@@ -763,12 +765,19 @@ if (SENPATCHER_BUILD_TXTEST)
 		${SOURCES_BASE_FIXES}
 		${SOURCES_TX_FIXES}
 
+		tx/file_fixes_sw.cpp
+		tx/file_fixes_sw.h
+		tx/file_fixes_sw/system_dat.cpp
+		tx/file_fixes_sw/t_dlc.cpp
+		tx/file_fixes_sw/t_notehelp.cpp
+		tx/file_fixes_sw/t_text.cpp
+
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 	)
 	target_compile_definitions(txtest
-		PUBLIC ${DEFINES_ZSTD}
+		PUBLIC ${DEFINES_ZSTD} FILE_WRAPPER_WITH_STD_FILESYSTEM
 	)
 	if (WIN32)
 		target_compile_definitions(txtest PUBLIC BUILD_FOR_WINDOWS)

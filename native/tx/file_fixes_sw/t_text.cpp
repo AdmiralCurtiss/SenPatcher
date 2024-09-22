@@ -1,0 +1,74 @@
+#include <array>
+#include <cstring>
+#include <string_view>
+#include <vector>
+
+#include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "sen/file_getter.h"
+#include "sen/sen_script_patcher.h"
+#include "tx/file_fixes_sw.h"
+#include "tx/tbl.h"
+#include "util/hash/sha1.h"
+
+namespace SenLib::TX::FileFixesSw::t_text {
+std::string_view GetDescription() {
+    return "Sync text IDs with what the PC version expects.";
+}
+
+bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
+              std::vector<SenPatcher::P3APackFile>& result) {
+    try {
+        auto filePc = getCheckedFile(
+            "text/dat/t_text.tbl",
+            31946,
+            HyoutaUtils::Hash::SHA1FromHexString("0c0b88aad59b3482638cd588ba460c79145b4a98"));
+        SenPatcher::P3APackFile* fileSw = FindAlreadyPackedFile(
+            result,
+            "text/dat/t_text.tbl",
+            32085,
+            HyoutaUtils::Hash::SHA1FromHexString("95384717aad30034185d429f7dd2827425d85284"));
+        if (!filePc || !fileSw || !fileSw->HasVectorData()) {
+            return false;
+        }
+
+        auto& bin = fileSw->GetVectorData();
+        SenLib::TX::Tbl tblSw(bin.data(), bin.size());
+        SenLib::TX::Tbl tblPc(filePc->Data.data(), filePc->Data.size());
+
+        tblSw.Entries.erase(tblSw.Entries.begin() + 75);
+        tblSw.Entries.erase(tblSw.Entries.begin() + 417);
+        tblSw.Entries.erase(tblSw.Entries.begin() + 558);
+        tblSw.Entries.erase(tblSw.Entries.begin() + 558);
+        tblSw.Entries.erase(tblSw.Entries.begin() + 558);
+        tblSw.Entries.erase(tblSw.Entries.begin() + 759);
+        for (size_t i = 0; i < tblSw.Entries.size(); ++i) {
+            TextTableData m(tblSw.Entries[i].Data.data(), tblSw.Entries[i].Data.size());
+            if (m.idx > 0x64) {
+                m.idx -= 1;
+            }
+            if (m.idx > 0x229) {
+                m.idx -= 1;
+            }
+            if (m.idx > 0x264) {
+                m.idx -= 3;
+            }
+            if (m.idx > 0x348) {
+                m.idx -= 1;
+            }
+            tblSw.Entries[i].Data = m.ToBinary();
+        }
+        tblSw.Entries.push_back(tblPc.Entries[761]);
+        tblSw.Entries.push_back(tblPc.Entries[762]);
+
+        std::vector<char> bin2;
+        HyoutaUtils::Stream::MemoryStream ms(bin2);
+        tblSw.RecalcNumberOfEntries();
+        tblSw.WriteToStream(ms, HyoutaUtils::EndianUtils::Endianness::LittleEndian);
+        fileSw->SetVectorData(std::move(bin2));
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+} // namespace SenLib::TX::FileFixesSw::t_text
