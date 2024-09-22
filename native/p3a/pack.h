@@ -53,6 +53,7 @@ struct P3APackFile {
 
     bool HasVectorData() const;
     const std::vector<char>& GetVectorData() const;
+    void SetVectorData(std::vector<char> data);
 
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
     bool HasPathData() const;

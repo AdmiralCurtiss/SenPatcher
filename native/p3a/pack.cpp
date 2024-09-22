@@ -138,6 +138,9 @@ const std::vector<char>& P3APackFile::GetVectorData() const {
     assert(HasVectorData());
     return std::get<std::vector<char>>(Data->Data);
 }
+void P3APackFile::SetVectorData(std::vector<char> data) {
+    Data->Data = std::move(data);
+}
 bool P3APackFile::HasPathData() const {
     return std::holds_alternative<std::filesystem::path>(Data->Data);
 }
@@ -151,6 +154,9 @@ bool P3APackFile::HasVectorData() const {
 }
 const std::vector<char>& P3APackFile::GetVectorData() const {
     return Data->Data;
+}
+void P3APackFile::SetVectorData(std::vector<char> data) {
+    Data->Data = std::move(data);
 }
 #endif
 
