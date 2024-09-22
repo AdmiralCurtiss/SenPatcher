@@ -768,9 +768,11 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw.cpp
 		tx/file_fixes_sw.h
 		tx/file_fixes_sw/system_dat.cpp
+		tx/file_fixes_sw/s2000.cpp
 		tx/file_fixes_sw/t_dlc.cpp
 		tx/file_fixes_sw/t_notehelp.cpp
 		tx/file_fixes_sw/t_text.cpp
+		tx/file_fixes_sw/t3100.cpp
 
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}

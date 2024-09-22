@@ -29,6 +29,8 @@
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
 DECLARE_STANDARD_FIXSW(system_dat)
+DECLARE_STANDARD_FIXSW(s2000)
+DECLARE_STANDARD_FIXSW(t3100)
 DECLARE_STANDARD_FIXSW(t_dlc)
 DECLARE_STANDARD_FIXSW(t_notehelp)
 DECLARE_STANDARD_FIXSW(t_text)
@@ -159,6 +161,8 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
                              const SenPatcher::GetCheckedFileCallback& callback,
                              std::vector<SenPatcher::P3APackFile>& packFiles) {
     TRY_APPLY_SW(system_dat, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s2000, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t3100, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_dlc, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notehelp, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_text, TryApply(callback, packFiles));
