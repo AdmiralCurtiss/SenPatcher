@@ -296,7 +296,7 @@ static std::vector<std::string> CollectModPaths(HyoutaUtils::Logger& logger,
         HyoutaUtils::IO::File orderfile(std::string_view(orderPathTmp),
                                         HyoutaUtils::IO::OpenMode::Write);
         if (WriteOrderTxt(paths, logger, orderfile)) {
-            if (!orderfile.Rename(orderPath)) {
+            if (!orderfile.Rename(std::string_view(orderPath))) {
                 orderfile.Delete();
             }
         } else {
