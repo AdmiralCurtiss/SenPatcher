@@ -530,6 +530,7 @@ set(SOURCES_REVERIE_FIXES
 )
 
 set(SOURCES_TX_FIXES
+	tx/file_fixes/a0000.cpp
 	tx/file_fixes.cpp
 	tx/file_fixes.h
 )

@@ -24,6 +24,7 @@
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
+DECLARE_STANDARD_FIX(a0000)
 
 #define TRY_APPLY(asset, apply)                       \
     do {                                              \
@@ -36,10 +37,31 @@
         logger.Log("\n");                             \
     } while (false)
 
+namespace {
+static constexpr char Data_SenpatcherModIniEnglish[] = {
+    (char)0x5B, (char)0x54, (char)0x58, (char)0x4D, (char)0x6F, (char)0x64, (char)0x5D,
+    (char)0x0D, (char)0x0A, (char)0x4C, (char)0x61, (char)0x6E, (char)0x67, (char)0x75,
+    (char)0x61, (char)0x67, (char)0x65, (char)0x3D, (char)0x45, (char)0x6E, (char)0x67,
+    (char)0x6C, (char)0x69, (char)0x73, (char)0x68, (char)0x0D, (char)0x0A};
+static constexpr size_t Length_SenpatcherModIniEnglish = sizeof(Data_SenpatcherModIniEnglish);
+static constexpr char Data_SenpatcherModIniJapanese[] = {
+    (char)0x5B, (char)0x54, (char)0x58, (char)0x4D, (char)0x6F, (char)0x64, (char)0x5D,
+    (char)0x0D, (char)0x0A, (char)0x4C, (char)0x61, (char)0x6E, (char)0x67, (char)0x75,
+    (char)0x61, (char)0x67, (char)0x65, (char)0x3D, (char)0x4A, (char)0x61, (char)0x70,
+    (char)0x61, (char)0x6E, (char)0x65, (char)0x73, (char)0x65, (char)0x0D, (char)0x0A};
+static constexpr size_t Length_SenpatcherModIniJapanese = sizeof(Data_SenpatcherModIniJapanese);
+} // namespace
 namespace SenLib::TX {
 static bool CollectAssetsEnglish(HyoutaUtils::Logger& logger,
                                  const SenPatcher::GetCheckedFileCallback& callback,
                                  std::vector<SenPatcher::P3APackFile>& packFiles) {
+    packFiles.emplace_back(
+        std::vector<char>(Data_SenpatcherModIniEnglish,
+                          Data_SenpatcherModIniEnglish + Length_SenpatcherModIniEnglish),
+        SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
+        SenPatcher::P3ACompressionType::None);
+
+    TRY_APPLY(a0000, TryApply(callback, packFiles));
     return true;
 }
 
