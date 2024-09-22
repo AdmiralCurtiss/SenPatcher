@@ -11,7 +11,7 @@ struct SHA1 {
     std::array<char, 20> Hash;
 };
 
-SHA1 CalculateSHA1(void* data, size_t length);
+SHA1 CalculateSHA1(const void* data, size_t length);
 
 consteval SHA1 SHA1FromHexString(std::string_view sv) {
     if (sv.size() != 40) {
