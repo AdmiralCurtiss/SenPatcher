@@ -37,5 +37,9 @@ struct SenScriptPatcher {
                               uint32_t commandLength,
                               uint32_t extendLocation,
                               std::span<const char> extendData);
+
+    // Moves data from [sourceLocation, sourceLocation + length) to targetLocation, shifting all
+    // data in between to the side. Effectively cutting out some data and pasting it elsewhere.
+    bool ShiftData(uint32_t sourceLocation, uint32_t targetLocation, uint32_t length);
 };
 } // namespace SenLib

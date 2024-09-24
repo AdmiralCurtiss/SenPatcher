@@ -1083,6 +1083,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/xorshift.h
 
 		test/p3a_lookup_test.cpp
+		test/sen_script_patcher_test.cpp
 		test/sha1_test.cpp
 		test/sha256_test.cpp
 		test/text_encoding_test.cpp

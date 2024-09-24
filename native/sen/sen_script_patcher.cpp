@@ -1,6 +1,7 @@
 #include "sen_script_patcher.h"
 
 #include <cstdint>
+#include <cstring>
 #include <span>
 #include <vector>
 
@@ -97,5 +98,43 @@ void SenScriptPatcher::ExtendPartialCommand(uint32_t commandLocation,
                                             uint32_t extendLocation,
                                             std::span<const char> extendData) {
     ReplacePartialCommand(commandLocation, commandLength, extendLocation, 0, extendData);
+}
+
+bool SenScriptPatcher::ShiftData(uint32_t sourceLocation,
+                                 uint32_t targetLocation,
+                                 uint32_t length) {
+    // bounds checks
+    if (sourceLocation >= Bin.size() || length > Bin.size()
+        || sourceLocation > (Bin.size() - length) || targetLocation > Bin.size()) {
+        return false;
+    }
+
+    if (length == 0 || sourceLocation == targetLocation) {
+        return true;
+    }
+
+    size_t lengthToShift;
+    if (sourceLocation < targetLocation) {
+        if (targetLocation < sourceLocation + length) {
+            return false;
+        }
+
+        lengthToShift = targetLocation - (sourceLocation + length);
+    } else {
+        lengthToShift = sourceLocation - targetLocation;
+    }
+
+    std::vector<char> tmp;
+    tmp.resize(length);
+    std::memcpy(tmp.data(), &Bin[sourceLocation], length);
+    if (sourceLocation < targetLocation) {
+        std::memmove(&Bin[sourceLocation], &Bin[sourceLocation + length], lengthToShift);
+        std::memcpy(&Bin[targetLocation - length], tmp.data(), length);
+    } else {
+        std::memmove(
+            &Bin[(sourceLocation + length) - lengthToShift], &Bin[targetLocation], lengthToShift);
+        std::memcpy(&Bin[targetLocation], tmp.data(), length);
+    }
+    return true;
 }
 } // namespace SenLib
