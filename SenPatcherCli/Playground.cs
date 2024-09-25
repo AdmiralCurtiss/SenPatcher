@@ -81,6 +81,8 @@ namespace SenPatcherCli {
 
 	public static class Playground {
 		public static void Run() {
+			//SenPatcherCli.TX.TblDumper.InjectItemsIntoSaveFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"My Games\Aksys Games\Tokyo Xanadu eX+\save121.dat"), @"f:\_tx_switch\data\text\dat\t_item.tbl");
+
 			//SenPatcherCli.TX.TblDumper.AdaptSwitchFilesForPC(@"c:\__ed8\tx\text\switch\", @"c:\__ed8\tx\text\pc\");
 
 			//foreach (TblFileInfo tfi in new TblFileInfo[] {

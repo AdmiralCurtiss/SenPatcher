@@ -28,12 +28,15 @@
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
-DECLARE_STANDARD_FIXSW(system_dat)
+DECLARE_STANDARD_FIXSW(m5319)
 DECLARE_STANDARD_FIXSW(s2000)
-DECLARE_STANDARD_FIXSW(t3100)
+DECLARE_STANDARD_FIXSW(s2910)
+DECLARE_STANDARD_FIXSW(system_dat)
 DECLARE_STANDARD_FIXSW(t_dlc)
+DECLARE_STANDARD_FIXSW(t_itemhelp)
 DECLARE_STANDARD_FIXSW(t_notehelp)
 DECLARE_STANDARD_FIXSW(t_text)
+DECLARE_STANDARD_FIXSW(t3100)
 
 #define TRY_APPLY_SW(asset, apply)                      \
     do {                                                \
@@ -160,12 +163,15 @@ static bool CollectAssetsSwitch(HyoutaUtils::Logger& logger,
 static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
                              const SenPatcher::GetCheckedFileCallback& callback,
                              std::vector<SenPatcher::P3APackFile>& packFiles) {
-    TRY_APPLY_SW(system_dat, TryApply(callback, packFiles));
+    TRY_APPLY_SW(m5319, TryApply(callback, packFiles));
     TRY_APPLY_SW(s2000, TryApply(callback, packFiles));
-    TRY_APPLY_SW(t3100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s2910, TryApply(callback, packFiles));
+    TRY_APPLY_SW(system_dat, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_dlc, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t_itemhelp, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notehelp, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_text, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t3100, TryApply(callback, packFiles));
     return true;
 }
 

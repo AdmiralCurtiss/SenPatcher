@@ -53,4 +53,14 @@ struct TextTableData {
 
     std::vector<char> ToBinary() const;
 };
+
+struct ItemHelpData {
+    uint16_t idx;
+    std::string str;
+    std::array<char, 9> d;
+
+    ItemHelpData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
 } // namespace SenLib::TX

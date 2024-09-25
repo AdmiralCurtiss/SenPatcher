@@ -1320,6 +1320,46 @@ namespace SenPatcherCli.TX {
 				t_main_sw.WriteToStream(fs, EndianUtils.Endianness.LittleEndian, TextUtils.GameTextEncoding.UTF8);
 			}
 		}
+
+		public static void InjectItemsIntoSaveFile(string savefilename, string itemtblfilename) {
+			var tbl = new TblDumper(new HyoutaUtils.Streams.DuplicatableFileStream(itemtblfilename), EndianUtils.Endianness.LittleEndian);
+			List<ushort> itemIds = new List<ushort>();
+			for (int i = 0; i < tbl.BaseTbl.Entries.Count; ++i) {
+				TblType? tblType = tbl.IdentifyEntry(i);
+				if (tblType == TblType.item || tblType == TblType.item_q) {
+					var stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+					itemIds.Add(stream.ReadUInt16());
+				}
+			}
+
+			// affinity shards: 0x440e0
+
+			using (var fs = new FileStream(savefilename, FileMode.Open, FileAccess.ReadWrite)) {
+				fs.Position = 0x2ab84;
+				bool skipMasterQuartz = true;
+				for (int j = 0; j < 3; ++j) {
+					int idx = 0;
+					foreach (ushort itemId in itemIds) {
+						if (skipMasterQuartz && itemId >= 0xc80 && itemId <= 0xc8e) {
+							continue;
+						}
+						fs.WriteUInt32(itemId);
+						fs.WriteUInt32(82);
+						fs.WriteUInt32(0);
+						fs.WriteUInt32(0);
+						++idx;
+					}
+					for (; idx < 0x800; ++idx) {
+						fs.WriteUInt32(9999);
+						fs.WriteUInt32(0);
+						fs.WriteUInt32(0);
+						fs.WriteUInt32(0);
+					}
+				}
+			}
+
+			return;
+		}
 	}
 
 	internal class TextTableData {

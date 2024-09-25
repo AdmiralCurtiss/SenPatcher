@@ -95,4 +95,22 @@ std::vector<char> TextTableData::ToBinary() const {
     }
     return rv;
 }
+
+ItemHelpData::ItemHelpData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    idx = stream.ReadUInt16();
+    str = stream.ReadUTF8Nullterm();
+    d = stream.ReadArray<9>();
+}
+
+std::vector<char> ItemHelpData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(idx);
+        ms.WriteUTF8Nullterm(str);
+        ms.Write(d.data(), d.size());
+    }
+    return rv;
+}
 } // namespace SenLib::TX
