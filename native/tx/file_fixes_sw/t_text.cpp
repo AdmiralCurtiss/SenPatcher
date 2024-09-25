@@ -61,6 +61,32 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         tblSw.Entries.push_back(tblPc.Entries[761]);
         tblSw.Entries.push_back(tblPc.Entries[762]);
 
+        // name of the grade shop points. eX+ does not have these anymore (leftover from Vita, I
+        // think?), but change this from Continue Point to NG+ Point (what CS1/2 uses)
+        {
+            auto& entry = tblSw.Entries[666];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.str = "NG+ Point";
+            entry.Data = m.ToBinary();
+        }
+
+        // the NG+ description is complete nonsense, write a better one
+        {
+            auto& entry = tblSw.Entries[667];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.str = (m.str.substr(0, 3) + "Select what to carry over from your Clear Data.");
+            entry.Data = m.ToBinary();
+        }
+
+        // the textbox you get when loading a clear data still talks about the NG+ point mechanic
+        // (the JP version of the same string doesn't), so remove that.
+        {
+            auto& entry = tblSw.Entries[558];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.str = (m.str.substr(0, 54) + ".\nSome bonus features are also available.");
+            entry.Data = m.ToBinary();
+        }
+
         std::vector<char> bin2;
         HyoutaUtils::Stream::MemoryStream ms(bin2);
         tblSw.RecalcNumberOfEntries();

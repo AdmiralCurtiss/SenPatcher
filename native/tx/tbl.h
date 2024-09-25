@@ -63,4 +63,16 @@ struct ItemHelpData {
 
     std::vector<char> ToBinary() const;
 };
+
+struct hkitugi_lst {
+    uint16_t idx;
+    uint16_t unknown1;
+    uint16_t unknown2;
+    std::string name;
+    std::string description;
+
+    hkitugi_lst(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
 } // namespace SenLib::TX

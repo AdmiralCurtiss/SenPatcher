@@ -113,4 +113,26 @@ std::vector<char> ItemHelpData::ToBinary() const {
     }
     return rv;
 }
+
+hkitugi_lst::hkitugi_lst(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    idx = stream.ReadUInt16();
+    unknown1 = stream.ReadUInt16();
+    unknown2 = stream.ReadUInt16();
+    name = stream.ReadUTF8Nullterm();
+    description = stream.ReadUTF8Nullterm();
+}
+
+std::vector<char> hkitugi_lst::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(idx);
+        ms.WriteUInt16(unknown1);
+        ms.WriteUInt16(unknown2);
+        ms.WriteUTF8Nullterm(name);
+        ms.WriteUTF8Nullterm(description);
+    }
+    return rv;
+}
 } // namespace SenLib::TX

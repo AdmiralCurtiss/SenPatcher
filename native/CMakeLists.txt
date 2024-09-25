@@ -772,6 +772,7 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/s2910.cpp
 		tx/file_fixes_sw/system_dat.cpp
 		tx/file_fixes_sw/t_dlc.cpp
+		tx/file_fixes_sw/t_hikitugi.cpp
 		tx/file_fixes_sw/t_itemhelp.cpp
 		tx/file_fixes_sw/t_notehelp.cpp
 		tx/file_fixes_sw/t_text.cpp
