@@ -9,9 +9,9 @@
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t_itemhelp {
+namespace SenLib::TX::FileFixesSw::t_active {
 std::string_view GetDescription() {
-    return "Text fixes in generated item descriptions.";
+    return "Text fixes in active voices and voicemails.";
 }
 
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
@@ -19,9 +19,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
     try {
         auto fileSw = FindAlreadyPackedFile(
             result,
-            "text/dat/t_itemhelp.tbl",
-            5444,
-            HyoutaUtils::Hash::SHA1FromHexString("bb331b3a5d7f0e4b3435e905d2548896edc08fa8"));
+            "text/dat/t_active.tbl",
+            135598,
+            HyoutaUtils::Hash::SHA1FromHexString("2ce0960f18db6d42bdb90834f0cd8fa54c65bc51"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -29,14 +29,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto& bin = fileSw->GetVectorData();
         SenLib::TX::Tbl tbl(bin.data(), bin.size());
 
-        // Unyielding Strength description contains an invalid printf string, I'm amazed the
-        // Switch version doesn't crash from that but the PC version most definitely does.
+
+        // Mitsuki's E-Card is grammatically incorrect, "Thank you for ever you've done."
+        // Change that to 'all'.
         {
-            auto& entry = tbl.Entries[82];
-            ItemHelpData m(entry.Data.data(), entry.Data.size());
-            std::swap(m.Str[24], m.Str[25]);
+            auto& entry = tbl.Entries[673];
+            ActiveVoiceTableData m(entry.Data.data(), entry.Data.size());
+            std::swap(m.Text[38], m.Text[44]);
+            m.Text = (m.Text.substr(0, 27) + "all" + m.Text.substr(31));
             entry.Data = m.ToBinary();
         }
+
 
         std::vector<char> bin2;
         HyoutaUtils::Stream::MemoryStream ms(bin2);
@@ -48,4 +51,4 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         return false;
     }
 }
-} // namespace SenLib::TX::FileFixesSw::t_itemhelp
+} // namespace SenLib::TX::FileFixesSw::t_active

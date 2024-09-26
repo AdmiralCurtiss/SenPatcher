@@ -45,9 +45,8 @@ private:
 };
 
 struct TextTableData {
-    uint16_t idx;
-    std::string str;
-    std::vector<char> d;
+    uint16_t Idx;
+    std::string Str;
 
     TextTableData(const char* data, size_t dataLength);
 
@@ -55,9 +54,9 @@ struct TextTableData {
 };
 
 struct ItemHelpData {
-    uint16_t idx;
-    std::string str;
-    std::array<char, 9> d;
+    uint16_t Idx;
+    std::string Str;
+    std::array<char, 9> D;
 
     ItemHelpData(const char* data, size_t dataLength);
 
@@ -65,14 +64,132 @@ struct ItemHelpData {
 };
 
 struct hkitugi_lst {
-    uint16_t idx;
-    uint16_t unknown1;
-    uint16_t unknown2;
-    std::string name;
-    std::string description;
+    uint16_t Idx;
+    uint16_t Unknown1;
+    uint16_t Unknown2;
+    std::string Name;
+    std::string Description;
 
     hkitugi_lst(const char* data, size_t dataLength);
 
     std::vector<char> ToBinary() const;
 };
+
+struct ActiveVoiceTableData {
+    uint16_t Idx;
+    uint16_t Unknown1;
+    uint16_t Unknown2;
+    std::string Image;
+    uint16_t Unknown3;
+    uint16_t Unknown4;
+    std::string Text;
+    uint32_t Unknown5;
+    uint32_t Unknown6;
+    uint16_t Unknown7;
+    uint16_t Unknown8;
+    uint16_t Unknown9;
+    uint16_t Unknown10;
+    uint16_t Unknown11;
+
+    ActiveVoiceTableData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct DungeonData {
+    uint16_t Idx;
+    uint16_t Unknown1;
+    uint8_t Unknown2;
+    std::string Name;
+    std::vector<char> D;
+
+    DungeonData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct ItemData {
+    uint16_t Idx;
+    uint16_t Unknown1;
+    std::string Flags;
+    std::array<char, 0x3e> Unknown2;
+    std::string Name;
+    std::string Description;
+    std::vector<char> D;
+
+    ItemData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct MapJumpData {
+    uint16_t Idx;
+    uint16_t Unknown1;
+    std::string Name;
+    std::vector<char> D;
+
+    MapJumpData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct MagicData {
+    uint16_t Idx;
+    uint16_t Unknown1;
+    std::string Flags;
+    std::array<char, 0x33> Unknown2;
+    std::string Name;
+    std::string Description;
+
+    MagicData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct QSText {
+    uint16_t Idx;
+    uint8_t Unknown1;
+    std::string Text;
+    std::vector<char> D;
+
+    QSText(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct QSChar {
+    uint16_t Idx;
+    uint16_t Unknown1;
+    uint16_t Unknown2;
+    uint8_t Unknown3;
+    std::array<std::string, 15> Strings;
+
+    QSChar(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct QSStage {
+    uint16_t Idx;
+    uint16_t Unknown1;
+    std::string Name;
+    std::vector<char> D;
+
+    QSStage(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct PlaceTableData {
+    uint16_t Idx;
+    uint16_t Unknown1;
+    std::string Map;
+    std::string Name;
+    std::vector<char> D;
+
+    PlaceTableData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
 } // namespace SenLib::TX

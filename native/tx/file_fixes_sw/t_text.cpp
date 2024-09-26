@@ -44,17 +44,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         tblSw.Entries.erase(tblSw.Entries.begin() + 759);
         for (size_t i = 0; i < tblSw.Entries.size(); ++i) {
             TextTableData m(tblSw.Entries[i].Data.data(), tblSw.Entries[i].Data.size());
-            if (m.idx > 0x64) {
-                m.idx -= 1;
+            if (m.Idx > 0x64) {
+                m.Idx -= 1;
             }
-            if (m.idx > 0x229) {
-                m.idx -= 1;
+            if (m.Idx > 0x229) {
+                m.Idx -= 1;
             }
-            if (m.idx > 0x264) {
-                m.idx -= 3;
+            if (m.Idx > 0x264) {
+                m.Idx -= 3;
             }
-            if (m.idx > 0x348) {
-                m.idx -= 1;
+            if (m.Idx > 0x348) {
+                m.Idx -= 1;
             }
             tblSw.Entries[i].Data = m.ToBinary();
         }
@@ -66,7 +66,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& entry = tblSw.Entries[666];
             TextTableData m(entry.Data.data(), entry.Data.size());
-            m.str = "NG+ Point";
+            m.Str = "NG+ Point";
             entry.Data = m.ToBinary();
         }
 
@@ -74,7 +74,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& entry = tblSw.Entries[667];
             TextTableData m(entry.Data.data(), entry.Data.size());
-            m.str = (m.str.substr(0, 3) + "Select what to carry over from your Clear Data.");
+            m.Str = (m.Str.substr(0, 3) + "Select what to carry over from your Clear Data.");
             entry.Data = m.ToBinary();
         }
 
@@ -83,7 +83,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& entry = tblSw.Entries[558];
             TextTableData m(entry.Data.data(), entry.Data.size());
-            m.str = (m.str.substr(0, 54) + ".\nSome bonus features are also available.");
+            m.Str = (m.Str.substr(0, 54) + ".\nSome bonus features are also available.");
             entry.Data = m.ToBinary();
         }
 

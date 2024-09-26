@@ -1,5 +1,6 @@
 #include "tbl.h"
 
+#include <cassert>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -78,61 +79,296 @@ uint16_t Tbl::GetLength(const std::string& name,
 
 TextTableData::TextTableData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
-    idx = stream.ReadUInt16();
-    str = stream.ReadUTF8Nullterm();
-    const size_t dlen = dataLength - stream.GetPosition();
-    d.resize(dlen);
-    stream.Read(d.data(), dlen);
+    Idx = stream.ReadUInt16();
+    Str = stream.ReadUTF8Nullterm();
+    assert(stream.GetPosition() == dataLength);
 }
 
 std::vector<char> TextTableData::ToBinary() const {
     std::vector<char> rv;
     {
         HyoutaUtils::Stream::MemoryStream ms(rv);
-        ms.WriteUInt16(idx);
-        ms.WriteUTF8Nullterm(str);
-        ms.Write(d.data(), d.size());
+        ms.WriteUInt16(Idx);
+        ms.WriteUTF8Nullterm(Str);
     }
     return rv;
 }
 
 ItemHelpData::ItemHelpData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
-    idx = stream.ReadUInt16();
-    str = stream.ReadUTF8Nullterm();
-    d = stream.ReadArray<9>();
+    Idx = stream.ReadUInt16();
+    Str = stream.ReadUTF8Nullterm();
+    D = stream.ReadArray<9>();
+    assert(stream.GetPosition() == dataLength);
 }
 
 std::vector<char> ItemHelpData::ToBinary() const {
     std::vector<char> rv;
     {
         HyoutaUtils::Stream::MemoryStream ms(rv);
-        ms.WriteUInt16(idx);
-        ms.WriteUTF8Nullterm(str);
-        ms.Write(d.data(), d.size());
+        ms.WriteUInt16(Idx);
+        ms.WriteUTF8Nullterm(Str);
+        ms.Write(D.data(), D.size());
     }
     return rv;
 }
 
 hkitugi_lst::hkitugi_lst(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
-    idx = stream.ReadUInt16();
-    unknown1 = stream.ReadUInt16();
-    unknown2 = stream.ReadUInt16();
-    name = stream.ReadUTF8Nullterm();
-    description = stream.ReadUTF8Nullterm();
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Unknown2 = stream.ReadUInt16();
+    Name = stream.ReadUTF8Nullterm();
+    Description = stream.ReadUTF8Nullterm();
+    assert(stream.GetPosition() == dataLength);
 }
 
 std::vector<char> hkitugi_lst::ToBinary() const {
     std::vector<char> rv;
     {
         HyoutaUtils::Stream::MemoryStream ms(rv);
-        ms.WriteUInt16(idx);
-        ms.WriteUInt16(unknown1);
-        ms.WriteUInt16(unknown2);
-        ms.WriteUTF8Nullterm(name);
-        ms.WriteUTF8Nullterm(description);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUInt16(Unknown2);
+        ms.WriteUTF8Nullterm(Name);
+        ms.WriteUTF8Nullterm(Description);
     }
     return rv;
 }
+
+ActiveVoiceTableData::ActiveVoiceTableData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Unknown2 = stream.ReadUInt16();
+    Image = stream.ReadUTF8Nullterm();
+    Unknown3 = stream.ReadUInt16();
+    Unknown4 = stream.ReadUInt16();
+    Text = stream.ReadUTF8Nullterm();
+    Unknown5 = stream.ReadUInt32();
+    Unknown6 = stream.ReadUInt32();
+    Unknown7 = stream.ReadUInt16();
+    Unknown8 = stream.ReadUInt16();
+    Unknown9 = stream.ReadUInt16();
+    Unknown10 = stream.ReadUInt16();
+    Unknown11 = stream.ReadUInt16();
+    assert(stream.GetPosition() == dataLength);
+}
+
+std::vector<char> ActiveVoiceTableData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUInt16(Unknown2);
+        ms.WriteUTF8Nullterm(Image);
+        ms.WriteUInt16(Unknown3);
+        ms.WriteUInt16(Unknown4);
+        ms.WriteUTF8Nullterm(Text);
+        ms.WriteUInt32(Unknown5);
+        ms.WriteUInt32(Unknown6);
+        ms.WriteUInt16(Unknown7);
+        ms.WriteUInt16(Unknown8);
+        ms.WriteUInt16(Unknown9);
+        ms.WriteUInt16(Unknown10);
+        ms.WriteUInt16(Unknown11);
+    }
+    return rv;
+}
+
+DungeonData::DungeonData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Unknown2 = stream.ReadUInt8();
+    Name = stream.ReadUTF8Nullterm();
+    const size_t dlen = dataLength - stream.GetPosition();
+    D.resize(dlen);
+    stream.Read(D.data(), dlen);
+}
+
+std::vector<char> DungeonData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUInt8(Unknown2);
+        ms.WriteUTF8Nullterm(Name);
+        ms.Write(D.data(), D.size());
+    }
+    return rv;
+}
+
+ItemData::ItemData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Flags = stream.ReadUTF8Nullterm();
+    Unknown2 = stream.ReadArray<0x3e>();
+    Name = stream.ReadUTF8Nullterm();
+    Description = stream.ReadUTF8Nullterm();
+    const size_t dlen = dataLength - stream.GetPosition();
+    D.resize(dlen);
+    stream.Read(D.data(), dlen);
+}
+
+std::vector<char> ItemData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUTF8Nullterm(Flags);
+        ms.WriteArray(Unknown2);
+        ms.WriteUTF8Nullterm(Name);
+        ms.WriteUTF8Nullterm(Description);
+        ms.Write(D.data(), D.size());
+    }
+    return rv;
+}
+
+MapJumpData::MapJumpData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Name = stream.ReadUTF8Nullterm();
+    const size_t dlen = dataLength - stream.GetPosition();
+    D.resize(dlen);
+    stream.Read(D.data(), dlen);
+}
+
+std::vector<char> MapJumpData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUTF8Nullterm(Name);
+        ms.Write(D.data(), D.size());
+    }
+    return rv;
+}
+
+MagicData::MagicData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Flags = stream.ReadUTF8Nullterm();
+    Unknown2 = stream.ReadArray<0x33>();
+    Name = stream.ReadUTF8Nullterm();
+    Description = stream.ReadUTF8Nullterm();
+    assert(stream.GetPosition() == dataLength);
+}
+
+std::vector<char> MagicData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUTF8Nullterm(Flags);
+        ms.WriteArray(Unknown2);
+        ms.WriteUTF8Nullterm(Name);
+        ms.WriteUTF8Nullterm(Description);
+    }
+    return rv;
+}
+
+QSText::QSText(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt8();
+    Text = stream.ReadUTF8Nullterm();
+    const size_t dlen = dataLength - stream.GetPosition();
+    D.resize(dlen);
+    stream.Read(D.data(), dlen);
+}
+
+std::vector<char> QSText::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt8(Unknown1);
+        ms.WriteUTF8Nullterm(Text);
+        ms.Write(D.data(), D.size());
+    }
+    return rv;
+}
+
+QSChar::QSChar(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Unknown2 = stream.ReadUInt16();
+    Unknown3 = stream.ReadUInt8();
+    for (size_t i = 0; i < Strings.size(); ++i) {
+        Strings[i] = stream.ReadUTF8Nullterm();
+    }
+    assert(stream.GetPosition() == dataLength);
+}
+
+std::vector<char> QSChar::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUInt16(Unknown2);
+        ms.WriteUInt8(Unknown3);
+        for (size_t i = 0; i < Strings.size(); ++i) {
+            ms.WriteUTF8Nullterm(Strings[i]);
+        }
+    }
+    return rv;
+}
+
+QSStage::QSStage(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Name = stream.ReadUTF8Nullterm();
+    const size_t dlen = dataLength - stream.GetPosition();
+    D.resize(dlen);
+    stream.Read(D.data(), dlen);
+}
+
+std::vector<char> QSStage::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUTF8Nullterm(Name);
+        ms.Write(D.data(), D.size());
+    }
+    return rv;
+}
+
+PlaceTableData::PlaceTableData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    Idx = stream.ReadUInt16();
+    Unknown1 = stream.ReadUInt16();
+    Map = stream.ReadUTF8Nullterm();
+    Name = stream.ReadUTF8Nullterm();
+    const size_t dlen = dataLength - stream.GetPosition();
+    D.resize(dlen);
+    stream.Read(D.data(), dlen);
+}
+
+std::vector<char> PlaceTableData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(Idx);
+        ms.WriteUInt16(Unknown1);
+        ms.WriteUTF8Nullterm(Map);
+        ms.WriteUTF8Nullterm(Name);
+        ms.Write(D.data(), D.size());
+    }
+    return rv;
+}
+
 } // namespace SenLib::TX

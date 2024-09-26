@@ -33,13 +33,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         for (size_t i = 0; i < 7; ++i) {
             auto& entry = tbl.Entries[i];
             hkitugi_lst m(entry.Data.data(), entry.Data.size());
-            m.name = (m.name.substr(0, 13) + m.name.substr(14));
+            m.Name = (m.Name.substr(0, 13) + m.Name.substr(14));
             entry.Data = m.ToBinary();
         }
         for (size_t i = 7; i < 12; ++i) {
             auto& entry = tbl.Entries[i];
             hkitugi_lst m(entry.Data.data(), entry.Data.size());
-            m.name = (m.name.substr(0, 3) + m.name.substr(4, 5) + m.name.substr(10));
+            m.Name = (m.Name.substr(0, 3) + m.Name.substr(4, 5) + m.Name.substr(10));
             entry.Data = m.ToBinary();
         }
 
@@ -47,7 +47,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& entry = tbl.Entries[12];
             hkitugi_lst m(entry.Data.data(), entry.Data.size());
-            m.name = (m.name.substr(0, 27) + " " + m.name.substr(33));
+            m.Name = (m.Name.substr(0, 27) + " " + m.Name.substr(33));
             entry.Data = m.ToBinary();
         }
 
