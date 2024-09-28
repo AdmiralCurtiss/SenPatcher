@@ -87,6 +87,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             entry.Data = m.ToBinary();
         }
 
+        // Add a space for the Skill upgrade status messages, otherwise you end up with stuff like
+        // "Ranged SkillSplash Arrow"
+        for (size_t idx : {285u, 286u, 287u}) {
+            auto& entry = tblSw.Entries[idx];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.Str = (" " + m.Str);
+            entry.Data = m.ToBinary();
+        }
+
         std::vector<char> bin2;
         HyoutaUtils::Stream::MemoryStream ms(bin2);
         tblSw.RecalcNumberOfEntries();

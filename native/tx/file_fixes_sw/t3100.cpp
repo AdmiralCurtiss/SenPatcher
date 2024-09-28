@@ -1,3 +1,4 @@
+#include <cstring>
 #include <span>
 #include <string_view>
 #include <vector>
@@ -38,6 +39,41 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // remove it. also move the linebreak.
         std::swap(bin[0xeda1], bin[0xeda9]);
         patcher.RemovePartialCommand(0xed82, 0x3d, 0xed8d, 0x4);
+
+        // "protecting themselves from any sort of arm" -> "[...] any sort of harm"
+        patcher.ExtendPartialCommand(0xa4c9, 0x122, 0xa5e5, {{0x68}});
+
+        // "But I DID promise my parents that I'd focus on my schoolwork, too.."
+        // extra period
+        patcher.RemovePartialCommand(0x4379, 0xd2, 0x43fd, 0x1);
+
+        // "By the way, it seems like you've changed a bit lately, Asuka. Not like you've grown soft
+        // or anything like that, but kind of like...you've just matured."
+        // NPC dialogue from Mayu... unfortunately, she says this when your party is just Kou,
+        // without Asuka, so this should not be in second person.
+        {
+            static constexpr size_t offset = 0x4a69;
+            static constexpr size_t size = 0xd2;
+            std::vector<char> tmp;
+            tmp.resize(size);
+            std::memcpy(tmp.data(), &bin[offset], size);
+
+            tmp.erase(tmp.begin() + 0x49, tmp.begin() + 0xa2);
+            tmp.erase(tmp.begin() + 0x5, tmp.begin() + 0x42);
+
+            static constexpr auto line1 = STR_SPAN(
+                "It seems like Asuka has changed\x01"
+                "a bit lately.");
+            static constexpr auto line2 = STR_SPAN(
+                "It's not that she's grown soft or\x01"
+                "anything like that, but more like...\x01"
+                "she's just matured.");
+
+            tmp.insert(tmp.begin() + 0xc, line2.begin(), line2.end());
+            tmp.insert(tmp.begin() + 0x5, line1.begin(), line1.end());
+
+            patcher.ReplaceCommand(offset, size, tmp);
+        }
 
         fileSw->SetVectorData(std::move(bin));
         return true;

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "util/stream.h"
+#include "util/vector.h"
 
 namespace SenLib {
 void SenScriptPatcher::ReplaceCommand(uint32_t originalLocation,
@@ -103,38 +104,6 @@ void SenScriptPatcher::ExtendPartialCommand(uint32_t commandLocation,
 bool SenScriptPatcher::ShiftData(uint32_t sourceLocation,
                                  uint32_t targetLocation,
                                  uint32_t length) {
-    // bounds checks
-    if (sourceLocation >= Bin.size() || length > Bin.size()
-        || sourceLocation > (Bin.size() - length) || targetLocation > Bin.size()) {
-        return false;
-    }
-
-    if (length == 0 || sourceLocation == targetLocation) {
-        return true;
-    }
-
-    size_t lengthToShift;
-    if (sourceLocation < targetLocation) {
-        if (targetLocation < sourceLocation + length) {
-            return false;
-        }
-
-        lengthToShift = targetLocation - (sourceLocation + length);
-    } else {
-        lengthToShift = sourceLocation - targetLocation;
-    }
-
-    std::vector<char> tmp;
-    tmp.resize(length);
-    std::memcpy(tmp.data(), &Bin[sourceLocation], length);
-    if (sourceLocation < targetLocation) {
-        std::memmove(&Bin[sourceLocation], &Bin[sourceLocation + length], lengthToShift);
-        std::memcpy(&Bin[targetLocation - length], tmp.data(), length);
-    } else {
-        std::memmove(
-            &Bin[(sourceLocation + length) - lengthToShift], &Bin[targetLocation], lengthToShift);
-        std::memcpy(&Bin[targetLocation], tmp.data(), length);
-    }
-    return true;
+    return HyoutaUtils::Vector::ShiftData(Bin, sourceLocation, targetLocation, length);
 }
 } // namespace SenLib

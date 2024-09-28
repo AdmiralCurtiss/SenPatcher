@@ -225,6 +225,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/stream.h
 		util/text.cpp
 		util/text.h
+		util/vector.cpp
 		util/vector.h
 
 		p3a/pack.cpp
@@ -564,6 +565,7 @@ set(SOURCES_BASE_FIXES
 	util/stream.h
 	util/text.cpp
 	util/text.h
+	util/vector.cpp
 	util/vector.h
 
 	p3a/p3a.cpp
@@ -769,8 +771,17 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw.h
 		tx/file_fixes_sw/dungeon_names.h
 		tx/file_fixes_sw/m5319.cpp
+		tx/file_fixes_sw/m6309.cpp
+		tx/file_fixes_sw/s1100.cpp
 		tx/file_fixes_sw/s2000.cpp
+		tx/file_fixes_sw/s2010.cpp
+		tx/file_fixes_sw/s2100.cpp
 		tx/file_fixes_sw/s2910.cpp
+		tx/file_fixes_sw/s5100.cpp
+		tx/file_fixes_sw/s7000.cpp
+		tx/file_fixes_sw/s7130.cpp
+		tx/file_fixes_sw/s7200.cpp
+		tx/file_fixes_sw/s8000.cpp
 		tx/file_fixes_sw/system_dat.cpp
 		tx/file_fixes_sw/t_active.cpp
 		tx/file_fixes_sw/t_dlc.cpp
@@ -783,7 +794,24 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t_notemons.cpp
 		tx/file_fixes_sw/t_place.cpp
 		tx/file_fixes_sw/t_text.cpp
+		tx/file_fixes_sw/t1120.cpp
+		tx/file_fixes_sw/t2000.cpp
+		tx/file_fixes_sw/t3000.cpp
 		tx/file_fixes_sw/t3100.cpp
+		tx/file_fixes_sw/t3300.cpp
+		tx/file_fixes_sw/t4000.cpp
+		tx/file_fixes_sw/t4300.cpp
+		tx/file_fixes_sw/t5000.cpp
+		tx/file_fixes_sw/t5120.cpp
+		tx/file_fixes_sw/t6000.cpp
+		tx/file_fixes_sw/t6100.cpp
+		tx/file_fixes_sw/t6600.cpp
+		tx/file_fixes_sw/tk_akie.cpp
+		tx/file_fixes_sw/tk_gorou.cpp
+		tx/file_fixes_sw/tk_haruhiko.cpp
+		tx/file_fixes_sw/tk_hekiru.cpp
+		tx/file_fixes_sw/tk_nodoka.cpp
+		tx/file_fixes_sw/tk_rion.cpp
 
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}
