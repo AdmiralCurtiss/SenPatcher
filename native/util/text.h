@@ -37,6 +37,7 @@ std::string InsertSubstring(std::string_view a,
                             std::string_view b,
                             size_t offsetb,
                             size_t lengthb);
+std::string ReplaceSubstring(std::string_view a, size_t offset, size_t length, std::string_view b);
 std::string ReplaceSubstring(std::string_view a,
                              size_t offseta,
                              size_t lengtha,

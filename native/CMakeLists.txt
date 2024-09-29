@@ -790,6 +790,7 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t_item.cpp
 		tx/file_fixes_sw/t_itemhelp.cpp
 		tx/file_fixes_sw/t_jump.cpp
+		tx/file_fixes_sw/t_main_quest.cpp
 		tx/file_fixes_sw/t_notehelp.cpp
 		tx/file_fixes_sw/t_notemons.cpp
 		tx/file_fixes_sw/t_place.cpp
@@ -798,6 +799,7 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t2000.cpp
 		tx/file_fixes_sw/t3000.cpp
 		tx/file_fixes_sw/t3100.cpp
+		tx/file_fixes_sw/t3200.cpp
 		tx/file_fixes_sw/t3300.cpp
 		tx/file_fixes_sw/t4000.cpp
 		tx/file_fixes_sw/t4300.cpp

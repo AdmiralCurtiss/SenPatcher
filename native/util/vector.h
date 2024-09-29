@@ -41,7 +41,7 @@ inline std::vector<char> GetVector(std::span<const char> data, size_t offset, si
 
 // Moves data from [sourceLocation, sourceLocation + length) to targetLocation, shifting all
 // data in between to the side. Effectively cutting out some data and pasting it elsewhere.
-bool ShiftData(std::vector<char>& data,
+bool ShiftData(std::span<char> data,
                uint32_t sourceLocation,
                uint32_t targetLocation,
                uint32_t length);

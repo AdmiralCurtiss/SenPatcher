@@ -48,14 +48,17 @@ DECLARE_STANDARD_FIXSW(t_hikitugi)
 DECLARE_STANDARD_FIXSW(t_item)
 DECLARE_STANDARD_FIXSW(t_itemhelp)
 DECLARE_STANDARD_FIXSW(t_jump)
+DECLARE_STANDARD_FIXSW(t_main)
 DECLARE_STANDARD_FIXSW(t_notehelp)
 DECLARE_STANDARD_FIXSW(t_notemons)
 DECLARE_STANDARD_FIXSW(t_place)
+DECLARE_STANDARD_FIXSW(t_quest)
 DECLARE_STANDARD_FIXSW(t_text)
 DECLARE_STANDARD_FIXSW(t1120)
 DECLARE_STANDARD_FIXSW(t2000)
 DECLARE_STANDARD_FIXSW(t3000)
 DECLARE_STANDARD_FIXSW(t3100)
+DECLARE_STANDARD_FIXSW(t3200)
 DECLARE_STANDARD_FIXSW(t3300)
 DECLARE_STANDARD_FIXSW(t4000)
 DECLARE_STANDARD_FIXSW(t4300)
@@ -216,14 +219,17 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(t_item, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_itemhelp, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_jump, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t_main, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notehelp, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notemons, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_place, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t_quest, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_text, TryApply(callback, packFiles));
     TRY_APPLY_SW(t1120, TryApply(callback, packFiles));
     TRY_APPLY_SW(t2000, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3000, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t3200, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3300, TryApply(callback, packFiles));
     TRY_APPLY_SW(t4000, TryApply(callback, packFiles));
     TRY_APPLY_SW(t4300, TryApply(callback, packFiles));

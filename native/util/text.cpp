@@ -256,6 +256,14 @@ std::string InsertSubstring(std::string_view a,
     return s;
 }
 
+std::string ReplaceSubstring(std::string_view a, size_t offset, size_t length, std::string_view b) {
+    std::string s;
+    s += a.substr(0, offset);
+    s += b;
+    s += a.substr(offset + length);
+    return s;
+}
+
 std::string ReplaceSubstring(std::string_view a,
                              size_t offseta,
                              size_t lengtha,

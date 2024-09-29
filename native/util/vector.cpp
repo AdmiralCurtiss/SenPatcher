@@ -4,7 +4,7 @@
 #include <vector>
 
 namespace HyoutaUtils::Vector {
-bool ShiftData(std::vector<char>& data,
+bool ShiftData(std::span<char> data,
                uint32_t sourceLocation,
                uint32_t targetLocation,
                uint32_t length) {
