@@ -11,6 +11,10 @@
 #include "p3a/p3a.h"
 #include "util/logger.h"
 
+namespace HyoutaUtils::Ini {
+struct IniFile;
+}
+
 namespace SenLib::ModLoad {
 using PMalloc = void* (*)(size_t size);
 using PFree = void (*)(void* memory);
@@ -77,7 +81,8 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                  std::string_view baseDir,
                  bool shouldLoadAssetFixes,
                  std::string_view iniCategory,
-                 bool isRunningInJapaneseLanguage);
+                 bool isRunningInJapaneseLanguage,
+                 const std::function<void(const HyoutaUtils::Ini::IniFile& ini)>& iniHandler);
 
 // Searches a file with name filteredPath (assumed to be pre-filtered) in
 // [CombinedFileInfos, CombinedFileInfos + CombinedFileInfoCount)

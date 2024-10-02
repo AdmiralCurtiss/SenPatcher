@@ -583,8 +583,13 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
         assetCreationSuccess = SenLib::Sen5::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
     }
 
-    SenLib::ModLoad::LoadModP3As(
-        logger, s_LoadedModsData, baseDirUtf8, assetFixes, "ReverieMod", false);
+    SenLib::ModLoad::LoadModP3As(logger,
+                                 s_LoadedModsData,
+                                 baseDirUtf8,
+                                 assetFixes,
+                                 "ReverieMod",
+                                 false,
+                                 [](const HyoutaUtils::Ini::IniFile& ini) { return; });
 
     SenLib::Sen5::PatchExecData patchExecData;
     patchExecData.Logger = &logger;

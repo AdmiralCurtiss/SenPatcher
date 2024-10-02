@@ -617,7 +617,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 baseDirUtf8,
                 assetFixes,
                 "CS3Mod",
-                version == GameVersion::Japanese);
+                version == GameVersion::Japanese,
+                [](const HyoutaUtils::Ini::IniFile& ini) { return; });
 
     SenLib::Sen3::PatchExecData patchExecData;
     patchExecData.Logger = &logger;

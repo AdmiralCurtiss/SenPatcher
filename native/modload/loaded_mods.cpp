@@ -435,7 +435,8 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                  std::string_view baseDir,
                  bool shouldLoadAssetFixes,
                  std::string_view iniCategory,
-                 bool isRunningInJapaneseLanguage) {
+                 bool isRunningInJapaneseLanguage,
+                 const std::function<void(const HyoutaUtils::Ini::IniFile& ini)>& iniHandler) {
     loadedModsData.LoadedP3As.CombinedFileInfoCount = 0;
     loadedModsData.LoadedP3As.CombinedFileInfos.reset();
     loadedModsData.LoadedP3As.P3As.reset();
@@ -526,6 +527,9 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                                                  || HyoutaUtils::TextUtils::CaseInsensitiveEquals(
                                                      "All", lang->Value));
                                     }
+                                }
+                                if (!skip) {
+                                    iniHandler(ini);
                                 }
                             }
 
