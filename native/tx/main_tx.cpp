@@ -809,7 +809,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                             logger.Log("No language selected, defaulting to English.\n");
                         }
                     };
-                // check_boolean("TX", "AssetFixes", assetFixes);
+                check_boolean("TX", "AssetFixes", assetFixes);
                 check_boolean("TX", "DisableMouseCamera", disableMouseCamera);
                 check_boolean("TX", "ShowMouseCursor", showMouseCursor);
                 check_boolean(
