@@ -4,6 +4,8 @@
 #include <cstring>
 #include <filesystem>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -495,13 +497,12 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                                 "senpatcher_mod.ini",
                                 fileinfo.Filename.size())
                         == 0) {
-                        std::recursive_mutex tmpMutex;
                         void* out_memory = nullptr;
                         uint64_t out_filesize = 0;
                         if (ExtractP3AFileToMemory(
                                 fileinfo,
                                 p3a,
-                                tmpMutex,
+                                nullptr,
                                 0x8000'0000,
                                 out_memory,
                                 out_filesize,
@@ -600,7 +601,7 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                             PFree free_func) {
     return ExtractP3AFileToMemory(*ref.FileInfo,
                                   ref.ArchiveData->Archive,
-                                  ref.ArchiveData->Mutex,
+                                  &ref.ArchiveData->Mutex,
                                   filesizeLimit,
                                   out_memory,
                                   out_filesize,
@@ -610,7 +611,7 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
 
 bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                             SenPatcher::P3A& archive,
-                            std::recursive_mutex& mutex,
+                            std::recursive_mutex* optional_mutex,
                             uint64_t filesizeLimit,
                             void*& out_memory,
                             uint64_t& out_filesize,
@@ -632,7 +633,10 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
             }
 
             {
-                std::lock_guard guard(mutex);
+                std::optional<std::lock_guard<std::recursive_mutex>> guard;
+                if (optional_mutex) {
+                    guard.emplace(*optional_mutex);
+                }
                 auto& file = archive.FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
                     free_func(memory);
@@ -671,7 +675,10 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
             }
 
             {
-                std::lock_guard guard(mutex);
+                std::optional<std::lock_guard<std::recursive_mutex>> guard;
+                if (optional_mutex) {
+                    guard.emplace(*optional_mutex);
+                }
                 auto& file = archive.FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
                     compressedMemory.reset();
@@ -718,7 +725,10 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
             }
 
             {
-                std::lock_guard guard(mutex);
+                std::optional<std::lock_guard<std::recursive_mutex>> guard;
+                if (optional_mutex) {
+                    guard.emplace(*optional_mutex);
+                }
                 auto& file = archive.FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
                     compressedMemory.reset();
@@ -768,7 +778,10 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
             }
 
             {
-                std::lock_guard guard(mutex);
+                std::optional<std::lock_guard<std::recursive_mutex>> guard;
+                if (optional_mutex) {
+                    guard.emplace(*optional_mutex);
+                }
                 auto& file = archive.FileHandle;
                 if (!file.SetPosition(fi.Offset)) {
                     compressedMemory.reset();

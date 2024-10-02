@@ -94,7 +94,7 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
 
 bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                             SenPatcher::P3A& archive,
-                            std::recursive_mutex& mutex,
+                            std::recursive_mutex* optional_mutex,
                             uint64_t filesizeLimit,
                             void*& out_memory,
                             uint64_t& out_filesize,
