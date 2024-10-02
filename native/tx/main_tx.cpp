@@ -737,6 +737,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool skipAllMovies = false;
     bool makeTurboToggle = false;
     float turboModeFactor = 2.0f;
+    bool forceRegularMG04UVs = false;
 
     {
         std::string settingsFilePath;
@@ -905,7 +906,19 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 assetFixes,
                 "TXMod",
                 useJapaneseLanguage,
-                [](const HyoutaUtils::Ini::IniFile& ini) { return; });
+                [&](const HyoutaUtils::Ini::IniFile& ini) {
+                    if (!forceRegularMG04UVs) {
+                        const auto* kvp = ini.FindValue("TXMod", "ForceRegularMG04UVs");
+                        if (kvp) {
+                            using HyoutaUtils::TextUtils::CaseInsensitiveEquals;
+                            if (CaseInsensitiveEquals(kvp->Value, "true")) {
+                                logger.Log("ForceRegularMG04UVs");
+                                logger.Log(" enabled via mod.\n");
+                                forceRegularMG04UVs = true;
+                            }
+                        }
+                    };
+                });
 
     SenLib::TX::PatchExecData patchExecData;
     patchExecData.Logger = &logger;
@@ -944,6 +957,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     }
     if (enableBackgroundControllerInput) {
         SenLib::TX::PatchEnableBackgroundControllerInput(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (forceRegularMG04UVs) {
+        SenLib::TX::ForceMG04UVs(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 

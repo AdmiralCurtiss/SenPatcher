@@ -46,4 +46,5 @@ void PatchDisableMouseCamera(PatchExecData& execData);
 void PatchShowMouseCursor(PatchExecData& execData);
 void PatchEnableBackgroundControllerInput(PatchExecData& execData);
 void PatchValidDlcIds(PatchExecData& execData, char* validDlcBitfield, size_t maxDlcId);
+void ForceMG04UVs(PatchExecData& execData);
 } // namespace SenLib::TX
