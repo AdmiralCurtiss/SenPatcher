@@ -59,6 +59,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // double period
         patcher.RemovePartialCommand(0x20f1c, 0x80, 0x20f53, 0x1);
 
+        // linebreaks in After Story intro
+        std::swap(bin[0x3ca6c], bin[0x3ca85]);
+        bin[0x3cacc] = 0x01;
+        bin[0x3cb20] = 0x01;
+
 
         fileSw->SetVectorData(std::move(bin));
         return true;

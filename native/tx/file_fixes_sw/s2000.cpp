@@ -47,6 +47,22 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x7218e, 0x23, 0x721a9, 6, STR_SPAN("Advanced"));
         patcher.ReplacePartialCommand(0x72204, 0x23, 0x7221f, 6, STR_SPAN("Advanced"));
 
+        // "I don't carry my Xiphone around when I'm conducting fieldwork, o I tend to lose track of
+        // time."
+        // missing 's'
+        patcher.ExtendPartialCommand(0x19325, 0xa4, 0x193a8, {{0x73}});
+
+        // "(This guy is still at it... It's already night. Isn't he cold?)"
+        // this is just wrong, it's still the middle of the day. the old script was
+        // "Even though It's already pretty cold at night."
+        // which, capitalization aside, appears to be more accurate, so...
+        patcher.ReplacePartialCommand(0x193ed,
+                                      0x46,
+                                      0x1940e,
+                                      0x22,
+                                      STR_SPAN("Even though\x01"
+                                               "it's already pretty cold at night."));
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

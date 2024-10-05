@@ -56,6 +56,18 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             patcher.ReplaceCommand(offset, size, tmp);
         }
 
+        // linebreaks
+        bin[0x306a4] = 0x01;
+        std::swap(bin[0x30ff7], bin[0x31001]);
+        bin[0x32257] = 0x01;
+
+        // "Speakin' of, any reason you're\x01hanging around our offices?"
+        // This is written to a follow-up to a part of the conversation you only get if you've
+        // previously seen Gotou at the shrine, so the 'speaking of' makes no sense if you don't get
+        // that part. Remove that, the line works fine without it.
+        std::swap(bin[0x30374], bin[0x3037c]);
+        patcher.ReplacePartialCommand(0x30353, 0x3f, 0x30356, 0xe, {{0x41}});
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

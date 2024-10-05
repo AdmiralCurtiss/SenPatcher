@@ -32,6 +32,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // uncapitalized start of sentence
         bin[0x8f7] = 0x49;
 
+        // linebreaks
+        std::swap(bin[0x1bd], bin[0x1c3]);
+        std::swap(bin[0x1d9], bin[0x1de]);
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

@@ -45,6 +45,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // missing period
         patcher.ExtendPartialCommand(0x3f01, 0x77, 0x3f4c, {{0x2e}});
 
+        // linebreaks
+        std::swap(bin[0x12732], bin[0x12735]);
+
 
         fileSw->SetVectorData(std::move(bin));
         return true;

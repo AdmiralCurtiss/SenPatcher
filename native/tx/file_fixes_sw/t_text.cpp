@@ -96,6 +96,29 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             entry.Data = m.ToBinary();
         }
 
+        // "Koucannot change party members." -> "Kou cannot switch teams."
+        {
+            auto& entry = tblSw.Entries[152];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.Str = (m.Str.substr(0, 5) + " cannot switch teams.");
+            entry.Data = m.ToBinary();
+        }
+
+        // make the treasure chest labels more clear
+        {
+            auto& entry = tblSw.Entries[702];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.Str = (m.Str.substr(0, 5) + "Treasure Chest (Previously opened)");
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tblSw.Entries[703];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.Str = (m.Str.substr(0, 5) + "Treasure Chest (Never opened)");
+            entry.Data = m.ToBinary();
+        }
+
+
         std::vector<char> bin2;
         HyoutaUtils::Stream::MemoryStream ms(bin2);
         tblSw.RecalcNumberOfEntries();

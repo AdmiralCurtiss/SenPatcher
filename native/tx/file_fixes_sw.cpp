@@ -55,6 +55,8 @@ DECLARE_STANDARD_FIXSW(t_place)
 DECLARE_STANDARD_FIXSW(t_quest)
 DECLARE_STANDARD_FIXSW(t_text)
 DECLARE_STANDARD_FIXSW(t1120)
+DECLARE_STANDARD_FIXSW(t1210)
+DECLARE_STANDARD_FIXSW(t1310)
 DECLARE_STANDARD_FIXSW(t2000)
 DECLARE_STANDARD_FIXSW(t3000)
 DECLARE_STANDARD_FIXSW(t3100)
@@ -226,6 +228,8 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(t_quest, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_text, TryApply(callback, packFiles));
     TRY_APPLY_SW(t1120, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t1210, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t1310, TryApply(callback, packFiles));
     TRY_APPLY_SW(t2000, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3000, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3100, TryApply(callback, packFiles));

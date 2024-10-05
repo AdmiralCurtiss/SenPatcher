@@ -29,8 +29,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#8WWhen's Yukino gonna get in touch with me#1000W...?"
-        // remove leftover slow text print command
+        // remove leftover slow text print command, there's no natural break in the english version
+        // of the line to keep it
         patcher.RemovePartialCommand(0x4c838, 0x42, 0x4c843, 0x3);
+
+        // linebreaks
+        std::swap(bin[0x4a215], bin[0x4a21c]);
+        std::swap(bin[0x4c12c], bin[0x4c129]);
+
 
         fileSw->SetVectorData(std::move(bin));
         return true;

@@ -796,6 +796,8 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t_place.cpp
 		tx/file_fixes_sw/t_text.cpp
 		tx/file_fixes_sw/t1120.cpp
+		tx/file_fixes_sw/t1210.cpp
+		tx/file_fixes_sw/t1310.cpp
 		tx/file_fixes_sw/t2000.cpp
 		tx/file_fixes_sw/t3000.cpp
 		tx/file_fixes_sw/t3100.cpp
