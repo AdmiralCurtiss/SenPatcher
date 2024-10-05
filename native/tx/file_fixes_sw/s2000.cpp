@@ -63,6 +63,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                                       STR_SPAN("Even though\x01"
                                                "it's already pretty cold at night."));
 
+        // "#2P#0T*gulp*#20W #1000W*gulp*#25W...#1000W"
+        // patcher.ReplacePartialCommand(0x49276, 0x30, 0x4929d, 0x6, "");
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

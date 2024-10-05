@@ -50,6 +50,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ExtendPartialCommand(0x2c07e, 0x3a, 0x2c09a, STR_SPAN(" HERE"));
 
 
+        // "#2P#800WI...no, we've got your back, Kou!"
+        // patcher.ReplacePartialCommand(0x25e5c, 0x33, 0x25e67, 0x26, "");
+
 
         fileSw->SetVectorData(std::move(bin));
         return true;

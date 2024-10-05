@@ -8,9 +8,9 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::s2010 {
+namespace SenLib::TX::FileFixesSw::t4200 {
 std::string_view GetDescription() {
-    return "Text fixes in Memorial Park Grove.";
+    return "Text fixes in Cafe 17.";
 }
 
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
@@ -18,9 +18,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
     try {
         auto fileSw = FindAlreadyPackedFile(
             result,
-            "scripts/scena/dat/s2010.dat",
-            64561,
-            HyoutaUtils::Hash::SHA1FromHexString("53d974182b18401a6d59b0288ab5479f0f9d1880"));
+            "scripts/scena/dat/t4200.dat",
+            86673,
+            HyoutaUtils::Hash::SHA1FromHexString("2275260b6f44505d8365702986c51c477f6dc214"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,12 +28,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "It's not often someone{n}goes out of their way to call out{n}to me."
-        // move linebreak
-        std::swap(bin[0xc27a], bin[0xc27e]);
+        // "#E[333333333333332]#M_0#1PAhem!\x01#1000W#5SHappy birthday, Asuka!"
+        // patcher.ReplacePartialCommand(0x1014c, 0x49, 0x1017a, 0x19, "");
 
-        // "#2P(All right... #25W#1000WI've made my choice!)"
-        // patcher.ReplacePartialCommand(0xad30, 0x3a, 0xad4d, 0x1b, "");
+        // "#1PMay 18th. #1000WThat's your 17th\x01birthday, yeah?"
+        // patcher.ReplacePartialCommand(0x104ea, 0x3d, 0x104ff, 0x26, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;
@@ -41,4 +40,4 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         return false;
     }
 }
-} // namespace SenLib::TX::FileFixesSw::s2010
+} // namespace SenLib::TX::FileFixesSw::t4200

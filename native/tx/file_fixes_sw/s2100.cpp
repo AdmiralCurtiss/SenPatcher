@@ -36,6 +36,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ShiftData(0xb18a, 0xb15f, 1);
         patcher.RemovePartialCommand(0xb100, 0x90, 0xb15f, 0x4);
 
+        // "#5C#800W#5CNAME: Futaba Ichinose\x01#800WDIED: March 15, 2005#10W\x01#800WAGE: 18 years"
+        // patcher.ReplacePartialCommand(0xd1e1, 0x56, 0xd223, 0x12, "");
+
+        // "#2P"#800WLong-distance relationship"...#20W\x01#800WSo that's what it was."
+        // patcher.ReplacePartialCommand(0xd4e1, 0x50, 0xd514, 0x1b, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

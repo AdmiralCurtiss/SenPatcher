@@ -8,9 +8,9 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::s2010 {
+namespace SenLib::TX::FileFixesSw::m8390 {
 std::string_view GetDescription() {
-    return "Text fixes in Memorial Park Grove.";
+    return "Text fixes in Pandora (final boss room).";
 }
 
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
@@ -18,9 +18,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
     try {
         auto fileSw = FindAlreadyPackedFile(
             result,
-            "scripts/scena/dat/s2010.dat",
-            64561,
-            HyoutaUtils::Hash::SHA1FromHexString("53d974182b18401a6d59b0288ab5479f0f9d1880"));
+            "scripts/scena/dat/m8390.dat",
+            49601,
+            HyoutaUtils::Hash::SHA1FromHexString("3abea04b7a0c555b8b5367810a365766f84849c3"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,12 +28,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "It's not often someone{n}goes out of their way to call out{n}to me."
-        // move linebreak
-        std::swap(bin[0xc27a], bin[0xc27e]);
+        // "#E_6#M_0#2P#800WShiori's been there with us this\x01whole time. And I won't let
+        // you\x01deny it any longer!"
+        // patcher.ReplacePartialCommand(0x72b1, 0x6e, 0x72c4, 0x59, "");
 
-        // "#2P(All right... #25W#1000WI've made my choice!)"
-        // patcher.ReplacePartialCommand(0xad30, 0x3a, 0xad4d, 0x1b, "");
+        // "#1P#800WEveryone#15W...#1000W#5SLend me your strength!"
+        // patcher.ReplacePartialCommand(0x88b0, 0x40, 0x88d5, 0x19, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;
@@ -41,4 +41,4 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         return false;
     }
 }
-} // namespace SenLib::TX::FileFixesSw::s2010
+} // namespace SenLib::TX::FileFixesSw::m8390

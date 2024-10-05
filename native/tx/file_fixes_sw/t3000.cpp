@@ -64,6 +64,18 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         bin[0x3cacc] = 0x01;
         bin[0x3cb20] = 0x01;
 
+        // "#K#F#0T#4S#800W...#15W#1000W\x01#6SObviously!"
+        // patcher.ReplacePartialCommand(0x29900, 0x34, 0x29925, 0xd, "");
+
+        // "#1P#5SOh, wow...#13W#1000W\x01The weather's so nice today!"
+        // patcher.ReplacePartialCommand(0x364b3, 0x41, 0x364cf, 0x23, "");
+
+        // "(Still, there was something about\x01that labyrinth... #8W#1000WOr maybe I'm
+        // just\x01overthinking things.)"
+        // patcher.ReplacePartialCommand(0x39574, 0x6e, 0x395b3, 0x2d, "");
+
+        // "#500W#3C#1P#3CHow frustrating...#20W\x01#300WHow sad...#15W\x01#600W...How fun."
+        // patcher.ReplacePartialCommand(0x3f82a, 0x53, 0x3f86b, 0x10, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

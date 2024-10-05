@@ -40,6 +40,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         std::swap(bin[0xeda1], bin[0xeda9]);
         patcher.RemovePartialCommand(0xed82, 0x3d, 0xed8d, 0x4);
 
+        // "I ain't exactly pining fer him if that's\x01what yer insinuat-#1000WOops, I mean..."
+        // patcher.ReplacePartialCommand(0xf86a, 0x5c, 0xf8af, 0x15, "");
+
         // "protecting themselves from any sort of arm" -> "[...] any sort of harm"
         patcher.ExtendPartialCommand(0xa4c9, 0x122, 0xa5e5, {{0x68}});
 

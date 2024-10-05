@@ -68,6 +68,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         std::swap(bin[0x30374], bin[0x3037c]);
         patcher.ReplacePartialCommand(0x30353, 0x3f, 0x30356, 0xe, {{0x41}});
 
+        // "#800WXRC.\x01#3S#800WXanadu Research Club."
+        // patcher.ReplacePartialCommand(0x1aefa, 0x31, 0x1af0f, 0x1a, "");
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

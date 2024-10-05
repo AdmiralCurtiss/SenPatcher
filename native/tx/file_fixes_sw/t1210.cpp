@@ -54,6 +54,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                                       STR_SPAN("What're you doing HERE in\x01"
                                                "our clubroom, of all places?"));
 
+        // "#E[3333333333333333333336]#M_A#800WBut the being that caused this
+        // one...\x01#14W#800WIt's currently hiding in Morimiya."
+        // patcher.ReplacePartialCommand(0x10e03, 0xdd, 0x10eb7, 0x27, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

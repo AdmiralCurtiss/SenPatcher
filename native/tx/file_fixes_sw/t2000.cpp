@@ -47,6 +47,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // -> have been
         patcher.ReplacePartialCommand(0xd460, 0x9f, 0xd48e, 0x1, {{0x76, 0x65}});
 
+        // "#E[3333333333333336]#M_A#1PMy guess is...#1000Weveryone\x01in the city disappeared."
+        // patcher.ReplacePartialCommand(0x304bc, 0x5a, 0x304ed, 0x27, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

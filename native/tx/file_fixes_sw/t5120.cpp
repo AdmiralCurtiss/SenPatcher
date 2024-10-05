@@ -85,6 +85,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         bin[0x677a] = 0x01;
         bin[0x1bf2e] = 0x01;
 
+        // "#500W#3C#1P#3CHow frustrating...#20W\x01#300WHow sad...#15W\x01#600W...How fun."
+        // patcher.ReplacePartialCommand(0x160e2, 0x53, 0x16123, 0x10, "");
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

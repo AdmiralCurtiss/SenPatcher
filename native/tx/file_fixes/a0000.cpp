@@ -9,6 +9,8 @@
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 
+#include "../file_fixes_sw/dungeon_names.h"
+
 #define STR_WITH_LEN(text) text, (sizeof(text) - 1)
 #define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
 
@@ -858,7 +860,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x15179, 0x42, 0x1517c + 10, 0x3c - 10, STR_SPAN(" Outside Nanahoshi Mall"));
         patcher.ReplacePartialCommand(0x151bb, 0x42, 0x151be + 10, 0x3c - 10, STR_SPAN(" Talk with Tetsuo"));
         patcher.ReplacePartialCommand(0x151fd, 0x42, 0x15200 + 10, 0x3c - 10, STR_SPAN(" Gate outside Nanahoshi Mall"));
-        patcher.ReplacePartialCommand(0x1523f, 0x42, 0x15242 + 10, 0x3c - 10, STR_SPAN(" Entering Aftermath of the Scarlet Sky"));
+        patcher.ReplacePartialCommand(0x1523f, 0x42, 0x15242 + 10, 0x3c - 10, STR_SPAN(" Entering " DUNGEON_NAME_m3800));
         patcher.ReplacePartialCommand(0x15281, 0x42, 0x15284 + 10, 0x3c - 10, STR_SPAN(" Boss fight"));
         patcher.ReplacePartialCommand(0x152c3, 0x42, 0x152c6 + 10, 0x3c - 10, STR_SPAN(" After boss fight"));
         patcher.ReplacePartialCommand(0x15305, 0x42, 0x15308 + 10, 0x3c - 10, STR_SPAN(" Back outside"));
@@ -944,7 +946,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x17131, 0x42, 0x17134 + 10, 0x3c - 10, STR_SPAN(" Exploring Shopping Street"));
         patcher.ReplacePartialCommand(0x17173, 0x42, 0x17176 + 10, 0x3c - 10, STR_SPAN(" Finding the Gate at Yanagi Sports"));
         patcher.ReplacePartialCommand(0x171b5, 0x42, 0x171b8 + 10, 0x3c - 10, STR_SPAN(" Enter Gate?"));
-        patcher.ReplacePartialCommand(0x171f7, 0x42, 0x171fa + 10, 0x3c - 10, STR_SPAN(" Entering Emerald Waterway"));
+        patcher.ReplacePartialCommand(0x171f7, 0x42, 0x171fa + 10, 0x3c - 10, STR_SPAN(" Entering " DUNGEON_NAME_m9810));
         patcher.ReplacePartialCommand(0x17239, 0x42, 0x1723c + 10, 0x3c - 10, STR_SPAN(" Finding Sora and Shio"));
         patcher.ReplacePartialCommand(0x1727b, 0x42, 0x1727e + 10, 0x3c - 10, STR_SPAN(" After miniboss"));
         patcher.ReplacePartialCommand(0x172bd, 0x42, 0x172c0 + 10, 0x3c - 10, STR_SPAN(" Continuing Search (Shopping Street)"));
@@ -952,7 +954,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x17341, 0x42, 0x17344 + 10, 0x3c - 10, STR_SPAN(" Exploring Nanahoshi Mall"));
         patcher.ReplacePartialCommand(0x17383, 0x42, 0x17386 + 10, 0x3c - 10, STR_SPAN(" Finding the Gate in the Server Room"));
         patcher.ReplacePartialCommand(0x173c5, 0x42, 0x173c8 + 10, 0x3c - 10, STR_SPAN(" Enter Gate?"));
-        patcher.ReplacePartialCommand(0x17407, 0x42, 0x1740a + 10, 0x3c - 10, STR_SPAN(" Entering Amber Labyrinth"));
+        patcher.ReplacePartialCommand(0x17407, 0x42, 0x1740a + 10, 0x3c - 10, STR_SPAN(" Entering " DUNGEON_NAME_m9820));
         patcher.ReplacePartialCommand(0x17449, 0x42, 0x1744c + 10, 0x3c - 10, STR_SPAN(" Finding Mitsuki and Yuuki"));
         patcher.ReplacePartialCommand(0x1748b, 0x42, 0x1748e + 10, 0x3c - 10, STR_SPAN(" After miniboss"));
         patcher.ReplacePartialCommand(0x174cd, 0x42, 0x174d0 + 10, 0x3c - 10, STR_SPAN(" Continuing Search (Nanahoshi Mall)"));
@@ -961,7 +963,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x175a6, 0x42, 0x175a9 + 10, 0x3c - 10, STR_SPAN(" Exploring Brick Alley"));
         patcher.ReplacePartialCommand(0x175e8, 0x42, 0x175eb + 10, 0x3c - 10, STR_SPAN(" Finding the Gate by Rion's house"));
         patcher.ReplacePartialCommand(0x1762a, 0x42, 0x1762d + 10, 0x3c - 10, STR_SPAN(" Enter the Gate?"));
-        patcher.ReplacePartialCommand(0x1766c, 0x42, 0x1766f + 10, 0x3c - 10, STR_SPAN(" Entering Frost Demon Path"));
+        patcher.ReplacePartialCommand(0x1766c, 0x42, 0x1766f + 10, 0x3c - 10, STR_SPAN(" Entering " DUNGEON_NAME_m9830));
         patcher.ReplacePartialCommand(0x176ae, 0x42, 0x176b1 + 10, 0x3c - 10, STR_SPAN(" Finding Gorou"));
         patcher.ReplacePartialCommand(0x176f0, 0x42, 0x176f3 + 10, 0x3c - 10, STR_SPAN(" Miniboss fight"));
         patcher.ReplacePartialCommand(0x17732, 0x42, 0x17735 + 10, 0x3c - 10, STR_SPAN(" After miniboss"));

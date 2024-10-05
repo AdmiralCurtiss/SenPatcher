@@ -32,6 +32,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // missing space
         patcher.ExtendPartialCommand(0x91a9, 0xb4, 0x9207, {{0x20}});
 
+        // "#3C#0T#3S#3CDamn it, I can't reach#15W...\x01#1000W#5SWHOA!"
+        // patcher.ReplacePartialCommand(0x447d, 0x43, 0x44b5, 0x8, "");
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

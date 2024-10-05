@@ -770,14 +770,38 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw.cpp
 		tx/file_fixes_sw.h
 		tx/file_fixes_sw/dungeon_names.h
+		tx/file_fixes_sw/m1100.cpp
+		tx/file_fixes_sw/m2190.cpp
+		tx/file_fixes_sw/m3190.cpp
+		tx/file_fixes_sw/m3800.cpp
+		tx/file_fixes_sw/m3801.cpp
+		tx/file_fixes_sw/m5290.cpp
 		tx/file_fixes_sw/m5319.cpp
+		tx/file_fixes_sw/m5800.cpp
+		tx/file_fixes_sw/m5801.cpp
 		tx/file_fixes_sw/m6309.cpp
+		tx/file_fixes_sw/m8209.cpp
+		tx/file_fixes_sw/m8390.cpp
+		tx/file_fixes_sw/m9800.cpp
+		tx/file_fixes_sw/m9801.cpp
+		tx/file_fixes_sw/m9810.cpp
+		tx/file_fixes_sw/m9820.cpp
+		tx/file_fixes_sw/m9830.cpp
+		tx/file_fixes_sw/m9860.cpp
+		tx/file_fixes_sw/m9870.cpp
+		tx/file_fixes_sw/s1000.cpp
 		tx/file_fixes_sw/s1100.cpp
 		tx/file_fixes_sw/s2000.cpp
 		tx/file_fixes_sw/s2010.cpp
 		tx/file_fixes_sw/s2100.cpp
 		tx/file_fixes_sw/s2910.cpp
+		tx/file_fixes_sw/s3000.cpp
+		tx/file_fixes_sw/s3001.cpp
+		tx/file_fixes_sw/s3002.cpp
+		tx/file_fixes_sw/s3110.cpp
+		tx/file_fixes_sw/s4000.cpp
 		tx/file_fixes_sw/s5100.cpp
+		tx/file_fixes_sw/s6100.cpp
 		tx/file_fixes_sw/s7000.cpp
 		tx/file_fixes_sw/s7130.cpp
 		tx/file_fixes_sw/s7200.cpp
@@ -795,20 +819,28 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t_notemons.cpp
 		tx/file_fixes_sw/t_place.cpp
 		tx/file_fixes_sw/t_text.cpp
+		tx/file_fixes_sw/t1000.cpp
+		tx/file_fixes_sw/t1001.cpp
+		tx/file_fixes_sw/t1110.cpp
 		tx/file_fixes_sw/t1120.cpp
 		tx/file_fixes_sw/t1210.cpp
 		tx/file_fixes_sw/t1310.cpp
 		tx/file_fixes_sw/t2000.cpp
+		tx/file_fixes_sw/t2100.cpp
+		tx/file_fixes_sw/t2400.cpp
 		tx/file_fixes_sw/t3000.cpp
 		tx/file_fixes_sw/t3100.cpp
 		tx/file_fixes_sw/t3200.cpp
 		tx/file_fixes_sw/t3300.cpp
 		tx/file_fixes_sw/t4000.cpp
+		tx/file_fixes_sw/t4200.cpp
 		tx/file_fixes_sw/t4300.cpp
 		tx/file_fixes_sw/t5000.cpp
 		tx/file_fixes_sw/t5120.cpp
 		tx/file_fixes_sw/t6000.cpp
+		tx/file_fixes_sw/t6010.cpp
 		tx/file_fixes_sw/t6100.cpp
+		tx/file_fixes_sw/t6400.cpp
 		tx/file_fixes_sw/t6600.cpp
 		tx/file_fixes_sw/tk_akie.cpp
 		tx/file_fixes_sw/tk_gorou.cpp

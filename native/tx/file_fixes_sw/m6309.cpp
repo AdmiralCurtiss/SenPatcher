@@ -33,10 +33,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(
             0x174c, 0x48, 0x1757, 0x4, {{0x48, 0x61, 0x72, 0x75, 0x6e, 0x61}});
 
+        // "#1P#800W#5SPlease#50W...#1000WSave me!"
         // slow print only last character of ellipsis instead of all three
         patcher.ShiftData(0x29b4, 0x29ba, 4);
         bin[0x29b7] = 0x38;
         patcher.RemovePartialCommand(0x299b, 0x31, 0x29b8, 0x1);
+
+        // "#800WIf I'd known, I...\x01#6S#20W#800WI would've prayed for death instead!"
+        // patcher.ReplacePartialCommand(0x56a6, 0x52, 0x56cd, 0x29, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

@@ -35,6 +35,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // "Something must've dumped it here..." -> Someone
         patcher.ReplacePartialCommand(0x3f45f, 0x81, 0x3f469, 0x5, {{0x6f, 0x6e, 0x65}});
 
+        // "#E[3]#M_A#3K#800WWhat are you even doing here#12W,\x01#200WKugayama?"
+        // patcher.ReplacePartialCommand(0x1b9c9, 0x4b, 0x1ba04, 0xe, "");
+
 
         fileSw->SetVectorData(std::move(bin));
         return true;
