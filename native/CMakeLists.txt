@@ -770,6 +770,11 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw.cpp
 		tx/file_fixes_sw.h
 		tx/file_fixes_sw/dungeon_names.h
+		tx/file_fixes_sw/e0000.cpp
+		tx/file_fixes_sw/e0100.cpp
+		tx/file_fixes_sw/e3600.cpp
+		tx/file_fixes_sw/e6000.cpp
+		tx/file_fixes_sw/e9100.cpp
 		tx/file_fixes_sw/m1100.cpp
 		tx/file_fixes_sw/m2190.cpp
 		tx/file_fixes_sw/m3190.cpp
@@ -781,7 +786,10 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/m5801.cpp
 		tx/file_fixes_sw/m6309.cpp
 		tx/file_fixes_sw/m8209.cpp
+		tx/file_fixes_sw/m8300.cpp
+		tx/file_fixes_sw/m8331.cpp
 		tx/file_fixes_sw/m8390.cpp
+		tx/file_fixes_sw/m9090.cpp
 		tx/file_fixes_sw/m9800.cpp
 		tx/file_fixes_sw/m9801.cpp
 		tx/file_fixes_sw/m9810.cpp
@@ -798,11 +806,20 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/s3000.cpp
 		tx/file_fixes_sw/s3001.cpp
 		tx/file_fixes_sw/s3002.cpp
+		tx/file_fixes_sw/s3100.cpp
 		tx/file_fixes_sw/s3110.cpp
+		tx/file_fixes_sw/s3120.cpp
 		tx/file_fixes_sw/s4000.cpp
+		tx/file_fixes_sw/s4100.cpp
+		tx/file_fixes_sw/s5000.cpp
 		tx/file_fixes_sw/s5100.cpp
+		tx/file_fixes_sw/s6000.cpp
 		tx/file_fixes_sw/s6100.cpp
+		tx/file_fixes_sw/s6110.cpp
 		tx/file_fixes_sw/s7000.cpp
+		tx/file_fixes_sw/s7100.cpp
+		tx/file_fixes_sw/s7110.cpp
+		tx/file_fixes_sw/s7120.cpp
 		tx/file_fixes_sw/s7130.cpp
 		tx/file_fixes_sw/s7200.cpp
 		tx/file_fixes_sw/s8000.cpp
@@ -814,7 +831,9 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t_item.cpp
 		tx/file_fixes_sw/t_itemhelp.cpp
 		tx/file_fixes_sw/t_jump.cpp
+		tx/file_fixes_sw/t_magic.cpp
 		tx/file_fixes_sw/t_main_quest.cpp
+		tx/file_fixes_sw/t_notechar.cpp
 		tx/file_fixes_sw/t_notehelp.cpp
 		tx/file_fixes_sw/t_notemons.cpp
 		tx/file_fixes_sw/t_place.cpp
@@ -823,25 +842,38 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t1001.cpp
 		tx/file_fixes_sw/t1110.cpp
 		tx/file_fixes_sw/t1120.cpp
+		tx/file_fixes_sw/t1130.cpp
 		tx/file_fixes_sw/t1210.cpp
 		tx/file_fixes_sw/t1310.cpp
+		tx/file_fixes_sw/t1410.cpp
 		tx/file_fixes_sw/t2000.cpp
+		tx/file_fixes_sw/t2010.cpp
 		tx/file_fixes_sw/t2100.cpp
+		tx/file_fixes_sw/t2200.cpp
+		tx/file_fixes_sw/t2300.cpp
 		tx/file_fixes_sw/t2400.cpp
 		tx/file_fixes_sw/t3000.cpp
 		tx/file_fixes_sw/t3100.cpp
 		tx/file_fixes_sw/t3200.cpp
 		tx/file_fixes_sw/t3300.cpp
 		tx/file_fixes_sw/t4000.cpp
+		tx/file_fixes_sw/t4100.cpp
 		tx/file_fixes_sw/t4200.cpp
 		tx/file_fixes_sw/t4300.cpp
+		tx/file_fixes_sw/t4400.cpp
 		tx/file_fixes_sw/t5000.cpp
+		tx/file_fixes_sw/t5110.cpp
 		tx/file_fixes_sw/t5120.cpp
+		tx/file_fixes_sw/t5130.cpp
 		tx/file_fixes_sw/t6000.cpp
 		tx/file_fixes_sw/t6010.cpp
 		tx/file_fixes_sw/t6100.cpp
+		tx/file_fixes_sw/t6200.cpp
+		tx/file_fixes_sw/t6300.cpp
 		tx/file_fixes_sw/t6400.cpp
+		tx/file_fixes_sw/t6500.cpp
 		tx/file_fixes_sw/t6600.cpp
+		tx/file_fixes_sw/t6700.cpp
 		tx/file_fixes_sw/tk_akie.cpp
 		tx/file_fixes_sw/tk_gorou.cpp
 		tx/file_fixes_sw/tk_haruhiko.cpp

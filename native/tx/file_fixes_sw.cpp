@@ -28,6 +28,11 @@
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
+DECLARE_STANDARD_FIXSW(e0000)
+DECLARE_STANDARD_FIXSW(e0100)
+DECLARE_STANDARD_FIXSW(e3600)
+DECLARE_STANDARD_FIXSW(e6000)
+DECLARE_STANDARD_FIXSW(e9100)
 DECLARE_STANDARD_FIXSW(m1100)
 DECLARE_STANDARD_FIXSW(m2190)
 DECLARE_STANDARD_FIXSW(m3190)
@@ -39,7 +44,10 @@ DECLARE_STANDARD_FIXSW(m5800)
 DECLARE_STANDARD_FIXSW(m5801)
 DECLARE_STANDARD_FIXSW(m6309)
 DECLARE_STANDARD_FIXSW(m8209)
+DECLARE_STANDARD_FIXSW(m8300)
+DECLARE_STANDARD_FIXSW(m8331)
 DECLARE_STANDARD_FIXSW(m8390)
+DECLARE_STANDARD_FIXSW(m9090)
 DECLARE_STANDARD_FIXSW(m9800)
 DECLARE_STANDARD_FIXSW(m9801)
 DECLARE_STANDARD_FIXSW(m9810)
@@ -56,11 +64,20 @@ DECLARE_STANDARD_FIXSW(s2910)
 DECLARE_STANDARD_FIXSW(s3000)
 DECLARE_STANDARD_FIXSW(s3001)
 DECLARE_STANDARD_FIXSW(s3002)
+DECLARE_STANDARD_FIXSW(s3100)
 DECLARE_STANDARD_FIXSW(s3110)
+DECLARE_STANDARD_FIXSW(s3120)
 DECLARE_STANDARD_FIXSW(s4000)
+DECLARE_STANDARD_FIXSW(s4100)
+DECLARE_STANDARD_FIXSW(s5000)
 DECLARE_STANDARD_FIXSW(s5100)
+DECLARE_STANDARD_FIXSW(s6000)
 DECLARE_STANDARD_FIXSW(s6100)
+DECLARE_STANDARD_FIXSW(s6110)
 DECLARE_STANDARD_FIXSW(s7000)
+DECLARE_STANDARD_FIXSW(s7100)
+DECLARE_STANDARD_FIXSW(s7110)
+DECLARE_STANDARD_FIXSW(s7120)
 DECLARE_STANDARD_FIXSW(s7130)
 DECLARE_STANDARD_FIXSW(s7200)
 DECLARE_STANDARD_FIXSW(s8000)
@@ -72,7 +89,9 @@ DECLARE_STANDARD_FIXSW(t_hikitugi)
 DECLARE_STANDARD_FIXSW(t_item)
 DECLARE_STANDARD_FIXSW(t_itemhelp)
 DECLARE_STANDARD_FIXSW(t_jump)
+DECLARE_STANDARD_FIXSW(t_magic)
 DECLARE_STANDARD_FIXSW(t_main)
+DECLARE_STANDARD_FIXSW(t_notechar)
 DECLARE_STANDARD_FIXSW(t_notehelp)
 DECLARE_STANDARD_FIXSW(t_notemons)
 DECLARE_STANDARD_FIXSW(t_place)
@@ -82,25 +101,38 @@ DECLARE_STANDARD_FIXSW(t1000)
 DECLARE_STANDARD_FIXSW(t1001)
 DECLARE_STANDARD_FIXSW(t1110)
 DECLARE_STANDARD_FIXSW(t1120)
+DECLARE_STANDARD_FIXSW(t1130)
 DECLARE_STANDARD_FIXSW(t1210)
 DECLARE_STANDARD_FIXSW(t1310)
+DECLARE_STANDARD_FIXSW(t1410)
 DECLARE_STANDARD_FIXSW(t2000)
+DECLARE_STANDARD_FIXSW(t2010)
 DECLARE_STANDARD_FIXSW(t2100)
+DECLARE_STANDARD_FIXSW(t2200)
+DECLARE_STANDARD_FIXSW(t2300)
 DECLARE_STANDARD_FIXSW(t2400)
 DECLARE_STANDARD_FIXSW(t3000)
 DECLARE_STANDARD_FIXSW(t3100)
 DECLARE_STANDARD_FIXSW(t3200)
 DECLARE_STANDARD_FIXSW(t3300)
 DECLARE_STANDARD_FIXSW(t4000)
+DECLARE_STANDARD_FIXSW(t4100)
 DECLARE_STANDARD_FIXSW(t4200)
 DECLARE_STANDARD_FIXSW(t4300)
+DECLARE_STANDARD_FIXSW(t4400)
 DECLARE_STANDARD_FIXSW(t5000)
+DECLARE_STANDARD_FIXSW(t5110)
 DECLARE_STANDARD_FIXSW(t5120)
+DECLARE_STANDARD_FIXSW(t5130)
 DECLARE_STANDARD_FIXSW(t6000)
 DECLARE_STANDARD_FIXSW(t6010)
 DECLARE_STANDARD_FIXSW(t6100)
+DECLARE_STANDARD_FIXSW(t6200)
+DECLARE_STANDARD_FIXSW(t6300)
 DECLARE_STANDARD_FIXSW(t6400)
+DECLARE_STANDARD_FIXSW(t6500)
 DECLARE_STANDARD_FIXSW(t6600)
+DECLARE_STANDARD_FIXSW(t6700)
 DECLARE_STANDARD_FIXSW(tk_akie)
 DECLARE_STANDARD_FIXSW(tk_gorou)
 DECLARE_STANDARD_FIXSW(tk_haruhiko)
@@ -233,6 +265,11 @@ static bool CollectAssetsSwitch(HyoutaUtils::Logger& logger,
 static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
                              const SenPatcher::GetCheckedFileCallback& callback,
                              std::vector<SenPatcher::P3APackFile>& packFiles) {
+    TRY_APPLY_SW(e0000, TryApply(callback, packFiles));
+    TRY_APPLY_SW(e0100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(e3600, TryApply(callback, packFiles));
+    TRY_APPLY_SW(e6000, TryApply(callback, packFiles));
+    TRY_APPLY_SW(e9100, TryApply(callback, packFiles));
     TRY_APPLY_SW(m1100, TryApply(callback, packFiles));
     TRY_APPLY_SW(m2190, TryApply(callback, packFiles));
     TRY_APPLY_SW(m3190, TryApply(callback, packFiles));
@@ -244,7 +281,10 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(m5801, TryApply(callback, packFiles));
     TRY_APPLY_SW(m6309, TryApply(callback, packFiles));
     TRY_APPLY_SW(m8209, TryApply(callback, packFiles));
+    TRY_APPLY_SW(m8300, TryApply(callback, packFiles));
+    TRY_APPLY_SW(m8331, TryApply(callback, packFiles));
     TRY_APPLY_SW(m8390, TryApply(callback, packFiles));
+    TRY_APPLY_SW(m9090, TryApply(callback, packFiles));
     TRY_APPLY_SW(m9800, TryApply(callback, packFiles));
     TRY_APPLY_SW(m9801, TryApply(callback, packFiles));
     TRY_APPLY_SW(m9810, TryApply(callback, packFiles));
@@ -261,11 +301,20 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(s3000, TryApply(callback, packFiles));
     TRY_APPLY_SW(s3001, TryApply(callback, packFiles));
     TRY_APPLY_SW(s3002, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s3100, TryApply(callback, packFiles));
     TRY_APPLY_SW(s3110, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s3120, TryApply(callback, packFiles));
     TRY_APPLY_SW(s4000, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s4100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s5000, TryApply(callback, packFiles));
     TRY_APPLY_SW(s5100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s6000, TryApply(callback, packFiles));
     TRY_APPLY_SW(s6100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s6110, TryApply(callback, packFiles));
     TRY_APPLY_SW(s7000, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s7100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s7110, TryApply(callback, packFiles));
+    TRY_APPLY_SW(s7120, TryApply(callback, packFiles));
     TRY_APPLY_SW(s7130, TryApply(callback, packFiles));
     TRY_APPLY_SW(s7200, TryApply(callback, packFiles));
     TRY_APPLY_SW(s8000, TryApply(callback, packFiles));
@@ -277,7 +326,9 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(t_item, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_itemhelp, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_jump, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t_magic, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_main, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t_notechar, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notehelp, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notemons, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_place, TryApply(callback, packFiles));
@@ -287,25 +338,38 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(t1001, TryApply(callback, packFiles));
     TRY_APPLY_SW(t1110, TryApply(callback, packFiles));
     TRY_APPLY_SW(t1120, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t1130, TryApply(callback, packFiles));
     TRY_APPLY_SW(t1210, TryApply(callback, packFiles));
     TRY_APPLY_SW(t1310, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t1410, TryApply(callback, packFiles));
     TRY_APPLY_SW(t2000, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t2010, TryApply(callback, packFiles));
     TRY_APPLY_SW(t2100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t2200, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t2300, TryApply(callback, packFiles));
     TRY_APPLY_SW(t2400, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3000, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3100, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3200, TryApply(callback, packFiles));
     TRY_APPLY_SW(t3300, TryApply(callback, packFiles));
     TRY_APPLY_SW(t4000, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t4100, TryApply(callback, packFiles));
     TRY_APPLY_SW(t4200, TryApply(callback, packFiles));
     TRY_APPLY_SW(t4300, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t4400, TryApply(callback, packFiles));
     TRY_APPLY_SW(t5000, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t5110, TryApply(callback, packFiles));
     TRY_APPLY_SW(t5120, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t5130, TryApply(callback, packFiles));
     TRY_APPLY_SW(t6000, TryApply(callback, packFiles));
     TRY_APPLY_SW(t6010, TryApply(callback, packFiles));
     TRY_APPLY_SW(t6100, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t6200, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t6300, TryApply(callback, packFiles));
     TRY_APPLY_SW(t6400, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t6500, TryApply(callback, packFiles));
     TRY_APPLY_SW(t6600, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t6700, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_akie, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_gorou, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_haruhiko, TryApply(callback, packFiles));
