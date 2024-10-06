@@ -257,6 +257,7 @@ MagicData::MagicData(const char* data, size_t dataLength) {
     Unknown1 = stream.ReadUInt16();
     Flags = stream.ReadUTF8Nullterm();
     Unknown2 = stream.ReadArray<0x33>();
+    Animation = stream.ReadUTF8Nullterm();
     Name = stream.ReadUTF8Nullterm();
     Description = stream.ReadUTF8Nullterm();
     assert(stream.GetPosition() == dataLength);
@@ -270,6 +271,7 @@ std::vector<char> MagicData::ToBinary() const {
         ms.WriteUInt16(Unknown1);
         ms.WriteUTF8Nullterm(Flags);
         ms.WriteArray(Unknown2);
+        ms.WriteUTF8Nullterm(Animation);
         ms.WriteUTF8Nullterm(Name);
         ms.WriteUTF8Nullterm(Description);
     }

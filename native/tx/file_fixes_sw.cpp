@@ -94,6 +94,7 @@ DECLARE_STANDARD_FIXSW(t_main)
 DECLARE_STANDARD_FIXSW(t_notechar)
 DECLARE_STANDARD_FIXSW(t_notehelp)
 DECLARE_STANDARD_FIXSW(t_notemons)
+DECLARE_STANDARD_FIXSW(t_orblv)
 DECLARE_STANDARD_FIXSW(t_place)
 DECLARE_STANDARD_FIXSW(t_quest)
 DECLARE_STANDARD_FIXSW(t_text)
@@ -331,6 +332,7 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(t_notechar, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notehelp, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notemons, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t_orblv, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_place, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_quest, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_text, TryApply(callback, packFiles));

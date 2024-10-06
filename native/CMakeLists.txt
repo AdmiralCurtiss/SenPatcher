@@ -836,6 +836,7 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t_notechar.cpp
 		tx/file_fixes_sw/t_notehelp.cpp
 		tx/file_fixes_sw/t_notemons.cpp
+		tx/file_fixes_sw/t_orblv.cpp
 		tx/file_fixes_sw/t_place.cpp
 		tx/file_fixes_sw/t_text.cpp
 		tx/file_fixes_sw/t1000.cpp

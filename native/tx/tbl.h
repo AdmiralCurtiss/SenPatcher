@@ -138,6 +138,7 @@ struct MagicData {
     uint16_t Unknown1;
     std::string Flags;
     std::array<char, 0x33> Unknown2;
+    std::string Animation;
     std::string Name;
     std::string Description;
 

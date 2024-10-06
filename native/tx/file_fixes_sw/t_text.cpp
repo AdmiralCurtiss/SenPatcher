@@ -13,7 +13,7 @@
 
 namespace SenLib::TX::FileFixesSw::t_text {
 std::string_view GetDescription() {
-    return "Sync text IDs with what the PC version expects.";
+    return "Sync text IDs with what the PC version expects and fix a few issues.";
 }
 
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
@@ -118,6 +118,28 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             entry.Data = m.ToBinary();
         }
 
+        // sync Auto-Recover and Brave Soul skill descriptions (when unacquired), see also t_magic
+        {
+            auto& entry = tblSw.Entries[678];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.Str = (m.Str.substr(0, 31)
+                     + "As Support/Partner, restore active character's HP upon their KO.");
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tblSw.Entries[679];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.Str = (m.Str.substr(0, 31) + "Automatically restore HP upon KO.");
+            entry.Data = m.ToBinary();
+        }
+
+        // stray period in Always Off option for EX Skill cut-ins
+        {
+            auto& entry = tblSw.Entries[695];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.Str = m.Str.substr(0, m.Str.size() - 1);
+            entry.Data = m.ToBinary();
+        }
 
         std::vector<char> bin2;
         HyoutaUtils::Stream::MemoryStream ms(bin2);

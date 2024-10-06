@@ -8,6 +8,7 @@
 #include "tx/file_fixes_sw.h"
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
+#include "util/text.h"
 
 namespace SenLib::TX::FileFixesSw::t_magic {
 std::string_view GetDescription() {
@@ -29,6 +30,83 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto& bin = fileSw->GetVectorData();
         SenLib::TX::Tbl tbl(bin.data(), bin.size());
 
+        // the Auto-Recover and Brave Soul skills have confusing descriptions compared to how they
+        // actually work, improve those
+        {
+            auto& entry = tbl.Entries[111];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description =
+                "As Support or Partner, automatically restore 20% of\n"
+                "active character's HP upon their KO (once per labyrinth).";
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tbl.Entries[112];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description =
+                "As Support or Partner, automatically restore 50% of\n"
+                "active character's HP upon their KO (once per labyrinth).";
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tbl.Entries[113];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description =
+                "As Support or Partner, automatically restore all of\n"
+                "active character's HP upon their KO (once per labyrinth).";
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tbl.Entries[115];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description =
+                "Automatically restore 1 HP upon KO\n"
+                "(once per labyrinth).";
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tbl.Entries[116];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description =
+                "Automatically restore 30% of your HP upon KO\n"
+                "(once per labyrinth).";
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tbl.Entries[117];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description =
+                "Automatically restore all of your HP upon KO\n"
+                "(once per labyrinth).";
+            entry.Data = m.ToBinary();
+        }
+
+        // the Boost Combo skill is also slightly weirdly worded and three-line instead of two-line,
+        // fix that
+        {
+            auto& entry = tbl.Entries[119];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description = HyoutaUtils::TextUtils::Replace(m.Description, "\n", " ");
+            m.Description[45] = '\n';
+            m.Description = ("Increase damage dealt" + m.Description.substr(22));
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tbl.Entries[120];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description = HyoutaUtils::TextUtils::Replace(m.Description, "\n", " ");
+            m.Description[45] = '\n';
+            m.Description = ("Increase damage dealt" + m.Description.substr(22));
+            entry.Data = m.ToBinary();
+        }
+        {
+            auto& entry = tbl.Entries[121];
+            MagicData m(entry.Data.data(), entry.Data.size());
+            m.Description = HyoutaUtils::TextUtils::Replace(m.Description, "\n", " ");
+            m.Description[46] = '\n';
+            m.Description = ("Increase damage dealt" + m.Description.substr(22));
+            entry.Data = m.ToBinary();
+        }
 
         std::vector<char> bin2;
         HyoutaUtils::Stream::MemoryStream ms(bin2);
