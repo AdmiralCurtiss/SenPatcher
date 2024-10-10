@@ -53,6 +53,10 @@ void PatchMusicQueueing(PatchExecData& execData);
 // (the game will just use the base model instead)
 void PatchDlcCostumeCrash(PatchExecData& execData);
 
+// fix the out-of-bounds write when the english and french DLC files
+// disagree on the number of entries, which can easily happen with mods
+void PatchDlcLoadFrenchBounds(PatchExecData& execData);
+
 // changes the number of DLCs the game checks for
 void PatchIncreaseDlcCount(PatchExecData& execData, uint32_t newLimit);
 

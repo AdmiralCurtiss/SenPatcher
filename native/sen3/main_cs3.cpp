@@ -533,6 +533,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool fixBgmEnqueue = true;
     int increaseDlcCount = 0x1000;
     bool fixDlcCostumeCrash = true;
+    bool fixDlcFrenchBounds = true;
 
     {
         std::string settingsFilePath;
@@ -601,6 +602,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("CS3", "FixBgmEnqueue", fixBgmEnqueue);
                 check_integer("CS3", "IncreaseDlcCount", increaseDlcCount);
                 check_boolean("CS3", "FixDlcCostumeCrash", fixDlcCostumeCrash);
+                check_boolean("CS3", "FixDlcFrenchBounds", fixDlcFrenchBounds);
             }
         }
     }
@@ -684,6 +686,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     }
     if (fixDlcCostumeCrash) {
         PatchDlcCostumeCrash(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (fixDlcFrenchBounds) {
+        PatchDlcLoadFrenchBounds(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 
