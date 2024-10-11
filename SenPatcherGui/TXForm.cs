@@ -48,6 +48,7 @@ namespace SenPatcherGui {
 				string inipath = System.IO.Path.Combine(Path, "senpatcher_settings.ini");
 				IniFile ini = new IniFile();
 				ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
+				checkBoxAssetPatches.Checked = ini.GetBool("TX", "AssetFixes", true);
 				comboBoxGameLanguage.SelectedIndex = (ini.GetString("TX", "Language", "English").ToLowerInvariant() == "japanese") ? 0 : 1;
 				checkBoxSkipLogos.Checked = ini.GetBool("TX", "SkipLogos", true);
 				checkBoxSkipMovies.Checked = ini.GetBool("TX", "SkipAllMovies", false);
@@ -71,6 +72,7 @@ namespace SenPatcherGui {
 					ini.LoadIniFromString(System.IO.File.ReadAllText(inipath), overwriteExistingValues: false);
 				} catch (Exception) { }
 				ini.LoadIniFromString(Properties.Resources.senpatcher_settings_tx, overwriteExistingValues: true);
+				ini.SetBool("TX", "AssetFixes", checkBoxAssetPatches.Checked);
 				ini.SetString("TX", "Language", comboBoxGameLanguage.SelectedIndex == 0 ? "Japanese" : "English");
 				ini.SetBool("TX", "SkipLogos", checkBoxSkipLogos.Checked);
 				ini.SetBool("TX", "SkipAllMovies", checkBoxSkipMovies.Checked);
