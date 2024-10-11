@@ -29,6 +29,8 @@ void PatchTurboMode(PatchExecData& execData,
     using JC = JumpCondition;
 
     using namespace SenPatcher::x86;
+    char* const addressBeforeTurboEnabledCheck =
+        GetCodeAddressJpEn(version, textRegion, 0x6af4e1, 0x6b0531);
     char* const addressCallCheckButtonPressed =
         GetCodeAddressJpEn(version, textRegion, 0x6af507, 0x6b0557);
     char* const addressButtonBattleAnimationAutoSkip =
@@ -64,17 +66,21 @@ void PatchTurboMode(PatchExecData& execData,
     float* const addrRealTimeStep = &RealTimeStep;
     float* const addrTempStoreMul = &TempStoreMul;
 
-    // hook the function that checks for turbo button held
+    // hook before the turbo-enabled-in-config check and store the unscaled timestamp.
+    // we must do this before the check, otherwise our RealTimeStep is never written in the
+    // turbo-disabled case
     {
         char* codespace = execData.Codespace;
 
         char* const clampValuePtr = codespace;
         HyoutaUtils::MemWrite::WriteAdvUInt32(codespace, 0x3d888889); // 1.0f / 15.0f
 
-        const auto inject = InjectJumpIntoCode<5>(logger, addressCallCheckButtonPressed, codespace);
-        const int32_t relativeOffsetForCall = static_cast<int32_t>(
-            HyoutaUtils::MemRead::ReadUInt32(&inject.OverwrittenInstructions[1]));
-        char* const absolutePositionForCall = inject.JumpBackAddress + relativeOffsetForCall;
+        const auto inject =
+            InjectJumpIntoCode<5>(logger, addressBeforeTurboEnabledCheck, codespace);
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
 
         // store the unscaled timestep so we can use it later for the functions that want that.
         // clamp to 1.0f / 15.0f so long pauses don't cause havoc.
@@ -85,6 +91,22 @@ void PatchTurboMode(PatchExecData& execData,
         WriteInstruction32(codespace, 0xf30f1105); // movss dword ptr[&RealTimeStep],xmm0
         std::memcpy(codespace, &addrRealTimeStep, 4);
         codespace += 4;
+
+        BranchHelper4Byte jmpBack;
+        jmpBack.SetTarget(inject.JumpBackAddress);
+        jmpBack.WriteJump(codespace, JC::JMP);
+
+        execData.Codespace = codespace;
+    }
+
+    // hook the function that checks for turbo button held
+    {
+        char* codespace = execData.Codespace;
+
+        const auto inject = InjectJumpIntoCode<5>(logger, addressCallCheckButtonPressed, codespace);
+        const int32_t relativeOffsetForCall = static_cast<int32_t>(
+            HyoutaUtils::MemRead::ReadUInt32(&inject.OverwrittenInstructions[1]));
+        char* const absolutePositionForCall = inject.JumpBackAddress + relativeOffsetForCall;
 
         BranchHelper4Byte call;
         call.SetTarget(absolutePositionForCall);
