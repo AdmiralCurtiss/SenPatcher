@@ -24,6 +24,8 @@ void PatchTurboMode(PatchExecData& execData, bool makeToggle, bool adjustTimersF
     using namespace SenPatcher::x64;
     using JC = JumpCondition;
 
+    char* const addressBeforeTurboEnabledCheck =
+        GetCodeAddressJpEn(version, textRegion, 0x14012f7f2, 0x140132f82);
     char* const addressJumpAfterTestCheckButtonPressed =
         GetCodeAddressJpEn(version, textRegion, 0x14012f82f, 0x140132fbf);
     char* const addressLoadTimeStepForLipflaps12 =
@@ -36,14 +38,42 @@ void PatchTurboMode(PatchExecData& execData, bool makeToggle, bool adjustTimersF
         GetCodeAddressJpEn(version, textRegion, 0x1402c8ecb, 0x1402d072b);
     char* const addressLoadTimeStepForGameplayTimer =
         GetCodeAddressJpEn(version, textRegion, 0x1403210bc, 0x14032a5cc);
-    float* const addrRealTimeStep = &RealTimeStep;
 
-    // hook the function that checks for turbo button held
+    // hook before the turbo-enabled-in-config check and store the unscaled timestamp.
+    // we must do this before the check, otherwise our RealTimeStep is never written in the
+    // turbo-disabled case
     {
         char* codespace = execData.Codespace;
 
         char* const clampValuePtr = codespace;
         HyoutaUtils::MemWrite::WriteAdvUInt32(codespace, 0x3d888889); // 1.0f / 15.0f
+
+        const auto inject =
+            InjectJumpIntoCode<12>(logger, addressBeforeTurboEnabledCheck, R64::RDI, codespace);
+        std::memcpy(codespace,
+                    inject.OverwrittenInstructions.data(),
+                    inject.OverwrittenInstructions.size());
+        codespace += inject.OverwrittenInstructions.size();
+
+        // store the unscaled timestep so we can use it later for the functions that want that.
+        // clamp to 1.0f / 15.0f so long pauses don't cause havoc.
+        Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(&RealTimeStep));
+        WriteInstruction24(codespace, 0x0f28c1);   // movaps xmm0,xmm1
+        WriteInstruction32(codespace, 0xf30f5d05); // minss xmm0,dword ptr[clampValuePtr]
+        int32_t clampValuePtrRelative = static_cast<int32_t>(clampValuePtr - (codespace + 4));
+        std::memcpy(codespace, &clampValuePtrRelative, 4);
+        codespace += 4;
+        WriteInstruction32(codespace, 0xf30f1101); // movss dword ptr[rcx],xmm0
+
+        Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(inject.JumpBackAddress));
+        Emit_JMP_R64(codespace, R64::RCX);
+
+        execData.Codespace = codespace;
+    }
+
+    // hook the function that checks for turbo button held
+    {
+        char* codespace = execData.Codespace;
 
         const auto inject = InjectJumpIntoCode<12>(
             logger, addressJumpAfterTestCheckButtonPressed, R64::RCX, codespace);
@@ -51,16 +81,6 @@ void PatchTurboMode(PatchExecData& execData, bool makeToggle, bool adjustTimersF
             static_cast<int32_t>(static_cast<int8_t>(inject.OverwrittenInstructions[1]));
         char* const absolutePositionForJump =
             addressJumpAfterTestCheckButtonPressed + 2 + relativeOffsetForJump;
-
-        // store the unscaled timestep so we can use it later for the functions that want that.
-        // clamp to 1.0f / 15.0f so long pauses don't cause havoc.
-        Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(&RealTimeStep));
-        WriteInstruction24(codespace, 0x0f28c6);   // movaps xmm0,xmm6
-        WriteInstruction32(codespace, 0xf30f5d05); // minss xmm0,dword ptr[clampValuePtr]
-        int32_t clampValuePtrRelative = static_cast<int32_t>(clampValuePtr - (codespace + 4));
-        std::memcpy(codespace, &clampValuePtrRelative, 4);
-        codespace += 4;
-        WriteInstruction32(codespace, 0xf30f1101); // movss dword ptr[rcx],xmm0
 
         // al is now nonzero if the turbo button is held, or zero if it's not
         // we need to return in al whether turbo should be active for the next frame
