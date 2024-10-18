@@ -994,6 +994,7 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		sen3/exe_patch.h
 		sen3/exe_patch_add_senpatcher_version_to_title.cpp
 		sen3/exe_patch_allow_switch_to_nightmare.cpp
+		sen3/exe_patch_custom_dlc_multiuse.cpp
 		sen3/exe_patch_deglobalize_mutexes.cpp
 		sen3/exe_patch_disable_crash_reporter.cpp
 		sen3/exe_patch_disable_mouse_capture.cpp

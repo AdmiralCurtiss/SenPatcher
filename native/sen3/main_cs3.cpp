@@ -534,6 +534,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     int increaseDlcCount = 0x1000;
     bool fixDlcCostumeCrash = true;
     bool fixDlcFrenchBounds = true;
+    bool allowCustomDlcMultiuse = true;
 
     {
         std::string settingsFilePath;
@@ -603,6 +604,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_integer("CS3", "IncreaseDlcCount", increaseDlcCount);
                 check_boolean("CS3", "FixDlcCostumeCrash", fixDlcCostumeCrash);
                 check_boolean("CS3", "FixDlcFrenchBounds", fixDlcFrenchBounds);
+                check_boolean("CS3", "AllowCustomDlcMultiuse", allowCustomDlcMultiuse);
             }
         }
     }
@@ -692,6 +694,11 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
         PatchDlcLoadFrenchBounds(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
+    if (allowCustomDlcMultiuse) {
+        PatchCustomDlcMultiuse(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+
 
     // mark newly allocated page as executable
     {
