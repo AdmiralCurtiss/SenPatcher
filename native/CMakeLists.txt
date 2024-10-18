@@ -1145,6 +1145,7 @@ if (SENPATCHER_BUILD_REVHOOK)
 
 		sen5/exe_patch.h
 		sen5/exe_patch_add_senpatcher_version_to_title.cpp
+		sen5/exe_patch_custom_dlc_multiuse.cpp
 		sen5/exe_patch_disable_fps_limit_on_focus_loss.cpp
 		sen5/exe_patch_disable_mouse_capture.cpp
 		sen5/exe_patch_dlc_costume_crash.cpp
