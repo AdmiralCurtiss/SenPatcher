@@ -52,4 +52,7 @@ void PatchDlcCostumeCrash(PatchExecData& execData);
 // changes the number of DLCs the game checks for
 void PatchIncreaseDlcCount(PatchExecData& execData, uint32_t newLimit);
 
+// removes the already-used checks for custom DLC. official DLC is unaffected.
+void PatchCustomDlcMultiuse(PatchExecData& execData);
+
 } // namespace SenLib::Sen4

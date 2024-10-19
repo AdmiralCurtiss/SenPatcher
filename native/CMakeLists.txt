@@ -1073,6 +1073,7 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		sen4/exe_patch.h
 		sen4/exe_patch_add_senpatcher_version_to_title.cpp
 		sen4/exe_patch_allow_switch_to_nightmare.cpp
+		sen4/exe_patch_custom_dlc_multiuse.cpp
 		sen4/exe_patch_deglobalize_mutexes.cpp
 		sen4/exe_patch_disable_mouse_capture.cpp
 		sen4/exe_patch_disable_pause_on_focus_loss.cpp
