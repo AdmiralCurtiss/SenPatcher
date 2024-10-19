@@ -12,12 +12,6 @@
 #include "Windows.h"
 
 namespace SenLib::Sen3 {
-static void DebugPrintFree(uint64_t address) {
-    char buffer[256];
-    sprintf(buffer, "Thread %d: free(0x%016llx)\n", GetCurrentThreadId(), address);
-    OutputDebugStringA(buffer);
-}
-
 void PatchDlcLoadFrenchBounds(PatchExecData& execData) {
     if (execData.Version == GameVersion::Japanese) {
         // Japanese version doesn't have this bug
