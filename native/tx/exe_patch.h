@@ -47,4 +47,5 @@ void PatchShowMouseCursor(PatchExecData& execData);
 void PatchEnableBackgroundControllerInput(PatchExecData& execData);
 void PatchValidDlcIds(PatchExecData& execData, char* validDlcBitfield, size_t maxDlcId);
 void ForceMG04UVs(PatchExecData& execData);
+void PatchEnableWav(PatchExecData& execData, void* ffileGetFilesizeForwarder);
 } // namespace SenLib::TX

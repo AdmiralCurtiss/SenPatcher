@@ -738,6 +738,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool makeTurboToggle = false;
     float turboModeFactor = 2.0f;
     bool forceRegularMG04UVs = false;
+    bool enableWavFiles = false;
 
     {
         std::string settingsFilePath;
@@ -820,6 +821,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 check_boolean("TX", "SkipAllMovies", skipAllMovies);
                 check_boolean("TX", "MakeTurboToggle", makeTurboToggle);
                 check_float("TX", "TurboModeFactor", turboModeFactor);
+                check_boolean("TX", "EnableWavFiles", enableWavFiles);
 
                 // read valid DLC bitfields from the ini
                 {
@@ -961,6 +963,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     }
     if (forceRegularMG04UVs) {
         SenLib::TX::ForceMG04UVs(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (enableWavFiles) {
+        SenLib::TX::PatchEnableWav(patchExecData, &FFileGetFilesizeForwarder);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 
