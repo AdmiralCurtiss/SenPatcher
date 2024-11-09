@@ -188,9 +188,13 @@ static_assert(offsetof(FFile, MemoryPosition) == 0x18);
 using PTrackedMalloc = void*(
     __cdecl*)(uint32_t size, uint32_t alignment, const char* file, uint32_t line, uint32_t unknown);
 using PTrackedFree = void(__cdecl*)(void* memory);
+using PPrFileMalloc = void*(__cdecl*)(uint32_t size);
+using PPPrFileFree = void(__cdecl**)(void* memory);
 
 static PTrackedMalloc s_TrackedMalloc = nullptr;
 static PTrackedFree s_TrackedFree = nullptr;
+static PPrFileMalloc s_PrFileBufferMalloc = nullptr;
+static PPPrFileFree s_Ptr_PrFileBufferFree = nullptr;
 
 static SenLib::ModLoad::LoadedP3AData s_LoadedVanillaP3As{};
 static SenLib::ModLoad::LoadedModsData s_LoadedModsData{};
@@ -451,12 +455,150 @@ static int32_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
     return -1;
 }
 
+// returns:
+// 0 if we should report that the file open failed
+// 1 if we should report that the file open succeeded
+// -1 if the original function should continue running
+static int32_t OpenPrModFile(SenLib::TX::PrFileHelperStruct* prFile, const char* path) {
+    if (!IsValidReroutablePath(path)) {
+        return -1;
+    }
+
+    if (s_LoadedModsData.CheckDevFolderForAssets) {
+        const size_t path_len = strlen(path);
+        std::string tmp;
+        tmp.reserve(4 + path_len);
+        tmp.append("dev/");
+        tmp.append(path);
+
+        HyoutaUtils::IO::File file(std::string_view(tmp), HyoutaUtils::IO::OpenMode::Read);
+        if (file.IsOpen()) {
+            auto length = file.GetLength();
+            if (!length) {
+                return 0;
+            }
+            const uint32_t bufferSize = static_cast<uint32_t>(*length);
+            void* memory = s_PrFileBufferMalloc(bufferSize);
+            if (!memory) {
+                return 0;
+            }
+            if (file.Read(memory, bufferSize) != bufferSize) {
+                (*s_Ptr_PrFileBufferFree)(memory);
+                return 0;
+            }
+
+            prFile->BufferSize = bufferSize;
+            prFile->DataBuffer = memory;
+            return 1;
+        }
+    }
+
+    std::array<char, 0x100> filteredPath;
+    if (!SenLib::ModLoad::FilterGamePath(filteredPath.data(), path, filteredPath.size())) {
+        return -1;
+    }
+
+    const SenLib::ModLoad::P3AFileRef* refptr =
+        FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
+    if (refptr == nullptr) {
+        refptr = FindP3AFileRef(s_LoadedVanillaP3As, filteredPath);
+    }
+    if (refptr != nullptr) {
+        void* memory = nullptr;
+        uint64_t filesize = 0;
+        if (!SenLib::ModLoad::ExtractP3AFileToMemory(
+                *refptr,
+                0x8000'0000,
+                memory,
+                filesize,
+                [](size_t length) { return s_PrFileBufferMalloc(length); },
+                [](void* memory) { (*s_Ptr_PrFileBufferFree)(memory); })) {
+            return 0;
+        }
+        prFile->BufferSize = static_cast<uint32_t>(filesize);
+        prFile->DataBuffer = memory;
+        return 1;
+    }
+
+    const auto& pkaData = s_LoadedPkaData;
+    const auto checkPka = [&](SenLib::PkaPkgToHashData* pkgs,
+                              size_t pkgCount,
+                              SenLib::PkaFileHashData* pkgFiles,
+                              size_t pkgFilesCount) -> int32_t {
+        if (pkgCount > 0) {
+            // check for data in the PKA
+            const SenLib::PkaPkgToHashData* pkaPkg =
+                SenLib::FindPkgInPkaByName(pkgs, pkgCount, filteredPath.data());
+            if (pkaPkg) {
+                // check bounds
+                // 0x120'0000 is an arbitrary limit; it would result in an allocation of near 2 GB
+                // just for the header which is bound to fail in 32-bit address space anyway
+                if (pkaPkg->FileCount > 0x120'0000 || pkaPkg->FileOffset > pkgFilesCount
+                    || pkaPkg->FileCount > pkgFilesCount - pkaPkg->FileOffset) {
+                    return 0;
+                }
+
+                size_t length = 8 + (pkaPkg->FileCount * (0x50 + 0x20));
+                void* memory = s_PrFileBufferMalloc(length);
+                if (!memory) {
+                    return 0;
+                }
+
+                // build fake pkg
+                if (!SenLib::ModLoad::BuildFakePkaPkg(
+                        (char*)memory, pkaPkg, pkgFiles, pkaData.Files.get(), pkaData.FilesCount)) {
+                    (*s_Ptr_PrFileBufferFree)(memory);
+                    return 0;
+                }
+
+                prFile->BufferSize = static_cast<uint32_t>(length);
+                prFile->DataBuffer = memory;
+                return 1;
+            }
+        }
+        return -1;
+    };
+
+    if (s_JapaneseLanguage) {
+        int32_t pkaCheckResult2 = checkPka(pkaData.SecondaryPkgs.get(),
+                                           pkaData.SecondaryPkgCount,
+                                           pkaData.SecondaryPkgFiles.get(),
+                                           pkaData.SecondaryPkgFilesCount);
+        if (pkaCheckResult2 >= 0) {
+            return pkaCheckResult2;
+        }
+    }
+    int32_t pkaCheckResult1 = checkPka(pkaData.PrimaryPkgs.get(),
+                                       pkaData.PrimaryPkgCount,
+                                       pkaData.PrimaryPkgFiles.get(),
+                                       pkaData.PrimaryPkgFilesCount);
+    if (pkaCheckResult1 >= 0) {
+        return pkaCheckResult1;
+    }
+
+    return -1;
+}
+
 static int32_t __fastcall FFileOpenForwarder(FFile* ffile, const char* path) {
+    // OutputDebugStringA("called FFileOpenForwarder(): ");
+    // OutputDebugStringA(path);
+    // OutputDebugStringA("\n");
     return OpenModFile(ffile, path);
 }
 
 static int32_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* out_filesize) {
+    // OutputDebugStringA("called FFileGetFilesizeForwarder(): ");
+    // OutputDebugStringA(path);
+    // OutputDebugStringA("\n");
     return GetFilesizeOfModFile(path, out_filesize);
+}
+
+static int32_t __fastcall PrFileOpenForwarder(SenLib::TX::PrFileHelperStruct* prFile,
+                                              const char* path) {
+    // OutputDebugStringA("called PrFileOpenForwarder(): ");
+    // OutputDebugStringA(path);
+    // OutputDebugStringA("\n");
+    return OpenPrModFile(prFile, path);
 }
 
 struct PkgSingleFileHeader {
@@ -706,6 +848,12 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     s_TrackedFree = reinterpret_cast<PTrackedFree>(
         static_cast<char*>(codeBase)
         + (version == GameVersion::Steam ? (0x7c1110 - 0x401000) : (0x7bf850 - 0x401000)));
+    s_PrFileBufferMalloc = reinterpret_cast<PPrFileMalloc>(
+        static_cast<char*>(codeBase)
+        + (version == GameVersion::Steam ? (0x40ac70 - 0x401000) : (0x409d90 - 0x401000)));
+    s_Ptr_PrFileBufferFree = reinterpret_cast<PPPrFileFree>(
+        static_cast<char*>(codeBase)
+        + (version == GameVersion::Steam ? (0x9781ec - 0x401000) : (0x9771ec - 0x401000)));
 
     char* newPageStart = newPage;
     char* newPageEnd = newPage + newPageLength;
@@ -936,6 +1084,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     SenLib::TX::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::TX::InjectAtPrFileOpen(patchExecData, &PrFileOpenForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::TX::AddSenPatcherVersionToTitle(patchExecData, s_LoadedModsData, !assetCreationSuccess);
