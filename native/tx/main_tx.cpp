@@ -188,7 +188,7 @@ static_assert(offsetof(FFile, MemoryPosition) == 0x18);
 using PTrackedMalloc = void*(
     __cdecl*)(uint32_t size, uint32_t alignment, const char* file, uint32_t line, uint32_t unknown);
 using PTrackedFree = void(__cdecl*)(void* memory);
-using PPrFileMalloc = void*(__cdecl*)(uint32_t size);
+using PPrFileMalloc = void*(__fastcall*)(uint32_t size);
 using PPPrFileFree = void(__cdecl**)(void* memory);
 
 static PTrackedMalloc s_TrackedMalloc = nullptr;
