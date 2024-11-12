@@ -247,4 +247,100 @@ void InjectAtPrFileOpen(PatchExecData& execData, void* prFileOpenForwarder) {
 
     execData.Codespace = codespace;
 }
+
+void InjectAtPrFileExists(PatchExecData& execData, void* ffileGetFilesizeForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
+    using namespace SenPatcher::x86;
+
+    // note that there's a very similar function at 0x407bb0 that instead of returning true/false,
+    // it returns a pointer to the struct. we intentionally do *not* inject there and only return
+    // the vanilla BRA files for that -- that code is only reached in the 'no modded file, load
+    // vanilla file' case, so it would be pointless to inject there.
+
+    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x408120, 0x407c60);
+
+    char* codespaceBegin = codespace;
+    auto injectResult = InjectJumpIntoCode<5>(logger, entryPoint, codespaceBegin);
+    BranchHelper4Byte jump_back;
+    jump_back.SetTarget(injectResult.JumpBackAddress);
+    const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+
+    BranchHelper4Byte ffile_get_size_forwarder;
+    ffile_get_size_forwarder.SetTarget(static_cast<char*>(ffileGetFilesizeForwarder));
+
+    // call forwarder
+    Emit_PUSH_R32(codespace, R32::ECX); // store this pointer
+    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::ESP, 8);
+    Emit_XOR_R32_R32(codespace, R32::EDX, R32::EDX);
+    ffile_get_size_forwarder.WriteJump(codespace, JumpCondition::CALL);
+    Emit_POP_R32(codespace, R32::ECX); // restore this pointer
+
+    // check result
+    Emit_TEST_R32_R32(codespace, R32::EAX, R32::EAX);
+    BranchHelper1Byte success;
+    success.WriteJump(codespace, JumpCondition::JNS);
+
+    // if we have no injected file proceed with normal function
+    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+    codespace += overwrittenInstructions.size();
+    jump_back.WriteJump(codespace, JumpCondition::JMP);
+
+    // if we have an injected file return true
+    success.SetTarget(codespace);
+    Emit_MOV_R8_IMM8(codespace, R8::AL, 1);
+    Emit_RET_IMM16(codespace, 4);
+
+    execData.Codespace = codespace;
+}
+
+void InjectAtPrFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
+    using namespace SenPatcher::x86;
+
+    char* const entryPoint = GetCodeAddressSteamGog(version, textRegion, 0x4080c0, 0x407c00);
+
+    char* codespaceBegin = codespace;
+    auto injectResult =
+        InjectJumpIntoCode<7, PaddingInstruction::Nop>(logger, entryPoint, codespaceBegin);
+    BranchHelper4Byte jump_back;
+    jump_back.SetTarget(injectResult.JumpBackAddress);
+    const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+
+    BranchHelper4Byte ffile_get_size_forwarder;
+    ffile_get_size_forwarder.SetTarget(static_cast<char*>(ffileGetFilesizeForwarder));
+
+    // call forwarder
+    Emit_PUSH_R32(codespace, R32::ECX);    // store this pointer
+    WriteInstruction16(codespace, 0x6a00); // push 0 ; create stack space for returned filesize
+    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::ESP, 12);
+    Emit_MOV_R32_R32(codespace, R32::EDX, R32::ESP);
+    ffile_get_size_forwarder.WriteJump(codespace, JumpCondition::CALL);
+    Emit_POP_R32(codespace, R32::EDX); // move returned filesize into edx
+    Emit_POP_R32(codespace, R32::ECX); // restore this pointer
+
+    // check result
+    Emit_TEST_R32_R32(codespace, R32::EAX, R32::EAX);
+    BranchHelper1Byte success;
+    success.WriteJump(codespace, JumpCondition::JNS);
+
+    // if we have no injected file proceed with normal function
+    std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+    codespace += overwrittenInstructions.size();
+    jump_back.WriteJump(codespace, JumpCondition::JMP);
+
+    // if we have an injected file just return immediately
+    success.SetTarget(codespace);
+    Emit_MOV_R32_R32(codespace, R32::EAX, R32::EDX);
+    Emit_RET_IMM16(codespace, 4);
+
+    execData.Codespace = codespace;
+}
 } // namespace SenLib::TX

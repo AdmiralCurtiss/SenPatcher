@@ -24,4 +24,6 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder);
 void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder);
 void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder);
 void InjectAtPrFileOpen(PatchExecData& execData, void* prFileOpenForwarder);
+void InjectAtPrFileExists(PatchExecData& execData, void* ffileGetFilesizeForwarder);
+void InjectAtPrFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder);
 } // namespace SenLib::TX

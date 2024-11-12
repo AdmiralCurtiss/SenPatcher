@@ -1087,6 +1087,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::InjectAtPrFileOpen(patchExecData, &PrFileOpenForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::TX::InjectAtPrFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::TX::InjectAtPrFileExists(patchExecData, &FFileGetFilesizeForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::TX::AddSenPatcherVersionToTitle(patchExecData, s_LoadedModsData, !assetCreationSuccess);
     Align16CodePage(logger, patchExecData.Codespace);
