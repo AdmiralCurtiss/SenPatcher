@@ -33,6 +33,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+// #define DEBUG_OUTPUT_FOR_INJECTED_FILES
+
 using SenLib::TX::GameVersion;
 
 using PDirectInput8Create = HRESULT(
@@ -580,25 +582,66 @@ static int32_t OpenPrModFile(SenLib::TX::PrFileHelperStruct* prFile, const char*
 }
 
 static int32_t __fastcall FFileOpenForwarder(FFile* ffile, const char* path) {
-    // OutputDebugStringA("called FFileOpenForwarder(): ");
-    // OutputDebugStringA(path);
-    // OutputDebugStringA("\n");
-    return OpenModFile(ffile, path);
+#ifdef DEBUG_OUTPUT_FOR_INJECTED_FILES
+    OutputDebugStringA("called FFileOpenForwarder(): ");
+    OutputDebugStringA(path);
+#endif
+    const int32_t result = OpenModFile(ffile, path);
+#ifdef DEBUG_OUTPUT_FOR_INJECTED_FILES
+    if (result < 0) {
+        OutputDebugStringA("  -> no modded file\n");
+    } else if (result > 0) {
+        OutputDebugStringA("  -> success\n");
+    } else {
+        OutputDebugStringA("  -> fail\n");
+    }
+#endif
+    return result;
 }
 
 static int32_t __fastcall FFileGetFilesizeForwarder(const char* path, uint32_t* out_filesize) {
-    // OutputDebugStringA("called FFileGetFilesizeForwarder(): ");
-    // OutputDebugStringA(path);
-    // OutputDebugStringA("\n");
-    return GetFilesizeOfModFile(path, out_filesize);
+#ifdef DEBUG_OUTPUT_FOR_INJECTED_FILES
+    OutputDebugStringA("called FFileGetFilesizeForwarder(): ");
+    OutputDebugStringA(path);
+#endif
+    const int32_t result = GetFilesizeOfModFile(path, out_filesize);
+#ifdef DEBUG_OUTPUT_FOR_INJECTED_FILES
+    if (result < 0) {
+        OutputDebugStringA("  -> no modded file\n");
+    } else if (result > 0) {
+        if (out_filesize) {
+            OutputDebugStringA("  -> success, filesize = ");
+            char buffer[32];
+            sprintf(buffer, "%u", *out_filesize);
+            OutputDebugStringA(buffer);
+            OutputDebugStringA("\n");
+        } else {
+            OutputDebugStringA("  -> success\n");
+        }
+    } else {
+        OutputDebugStringA("  -> fail\n");
+    }
+#endif
+    return result;
 }
 
 static int32_t __fastcall PrFileOpenForwarder(SenLib::TX::PrFileHelperStruct* prFile,
                                               const char* path) {
-    // OutputDebugStringA("called PrFileOpenForwarder(): ");
-    // OutputDebugStringA(path);
-    // OutputDebugStringA("\n");
-    return OpenPrModFile(prFile, path);
+#ifdef DEBUG_OUTPUT_FOR_INJECTED_FILES
+    OutputDebugStringA("called PrFileOpenForwarder(): ");
+    OutputDebugStringA(path);
+#endif
+    const int32_t result = OpenPrModFile(prFile, path);
+#ifdef DEBUG_OUTPUT_FOR_INJECTED_FILES
+    if (result < 0) {
+        OutputDebugStringA("  -> no modded file\n");
+    } else if (result > 0) {
+        OutputDebugStringA("  -> success\n");
+    } else {
+        OutputDebugStringA("  -> fail\n");
+    }
+#endif
+    return result;
 }
 
 struct PkgSingleFileHeader {
@@ -887,6 +930,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     float turboModeFactor = 2.0f;
     bool forceRegularMG04UVs = false;
     bool enableWavFiles = false;
+    bool preferFFileHandle = false;
 
     {
         std::string settingsFilePath;
@@ -970,6 +1014,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 check_boolean("TX", "MakeTurboToggle", makeTurboToggle);
                 check_float("TX", "TurboModeFactor", turboModeFactor);
                 check_boolean("TX", "EnableWavFiles", enableWavFiles);
+                check_boolean("TX", "PreferFFileHandle", preferFFileHandle);
 
                 // read valid DLC bitfields from the ini
                 {
@@ -1079,8 +1124,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
 
     SenLib::TX::OverrideLanguage(patchExecData, useJapaneseLanguage);
 
-    SenLib::TX::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
-    Align16CodePage(logger, patchExecData.Codespace);
+    if (preferFFileHandle) {
+        SenLib::TX::InjectAtFFileOpen(patchExecData, &FFileOpenForwarder);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
     SenLib::TX::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
