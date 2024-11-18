@@ -8,6 +8,11 @@
 #include "x86/emitter.h"
 #include "x86/inject_jump_into.h"
 
+#ifdef DEBUG_PR_FILE_LIFETIME
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
+
 // namespace {
 // struct PrFileHandleMem {
 //     void* vfuncptr;
@@ -234,13 +239,12 @@ void InjectAtPrFileOpen(PatchExecData& execData, void* prFileOpenForwarder) {
     init_prFileHandleMem.SetTarget(prFileHandleMemCtor);
     init_prFileHandleMem.WriteJump(codespace, JumpCondition::CALL);
 
-    WriteInstruction32(codespace, 0x8b4c2404); // mov ecx,dword ptr[esp+4]
-    WriteInstruction24(codespace, 0x894808);   // mov dword ptr[eax+8h],ecx
-    WriteInstruction24(codespace, 0x89481c);   // mov dword ptr[eax+1ch],ecx
-    WriteInstruction24(codespace, 0x8b0c24);   // mov ecx,dword ptr[esp]
-    WriteInstruction24(codespace, 0x894820);   // mov dword ptr[eax+20h],ecx
+    Emit_POP_R32(codespace, R32::ECX);
+    WriteInstruction24(codespace, 0x894820); // mov dword ptr[eax+20h],ecx
+    Emit_POP_R32(codespace, R32::ECX);
+    WriteInstruction24(codespace, 0x894808); // mov dword ptr[eax+8h],ecx
+    WriteInstruction24(codespace, 0x89481c); // mov dword ptr[eax+1ch],ecx
 
-    Emit_ADD_R32_IMM32(codespace, R32::ESP, 8);
     BranchHelper4Byte success_exit;
     success_exit.SetTarget(exitPoint);
     success_exit.WriteJump(codespace, JumpCondition::JMP);
@@ -343,4 +347,145 @@ void InjectAtPrFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFo
 
     execData.Codespace = codespace;
 }
+
+#ifdef DEBUG_PR_FILE_LIFETIME
+namespace {
+struct PrFileHandle {
+    void* vfuncptr;
+    uint32_t Unknown1;
+    uint32_t DataLength;
+};
+static_assert(offsetof(PrFileHandle, vfuncptr) == 0);
+static_assert(offsetof(PrFileHandle, DataLength) == 0x8);
+} // namespace
+
+static void __fastcall LogConstructedPrFile(PrFileHandle* handle, const char* filename) {
+    char buffer[512];
+
+    if (!handle) {
+        sprintf(buffer, "Returning null PrFile for: %s\n", filename);
+    } else {
+        sprintf(buffer,
+                "Constructed PrFile at 0x%08x (vtbl 0x%08x, filesize %u): %s\n",
+                std::bit_cast<uint32_t>(handle),
+                std::bit_cast<uint32_t>(handle->vfuncptr),
+                handle->DataLength,
+                filename);
+    }
+
+    OutputDebugStringA(buffer);
+}
+
+static void __fastcall LogDestructedPrFile(PrFileHandle* handle) {
+    char buffer[512];
+
+    sprintf(buffer,
+            "Destructing PrFile at 0x%08x (vtbl 0x%08x, filesize %u)\n",
+            std::bit_cast<uint32_t>(handle),
+            std::bit_cast<uint32_t>(handle->vfuncptr),
+            handle->DataLength);
+
+    OutputDebugStringA(buffer);
+}
+
+void InjectDebugCodeForPrFileLifetime(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
+    using namespace SenPatcher::x86;
+
+    char* const openPrFileReturn = GetCodeAddressSteamGog(version, textRegion, 0, 0x408403);
+    char* const prFileHandleDtor = GetCodeAddressSteamGog(version, textRegion, 0, 0x40f9c3);
+    char* const prFileHandleMemDtor = GetCodeAddressSteamGog(version, textRegion, 0, 0x4100e6);
+    char* const prFileHandleZipDtor = GetCodeAddressSteamGog(version, textRegion, 0, 0x411560);
+
+    // {
+    //     // leak audio files
+    //     char* addr = GetCodeAddressSteamGog(version, textRegion, 0, 0x446ea2);
+    //     PageUnprotect page(logger, addr, 1);
+    //     *addr = 0xeb;
+    // }
+
+    {
+        auto injectResult = InjectJumpIntoCode<6>(logger, openPrFileReturn, codespace);
+        const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+
+        BranchHelper4Byte log_func;
+        void* logOpenedPrFileFunc = LogConstructedPrFile;
+        log_func.SetTarget(static_cast<char*>(logOpenedPrFileFunc));
+
+        Emit_PUSH_R32(codespace, R32::EAX);
+        Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::EBP, 8);
+        Emit_MOV_R32_R32(codespace, R32::ECX, R32::EAX);
+        log_func.WriteJump(codespace, JumpCondition::CALL);
+        Emit_POP_R32(codespace, R32::EAX);
+
+        std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+        codespace += overwrittenInstructions.size();
+    }
+
+    {
+        auto injectResult = InjectJumpIntoCode<5>(logger, prFileHandleDtor, codespace);
+        BranchHelper4Byte jump_back;
+        jump_back.SetTarget(injectResult.JumpBackAddress);
+        const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+
+        BranchHelper4Byte log_func;
+        void* logDestructedPrFileFunc = LogDestructedPrFile;
+        log_func.SetTarget(static_cast<char*>(logDestructedPrFileFunc));
+
+        Emit_PUSH_R32(codespace, R32::ECX);
+        log_func.WriteJump(codespace, JumpCondition::CALL);
+        Emit_POP_R32(codespace, R32::ECX);
+
+        std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+        codespace += overwrittenInstructions.size();
+        jump_back.WriteJump(codespace, JumpCondition::JMP);
+    }
+
+    {
+        auto injectResult =
+            InjectJumpIntoCode<6, PaddingInstruction::Nop>(logger, prFileHandleMemDtor, codespace);
+        BranchHelper4Byte jump_back;
+        jump_back.SetTarget(injectResult.JumpBackAddress);
+        const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+
+        BranchHelper4Byte log_func;
+        void* logDestructedPrFileFunc = LogDestructedPrFile;
+        log_func.SetTarget(static_cast<char*>(logDestructedPrFileFunc));
+
+        Emit_PUSH_R32(codespace, R32::ECX);
+        log_func.WriteJump(codespace, JumpCondition::CALL);
+        Emit_POP_R32(codespace, R32::ECX);
+
+        std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+        codespace += overwrittenInstructions.size();
+        jump_back.WriteJump(codespace, JumpCondition::JMP);
+    }
+
+    {
+        auto injectResult =
+            InjectJumpIntoCode<6, PaddingInstruction::Nop>(logger, prFileHandleZipDtor, codespace);
+        BranchHelper4Byte jump_back;
+        jump_back.SetTarget(injectResult.JumpBackAddress);
+        const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+        std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+        codespace += overwrittenInstructions.size();
+
+        BranchHelper4Byte log_func;
+        void* logDestructedPrFileFunc = LogDestructedPrFile;
+        log_func.SetTarget(static_cast<char*>(logDestructedPrFileFunc));
+
+        Emit_PUSH_R32(codespace, R32::ECX);
+        log_func.WriteJump(codespace, JumpCondition::CALL);
+        Emit_POP_R32(codespace, R32::ECX);
+
+        jump_back.WriteJump(codespace, JumpCondition::JMP);
+    }
+
+    execData.Codespace = codespace;
+}
+#endif
 } // namespace SenLib::TX

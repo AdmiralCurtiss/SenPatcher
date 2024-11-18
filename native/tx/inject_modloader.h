@@ -5,6 +5,8 @@
 
 #include "exe_patch.h"
 
+// #define DEBUG_PR_FILE_LIFETIME
+
 namespace HyoutaUtils {
 struct Logger;
 }
@@ -26,4 +28,8 @@ void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder
 void InjectAtPrFileOpen(PatchExecData& execData, void* prFileOpenForwarder);
 void InjectAtPrFileExists(PatchExecData& execData, void* ffileGetFilesizeForwarder);
 void InjectAtPrFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder);
+
+#ifdef DEBUG_PR_FILE_LIFETIME
+void InjectDebugCodeForPrFileLifetime(PatchExecData& execData);
+#endif
 } // namespace SenLib::TX

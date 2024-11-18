@@ -931,6 +931,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool forceRegularMG04UVs = false;
     bool enableWavFiles = false;
     bool preferFFileHandle = false;
+    bool fixBgmResume = true;
 
     {
         std::string settingsFilePath;
@@ -1015,6 +1016,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 check_float("TX", "TurboModeFactor", turboModeFactor);
                 check_boolean("TX", "EnableWavFiles", enableWavFiles);
                 check_boolean("TX", "PreferFFileHandle", preferFFileHandle);
+                check_boolean("TX", "FixBgmResume", fixBgmResume);
 
                 // read valid DLC bitfields from the ini
                 {
@@ -1139,6 +1141,11 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     SenLib::TX::InjectAtPrFileExists(patchExecData, &FFileGetFilesizeForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
 
+#ifdef DEBUG_PR_FILE_LIFETIME
+    SenLib::TX::InjectDebugCodeForPrFileLifetime(patchExecData);
+    Align16CodePage(logger, patchExecData.Codespace);
+#endif
+
     SenLib::TX::AddSenPatcherVersionToTitle(patchExecData, s_LoadedModsData, !assetCreationSuccess);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::PatchValidDlcIds(patchExecData, dlcValidBitfield, maxDlcId);
@@ -1168,6 +1175,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     }
     if (enableWavFiles) {
         SenLib::TX::PatchEnableWav(patchExecData, &FFileGetFilesizeForwarder);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (fixBgmResume) {
+        SenLib::TX::PatchBgmResume(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 
