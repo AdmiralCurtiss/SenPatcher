@@ -65,22 +65,26 @@ void PatchBgmResume(PatchExecData& execData) {
     using namespace HyoutaUtils::MemWrite;
 
     char* const streamBgmFromPrFileCallSite =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x44703c);
+        GetCodeAddressSteamGog(version, textRegion, 0x4486cc, 0x44703c);
     char* const streamBgmFromPrFileAfterCall =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x447044);
-    char* const loadOggFileCallSite = GetCodeAddressSteamGog(version, textRegion, 0, 0x447977);
-    char* const readFromPrFileOgg = GetCodeAddressSteamGog(version, textRegion, 0, 0x409273);
+        GetCodeAddressSteamGog(version, textRegion, 0x4486d4, 0x447044);
+    char* const loadOggFileCallSite =
+        GetCodeAddressSteamGog(version, textRegion, 0x449027, 0x447977);
+    char* const readFromPrFileOgg = GetCodeAddressSteamGog(version, textRegion, 0x409733, 0x409273);
     char* const readFromOggSkipSamplesBugStackInit =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x409322);
+        GetCodeAddressSteamGog(version, textRegion, 0x4097e2, 0x409322);
     char* const readFromOggSkipSamplesBugRemember =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x40935e);
+        GetCodeAddressSteamGog(version, textRegion, 0x40981e, 0x40935e);
     char* const readFromOggSkipSamplesBugSkipForward =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x4093b4);
+        GetCodeAddressSteamGog(version, textRegion, 0x409874, 0x4093b4);
     char* const readFromOggSkipSamplesBugAdvancePosition =
-        GetCodeAddressSteamGog(version, textRegion, 0, 0x409431);
+        GetCodeAddressSteamGog(version, textRegion, 0x4098f1, 0x409431);
 
     // at the call sites, we need to pass along the parameter for the engine-tracked play position
-    // in edx; this makes the other audio format overloads just ignore it
+    // in edx; this makes the other audio format overloads just ignore it.
+    // note that the parameter passed here is in *bytes* while the position value in the ogg file
+    // struct is in *samples*. they're uncompressed 16-bit integer samples and one per channel, so
+    // multiply by 2 and then by channel count to match them.
     {
         auto injectResult = InjectJumpIntoCode<5>(logger, streamBgmFromPrFileCallSite, codespace);
         BranchHelper4Byte jump_back;
@@ -128,25 +132,38 @@ void PatchBgmResume(PatchExecData& execData) {
         Emit_POP_R32(codespace, R32::ECX);
 #endif
 
+        BranchHelper1Byte go_back;
+
+        // if we have 0 channels this can't produce anything useful so just bail
+        WriteInstruction56(codespace, 0x83b90c02000000); // cmp dword ptr[ecx+20ch],0
+        go_back.WriteJump(codespace, JumpCondition::JZ);
+
         Emit_PUSH_R32(codespace, R32::EDX);
-        WriteInstruction48(codespace, 0x8b8120030000); // mov eax,dword ptr[ecx+320h]
-        WriteInstruction16(codespace, 0xd1e0);         // shl eax,1
-        WriteInstruction48(codespace, 0xf7a10c020000); // mul dword ptr[ecx+20ch]
+        WriteInstruction48(codespace, 0x8b8120030000); // mov eax,dword ptr[ecx+320h] ; sample pos
+        WriteInstruction16(codespace, 0xd1e0);         // shl eax,1 ; samples -> bytes
+        WriteInstruction48(codespace, 0xf7a10c020000); // mul dword ptr[ecx+20ch] ; channel count
         Emit_POP_R32(codespace, R32::EDX);
 
         // did the play position from the engine and the play position from the ogg diverge?
         Emit_CMP_R32_R32(codespace, R32::EAX, R32::EDX);
-        BranchHelper1Byte go_back;
         go_back.WriteJump(codespace, JumpCondition::JE);
 
         // yes, it did. reset the ogg and skip to the correct position.
         Emit_PUSH_R32(codespace, R32::ECX);
         Emit_PUSH_R32(codespace, R32::EDX);
         WriteInstruction16(codespace, 0x8b01);   // mov eax,dword ptr[ecx]
-        WriteInstruction24(codespace, 0xff500c); // call dword ptr[eax+0xc]
-        Emit_POP_R32(codespace, R32::EDX);
+        WriteInstruction24(codespace, 0xff500c); // call dword ptr[eax+0xc] ; reset ogg
+        Emit_POP_R32(codespace, R32::EAX);
         Emit_POP_R32(codespace, R32::ECX);
-        WriteInstruction24(codespace, 0x895140); // mov dword ptr[ecx+40h],edx
+
+        // eax now contains number of bytes to skip, but we want number of samples
+        Emit_XOR_R32_R32(codespace, R32::EDX, R32::EDX);
+        WriteInstruction48(codespace, 0xf7b10c020000); // div dword ptr[ecx+20ch] ; channel count
+        WriteInstruction16(codespace, 0xd1e8);         // shr eax,1 ; bytes -> samples
+
+        // store samples to skip, the function will obey this and read and discard samples until
+        // we're at the correct position
+        WriteInstruction24(codespace, 0x894140); // mov dword ptr[ecx+40h],eax
 
         // everything cleaned up, go back
         go_back.SetTarget(codespace);
