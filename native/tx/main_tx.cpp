@@ -932,6 +932,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool enableWavFiles = false;
     bool preferFFileHandle = false;
     bool fixBgmResume = true;
+    bool allowCustomDlcMultiuse = true;
 
     {
         std::string settingsFilePath;
@@ -1017,6 +1018,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 check_boolean("TX", "EnableWavFiles", enableWavFiles);
                 check_boolean("TX", "PreferFFileHandle", preferFFileHandle);
                 check_boolean("TX", "FixBgmResume", fixBgmResume);
+                check_boolean("TX", "AllowCustomDlcMultiuse", allowCustomDlcMultiuse);
 
                 // read valid DLC bitfields from the ini
                 {
@@ -1179,6 +1181,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     }
     if (fixBgmResume) {
         SenLib::TX::PatchBgmResume(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (allowCustomDlcMultiuse) {
+        PatchCustomDlcMultiuse(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 
