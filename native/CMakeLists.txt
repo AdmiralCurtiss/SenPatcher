@@ -923,6 +923,7 @@ if (SENPATCHER_BUILD_TXHOOK)
 		tx/exe_patch_add_senpatcher_version_to_title.cpp
 		tx/exe_patch_bgm_resume.cpp
 		tx/exe_patch_custom_dlc_multiuse.cpp
+		tx/exe_patch_disable_camera_auto_center.cpp
 		tx/exe_patch_disable_mouse_camera.cpp
 		tx/exe_patch_enable_background_input.cpp
 		tx/exe_patch_enable_wav.cpp

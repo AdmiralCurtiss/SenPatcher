@@ -933,6 +933,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool preferFFileHandle = false;
     bool fixBgmResume = true;
     bool allowCustomDlcMultiuse = true;
+    bool disableCameraAutoCenter = false;
 
     {
         std::string settingsFilePath;
@@ -1019,6 +1020,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 check_boolean("TX", "PreferFFileHandle", preferFFileHandle);
                 check_boolean("TX", "FixBgmResume", fixBgmResume);
                 check_boolean("TX", "AllowCustomDlcMultiuse", allowCustomDlcMultiuse);
+                check_boolean("TX", "DisableCameraAutoCenter", disableCameraAutoCenter);
 
                 // read valid DLC bitfields from the ini
                 {
@@ -1185,6 +1187,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     }
     if (allowCustomDlcMultiuse) {
         PatchCustomDlcMultiuse(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (disableCameraAutoCenter) {
+        PatchDisableCameraAutoCenter(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 

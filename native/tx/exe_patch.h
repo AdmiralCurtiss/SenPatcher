@@ -49,6 +49,7 @@ void PatchValidDlcIds(PatchExecData& execData, char* validDlcBitfield, size_t ma
 void ForceMG04UVs(PatchExecData& execData);
 void PatchEnableWav(PatchExecData& execData, void* ffileGetFilesizeForwarder);
 void PatchBgmResume(PatchExecData& execData);
+void PatchDisableCameraAutoCenter(PatchExecData& execData);
 
 // removes the already-used checks for custom DLC. official DLC is unaffected.
 void PatchCustomDlcMultiuse(PatchExecData& execData);
