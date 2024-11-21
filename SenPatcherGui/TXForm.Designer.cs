@@ -42,6 +42,8 @@
 			this.labelTurboDescription = new System.Windows.Forms.Label();
 			this.checkBoxAssetPatches = new System.Windows.Forms.CheckBox();
 			this.labelTurboHeader = new System.Windows.Forms.Label();
+			this.checkBoxDisableCamAutoCenter = new System.Windows.Forms.CheckBox();
+			this.checkBoxFixBgmResume = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownTurboFactor)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -60,7 +62,7 @@
 			this.checkBoxSkipMovies.Location = new System.Drawing.Point(98, 226);
 			this.checkBoxSkipMovies.Name = "checkBoxSkipMovies";
 			this.checkBoxSkipMovies.Size = new System.Drawing.Size(96, 17);
-			this.checkBoxSkipMovies.TabIndex = 9;
+			this.checkBoxSkipMovies.TabIndex = 12;
 			this.checkBoxSkipMovies.Text = "Skip all movies";
 			this.checkBoxSkipMovies.UseVisualStyleBackColor = true;
 			// 
@@ -86,10 +88,10 @@
 			// 
 			this.buttonPatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPatch.Location = new System.Drawing.Point(12, 349);
+			this.buttonPatch.Location = new System.Drawing.Point(12, 398);
 			this.buttonPatch.Name = "buttonPatch";
 			this.buttonPatch.Size = new System.Drawing.Size(510, 41);
-			this.buttonPatch.TabIndex = 15;
+			this.buttonPatch.TabIndex = 20;
 			this.buttonPatch.Text = "Patch!";
 			this.buttonPatch.UseVisualStyleBackColor = true;
 			this.buttonPatch.Click += new System.EventHandler(this.buttonPatch_Click);
@@ -114,7 +116,7 @@
 			this.checkBoxSkipLogos.Location = new System.Drawing.Point(98, 203);
 			this.checkBoxSkipLogos.Name = "checkBoxSkipLogos";
 			this.checkBoxSkipLogos.Size = new System.Drawing.Size(110, 17);
-			this.checkBoxSkipLogos.TabIndex = 8;
+			this.checkBoxSkipLogos.TabIndex = 11;
 			this.checkBoxSkipLogos.Text = "Skip startup logos";
 			this.checkBoxSkipLogos.UseVisualStyleBackColor = true;
 			// 
@@ -124,7 +126,7 @@
 			this.buttonAssetFixDetails.Location = new System.Drawing.Point(385, 83);
 			this.buttonAssetFixDetails.Name = "buttonAssetFixDetails";
 			this.buttonAssetFixDetails.Size = new System.Drawing.Size(137, 44);
-			this.buttonAssetFixDetails.TabIndex = 16;
+			this.buttonAssetFixDetails.TabIndex = 5;
 			this.buttonAssetFixDetails.Text = "Show asset fix details... (may contain spoilers)";
 			this.buttonAssetFixDetails.UseVisualStyleBackColor = true;
 			this.buttonAssetFixDetails.Click += new System.EventHandler(this.buttonAssetFixDetails_Click);
@@ -133,18 +135,18 @@
 			// 
 			this.comboBoxGameLanguage.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboBoxGameLanguage.FormattingEnabled = true;
-			this.comboBoxGameLanguage.Location = new System.Drawing.Point(186, 316);
+			this.comboBoxGameLanguage.Location = new System.Drawing.Point(186, 362);
 			this.comboBoxGameLanguage.Name = "comboBoxGameLanguage";
 			this.comboBoxGameLanguage.Size = new System.Drawing.Size(126, 21);
-			this.comboBoxGameLanguage.TabIndex = 14;
+			this.comboBoxGameLanguage.TabIndex = 19;
 			// 
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(95, 319);
+			this.label4.Location = new System.Drawing.Point(95, 365);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(85, 13);
-			this.label4.TabIndex = 13;
+			this.label4.TabIndex = 18;
 			this.label4.Text = "Game language:";
 			// 
 			// numericUpDownTurboFactor
@@ -162,7 +164,7 @@
             0});
 			this.numericUpDownTurboFactor.Name = "numericUpDownTurboFactor";
 			this.numericUpDownTurboFactor.Size = new System.Drawing.Size(33, 20);
-			this.numericUpDownTurboFactor.TabIndex = 5;
+			this.numericUpDownTurboFactor.TabIndex = 8;
 			this.numericUpDownTurboFactor.Value = new decimal(new int[] {
             2,
             0,
@@ -175,7 +177,7 @@
 			this.labelTurboFactor.Location = new System.Drawing.Point(209, 123);
 			this.labelTurboFactor.Name = "labelTurboFactor";
 			this.labelTurboFactor.Size = new System.Drawing.Size(71, 13);
-			this.labelTurboFactor.TabIndex = 4;
+			this.labelTurboFactor.TabIndex = 7;
 			this.labelTurboFactor.Text = "Turbo Factor:";
 			// 
 			// checkBoxTurboToggle
@@ -184,37 +186,37 @@
 			this.checkBoxTurboToggle.Location = new System.Drawing.Point(212, 147);
 			this.checkBoxTurboToggle.Name = "checkBoxTurboToggle";
 			this.checkBoxTurboToggle.Size = new System.Drawing.Size(222, 17);
-			this.checkBoxTurboToggle.TabIndex = 6;
+			this.checkBoxTurboToggle.TabIndex = 9;
 			this.checkBoxTurboToggle.Text = "Make turbo mode a toggle instead of hold";
 			this.checkBoxTurboToggle.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxShowMouseCursor
 			// 
 			this.checkBoxShowMouseCursor.AutoSize = true;
-			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(98, 271);
+			this.checkBoxShowMouseCursor.Location = new System.Drawing.Point(98, 317);
 			this.checkBoxShowMouseCursor.Name = "checkBoxShowMouseCursor";
 			this.checkBoxShowMouseCursor.Size = new System.Drawing.Size(121, 17);
-			this.checkBoxShowMouseCursor.TabIndex = 11;
+			this.checkBoxShowMouseCursor.TabIndex = 16;
 			this.checkBoxShowMouseCursor.Text = "Show Mouse Cursor";
 			this.checkBoxShowMouseCursor.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxEnableBackgroundControllerInput
 			// 
 			this.checkBoxEnableBackgroundControllerInput.AutoSize = true;
-			this.checkBoxEnableBackgroundControllerInput.Location = new System.Drawing.Point(98, 293);
+			this.checkBoxEnableBackgroundControllerInput.Location = new System.Drawing.Point(98, 339);
 			this.checkBoxEnableBackgroundControllerInput.Name = "checkBoxEnableBackgroundControllerInput";
 			this.checkBoxEnableBackgroundControllerInput.Size = new System.Drawing.Size(278, 17);
-			this.checkBoxEnableBackgroundControllerInput.TabIndex = 12;
+			this.checkBoxEnableBackgroundControllerInput.TabIndex = 17;
 			this.checkBoxEnableBackgroundControllerInput.Text = "Keep processing controller input when in Background";
 			this.checkBoxEnableBackgroundControllerInput.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxDisableMouseCam
 			// 
 			this.checkBoxDisableMouseCam.AutoSize = true;
-			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(98, 249);
+			this.checkBoxDisableMouseCam.Location = new System.Drawing.Point(98, 295);
 			this.checkBoxDisableMouseCam.Name = "checkBoxDisableMouseCam";
 			this.checkBoxDisableMouseCam.Size = new System.Drawing.Size(135, 17);
-			this.checkBoxDisableMouseCam.TabIndex = 10;
+			this.checkBoxDisableMouseCam.TabIndex = 15;
 			this.checkBoxDisableMouseCam.Text = "Disable Mouse Camera";
 			this.checkBoxDisableMouseCam.UseVisualStyleBackColor = true;
 			// 
@@ -224,7 +226,7 @@
 			this.labelTurboDescription.Location = new System.Drawing.Point(94, 167);
 			this.labelTurboDescription.Name = "labelTurboDescription";
 			this.labelTurboDescription.Size = new System.Drawing.Size(381, 26);
-			this.labelTurboDescription.TabIndex = 7;
+			this.labelTurboDescription.TabIndex = 10;
 			this.labelTurboDescription.Text = "The default button for Turbo Mode is L3 on controller and Left Ctrl on keyboard.\r" +
     "\nThis can be changed in the in-game Button Configuration options.";
 			// 
@@ -236,7 +238,7 @@
 			this.checkBoxAssetPatches.Location = new System.Drawing.Point(98, 99);
 			this.checkBoxAssetPatches.Name = "checkBoxAssetPatches";
 			this.checkBoxAssetPatches.Size = new System.Drawing.Size(213, 17);
-			this.checkBoxAssetPatches.TabIndex = 17;
+			this.checkBoxAssetPatches.TabIndex = 4;
 			this.checkBoxAssetPatches.Text = "Apply fixes for known script/asset errors";
 			this.checkBoxAssetPatches.UseVisualStyleBackColor = true;
 			// 
@@ -246,14 +248,38 @@
 			this.labelTurboHeader.Location = new System.Drawing.Point(94, 123);
 			this.labelTurboHeader.Name = "labelTurboHeader";
 			this.labelTurboHeader.Size = new System.Drawing.Size(109, 13);
-			this.labelTurboHeader.TabIndex = 18;
+			this.labelTurboHeader.TabIndex = 6;
 			this.labelTurboHeader.Text = "Turbo Mode Settings:";
+			// 
+			// checkBoxDisableCamAutoCenter
+			// 
+			this.checkBoxDisableCamAutoCenter.AutoSize = true;
+			this.checkBoxDisableCamAutoCenter.Location = new System.Drawing.Point(98, 272);
+			this.checkBoxDisableCamAutoCenter.Name = "checkBoxDisableCamAutoCenter";
+			this.checkBoxDisableCamAutoCenter.Size = new System.Drawing.Size(170, 17);
+			this.checkBoxDisableCamAutoCenter.TabIndex = 14;
+			this.checkBoxDisableCamAutoCenter.Text = "Disable camera auto-centering";
+			this.checkBoxDisableCamAutoCenter.UseVisualStyleBackColor = true;
+			// 
+			// checkBoxFixBgmResume
+			// 
+			this.checkBoxFixBgmResume.AutoSize = true;
+			this.checkBoxFixBgmResume.Checked = true;
+			this.checkBoxFixBgmResume.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxFixBgmResume.Location = new System.Drawing.Point(98, 249);
+			this.checkBoxFixBgmResume.Name = "checkBoxFixBgmResume";
+			this.checkBoxFixBgmResume.Size = new System.Drawing.Size(135, 17);
+			this.checkBoxFixBgmResume.TabIndex = 13;
+			this.checkBoxFixBgmResume.Text = "Fix music resuming bug";
+			this.checkBoxFixBgmResume.UseVisualStyleBackColor = true;
 			// 
 			// TXForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(534, 402);
+			this.ClientSize = new System.Drawing.Size(534, 451);
+			this.Controls.Add(this.checkBoxFixBgmResume);
+			this.Controls.Add(this.checkBoxDisableCamAutoCenter);
 			this.Controls.Add(this.labelTurboHeader);
 			this.Controls.Add(this.checkBoxAssetPatches);
 			this.Controls.Add(this.labelTurboDescription);
@@ -301,5 +327,7 @@
 		private System.Windows.Forms.Label labelTurboDescription;
 		private System.Windows.Forms.CheckBox checkBoxAssetPatches;
 		private System.Windows.Forms.Label labelTurboHeader;
+		private System.Windows.Forms.CheckBox checkBoxDisableCamAutoCenter;
+		private System.Windows.Forms.CheckBox checkBoxFixBgmResume;
 	}
 }

@@ -56,6 +56,8 @@ namespace SenPatcherGui {
 				checkBoxDisableMouseCam.Checked = ini.GetBool("TX", "DisableMouseCamera", false);
 				checkBoxShowMouseCursor.Checked = ini.GetBool("TX", "ShowMouseCursor", false);
 				checkBoxEnableBackgroundControllerInput.Checked = ini.GetBool("TX", "EnableBackgroundControllerInput", false);
+				checkBoxDisableCamAutoCenter.Checked = ini.GetBool("TX", "DisableCameraAutoCenter", false);
+				checkBoxFixBgmResume.Checked = ini.GetBool("TX", "FixBgmResume", true);
 				numericUpDownTurboFactor.Value = 2;
 
 				double iniFactor = ini.GetDouble("TX", "TurboModeFactor", 2.0);
@@ -81,6 +83,8 @@ namespace SenPatcherGui {
 				ini.SetBool("TX", "DisableMouseCamera", checkBoxDisableMouseCam.Checked);
 				ini.SetBool("TX", "ShowMouseCursor", checkBoxShowMouseCursor.Checked);
 				ini.SetBool("TX", "EnableBackgroundControllerInput", checkBoxEnableBackgroundControllerInput.Checked);
+				ini.SetBool("TX", "DisableCameraAutoCenter", checkBoxDisableCamAutoCenter.Checked);
+				ini.SetBool("TX", "FixBgmResume", checkBoxFixBgmResume.Checked);
 				ini.WriteToFile(inipath);
 			} catch (Exception) { }
 		}
