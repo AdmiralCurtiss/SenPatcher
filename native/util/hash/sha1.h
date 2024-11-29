@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 
 #include "util/hash/util.h"
@@ -13,18 +14,30 @@ struct SHA1 {
 
 SHA1 CalculateSHA1(const void* data, size_t length);
 
-consteval SHA1 SHA1FromHexString(std::string_view sv) {
+constexpr std::optional<SHA1> TrySHA1FromHexString(std::string_view sv) {
     if (sv.size() != 40) {
-        throw -1; // invalid sha1 hex string
+        return std::nullopt; // invalid sha1 hex string
     }
 
     SHA1 result;
     for (size_t i = 0; i < 20; ++i) {
         const char c0 = sv[i * 2];
         const char c1 = sv[i * 2 + 1];
-        result.Hash[i] = (ParseHexDigit(c0) << 4) | ParseHexDigit(c1);
+        const auto d0 = ParseHexDigit(c0);
+        if (!d0) {
+            return std::nullopt;
+        }
+        const auto d1 = ParseHexDigit(c1);
+        if (!d1) {
+            return std::nullopt;
+        }
+        result.Hash[i] = static_cast<char>(((*d0) << 4) | (*d1));
     }
     return result;
+}
+
+consteval SHA1 SHA1FromHexString(std::string_view sv) {
+    return TrySHA1FromHexString(sv).value();
 }
 
 inline bool operator==(const SHA1& lhs, const SHA1& rhs) {

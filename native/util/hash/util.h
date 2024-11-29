@@ -1,15 +1,18 @@
 #pragma once
 
+#include <cstdint>
+#include <optional>
+
 namespace HyoutaUtils::Hash {
-consteval char ParseHexDigit(char c) {
+constexpr std::optional<uint8_t> ParseHexDigit(char c) {
     if (c >= '0' && c <= '9') {
-        return (c - '0');
+        return static_cast<uint8_t>(c - '0');
     } else if (c >= 'a' && c <= 'f') {
-        return ((c - 'a') + 10);
+        return static_cast<uint8_t>((c - 'a') + 10);
     } else if (c >= 'A' && c <= 'F') {
-        return ((c - 'A') + 10);
+        return static_cast<uint8_t>((c - 'A') + 10);
     } else {
-        throw -1; // invalid hex digit
+        return std::nullopt; // invalid hex digit
     }
 }
 } // namespace HyoutaUtils::Hash
