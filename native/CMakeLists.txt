@@ -207,6 +207,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/pkg_pack.h
 		sentools/pkg_repack.cpp
 		sentools/pkg_repack.h
+		sentools/sha_file_convert.cpp
+		sentools/sha_file_convert.h
 
 		util/align.h
 		util/align.cpp

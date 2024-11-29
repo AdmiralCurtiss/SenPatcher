@@ -16,6 +16,7 @@
 #include "pkg_extract.h"
 #include "pkg_pack.h"
 #include "pkg_repack.h"
+#include "sha_file_convert.h"
 
 #ifdef BUILD_FOR_WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -51,6 +52,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = BRA_Extract_Name,
             .ShortDescription = BRA_Extract_ShortDescription,
             .Function = BRA_Extract_Function},
+    CliTool{.Name = SHA_File_Convert_Name,
+            .ShortDescription = SHA_File_Convert_ShortDescription,
+            .Function = SHA_File_Convert_Function},
 };
 }
 
