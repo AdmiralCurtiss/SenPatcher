@@ -1,6 +1,7 @@
 #include "p3a.h"
 
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <memory>
 
