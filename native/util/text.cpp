@@ -388,4 +388,22 @@ bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
     }
     return true;
 }
+
+std::string ToLower(std::string_view sv) {
+    std::string result;
+    result.reserve(sv.size());
+    for (size_t i = 0; i < sv.size(); ++i) {
+        result.push_back((sv[i] >= 'A' && sv[i] <= 'Z') ? (sv[i] + ('a' - 'A')) : sv[i]);
+    }
+    return result;
+}
+
+std::string ToUpper(std::string_view sv) {
+    std::string result;
+    result.reserve(sv.size());
+    for (size_t i = 0; i < sv.size(); ++i) {
+        result.push_back((sv[i] >= 'a' && sv[i] <= 'z') ? (sv[i] - ('a' - 'A')) : sv[i]);
+    }
+    return result;
+}
 } // namespace HyoutaUtils::TextUtils
