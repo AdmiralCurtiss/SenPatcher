@@ -8,7 +8,7 @@
 #include "util/hash/sha256.h"
 
 using HyoutaUtils::Hash::SHA256FromHexString;
-constexpr std::array<HyoutaUtils::Hash::SHA256, 1025> reference = {
+static std::array<HyoutaUtils::Hash::SHA256, 1025> reference = {
     SHA256FromHexString("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
     SHA256FromHexString("6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"),
     SHA256FromHexString("b413f47d13ee2fe6c845b2ee141af81de858df4ec549a58b7970bb96645bc8d2"),

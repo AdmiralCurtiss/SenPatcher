@@ -8,7 +8,7 @@
 #include "util/hash/sha1.h"
 
 using HyoutaUtils::Hash::SHA1FromHexString;
-constexpr std::array<HyoutaUtils::Hash::SHA1, 1025> reference = {
+static std::array<HyoutaUtils::Hash::SHA1, 1025> reference = {
     SHA1FromHexString("da39a3ee5e6b4b0d3255bfef95601890afd80709"),
     SHA1FromHexString("5ba93c9db0cff93f52b521d7420e43f6eda2784f"),
     SHA1FromHexString("3f29546453678b855931c174a97d6c0894b8f546"),
