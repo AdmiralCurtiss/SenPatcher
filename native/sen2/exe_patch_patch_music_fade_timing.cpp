@@ -210,7 +210,7 @@ void PatchMusicFadeTiming(PatchExecData& execData, uint32_t divisor) {
         go_to_sleep_maybe.SetTarget(tmp);
         WriteInstruction16(tmp, 0x85db);                           // test       ebx,ebx
         go_to_next_iteration.WriteJump(tmp, JC::JNE);              // jne        go_to_next_iteration
-        WriteInstruction16(tmp, 0x6a00);                           // push       0
+        WriteInstruction16(tmp, 0x6a03);                           // push       3
         invoke_sleep_milliseconds.WriteJump(tmp, JC::CALL);        // call       invoke_sleep_milliseconds
         WriteInstruction24(tmp, 0x83c404);                         // add        esp,4
         go_to_next_iteration.SetTarget(tmp);
