@@ -23,7 +23,8 @@ struct TreeNode {
     std::vector<TreeNode> Children;                                   // only if directory
     std::unordered_map<std::string, std::vector<size_t>> ChildLookup; // lookup for Children vector
     size_t ChildFirstIndex = 0;
-    size_t Bucket = 0;
+    size_t GameVersionBits = 0;
+    size_t DlcIndex = 0;
     uint64_t Filesize = 0;
 };
 } // namespace
@@ -68,7 +69,8 @@ static bool Insert(TreeNode& tree,
                    const HyoutaUtils::Hash::SHA1& hash,
                    std::string_view path,
                    uint64_t filesize,
-                   size_t bucket) {
+                   size_t gameVersionBits,
+                   size_t dlcIndex) {
     // wasteful in terms of memory but whatever
     auto slashpos = path.find_first_of('/');
     if (slashpos != std::string_view::npos) {
@@ -77,13 +79,13 @@ static bool Insert(TreeNode& tree,
 
         auto dirnameLowercase = HyoutaUtils::TextUtils::ToLower(dirname);
 
-        // if we've already seen this dir, update the bucket of the dir and insert into that
+        // if we've already seen this dir, update the game version of the dir and insert into that
         auto& existingDirIndices = tree.ChildLookup[dirnameLowercase];
         for (size_t existingDirIndex : existingDirIndices) {
             auto& existingDir = tree.Children[existingDirIndex];
             if (existingDir.IsDirectory) {
-                existingDir.Bucket |= bucket;
-                return Insert(existingDir, hash, rest, filesize, bucket);
+                existingDir.GameVersionBits |= gameVersionBits;
+                return Insert(existingDir, hash, rest, filesize, gameVersionBits, dlcIndex);
             }
         }
 
@@ -92,21 +94,22 @@ static bool Insert(TreeNode& tree,
         auto& newChild = tree.Children.emplace_back(TreeNode{.IsDirectory = true,
                                                              .Name = std::string(dirname),
                                                              .Hash = HyoutaUtils::Hash::SHA1({}),
-                                                             .Bucket = bucket,
+                                                             .GameVersionBits = gameVersionBits,
+                                                             .DlcIndex = dlcIndex,
                                                              .Filesize = filesize});
-        return Insert(newChild, hash, rest, filesize, bucket);
+        return Insert(newChild, hash, rest, filesize, gameVersionBits, dlcIndex);
     }
 
     // found directory to put this file in
     auto pathLowercase = HyoutaUtils::TextUtils::ToLower(path);
     auto& existingFileIndices = tree.ChildLookup[pathLowercase];
 
-    // if any existing file matches, just update the bucket
+    // if any existing file matches, just update the game version
     for (size_t existingFileIndex : existingFileIndices) {
         auto& existingFile = tree.Children[existingFileIndex];
         if (!existingFile.IsDirectory && existingFile.Hash == hash
             && existingFile.Filesize == filesize) {
-            existingFile.Bucket |= bucket;
+            existingFile.GameVersionBits |= gameVersionBits;
             return true;
         }
     }
@@ -116,7 +119,8 @@ static bool Insert(TreeNode& tree,
     tree.Children.emplace_back(TreeNode{.IsDirectory = false,
                                         .Name = std::string(path),
                                         .Hash = hash,
-                                        .Bucket = bucket,
+                                        .GameVersionBits = gameVersionBits,
+                                        .DlcIndex = dlcIndex,
                                         .Filesize = filesize});
     return true;
 }
@@ -161,16 +165,18 @@ static void GenerateDirTreeLine(const TreeNode& node,
     size_t filenameOffset = InsertFilename(node.Name, stringTable);
     size_t hashOffset = 0;
     if (node.IsDirectory) {
-        source.append("MakeDirectory(");
+        source.append("HyoutaUtils::DirTree::Entry::MakeDirectory(");
     } else {
         hashOffset = InsertHash(node.Hash, hashTable);
-        source.append("MakeFile(");
+        source.append("HyoutaUtils::DirTree::Entry::MakeFile(");
     }
     source.append(std::to_string(filenameOffset));
     source.append(", ");
     source.append(std::to_string(node.Name.size()));
     source.append(", ");
-    source.append(std::to_string(node.Bucket));
+    source.append(std::to_string(node.GameVersionBits));
+    source.append(", ");
+    source.append(std::to_string(node.DlcIndex));
     source.append(", ");
     if (node.IsDirectory) {
         source.append(std::to_string(node.ChildFirstIndex));
@@ -207,7 +213,8 @@ int SHA_File_Convert_Function(int argc, char** argv) {
     struct Arg {
         std::string ShaFilePath;
         std::string GamePath;
-        size_t Bucket;
+        size_t GameVersion;
+        size_t DlcIndex;
     };
     std::vector<Arg> args;
     std::string_view arg1(argv[1]);
@@ -215,7 +222,8 @@ int SHA_File_Convert_Function(int argc, char** argv) {
     if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "CS1")) {
         args.push_back({"c:\\SenPatcher\\SenLib\\Sen1\\FileInfo\\steam_version_1.6.sha",
                         "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel",
-                        size_t(1)});
+                        size_t(1),
+                        0});
         outputFilename = "dirtree_cs1.h";
     } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "CS2")) {
         // args.push_back({"c:\\SenPatcher\\SenLib\\Sen2\\FileInfo\\steam_version_1.4.sha",
@@ -223,7 +231,8 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         //                 size_t(1)});
         args.push_back({"c:\\SenPatcher\\SenLib\\Sen2\\FileInfo\\steam_version_1.4.1.sha",
                         "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel II",
-                        size_t(1 << 1)});
+                        size_t(1 << 1),
+                        0});
         // args.push_back({"c:\\SenPatcher\\SenLib\\Sen2\\FileInfo\\steam_version_1.4.2.sha",
         //                 "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel II",
         //                 size_t(1 << 2)});
@@ -232,13 +241,15 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         args.push_back(
             {"c:\\SenPatcher\\SenLib\\Sen3\\FileInfo\\steam_version_1.06.sha",
              "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel III",
-             size_t(1)});
+             size_t(1),
+             0});
         outputFilename = "dirtree_cs3.h";
     } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "CS4")) {
         args.push_back(
             {"c:\\SenPatcher\\SenLib\\Sen4\\FileInfo\\steam_version_1.2.1.sha",
              "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel IV",
-             size_t(1)});
+             size_t(1),
+             0});
         outputFilename = "dirtree_cs4.h";
     } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "Reverie")) {
         // args.push_back(
@@ -248,15 +259,18 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         args.push_back(
             {"c:\\SenPatcher\\SenLib\\Sen5\\FileInfo\\steam_version_1.1.4.sha",
              "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails into Reverie",
-             size_t(1 << 1)});
+             size_t(1 << 1),
+             0});
         outputFilename = "dirtree_reverie.h";
     } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "TX")) {
         args.push_back({"c:\\SenPatcher\\SenLib\\TX\\FileInfo\\steam_version_1.08.sha",
                         "f:\\SteamLibrary\\steamapps\\common\\Tokyo Xanadu eX+",
-                        size_t(1)});
+                        size_t(1),
+                        0});
         args.push_back({"c:\\SenPatcher\\SenLib\\TX\\FileInfo\\gog_version_1.08.sha",
                         "f:\\GOG Games\\Tokyo Xanadu eX+",
-                        size_t(1 << 1)});
+                        size_t(1 << 1),
+                        0});
         outputFilename = "dirtree_tx.h";
     } else {
         printf("First argument must be one of: CS1, CS2, CS3, CS4, Reverie, TX.\n");
@@ -339,7 +353,7 @@ int SHA_File_Convert_Function(int argc, char** argv) {
                 length = *l;
             }
 
-            if (!Insert(root, *hash, path, length, arg.Bucket)) {
+            if (!Insert(root, *hash, path, length, arg.GameVersion, arg.DlcIndex)) {
                 printf("Insert error for file %s\n", path.c_str());
                 return -1;
             }
@@ -353,7 +367,11 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         root.ChildFirstIndex = 1;
         FillFirstChildIndex(root, count);
         std::string source;
-        source.append("static constexpr auto s_dirtree = std::array<Entry, ");
+        source.append("#pragma once\n\n");
+        source.append("#include <array>\n\n");
+        source.append("#include \"dirtree/entry.h\"\n");
+        source.append("#include \"util/hash/sha1.h\"\n\n");
+        source.append("static constexpr auto s_dirtree = std::array<HyoutaUtils::DirTree::Entry, ");
         source.append(std::to_string(count));
         source.append(">{{\n");
         GenerateDirTreeLine(root, stringTable, hashTable, source);
@@ -362,14 +380,19 @@ int SHA_File_Convert_Function(int argc, char** argv) {
 
         source.append("static constexpr auto s_stringtable = std::array<char, ");
         source.append(std::to_string(stringTable.size()));
-        source.append(">{{\n");
+        source.append(">{{");
         for (size_t i = 0; i < stringTable.size(); ++i) {
             if (i != 0) {
-                source.append(", ");
+                source.append(",");
+            }
+            if ((i % 32) == 0) {
+                source.append("\n");
+            } else {
+                source.append(" ");
             }
             source.append(std::to_string((int)stringTable[i]));
         }
-        source.append("}};\n\n");
+        source.append("\n}};\n\n");
 
         source.append("static constexpr auto s_hashtable = std::array<HyoutaUtils::Hash::SHA1, ");
         source.append(std::to_string(hashTable.size()));

@@ -14,7 +14,8 @@ struct Entry {
     uint32_t Filename;
 
     // This is:
-    // 31 bits of 'bucket' information, ie. which game version/dlc/etc this file is contained in
+    // 20 bits of version bitfield, ie. which game version this file is contained in
+    // 11 bits of DLC index, ie. if this is a DLC file and which DLC package it is
     // 1 bit of whether this is a file or a folder
     uint32_t Metadata;
 
@@ -49,32 +50,36 @@ struct Entry {
 
     constexpr static Entry MakeFile(uint32_t filenameOffset,
                                     uint32_t filenameLength,
-                                    uint32_t fileBucket,
+                                    uint32_t gameVersionBits,
+                                    uint32_t dlcIndex,
                                     uint32_t hashIndex,
                                     uint64_t filesize) {
         assert(filenameOffset < (1 << 24));
         assert(filenameLength < (1 << 8));
-        assert((fileBucket & 0x8000'0000u) == 0);
+        assert(gameVersionBits < (1 << 20));
+        assert(dlcIndex < (1 << 11));
         assert(filesize < (1ull << 44));
         assert(hashIndex < (1 << 20));
 
         uint32_t filename = (filenameOffset << 8) | filenameLength;
-        uint32_t metadata = fileBucket;
+        uint32_t metadata = (dlcIndex << 20) | gameVersionBits;
         uint64_t hashAndSize = (filesize << 20) | hashIndex;
         return Entry(filename, metadata, hashAndSize);
     }
 
     constexpr static Entry MakeDirectory(uint32_t filenameOffset,
                                          uint32_t filenameLength,
-                                         uint32_t fileBucket,
+                                         uint32_t gameVersionBits,
+                                         uint32_t dlcIndex,
                                          uint32_t directoryFirstEntry,
                                          uint32_t directoryNumberOfEntries) {
         assert(filenameOffset < (1 << 24));
         assert(filenameLength < (1 << 8));
-        assert((fileBucket & 0x8000'0000u) == 0);
+        assert(gameVersionBits < (1 << 20));
+        assert(dlcIndex < (1 << 11));
 
         uint32_t filename = (filenameOffset << 8) | filenameLength;
-        uint32_t metadata = fileBucket | 0x8000'0000u;
+        uint32_t metadata = (dlcIndex << 20) | gameVersionBits | 0x8000'0000u;
         return Entry(filename, metadata, directoryFirstEntry, directoryNumberOfEntries);
     }
 };
