@@ -1,0 +1,11 @@
+{
+	"Input": [
+		{
+			"ShaFilePath": "steam_version_1.1.4.sha",
+			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails into Reverie",
+			"GameVersion": 0,
+			"DlcIndex": 0
+		}
+	],
+	"Output": "dirtree_reverie.h"
+}

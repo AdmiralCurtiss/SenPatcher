@@ -1,0 +1,11 @@
+{
+	"Input": [
+		{
+			"ShaFilePath": "steam_version_1.4.1.sha",
+			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel II",
+			"GameVersion": 0,
+			"DlcIndex": 0
+		}
+	],
+	"Output": "dirtree_cs2.h"
+}

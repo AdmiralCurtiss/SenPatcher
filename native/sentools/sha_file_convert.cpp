@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "rapidjson/document.h"
+
 #include "util/file.h"
 #include "util/hash/sha1.h"
 #include "util/text.h"
@@ -27,6 +29,38 @@ struct TreeNode {
     size_t DlcIndex = 0;
     uint64_t Filesize = 0;
 };
+
+template<typename T>
+static std::optional<uint64_t> ReadUInt64(T& json, const char* key) {
+    auto it = json.FindMember(key);
+    if (it == json.MemberEnd()) {
+        return std::nullopt;
+    }
+    auto& j = it->value;
+    if (j.IsInt64()) {
+        const auto i = j.GetInt64();
+        if (i < 0) {
+            return std::nullopt;
+        }
+        return static_cast<uint64_t>(i);
+    }
+    return std::nullopt;
+}
+
+template<typename T>
+static std::optional<std::string> ReadString(T& json, const char* key) {
+    auto it = json.FindMember(key);
+    if (it == json.MemberEnd()) {
+        return std::nullopt;
+    }
+    auto& j = it->value;
+    if (j.IsString()) {
+        const char* str = j.GetString();
+        const auto len = j.GetStringLength();
+        return std::string(str, len);
+    }
+    return std::nullopt;
+}
 } // namespace
 
 namespace SenTools {
@@ -204,78 +238,92 @@ static void GenerateDirTreeSource(const TreeNode& node,
     }
 }
 
+namespace {
+struct Arg {
+    std::string ShaFilePath;
+    std::string GamePath;
+    size_t GameVersion;
+    size_t DlcIndex;
+};
+struct ProgramArgs {
+    std::vector<Arg> Input;
+    std::string Output;
+};
+} // namespace
+
+static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
+    HyoutaUtils::IO::File f(std::filesystem::path(jsonPath), HyoutaUtils::IO::OpenMode::Read);
+    if (!f.IsOpen()) {
+        return std::nullopt;
+    }
+    auto length = f.GetLength();
+    if (!length) {
+        return std::nullopt;
+    }
+    auto buffer = std::make_unique_for_overwrite<char[]>(*length);
+    if (!buffer) {
+        return std::nullopt;
+    }
+    if (f.Read(buffer.get(), *length) != *length) {
+        return std::nullopt;
+    }
+
+    rapidjson::Document json;
+    json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag,
+               rapidjson::UTF8<char>>(buffer.get(), *length);
+    if (json.HasParseError() || !json.IsObject()) {
+        return std::nullopt;
+    }
+
+    ProgramArgs args;
+
+    const auto root = json.GetObject();
+    const auto input = root.FindMember("Input");
+    if (input != root.MemberEnd() && input->value.IsArray()) {
+        for (const auto& obj : input->value.GetArray()) {
+            if (obj.IsObject()) {
+                auto shaFilePath = ReadString(obj, "ShaFilePath");
+                auto gamePath = ReadString(obj, "GamePath");
+                auto gameVersion = ReadUInt64(obj, "GameVersion");
+                auto dlcIndex = ReadUInt64(obj, "DlcIndex");
+                if (!shaFilePath || !gamePath || !gameVersion || !dlcIndex) {
+                    return std::nullopt;
+                }
+                args.Input.emplace_back(Arg{.ShaFilePath = std::move(*shaFilePath),
+                                            .GamePath = std::move(*gamePath),
+                                            .GameVersion = *gameVersion,
+                                            .DlcIndex = *dlcIndex});
+            } else {
+                return std::nullopt;
+            }
+        }
+    } else {
+        return std::nullopt;
+    }
+    const auto output = ReadString(root, "Output");
+    if (!output) {
+        return std::nullopt;
+    }
+    args.Output = std::move(*output);
+
+    return args;
+}
+
 int SHA_File_Convert_Function(int argc, char** argv) {
-    if (argc < 1) {
-        printf("First argument must be one of: CS1, CS2, CS3, CS4, Reverie, TX.\n");
+    if (argc <= 1) {
+        printf(
+            "First argument must point to .json describing the data to convert.\n");
         return -1;
     }
 
-    struct Arg {
-        std::string ShaFilePath;
-        std::string GamePath;
-        size_t GameVersion;
-        size_t DlcIndex;
-    };
-    std::vector<Arg> args;
-    std::string_view arg1(argv[1]);
-    std::string outputFilename;
-    if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "CS1")) {
-        args.push_back({"c:\\SenPatcher\\SenLib\\Sen1\\FileInfo\\steam_version_1.6.sha",
-                        "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel",
-                        size_t(1),
-                        0});
-        outputFilename = "dirtree_cs1.h";
-    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "CS2")) {
-        // args.push_back({"c:\\SenPatcher\\SenLib\\Sen2\\FileInfo\\steam_version_1.4.sha",
-        //                 "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel II",
-        //                 size_t(1)});
-        args.push_back({"c:\\SenPatcher\\SenLib\\Sen2\\FileInfo\\steam_version_1.4.1.sha",
-                        "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel II",
-                        size_t(1 << 1),
-                        0});
-        // args.push_back({"c:\\SenPatcher\\SenLib\\Sen2\\FileInfo\\steam_version_1.4.2.sha",
-        //                 "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel II",
-        //                 size_t(1 << 2)});
-        outputFilename = "dirtree_cs2.h";
-    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "CS3")) {
-        args.push_back(
-            {"c:\\SenPatcher\\SenLib\\Sen3\\FileInfo\\steam_version_1.06.sha",
-             "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel III",
-             size_t(1),
-             0});
-        outputFilename = "dirtree_cs3.h";
-    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "CS4")) {
-        args.push_back(
-            {"c:\\SenPatcher\\SenLib\\Sen4\\FileInfo\\steam_version_1.2.1.sha",
-             "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel IV",
-             size_t(1),
-             0});
-        outputFilename = "dirtree_cs4.h";
-    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "Reverie")) {
-        // args.push_back(
-        //     {"c:\\SenPatcher\\SenLib\\Sen5\\FileInfo\\steam_version_1.0.8.sha",
-        //      "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails into Reverie",
-        //      size_t(1)});
-        args.push_back(
-            {"c:\\SenPatcher\\SenLib\\Sen5\\FileInfo\\steam_version_1.1.4.sha",
-             "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails into Reverie",
-             size_t(1 << 1),
-             0});
-        outputFilename = "dirtree_reverie.h";
-    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(arg1, "TX")) {
-        args.push_back({"c:\\SenPatcher\\SenLib\\TX\\FileInfo\\steam_version_1.08.sha",
-                        "f:\\SteamLibrary\\steamapps\\common\\Tokyo Xanadu eX+",
-                        size_t(1),
-                        0});
-        args.push_back({"c:\\SenPatcher\\SenLib\\TX\\FileInfo\\gog_version_1.08.sha",
-                        "f:\\GOG Games\\Tokyo Xanadu eX+",
-                        size_t(1 << 1),
-                        0});
-        outputFilename = "dirtree_tx.h";
-    } else {
-        printf("First argument must be one of: CS1, CS2, CS3, CS4, Reverie, TX.\n");
+    const auto& programArgs = ParseArgs(argv[1]);
+    if (!programArgs) {
+        printf("Couldn't parse .json file.\n");
         return -1;
     }
+
+    const std::vector<Arg>& args = programArgs->Input;
+    const std::string& outputFilename = programArgs->Output;
 
     TreeNode root{.IsDirectory = true, .Hash = HyoutaUtils::Hash::SHA1({})};
     for (size_t i = 0; i < args.size(); ++i) {
@@ -353,7 +401,7 @@ int SHA_File_Convert_Function(int argc, char** argv) {
                 length = *l;
             }
 
-            if (!Insert(root, *hash, path, length, arg.GameVersion, arg.DlcIndex)) {
+            if (!Insert(root, *hash, path, length, size_t(1) << arg.GameVersion, arg.DlcIndex)) {
                 printf("Insert error for file %s\n", path.c_str());
                 return -1;
             }

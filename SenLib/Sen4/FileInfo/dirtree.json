@@ -1,0 +1,11 @@
+{
+	"Input": [
+		{
+			"ShaFilePath": "steam_version_1.2.1.sha",
+			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel IV",
+			"GameVersion": 0,
+			"DlcIndex": 0
+		}
+	],
+	"Output": "dirtree_cs4.h"
+}

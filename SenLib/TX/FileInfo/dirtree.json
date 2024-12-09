@@ -1,0 +1,17 @@
+{
+	"Input": [
+		{
+			"ShaFilePath": "steam_version_1.08.sha",
+			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\Tokyo Xanadu eX+",
+			"GameVersion": 0,
+			"DlcIndex": 0
+		},
+		{
+			"ShaFilePath": "gog_version_1.08.sha",
+			"GamePath": "f:\\GOG Games\\Tokyo Xanadu eX+",
+			"GameVersion": 1,
+			"DlcIndex": 0
+		}
+	],
+	"Output": "dirtree_tx.h"
+}

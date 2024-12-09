@@ -1,0 +1,11 @@
+{
+	"Input": [
+		{
+			"ShaFilePath": "steam_version_1.6.sha",
+			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel",
+			"GameVersion": 0,
+			"DlcIndex": 0
+		}
+	],
+	"Output": "dirtree_cs1.h"
+}

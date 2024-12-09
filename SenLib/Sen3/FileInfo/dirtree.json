@@ -1,0 +1,11 @@
+{
+	"Input": [
+		{
+			"ShaFilePath": "steam_version_1.06.sha",
+			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel III",
+			"GameVersion": 0,
+			"DlcIndex": 0
+		}
+	],
+	"Output": "dirtree_cs3.h"
+}
