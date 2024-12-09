@@ -6,5 +6,6 @@ struct CliTool {
     const char* Name;
     const char* ShortDescription;
     CliToolFunctionT Function;
+    bool Hidden = false;
 };
 } // namespace SenTools

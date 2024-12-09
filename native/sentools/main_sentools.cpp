@@ -54,7 +54,8 @@ static constexpr auto CliTools = {
             .Function = BRA_Extract_Function},
     CliTool{.Name = SHA_File_Convert_Name,
             .ShortDescription = SHA_File_Convert_ShortDescription,
-            .Function = SHA_File_Convert_Function},
+            .Function = SHA_File_Convert_Function,
+            .Hidden = true},
 };
 }
 
@@ -62,7 +63,9 @@ static void PrintUsage() {
     printf("SenTools from SenPatcher " SENPATCHER_VERSION "\n");
     printf("Select one of the following tools via the first argument:\n");
     for (const auto& tool : SenTools::CliTools) {
-        printf(" %-15s %s\n", tool.Name, tool.ShortDescription);
+        if (!tool.Hidden) {
+            printf(" %-15s %s\n", tool.Name, tool.ShortDescription);
+        }
     }
 }
 
