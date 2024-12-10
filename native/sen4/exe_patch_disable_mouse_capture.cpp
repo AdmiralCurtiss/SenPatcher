@@ -13,7 +13,7 @@ void PatchDisableMouseCapture(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* captureMouseCursorPos = GetCodeAddressJpEn(version, textRegion, 0x14030ab6f, 0x14030d62f);
+    char* captureMouseCursorPos = GetCodeAddressJpEn(version, textRegion, 0x14030aacf, 0x14030d58f);
     char* cameraMouseFuncPos1 = GetCodeAddressJpEn(version, textRegion, 0x1400b1e78, 0x1400b1e98);
     char* cameraMouseFuncPos2 = GetCodeAddressJpEn(version, textRegion, 0x1400b2034, 0x1400b2054);
     char* processMouseFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1400b2cd1, 0x1400b2cf1);

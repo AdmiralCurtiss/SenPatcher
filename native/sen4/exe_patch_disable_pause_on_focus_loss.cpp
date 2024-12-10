@@ -22,7 +22,7 @@ void PatchDisablePauseOnFocusLoss(PatchExecData& execData) {
     char* skipMouseButtonsIfUnfocusedPos1 =
         GetCodeAddressJpEn(version, textRegion, 0x1400e9e4c, 0x1400ebf0c);
     char* skipMouseButtonsIfUnfocusedPos2 =
-        GetCodeAddressJpEn(version, textRegion, 0x143784650, 0x1437877d0);
+        GetCodeAddressJpEn(version, textRegion, 0x143784690, 0x143786810);
 
     // don't silence audio output when unfocused
     size_t distance =

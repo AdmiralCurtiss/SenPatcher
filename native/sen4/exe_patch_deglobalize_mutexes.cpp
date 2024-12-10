@@ -13,7 +13,7 @@ void DeglobalizeMutexes(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* createMutexString1 = GetCodeAddressJpEn(version, textRegion, 0x1405ae269, 0x1405b07e9);
+    char* createMutexString1 = GetCodeAddressJpEn(version, textRegion, 0x1405ae1c9, 0x1405b0749);
     char* createMutexString2 = GetCodeAddressJpEn(version, textRegion, 0x1400d6051, 0x1400d60d1);
     {
         PageUnprotect page(logger, createMutexString1, 3);

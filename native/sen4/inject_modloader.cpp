@@ -19,8 +19,8 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x1400ed273, 0x1400ef333);
-    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x1400ed2d6, 0x1400ef396);
+    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x1400ed1d3, 0x1400ef293);
+    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x1400ed236, 0x1400ef2f6);
 
 
     char* codespaceBegin = codespace;
@@ -68,8 +68,8 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x1400ed1b0, 0x1400ef270);
-    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x1400ed1ec, 0x1400ef2ac);
+    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x1400ed110, 0x1400ef1d0);
+    char* const exitPoint = GetCodeAddressJpEn(version, textRegion, 0x1400ed14c, 0x1400ef20c);
 
 
     char* codespaceBegin = codespace;
@@ -125,7 +125,7 @@ void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder) 
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x14080ceb0, 0x14080f430);
+    char* const entryPoint = GetCodeAddressJpEn(version, textRegion, 0x14080ce10, 0x14080f390);
 
 
     char* codespaceBegin = codespace;

@@ -16,11 +16,11 @@ void PatchMusicQueueing(PatchExecData& execData) {
     using namespace SenPatcher::x64;
 
     char* const bgmPlayingCheckInjectAddress =
-        GetCodeAddressJpEn(version, textRegion, 0x1402f99c1, 0x1402fc4e3);
+        GetCodeAddressJpEn(version, textRegion, 0x1402f9921, 0x1402fc443);
 
     // Exact same fix as CS3, see that for details.
     //
-    // Addresses:
+    // Addresses: (v1.2.1)
     // 0x1400d0b0f -> Sets the music buffer to 'fading' (1). Main thread.
     // 0x1400d19dd -> Sets the music buffer to 'fading done' (2). Sound thread.
     // 0x1400ca6f6 -> Sets the music buffer to 'playing' (0) for the new track. Sound thread. (can

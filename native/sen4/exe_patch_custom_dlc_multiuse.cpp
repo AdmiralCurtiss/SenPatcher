@@ -36,7 +36,7 @@ void PatchCustomDlcMultiuse(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
 
-    char* const injectAddress = GetCodeAddressJpEn(version, textRegion, 0x1402eeb80, 0x1402f1110);
+    char* const injectAddress = GetCodeAddressJpEn(version, textRegion, 0x1402eeae0, 0x1402f1070);
 
     char* codespace = execData.Codespace;
     const auto injectResult =

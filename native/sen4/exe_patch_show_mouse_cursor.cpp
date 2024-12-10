@@ -13,7 +13,7 @@ void PatchShowMouseCursor(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* showCursorPos = GetCodeAddressJpEn(version, textRegion, 0x1405fadc4, 0x1405fd344);
+    char* showCursorPos = GetCodeAddressJpEn(version, textRegion, 0x1405fad24, 0x1405fd2a4);
 
     // remove call to ShowCursor(0)
     {

@@ -22,8 +22,8 @@ void AddSenPatcherVersionToTitle(PatchExecData& execData,
     char* codespace = execData.Codespace;
 
     using namespace SenPatcher::x64;
-    char* entryPoint = GetCodeAddressJpEn(version, textRegion, 0x14047b423, 0x14047d556);
-    char* rdxLoad = GetCodeAddressJpEn(version, textRegion, 0x14047b43a, 0x14047d56d);
+    char* entryPoint = GetCodeAddressJpEn(version, textRegion, 0x14047b383, 0x14047d4b6);
+    char* rdxLoad = GetCodeAddressJpEn(version, textRegion, 0x14047b39a, 0x14047d4cd);
     char* codespaceBegin = codespace;
 
     // safe to clobber: RCX, RDX (needs to hold string result), R9
