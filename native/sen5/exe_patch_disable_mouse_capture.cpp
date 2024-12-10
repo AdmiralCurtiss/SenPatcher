@@ -13,8 +13,8 @@ void PatchDisableMouseCapture(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* captureMouseCursorPos = GetCodeAddressEn(version, textRegion, 0x140838e7b);
-    char* mouseMovementProcessingPos = GetCodeAddressEn(version, textRegion, 0x140880e05);
+    char* captureMouseCursorPos = GetCodeAddressEn(version, textRegion, 0x1408303fb);
+    char* mouseMovementProcessingPos = GetCodeAddressEn(version, textRegion, 0x1408783f5);
 
     // remove call to ClipCursor()
     {

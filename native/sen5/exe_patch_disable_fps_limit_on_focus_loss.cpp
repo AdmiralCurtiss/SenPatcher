@@ -13,10 +13,10 @@ void PatchDisableFpsLimitOnFocusLoss(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* isInBackgroundFlag1 = GetCodeAddressEn(version, textRegion, 0x14097c5ad);
+    char* isInBackgroundFlag1 = GetCodeAddressEn(version, textRegion, 0x140972e2a) + 3;
 
     // tell the fps limiting code that we're in the foreground always
-    // for reference, this value is checked at 0x140882fb3
+    // for reference, this value is checked at 0x140882fb3 (v1.1.4)
     {
         char* tmp = isInBackgroundFlag1;
         PageUnprotect page(logger, tmp, 1);

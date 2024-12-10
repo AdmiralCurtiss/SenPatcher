@@ -19,8 +19,8 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140088732);
-    char* const exitPoint = GetCodeAddressEn(version, textRegion, 0x140088780);
+    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140088e22);
+    char* const exitPoint = GetCodeAddressEn(version, textRegion, 0x140088e70);
 
 
     char* codespaceBegin = codespace;
@@ -69,9 +69,9 @@ void InjectAtBattleScriptExists(PatchExecData& execData, void* ffileExistsForwar
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14014844a);
-    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x140148461);
-    char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x140149de4);
+    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140147cba);
+    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x140147cd1);
+    char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x140149654);
 
 
     char* codespaceBegin = codespace;
@@ -116,9 +116,9 @@ void InjectAtFileExists1(PatchExecData& execData, void* ffileExistsForwarder) {
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14006db8f);
-    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x14006dba6);
-    char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x14006cb52);
+    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14006dc8f);
+    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x14006dca6);
+    char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x14006cc52);
 
 
     char* codespaceBegin = codespace;
@@ -163,9 +163,10 @@ void InjectAtFileExists2(PatchExecData& execData, void* ffileExistsForwarder) {
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14006de34);
-    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x14006dba6);
-    char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x14006fb92);
+    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x14006df34);
+    char* const exitPointOnSuccess =
+        GetCodeAddressEn(version, textRegion, 0x14006dca6); // TODO: is this right?
+    char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x14006fc92);
 
 
     char* codespaceBegin = codespace;
@@ -210,9 +211,9 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140088b85);
-    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x140088bab);
-    char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x140088bf2);
+    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140089275);
+    char* const exitPointOnSuccess = GetCodeAddressEn(version, textRegion, 0x14008929b);
+    char* const paddingSpace = GetCodeAddressEn(version, textRegion, 0x1400892e2);
 
 
     char* codespaceBegin = codespace;
@@ -258,7 +259,7 @@ void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder) 
 
     using namespace SenPatcher::x64;
 
-    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140b7e1a0);
+    char* const entryPoint = GetCodeAddressEn(version, textRegion, 0x140b74910);
 
 
     char* codespaceBegin = codespace;

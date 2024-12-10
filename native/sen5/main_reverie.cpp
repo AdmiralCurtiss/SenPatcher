@@ -109,12 +109,12 @@ static std::optional<GameVersion> FindImageBase(HyoutaUtils::Logger& logger, voi
         }
 
         if (info.State == MEM_COMMIT && info.Type == MEM_IMAGE) {
-            if (info.RegionSize == 0xbed000 && info.Protect == PAGE_EXECUTE_READ) {
+            if (info.RegionSize == 0xbe4000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
                 crc = crc_update(
-                    crc, static_cast<char*>(info.BaseAddress) + (0x1400886e8 - 0x140001000), 0x5a);
+                    crc, static_cast<char*>(info.BaseAddress) + (0x140088dd8 - 0x140001000), 0x5a);
                 crc = crc_update(
-                    crc, static_cast<char*>(info.BaseAddress) + (0x140b7d5b0 - 0x140001000), 0x92);
+                    crc, static_cast<char*>(info.BaseAddress) + (0x140b73d30 - 0x140001000), 0x92);
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
                 if (crc == 0x054e1c1d) {
@@ -475,9 +475,9 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     const GameVersion version = *maybeVersion;
     s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(
-        SenLib::Sen5::GetCodeAddressEn(version, static_cast<char*>(codeBase), 0x1407277e0));
+        SenLib::Sen5::GetCodeAddressEn(version, static_cast<char*>(codeBase), 0x14071fa70));
     s_TrackedFree = reinterpret_cast<PTrackedFree>(
-        SenLib::Sen5::GetCodeAddressEn(version, static_cast<char*>(codeBase), 0x14006b560));
+        SenLib::Sen5::GetCodeAddressEn(version, static_cast<char*>(codeBase), 0x14006b660));
 
     // allocate extra page for code
     const size_t newPageLength = 0x1000;

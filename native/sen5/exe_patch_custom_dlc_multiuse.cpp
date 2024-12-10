@@ -24,9 +24,9 @@ void PatchCustomDlcMultiuse(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
 
-    char* const injectAddressForUsage = GetCodeAddressEn(version, textRegion, 0x140208682);
+    char* const injectAddressForUsage = GetCodeAddressEn(version, textRegion, 0x140207fc2);
     char* const injectAddressForShowingDisabledItem =
-        GetCodeAddressEn(version, textRegion, 0x14068242e);
+        GetCodeAddressEn(version, textRegion, 0x14067c4be);
 
     char* codespace = execData.Codespace;
 
@@ -97,7 +97,7 @@ void PatchCustomDlcIfNotInParty(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
 
-    char* const injectAddress = GetCodeAddressEn(version, textRegion, 0x140208752);
+    char* const injectAddress = GetCodeAddressEn(version, textRegion, 0x140208092);
 
     char* codespace = execData.Codespace;
 
