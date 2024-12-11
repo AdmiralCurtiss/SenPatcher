@@ -143,7 +143,7 @@
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(259, 13);
 			this.label1.TabIndex = 7;
-			this.label1.Text = "Trails of Cold Steel III: (NISA PC release version 1.06)";
+			this.label1.Text = "Trails of Cold Steel III: (NISA PC release version 1.07)";
 			// 
 			// buttonCS4Patch
 			// 
@@ -164,7 +164,7 @@
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(263, 13);
 			this.label4.TabIndex = 9;
-			this.label4.Text = "Trails of Cold Steel IV: (NISA PC release version 1.2.1)";
+			this.label4.Text = "Trails of Cold Steel IV: (NISA PC release version 1.2.2)";
 			// 
 			// mainMenu1
 			// 
@@ -224,7 +224,7 @@
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(247, 13);
 			this.label5.TabIndex = 11;
-			this.label5.Text = "Trails into Reverie: (NISA PC release version 1.1.4)";
+			this.label5.Text = "Trails into Reverie: (NISA PC release version 1.1.5)";
 			// 
 			// buttonTXPatch
 			// 

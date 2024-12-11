@@ -411,7 +411,7 @@ namespace SenPatcherGui {
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
 					SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
 					if (hash != new SHA1(0x21de3b088a5ddad7ul, 0xed1fdb8e40061497ul, 0xc248ca65u)) {
-						ShowError("Selected file does not appear to be Sen3Launcher.exe of version 1.06.");
+						ShowError("Selected file does not appear to be Sen3Launcher.exe of version 1.07.");
 						return null;
 					}
 				}
@@ -461,7 +461,7 @@ namespace SenPatcherGui {
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
 					SHA1 hash = ChecksumUtils.CalculateSHA1ForEntireStream(fs);
 					if (hash != new SHA1(0x5f480136aa4c3b53ul, 0xadd422bf75b63350ul, 0xfa58d202u)) {
-						ShowError("Selected file does not appear to be Sen4Launcher.exe of version 1.2.1.");
+						ShowError("Selected file does not appear to be Sen4Launcher.exe of version 1.2.2.");
 						return null;
 					}
 				}
@@ -515,8 +515,8 @@ namespace SenPatcherGui {
 				}
 				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(launcherPath)) {
 					long length = fs.Length;
-					if (length != 15847840) {
-						ShowError("Selected file does not appear to be hnk.exe of version 1.1.4.");
+					if (length != 15807384) {
+						ShowError("Selected file does not appear to be hnk.exe of version 1.1.5.");
 						return null;
 					}
 				}
