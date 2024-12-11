@@ -26,8 +26,11 @@ void PatchFixControllerMappings(PatchExecData& execData) {
     char* addressMapLookupSuccessForDelete =
         GetCodeAddressJpEn(version, textRegion, 0x14012e0d8, 0x14013166e);
     size_t lengthMapLookupSuccessForDelete = static_cast<size_t>(jp ? 4 : 3);
-    char* jpSwapActions45 = textRegion + (0x14012d785u - 0x140001000u); // only in JP build
-    static constexpr size_t jpSwapActions45Len = 13;                    // only in JP build
+
+    // only in JP build
+    char* jpSwapActions45 = jp ? GetCodeAddressJpEn(version, textRegion, 0x14012d785, 0) : nullptr;
+    static constexpr size_t jpSwapActions45Len = 13;
+
     assert(addressMapLookupCode < addressMapLookupSuccessForDelete);
 
     // increase struct allocation by 0x20 bytes

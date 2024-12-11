@@ -14,7 +14,7 @@ void FixInGameButtonMappingValidity(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* entryPoint = GetCodeAddressJpEn(version, textRegion, 0x140447427, 0x140453257);
+    char* entryPoint = GetCodeAddressJpEn(version, textRegion, 0x1404473a7, 0x1404531d7);
     size_t length = 0x44;
     PageUnprotect page(logger, entryPoint, length);
 

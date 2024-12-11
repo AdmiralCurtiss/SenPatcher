@@ -112,8 +112,10 @@ static std::optional<GameVersion> FindImageBase(HyoutaUtils::Logger& logger, voi
         if (info.State == MEM_COMMIT && info.Type == MEM_IMAGE) {
             if (info.RegionSize == 0x7e9000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
-                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xf48f0, 0x3d);
-                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x7c51d8, 0x24);
+                crc = crc_update(
+                    crc, static_cast<char*>(info.BaseAddress) + (0x1400f58f0 - 0x140001000), 0x3d);
+                crc = crc_update(
+                    crc, static_cast<char*>(info.BaseAddress) + (0x1407c61ec - 0x140001000), 0x24);
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
                 if (crc == 0x19068487) {
@@ -123,8 +125,10 @@ static std::optional<GameVersion> FindImageBase(HyoutaUtils::Logger& logger, voi
                 }
             } else if (info.RegionSize == 0x7dc000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
-                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xf4270, 0x3d);
-                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x7b82bc, 0x24);
+                crc = crc_update(
+                    crc, static_cast<char*>(info.BaseAddress) + (0x1400f5270 - 0x140001000), 0x3d);
+                crc = crc_update(
+                    crc, static_cast<char*>(info.BaseAddress) + (0x1407b923c - 0x140001000), 0x24);
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
                 if (crc == 0x19068487) {
@@ -486,12 +490,12 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     const GameVersion version = *maybeVersion;
     s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(static_cast<char*>(codeBase)
                                                        + (version == GameVersion::Japanese
-                                                              ? (0x1405d3fa0 - 0x140001000)
-                                                              : (0x1405e03f0 - 0x140001000)));
+                                                              ? (0x1405d3f20 - 0x140001000)
+                                                              : (0x1405e0370 - 0x140001000)));
     s_TrackedFree = reinterpret_cast<PTrackedFree>(static_cast<char*>(codeBase)
                                                    + (version == GameVersion::Japanese
-                                                          ? (0x1405d3ed0 - 0x140001000)
-                                                          : (0x1405e0320 - 0x140001000)));
+                                                          ? (0x1405d3e50 - 0x140001000)
+                                                          : (0x1405e02a0 - 0x140001000)));
 
     // allocate extra page for code
     const size_t newPageLength = 0x1000;

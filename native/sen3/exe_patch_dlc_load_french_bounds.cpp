@@ -24,9 +24,9 @@ void PatchDlcLoadFrenchBounds(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
 
-    char* const injectAddress = GetCodeAddressJpEn(version, textRegion, 0, 0x1403a99c2);
+    char* const injectAddress = GetCodeAddressJpEn(version, textRegion, 0, 0x1403a9942);
     static constexpr size_t injectLength = 0x17;
-    char* const frenchNonzeroCheckAddress = GetCodeAddressJpEn(version, textRegion, 0, 0x1403a99a1);
+    char* const frenchNonzeroCheckAddress = GetCodeAddressJpEn(version, textRegion, 0, 0x1403a9921);
     static constexpr size_t frenchNonzeroCheckLength = 10;
 
     // the original code here effectively does:

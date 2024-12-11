@@ -36,11 +36,11 @@ void SwapBrokenMasterQuartzValuesForDisplay(PatchExecData& execData) {
     // stack from rsp+31h to rsp+37h looks unused, so stash our sentinel check flag in there...
     // rsp+34h looks good
 
-    char* initSentinelCheckPos = textRegion + ((0x14027fd47u - 0x140001000u));
+    char* initSentinelCheckPos = GetCodeAddressJpEn(version, textRegion, 0, 0x14027fcc7);
     constexpr size_t initSentinelCheckLen = 13;
-    char* checkSentinelPos = textRegion + ((0x14028015bu - 0x140001000u));
+    char* checkSentinelPos = GetCodeAddressJpEn(version, textRegion, 0, 0x1402800db);
     constexpr size_t checkSentinelLen = 13;
-    char* fixParametersPos = textRegion + ((0x14028020eu - 0x140001000u));
+    char* fixParametersPos = GetCodeAddressJpEn(version, textRegion, 0, 0x14028018e);
     constexpr size_t fixParametersLen = 12;
 
     // first initialize sentinel check flag on stack near start of function

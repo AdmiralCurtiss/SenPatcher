@@ -16,7 +16,7 @@ void PatchMusicQueueing(PatchExecData& execData) {
     using namespace SenPatcher::x64;
 
     char* const bgmPlayingCheckInjectAddress =
-        GetCodeAddressJpEn(version, textRegion, 0x140310f72, 0x14031a377);
+        GetCodeAddressJpEn(version, textRegion, 0x140310ef2, 0x14031a2f7);
 
     // This behaves similarly but somewhat different to the CS2 music stuff. As far as I can tell,
     // the basic gist is the same, but for the music commands are passed outside of the standard

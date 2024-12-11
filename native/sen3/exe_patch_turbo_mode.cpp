@@ -25,19 +25,19 @@ void PatchTurboMode(PatchExecData& execData, bool makeToggle, bool adjustTimersF
     using JC = JumpCondition;
 
     char* const addressBeforeTurboEnabledCheck =
-        GetCodeAddressJpEn(version, textRegion, 0x14012f7f2, 0x140132f82);
+        GetCodeAddressJpEn(version, textRegion, 0x14012f772, 0x140132f02);
     char* const addressJumpAfterTestCheckButtonPressed =
-        GetCodeAddressJpEn(version, textRegion, 0x14012f82f, 0x140132fbf);
+        GetCodeAddressJpEn(version, textRegion, 0x14012f7af, 0x140132f3f);
     char* const addressLoadTimeStepForLipflaps12 =
-        GetCodeAddressJpEn(version, textRegion, 0x1402c86d1, 0x1402cff31);
+        GetCodeAddressJpEn(version, textRegion, 0x1402c8651, 0x1402cfeb1);
     char* const addressLoadTimeStepForLipflaps3 =
-        GetCodeAddressJpEn(version, textRegion, 0x1402c8729, 0x1402cff89);
+        GetCodeAddressJpEn(version, textRegion, 0x1402c86a9, 0x1402cff09);
     char* const addressLoadTimeStepForLipflaps3Trampoline =
-        GetCodeAddressJpEn(version, textRegion, 0x1402c84f4, 0x1402cfd54);
+        GetCodeAddressJpEn(version, textRegion, 0x1402c8474, 0x1402cfcd4);
     char* const addressLoadTimeStepForActiveVoice =
-        GetCodeAddressJpEn(version, textRegion, 0x1402c8ecb, 0x1402d072b);
+        GetCodeAddressJpEn(version, textRegion, 0x1402c8e4b, 0x1402d06ab);
     char* const addressLoadTimeStepForGameplayTimer =
-        GetCodeAddressJpEn(version, textRegion, 0x1403210bc, 0x14032a5cc);
+        GetCodeAddressJpEn(version, textRegion, 0x14032103c, 0x14032a54c);
 
     // hook before the turbo-enabled-in-config check and store the unscaled timestamp.
     // we must do this before the check, otherwise our RealTimeStep is never written in the

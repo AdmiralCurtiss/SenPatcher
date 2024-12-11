@@ -13,7 +13,7 @@ void PatchForceXInput(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* xinputCheckPos = GetCodeAddressJpEn(version, textRegion, 0x1406add65, 0x1406ba1b5);
+    char* xinputCheckPos = GetCodeAddressJpEn(version, textRegion, 0x1406adce5, 0x1406ba135);
 
     {
         char* tmp = xinputCheckPos;

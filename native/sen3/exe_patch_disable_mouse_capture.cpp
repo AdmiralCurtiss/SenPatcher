@@ -14,9 +14,9 @@ void PatchDisableMouseCapture(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
     char* captureMouseCursorPos1 =
-        GetCodeAddressJpEn(version, textRegion, 0x140320db8, 0x14032a2c8);
+        GetCodeAddressJpEn(version, textRegion, 0x140320d38, 0x14032a248);
     char* captureMouseCursorPos2 =
-        GetCodeAddressJpEn(version, textRegion, 0x140320f85, 0x14032a495);
+        GetCodeAddressJpEn(version, textRegion, 0x140320f05, 0x14032a415);
     char* cameraMouseFuncPos1 = GetCodeAddressJpEn(version, textRegion, 0x1400f7be8, 0x1400f8268);
     char* cameraMouseFuncPos2 = GetCodeAddressJpEn(version, textRegion, 0x1400f7d61, 0x1400f83e1);
     char* processMouseFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1400f88bd, 0x1400f8f3d);
