@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -192,6 +194,30 @@ static size_t InsertHash(const HyoutaUtils::Hash::SHA1& hash,
     return offset;
 }
 
+static void AppendEscaped(std::string& source, std::string_view s) {
+    for (char c : s) {
+        if (c == '\\') {
+            source.append("\\\\");
+        } else if (c >= 0x20 && c <= 0x7e) {
+            source.push_back(c);
+        } else if (c == '\t') {
+            source.append("\\t");
+        } else if (c == '\n') {
+            source.append("\\n");
+        } else if (c == '\v') {
+            source.append("\\v");
+        } else if (c == '\f') {
+            source.append("\\f");
+        } else if (c == '\r') {
+            source.append("\\r");
+        } else {
+            char tmp[8];
+            sprintf(tmp, "\\x%02x", static_cast<uint8_t>(c));
+            source.append(tmp);
+        }
+    }
+}
+
 static void GenerateDirTreeLine(const TreeNode& node,
                                 std::string& stringTable,
                                 std::vector<HyoutaUtils::Hash::SHA1>& hashTable,
@@ -221,7 +247,12 @@ static void GenerateDirTreeLine(const TreeNode& node,
         source.append(", ");
         source.append(std::to_string(node.Filesize));
     }
-    source.append("),\n");
+    source.append("),");
+    if (!node.Name.empty()) {
+        source.append(" // ");
+        AppendEscaped(source, node.Name);
+    }
+    source.append("\n");
 }
 
 static void GenerateDirTreeSource(const TreeNode& node,
@@ -236,6 +267,78 @@ static void GenerateDirTreeSource(const TreeNode& node,
             GenerateDirTreeSource(child, stringTable, hashTable, source);
         }
     }
+}
+
+static void SortChildrenRecursive(TreeNode& node) {
+    if (node.IsDirectory) {
+        node.ChildLookup.clear();
+        std::stable_sort(
+            node.Children.begin(),
+            node.Children.end(),
+            [](const TreeNode& lhs, const TreeNode& rhs) -> bool {
+                std::string lhsName = HyoutaUtils::TextUtils::ToLower(lhs.Name);
+                std::string rhsName = HyoutaUtils::TextUtils::ToLower(rhs.Name);
+                return std::tie(lhsName, lhs.GameVersionBits, lhs.DlcIndex, lhs.Filesize)
+                       < std::tie(rhsName, rhs.GameVersionBits, rhs.DlcIndex, rhs.Filesize);
+            });
+        for (auto& child : node.Children) {
+            SortChildrenRecursive(child);
+        }
+    }
+}
+
+static void PreInsertHashes(TreeNode& node, std::vector<HyoutaUtils::Hash::SHA1>& hashTable) {
+    if (node.IsDirectory) {
+        for (auto& child : node.Children) {
+            PreInsertHashes(child, hashTable);
+        }
+    } else {
+        InsertHash(node.Hash, hashTable);
+    }
+}
+
+static void PreInsertNamesRecursive(TreeNode& node, std::vector<std::string>& strings) {
+    if (!node.Name.empty()) {
+        strings.push_back(node.Name);
+    }
+    if (node.IsDirectory) {
+        for (auto& child : node.Children) {
+            PreInsertNamesRecursive(child, strings);
+        }
+    }
+}
+
+static void PreInsertNames(TreeNode& node, std::string& stringTable) {
+    std::vector<std::string> strings;
+    PreInsertNamesRecursive(node, strings);
+
+    // sort longer strings first, so that names that are part of other names share bytes
+    std::stable_sort(
+        strings.begin(), strings.end(), [](const std::string& lhs, const std::string& rhs) -> bool {
+            if (lhs.size() != rhs.size()) {
+                return lhs.size() > rhs.size();
+            }
+            return lhs < rhs;
+        });
+    for (const std::string& string : strings) {
+        InsertFilename(string, stringTable);
+    }
+}
+
+static void Prettify(TreeNode& node,
+                     std::string& stringTable,
+                     std::vector<HyoutaUtils::Hash::SHA1>& hashTable) {
+    SortChildrenRecursive(node);
+    PreInsertHashes(node, hashTable);
+    PreInsertNames(node, stringTable);
+
+    // sort hashes. i can't think of a real use case offhand but let's make these binary searchable,
+    // why not
+    std::sort(hashTable.begin(),
+              hashTable.end(),
+              [](const HyoutaUtils::Hash::SHA1& lhs, const HyoutaUtils::Hash::SHA1& rhs) -> bool {
+                  return std::memcmp(lhs.Hash.data(), rhs.Hash.data(), lhs.Hash.size()) < 0;
+              });
 }
 
 namespace {
@@ -300,7 +403,7 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
     } else {
         return std::nullopt;
     }
-    const auto output = ReadString(root, "Output");
+    auto output = ReadString(root, "Output");
     if (!output) {
         return std::nullopt;
     }
@@ -311,8 +414,7 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
 
 int SHA_File_Convert_Function(int argc, char** argv) {
     if (argc <= 1) {
-        printf(
-            "First argument must point to .json describing the data to convert.\n");
+        printf("First argument must point to .json describing the data to convert.\n");
         return -1;
     }
 
@@ -328,6 +430,8 @@ int SHA_File_Convert_Function(int argc, char** argv) {
     TreeNode root{.IsDirectory = true, .Hash = HyoutaUtils::Hash::SHA1({})};
     for (size_t i = 0; i < args.size(); ++i) {
         const auto& arg = args[i];
+        const size_t gameVersionBits = (size_t(1) << arg.GameVersion);
+        root.GameVersionBits |= gameVersionBits;
         HyoutaUtils::IO::File infile(std::string_view(arg.ShaFilePath),
                                      HyoutaUtils::IO::OpenMode::Read);
         if (!infile.IsOpen()) {
@@ -401,7 +505,7 @@ int SHA_File_Convert_Function(int argc, char** argv) {
                 length = *l;
             }
 
-            if (!Insert(root, *hash, path, length, size_t(1) << arg.GameVersion, arg.DlcIndex)) {
+            if (!Insert(root, *hash, path, length, gameVersionBits, arg.DlcIndex)) {
                 printf("Insert error for file %s\n", path.c_str());
                 return -1;
             }
@@ -411,6 +515,7 @@ int SHA_File_Convert_Function(int argc, char** argv) {
     {
         std::string stringTable;
         std::vector<HyoutaUtils::Hash::SHA1> hashTable;
+        Prettify(root, stringTable, hashTable);
         size_t count = 1;
         root.ChildFirstIndex = 1;
         FillFirstChildIndex(root, count);
