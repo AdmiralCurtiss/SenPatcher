@@ -251,6 +251,13 @@ if (SENPATCHER_BUILD_TOOLS)
 		sen/pkg_extract.cpp
 		sen/pkg_extract.h
 
+		dirtree/entry.h
+		dirtree/tree.h
+
+		dirtree/dirtree_tx.cpp
+		dirtree/dirtree_tx.h
+		dirtree/generated/internal_dirtree_tx.h
+
 		cpp-optparse/OptionParser.cpp
 		cpp-optparse/OptionParser.h
 
