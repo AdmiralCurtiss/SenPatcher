@@ -34,6 +34,8 @@ std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length);
 #ifdef BUILD_FOR_WINDOWS
 std::optional<std::wstring> AnsiCodePageToWString(const char* data, size_t length);
 std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length);
+std::optional<std::wstring> OemCodePageToWString(const char* data, size_t length);
+std::optional<std::string> OemCodePageToUtf8(const char* data, size_t length);
 #endif
 
 std::string Replace(std::string_view input, std::string_view search, std::string_view replacement);

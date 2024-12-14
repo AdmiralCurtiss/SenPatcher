@@ -237,6 +237,18 @@ std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length) {
     }
     return WStringToUtf8(wstr->data(), wstr->size());
 }
+
+std::optional<std::wstring> OemCodePageToWString(const char* data, size_t length) {
+    return CodepageToString16<std::wstring>(data, length, GetOEMCP());
+}
+
+std::optional<std::string> OemCodePageToUtf8(const char* data, size_t length) {
+    auto wstr = OemCodePageToWString(data, length);
+    if (!wstr) {
+        return std::nullopt;
+    }
+    return WStringToUtf8(wstr->data(), wstr->size());
+}
 #endif
 
 std::string Replace(std::string_view input, std::string_view search, std::string_view replacement) {
