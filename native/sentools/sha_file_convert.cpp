@@ -19,6 +19,10 @@
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
+#include "dirtree/dirtree_tx.h"
+#include "dirtree/entry.h"
+#include "dirtree/tree.h"
+
 namespace {
 struct TreeNode {
     bool IsDirectory;
@@ -350,6 +354,7 @@ struct Arg {
 };
 struct ProgramArgs {
     std::vector<Arg> Input;
+    std::string InternalInput;
     std::string Output;
 };
 } // namespace
@@ -403,6 +408,10 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
     } else {
         return std::nullopt;
     }
+    auto internalInput = ReadString(root, "InternalInput");
+    if (internalInput) {
+        args.InternalInput = std::move(*internalInput);
+    }
     auto output = ReadString(root, "Output");
     if (!output) {
         return std::nullopt;
@@ -410,6 +419,55 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
     args.Output = std::move(*output);
 
     return args;
+}
+
+static bool InsertExistingDirTreeRecursive(TreeNode& root,
+                                           const HyoutaUtils::DirTree::Tree& inputTree,
+                                           const HyoutaUtils::DirTree::Entry& entry,
+                                           std::string_view pathPrefix) {
+    std::string_view filename(inputTree.StringTable + entry.GetFilenameOffset(),
+                              entry.GetFilenameLength());
+    std::string path;
+    path.reserve(pathPrefix.size() + filename.size() + 1);
+    path.append(pathPrefix);
+    path.append(filename);
+
+    if (entry.IsDirectory()) {
+        path.push_back('/');
+
+        const size_t childCount = entry.GetDirectoryNumberOfEntries();
+        const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+        for (size_t i = 0; i < childCount; ++i) {
+            const auto& child = inputTree.Entries[firstChildIndex + i];
+            if (!InsertExistingDirTreeRecursive(root, inputTree, child, path)) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return Insert(root,
+                      inputTree.HashTable[entry.GetFileHashIndex()],
+                      path,
+                      entry.GetFileSize(),
+                      entry.GetGameVersionBits(),
+                      entry.GetDlcIndex());
+    }
+}
+
+static bool InsertExistingDirTree(TreeNode& root, const HyoutaUtils::DirTree::Tree& inputTree) {
+    if (inputTree.NumberOfEntries > 0) {
+        const auto& entry = inputTree.Entries[0];
+        root.GameVersionBits = entry.GetGameVersionBits();
+        const size_t childCount = entry.GetDirectoryNumberOfEntries();
+        const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+        for (size_t i = 0; i < childCount; ++i) {
+            const auto& child = inputTree.Entries[firstChildIndex + i];
+            if (!InsertExistingDirTreeRecursive(root, inputTree, child, "")) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 int SHA_File_Convert_Function(int argc, char** argv) {
@@ -425,9 +483,26 @@ int SHA_File_Convert_Function(int argc, char** argv) {
     }
 
     const std::vector<Arg>& args = programArgs->Input;
+    const std::string& internalInputKey = programArgs->InternalInput;
     const std::string& outputFilename = programArgs->Output;
 
     TreeNode root{.IsDirectory = true, .Hash = HyoutaUtils::Hash::SHA1({})};
+
+    HyoutaUtils::DirTree::Tree internalInputTree{};
+    if (internalInputKey.empty()) {
+        // that's fine, just skip
+    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("TX", internalInputKey)) {
+        internalInputTree = SenLib::TX::GetDirTree();
+    } else {
+        printf("Invalid internal input key.\n");
+        return -1;
+    }
+
+    if (!InsertExistingDirTree(root, internalInputTree)) {
+        printf("Internal error.\n");
+        return -1;
+    }
+
     for (size_t i = 0; i < args.size(); ++i) {
         const auto& arg = args[i];
         const size_t gameVersionBits = (size_t(1) << arg.GameVersion);

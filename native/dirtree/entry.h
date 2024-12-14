@@ -82,5 +82,49 @@ struct Entry {
         uint32_t metadata = (dlcIndex << 20) | gameVersionBits | 0x8000'0000u;
         return Entry(filename, metadata, directoryFirstEntry, directoryNumberOfEntries);
     }
+
+    bool IsFile() const {
+        return (Metadata & 0x8000'0000u) == 0u;
+    }
+
+    bool IsDirectory() const {
+        return (Metadata & 0x8000'0000u) != 0u;
+    }
+
+    uint32_t GetFilenameOffset() const {
+        return (Filename >> 8);
+    }
+
+    uint32_t GetFilenameLength() const {
+        return (Filename & 0x0000'00ffu);
+    }
+
+    uint32_t GetGameVersionBits() const {
+        return (Metadata & 0x000f'ffffu);
+    }
+
+    uint32_t GetDlcIndex() const {
+        return ((Metadata >> 20) & 0x0000'07ffu);
+    }
+
+    uint32_t GetFileHashIndex() const {
+        assert(IsFile());
+        return static_cast<uint32_t>(Data.File.HashAndSize & 0x000f'ffffu);
+    }
+
+    uint64_t GetFileSize() const {
+        assert(IsFile());
+        return (Data.File.HashAndSize >> 20);
+    }
+
+    uint32_t GetDirectoryFirstEntry() const {
+        assert(IsDirectory());
+        return Data.Directory.FirstEntry;
+    }
+
+    uint32_t GetDirectoryNumberOfEntries() const {
+        assert(IsDirectory());
+        return Data.Directory.NumberOfEntries;
+    }
 };
 } // namespace HyoutaUtils::DirTree
