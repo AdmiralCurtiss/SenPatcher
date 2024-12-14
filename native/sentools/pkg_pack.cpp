@@ -74,7 +74,7 @@ int PKG_Pack_Function(int argc, char** argv) {
     std::vector<SenLib::PkgFile> fileinfos;
     std::vector<std::unique_ptr<char[]>> filedatas;
     {
-        std::filesystem::path rootDir(source);
+        std::filesystem::path rootDir = HyoutaUtils::IO::FilesystemPathFromUtf8(source);
         std::error_code ec;
         std::filesystem::directory_iterator iterator(rootDir, ec);
         if (ec) {
@@ -148,7 +148,7 @@ int PKG_Pack_Function(int argc, char** argv) {
         return -1;
     }
 
-    HyoutaUtils::IO::File outfile(std::filesystem::path(target), HyoutaUtils::IO::OpenMode::Write);
+    HyoutaUtils::IO::File outfile(target, HyoutaUtils::IO::OpenMode::Write);
     if (!outfile.IsOpen()) {
         printf("Failed to open output file.\n");
         return -1;

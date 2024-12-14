@@ -87,7 +87,7 @@ int PKG_Repack_Function(int argc, char** argv) {
     std::string_view target(output_option->first_string());
 
 
-    std::filesystem::path sourcepath(source.begin(), source.end());
+    std::filesystem::path sourcepath = HyoutaUtils::IO::FilesystemPathFromUtf8(source);
     HyoutaUtils::IO::File f(sourcepath, HyoutaUtils::IO::OpenMode::Read);
     if (!f.IsOpen()) {
         return -1;
@@ -191,7 +191,7 @@ int PKG_Repack_Function(int argc, char** argv) {
         return -1;
     }
 
-    HyoutaUtils::IO::File outfile(std::filesystem::path(target), HyoutaUtils::IO::OpenMode::Write);
+    HyoutaUtils::IO::File outfile(target, HyoutaUtils::IO::OpenMode::Write);
     if (!outfile.IsOpen()) {
         printf("Failed to open output file.\n");
         return -1;

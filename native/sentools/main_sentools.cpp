@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <exception>
+#include <memory>
 #include <string_view>
 
 #include "senpatcher_version.h"
@@ -85,6 +86,26 @@ static const char* StripPathToFilename(const char* path) {
 
 int main(int argc, char** argv) {
     try {
+        char** argvUtf8 = nullptr;
+#ifdef BUILD_FOR_WINDOWS
+        std::unique_ptr<const char*[]> argvUtf8Pts;
+        std::unique_ptr<std::string[]> argvStorage;
+        const size_t argcSizet = static_cast<size_t>(argc > 0 ? argc : 0);
+        argvUtf8Pts = std::make_unique<const char*[]>(argcSizet + 1);
+        argvStorage = std::make_unique<std::string[]>(argcSizet);
+        for (size_t i = 0; i < argcSizet; ++i) {
+            auto utf8 = HyoutaUtils::TextUtils::AnsiCodePageToUtf8(argv[i], strlen(argv[i]));
+            if (utf8) {
+                argvStorage[i] = std::move(*utf8);
+            }
+            argvUtf8Pts[i] = argvStorage[i].c_str();
+        }
+        argvUtf8Pts[argcSizet] = nullptr;
+        argvUtf8 = const_cast<char**>(argvUtf8Pts.get());
+#else
+        argvUtf8 = argv;
+#endif
+
         if (argc < 2) {
             PrintUsage();
 
@@ -104,7 +125,7 @@ int main(int argc, char** argv) {
                     "You will then get further instructions on what arguments are expected by the "
                     "sub-tool.\n"
                     "\n",
-                    (argc >= 1 ? StripPathToFilename(argv[0]) : "sentools.exe"));
+                    (argc >= 1 ? StripPathToFilename(argvUtf8[0]) : "sentools.exe"));
                 system("pause");
             }
 #endif
@@ -112,10 +133,10 @@ int main(int argc, char** argv) {
             return -1;
         }
 
-        const std::string_view name = argv[1];
+        const std::string_view name = argvUtf8[1];
         for (const auto& tool : SenTools::CliTools) {
             if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(name, tool.Name)) {
-                return tool.Function(argc - 1, argv + 1);
+                return tool.Function(argc - 1, argvUtf8 + 1);
             }
         }
 

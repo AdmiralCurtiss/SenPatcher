@@ -31,6 +31,11 @@ std::optional<std::wstring> ShiftJisToWString(const char* data, size_t length);
 std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length);
 std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length);
 
+#ifdef BUILD_FOR_WINDOWS
+std::optional<std::wstring> AnsiCodePageToWString(const char* data, size_t length);
+std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length);
+#endif
+
 std::string Replace(std::string_view input, std::string_view search, std::string_view replacement);
 std::string InsertSubstring(std::string_view a,
                             size_t offseta,

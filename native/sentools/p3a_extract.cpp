@@ -8,6 +8,7 @@
 #include "cpp-optparse/OptionParser.h"
 
 #include "p3a/unpackfs.h"
+#include "util/file.h"
 
 namespace SenTools {
 int P3A_Extract_Function(int argc, char** argv) {
@@ -52,8 +53,8 @@ int P3A_Extract_Function(int argc, char** argv) {
     }
 
 
-    if (!SenPatcher::UnpackP3A(std::filesystem::path(source.begin(), source.end()),
-                               std::filesystem::path(target.begin(), target.end()),
+    if (!SenPatcher::UnpackP3A(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
+                               HyoutaUtils::IO::FilesystemPathFromUtf8(target),
                                options["json"].flag(),
                                options["no-decompress"].flag())) {
         printf("Unpacking failed.\n");

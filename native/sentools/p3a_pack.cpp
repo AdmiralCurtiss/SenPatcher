@@ -10,6 +10,7 @@
 
 #include "p3a/packfs.h"
 #include "p3a/structs.h"
+#include "util/file.h"
 #include "util/text.h"
 
 namespace SenTools {
@@ -107,8 +108,8 @@ int P3A_Pack_Function(int argc, char** argv) {
         }
     }
 
-    if (!SenPatcher::PackP3AFromDirectory(std::filesystem::path(source.begin(), source.end()),
-                                          std::filesystem::path(target.begin(), target.end()),
+    if (!SenPatcher::PackP3AFromDirectory(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
+                                          HyoutaUtils::IO::FilesystemPathFromUtf8(target),
                                           archiveVersion,
                                           compressionType,
                                           std::filesystem::path(),

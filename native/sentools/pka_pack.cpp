@@ -126,7 +126,7 @@ int PKA_Pack_Function(int argc, char** argv) {
         existingPkas.reserve(existingPkaPaths.size());
         for (const auto& existingPkaPath : existingPkaPaths) {
             auto& existingPka = existingPkas.emplace_back();
-            existingPka.PkaFile.Open(std::filesystem::path(existingPkaPath),
+            existingPka.PkaFile.Open(std::string_view(existingPkaPath),
                                      HyoutaUtils::IO::OpenMode::Read);
             if (!existingPka.PkaFile.IsOpen()) {
                 printf("Error opening existing pka.\n");
@@ -346,7 +346,7 @@ int PKA_Pack_Function(int argc, char** argv) {
         };
 
         for (size_t i = 0; i < args.size(); ++i) {
-            std::filesystem::path rootDir(args[i]);
+            std::filesystem::path rootDir = HyoutaUtils::IO::FilesystemPathFromUtf8(args[i]);
             std::error_code ec;
             std::filesystem::directory_iterator iterator(rootDir, ec);
             if (ec) {
@@ -502,7 +502,8 @@ int PKA_Pack_Function(int argc, char** argv) {
 
     // write file
     uint64_t fileOffset = pkaHeaderLength;
-    HyoutaUtils::IO::File outfile(std::filesystem::path(target), HyoutaUtils::IO::OpenMode::Write);
+    HyoutaUtils::IO::File outfile(HyoutaUtils::IO::FilesystemPathFromUtf8(target),
+                                  HyoutaUtils::IO::OpenMode::Write);
     if (!outfile.IsOpen()) {
         printf("Failed to open output file.\n");
         return -1;

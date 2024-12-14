@@ -8,6 +8,7 @@
 #include "cpp-optparse/OptionParser.h"
 
 #include "p3a/packjson.h"
+#include "util/file.h"
 
 namespace SenTools {
 int P3A_Repack_Function(int argc, char** argv) {
@@ -62,8 +63,8 @@ int P3A_Repack_Function(int argc, char** argv) {
         }
     }
 
-    if (!SenPatcher::PackP3AFromJsonFile(std::filesystem::path(source.begin(), source.end()),
-                                         std::filesystem::path(target.begin(), target.end()),
+    if (!SenPatcher::PackP3AFromJsonFile(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
+                                         HyoutaUtils::IO::FilesystemPathFromUtf8(target),
                                          threadCount)) {
         printf("Packing failed.\n");
         return -1;

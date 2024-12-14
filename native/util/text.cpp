@@ -225,6 +225,20 @@ std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length) {
 #endif
 }
 
+#ifdef BUILD_FOR_WINDOWS
+std::optional<std::wstring> AnsiCodePageToWString(const char* data, size_t length) {
+    return CodepageToString16<std::wstring>(data, length, GetACP());
+}
+
+std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length) {
+    auto wstr = AnsiCodePageToWString(data, length);
+    if (!wstr) {
+        return std::nullopt;
+    }
+    return WStringToUtf8(wstr->data(), wstr->size());
+}
+#endif
+
 std::string Replace(std::string_view input, std::string_view search, std::string_view replacement) {
     if (search.empty()) {
         return std::string(input);

@@ -360,7 +360,7 @@ struct ProgramArgs {
 } // namespace
 
 static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
-    HyoutaUtils::IO::File f(std::filesystem::path(jsonPath), HyoutaUtils::IO::OpenMode::Read);
+    HyoutaUtils::IO::File f(jsonPath, HyoutaUtils::IO::OpenMode::Read);
     if (!f.IsOpen()) {
         return std::nullopt;
     }

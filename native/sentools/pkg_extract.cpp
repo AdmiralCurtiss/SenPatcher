@@ -56,9 +56,8 @@ int PKG_Extract_Function(int argc, char** argv) {
     }
 
 
-    std::filesystem::path sourcepath(source.begin(), source.end());
-    std::filesystem::path targetpath(target.begin(), target.end());
-    HyoutaUtils::IO::File infile(sourcepath, HyoutaUtils::IO::OpenMode::Read);
+    std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
+    HyoutaUtils::IO::File infile(std::string_view(source), HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
         printf("Failed to open input file.\n");
         return -1;

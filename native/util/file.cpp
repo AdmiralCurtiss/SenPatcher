@@ -547,4 +547,10 @@ bool CreateDirectory(const std::filesystem::path& p) noexcept {
 }
 #endif
 
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+std::filesystem::path FilesystemPathFromUtf8(std::string_view path) {
+    return std::filesystem::path((const char8_t*)path.data(),
+                                 (const char8_t*)path.data() + path.size());
+}
+#endif
 } // namespace HyoutaUtils::IO
