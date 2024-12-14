@@ -84,28 +84,8 @@ static const char* StripPathToFilename(const char* path) {
 }
 #endif
 
-int main(int argc, char** argv) {
+static int InternalMain(int argc, char** argvUtf8) {
     try {
-        char** argvUtf8 = nullptr;
-#ifdef BUILD_FOR_WINDOWS
-        std::unique_ptr<const char*[]> argvUtf8Pts;
-        std::unique_ptr<std::string[]> argvStorage;
-        const size_t argcSizet = static_cast<size_t>(argc > 0 ? argc : 0);
-        argvUtf8Pts = std::make_unique<const char*[]>(argcSizet + 1);
-        argvStorage = std::make_unique<std::string[]>(argcSizet);
-        for (size_t i = 0; i < argcSizet; ++i) {
-            auto utf8 = HyoutaUtils::TextUtils::AnsiCodePageToUtf8(argv[i], strlen(argv[i]));
-            if (utf8) {
-                argvStorage[i] = std::move(*utf8);
-            }
-            argvUtf8Pts[i] = argvStorage[i].c_str();
-        }
-        argvUtf8Pts[argcSizet] = nullptr;
-        argvUtf8 = const_cast<char**>(argvUtf8Pts.get());
-#else
-        argvUtf8 = argv;
-#endif
-
         if (argc < 2) {
             PrintUsage();
 
@@ -150,3 +130,29 @@ int main(int argc, char** argv) {
         return -4;
     }
 }
+
+#ifdef BUILD_FOR_WINDOWS
+int wmain(int argc, wchar_t* argv[], wchar_t* envp[]) {
+    std::unique_ptr<const char*[]> argvUtf8Pts;
+    std::unique_ptr<std::string[]> argvStorage;
+    const size_t argcSizet = static_cast<size_t>(argc > 0 ? argc : 0);
+    argvUtf8Pts = std::make_unique<const char*[]>(argcSizet + 1);
+    argvStorage = std::make_unique<std::string[]>(argcSizet);
+    for (size_t i = 0; i < argcSizet; ++i) {
+        auto utf8 = HyoutaUtils::TextUtils::WStringToUtf8(argv[i], wcslen(argv[i]));
+        if (utf8) {
+            argvStorage[i] = std::move(*utf8);
+        } else {
+            printf("Failed to convert argument %zu to UTF8.\n", i);
+            return -1;
+        }
+        argvUtf8Pts[i] = argvStorage[i].c_str();
+    }
+    argvUtf8Pts[argcSizet] = nullptr;
+    return InternalMain(argc, const_cast<char**>(argvUtf8Pts.get()));
+}
+#else
+int main(int argc, char** argv) {
+    return InternalMain(argc, argv);
+}
+#endif
