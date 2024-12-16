@@ -11,6 +11,7 @@ namespace HyoutaUtils::Hash {
 struct SHA1 {
     std::array<char, 20> Hash;
 };
+static_assert(sizeof(SHA1) == 20);
 
 SHA1 CalculateSHA1(const void* data, size_t length);
 

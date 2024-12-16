@@ -127,4 +127,5 @@ struct Entry {
         return Data.Directory.NumberOfEntries;
     }
 };
+static_assert(sizeof(Entry) == 16);
 } // namespace HyoutaUtils::DirTree
