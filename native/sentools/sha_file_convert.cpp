@@ -175,7 +175,9 @@ static void FillFirstChildIndex(TreeNode& node, size_t& index) {
     }
 }
 
-static size_t InsertFilename(std::string_view name, std::string& stringTable) {
+static size_t InsertFilename(std::string_view name,
+                             std::string& stringTable,
+                             std::vector<size_t>& stringOffsets) {
     auto existing = stringTable.find(name);
     if (existing != std::string::npos) {
         return existing;
@@ -183,6 +185,7 @@ static size_t InsertFilename(std::string_view name, std::string& stringTable) {
 
     size_t offset = stringTable.size();
     stringTable.append(name);
+    stringOffsets.push_back(stringTable.size());
     return offset;
 }
 
@@ -222,11 +225,30 @@ static void AppendEscaped(std::string& source, std::string_view s) {
     }
 }
 
+static void AppendChar(std::string& source, char c) {
+    // std::array<char, 16> tmp{};
+    // sprintf(tmp.data(), "'\\x%02x'", static_cast<uint8_t>(c));
+    // source.append(tmp.data());
+    source.append(std::to_string(c));
+}
+
+static void AppendEscapedChar(std::string& source, char c) {
+    // source.push_back('\'');
+    // if (c == '\'') {
+    //     source.append("\\'");
+    // } else {
+    //     AppendEscaped(source, std::string_view(&c, 1));
+    // }
+    // source.push_back('\'');
+    AppendChar(source, c);
+}
+
 static void GenerateDirTreeLine(const TreeNode& node,
                                 std::string& stringTable,
+                                std::vector<size_t>& stringOffsets,
                                 std::vector<HyoutaUtils::Hash::SHA1>& hashTable,
                                 std::string& source) {
-    size_t filenameOffset = InsertFilename(node.Name, stringTable);
+    size_t filenameOffset = InsertFilename(node.Name, stringTable, stringOffsets);
     size_t hashOffset = 0;
     if (node.IsDirectory) {
         source.append("HyoutaUtils::DirTree::Entry::MakeDirectory(");
@@ -261,16 +283,146 @@ static void GenerateDirTreeLine(const TreeNode& node,
 
 static void GenerateDirTreeSource(const TreeNode& node,
                                   std::string& stringTable,
+                                  std::vector<size_t>& stringOffsets,
                                   std::vector<HyoutaUtils::Hash::SHA1>& hashTable,
                                   std::string& source) {
     if (node.IsDirectory) {
         for (const auto& child : node.Children) {
-            GenerateDirTreeLine(child, stringTable, hashTable, source);
+            GenerateDirTreeLine(child, stringTable, stringOffsets, hashTable, source);
         }
         for (const auto& child : node.Children) {
-            GenerateDirTreeSource(child, stringTable, hashTable, source);
+            GenerateDirTreeSource(child, stringTable, stringOffsets, hashTable, source);
         }
     }
+}
+
+static bool GenerateRawDirTreeLine(const TreeNode& node,
+                                   std::string& stringTable,
+                                   std::vector<size_t>& stringOffsets,
+                                   std::vector<HyoutaUtils::Hash::SHA1>& hashTable,
+                                   std::string& source) {
+    std::array<char, 64> buffer{};
+
+    size_t filenameOffset = InsertFilename(node.Name, stringTable, stringOffsets);
+    size_t filenameLength = node.Name.size();
+    if (!(filenameOffset < (1u << 24))) {
+        return false;
+    }
+    if (!(filenameLength < (1u << 8))) {
+        return false;
+    }
+
+    size_t filenameValue = (filenameOffset << 8) | filenameLength;
+    source.append("D(");
+    AppendChar(source, static_cast<char>(filenameValue >> 24));
+    source.push_back(',');
+    AppendChar(source, static_cast<char>(filenameValue >> 16));
+    source.push_back(',');
+    AppendChar(source, static_cast<char>(filenameValue >> 8));
+    source.push_back(',');
+    AppendChar(source, static_cast<char>(filenameValue));
+    source.append("),");
+
+    size_t gameVersionBits = node.GameVersionBits;
+    size_t dlcIndex = node.DlcIndex;
+    if (!(gameVersionBits < (1u << 20))) {
+        return false;
+    }
+    if (!(dlcIndex < (1u << 11))) {
+        return false;
+    }
+    size_t metadataValue =
+        (dlcIndex << 20) | gameVersionBits | (node.IsDirectory ? 0x8000'0000u : 0u);
+    source.append("D(");
+    AppendChar(source, static_cast<char>(metadataValue >> 24));
+    source.push_back(',');
+    AppendChar(source, static_cast<char>(metadataValue >> 16));
+    source.push_back(',');
+    AppendChar(source, static_cast<char>(metadataValue >> 8));
+    source.push_back(',');
+    AppendChar(source, static_cast<char>(metadataValue));
+    source.append("),");
+
+    if (node.IsDirectory) {
+        if (node.ChildFirstIndex > 0xffff'ffffu) {
+            return false;
+        }
+        if (node.Children.size() > 0xffff'ffffu) {
+            return false;
+        }
+
+        size_t firstIndex = node.ChildFirstIndex;
+        size_t childCount = node.Children.size();
+        source.append("D(");
+        AppendChar(source, static_cast<char>(firstIndex >> 24));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(firstIndex >> 16));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(firstIndex >> 8));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(firstIndex));
+        source.append("),");
+        source.append("D(");
+        AppendChar(source, static_cast<char>(childCount >> 24));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(childCount >> 16));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(childCount >> 8));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(childCount));
+        source.append("),");
+    } else {
+        size_t hashIndex = InsertHash(node.Hash, hashTable);
+        uint64_t filesize = node.Filesize;
+        if (!(filesize < (1ull << 44))) {
+            return false;
+        }
+        if (!(hashIndex < (1u << 20))) {
+            return false;
+        }
+
+        uint64_t hashAndSize = (filesize << 20) | hashIndex;
+        source.append("Q(");
+        AppendChar(source, static_cast<char>(hashAndSize >> 56));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(hashAndSize >> 48));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(hashAndSize >> 40));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(hashAndSize >> 32));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(hashAndSize >> 24));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(hashAndSize >> 16));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(hashAndSize >> 8));
+        source.push_back(',');
+        AppendChar(source, static_cast<char>(hashAndSize));
+        source.append("),");
+    }
+    source.append("\n");
+
+    return true;
+}
+
+static bool GenerateRawDirTreeSource(const TreeNode& node,
+                                     std::string& stringTable,
+                                     std::vector<size_t>& stringOffsets,
+                                     std::vector<HyoutaUtils::Hash::SHA1>& hashTable,
+                                     std::string& source) {
+    if (node.IsDirectory) {
+        for (const auto& child : node.Children) {
+            if (!GenerateRawDirTreeLine(child, stringTable, stringOffsets, hashTable, source)) {
+                return false;
+            }
+        }
+        for (const auto& child : node.Children) {
+            if (!GenerateRawDirTreeSource(child, stringTable, stringOffsets, hashTable, source)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 static void SortChildrenRecursive(TreeNode& node) {
@@ -312,7 +464,8 @@ static void PreInsertNamesRecursive(TreeNode& node, std::vector<std::string>& st
     }
 }
 
-static void PreInsertNames(TreeNode& node, std::string& stringTable) {
+static void
+    PreInsertNames(TreeNode& node, std::string& stringTable, std::vector<size_t>& stringOffsets) {
     std::vector<std::string> strings;
     PreInsertNamesRecursive(node, strings);
 
@@ -325,16 +478,17 @@ static void PreInsertNames(TreeNode& node, std::string& stringTable) {
             return lhs < rhs;
         });
     for (const std::string& string : strings) {
-        InsertFilename(string, stringTable);
+        InsertFilename(string, stringTable, stringOffsets);
     }
 }
 
 static void Prettify(TreeNode& node,
                      std::string& stringTable,
+                     std::vector<size_t>& stringOffsets,
                      std::vector<HyoutaUtils::Hash::SHA1>& hashTable) {
     SortChildrenRecursive(node);
     PreInsertHashes(node, hashTable);
-    PreInsertNames(node, stringTable);
+    PreInsertNames(node, stringTable, stringOffsets);
 
     // sort hashes. i can't think of a real use case offhand but let's make these binary searchable,
     // why not
@@ -589,53 +743,125 @@ int SHA_File_Convert_Function(int argc, char** argv) {
 
     {
         std::string stringTable;
+        std::vector<size_t> stringOffsets;
         std::vector<HyoutaUtils::Hash::SHA1> hashTable;
-        Prettify(root, stringTable, hashTable);
+        Prettify(root, stringTable, stringOffsets, hashTable);
         size_t count = 1;
         root.ChildFirstIndex = 1;
         FillFirstChildIndex(root, count);
+
+        // I previously had this printed all nice and tidy with std::array and constexpr and
+        // properly calling HyoutaUtils::DirTree::Entry::MakeFile() and the like... but it turns out
+        // MSVC is *really bad* at compiling this. It takes several minutes, consumes 25 GB of
+        // memory, and Reverie's huge amount of files not only runs into the default constexpr step
+        // limit for the Entries but also results in a "fatal error C1060: compiler is out of heap
+        // space". So we'll be dumb and just pre-generate a huge byte array, and then
+        // reinterpret_cast that to the correct data types, technical UB be damned.
+        static constexpr bool generateRawBytes = true;
+
         std::string source;
         source.append("#pragma once\n\n");
-        source.append("#include <array>\n\n");
-        source.append("#include \"dirtree/entry.h\"\n");
-        source.append("#include \"util/hash/sha1.h\"\n\n");
-        source.append("static constexpr auto s_dirtree = std::array<HyoutaUtils::DirTree::Entry, ");
-        source.append(std::to_string(count));
-        source.append(">{{\n");
-        GenerateDirTreeLine(root, stringTable, hashTable, source);
-        GenerateDirTreeSource(root, stringTable, hashTable, source);
-        source.append("}};\n\n");
+        if (generateRawBytes) {
+            source.append("#ifdef D\n");
+            source.append("#undef D\n");
+            source.append("#endif\n");
+            source.append("#ifdef Q\n");
+            source.append("#undef Q\n");
+            source.append("#endif\n");
 
-        source.append("static constexpr auto s_stringtable = std::array<char, ");
-        source.append(std::to_string(stringTable.size()));
-        source.append(">{{");
-        for (size_t i = 0; i < stringTable.size(); ++i) {
-            if (i != 0) {
-                source.append(",");
+            source.append(
+                "#if defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == "
+                "__ORDER_BIG_ENDIAN__)\n");
+            source.append("#define D(a,b,c,d) a,b,c,d\n");
+            source.append("#define Q(a,b,c,d,e,f,g,h) a,b,c,d,e,f,g,h\n");
+            source.append("#else\n");
+            source.append("#define D(a,b,c,d) d,c,b,a\n");
+            source.append("#define Q(a,b,c,d,e,f,g,h) h,g,f,e,d,c,b,a\n");
+            source.append("#endif\n");
+            source.append("static constexpr alignas(16) char s_raw_dirtree[] = {\n");
+            if (!GenerateRawDirTreeLine(root, stringTable, stringOffsets, hashTable, source)) {
+                printf("Dir tree generation failed.\n");
+                return -1;
             }
-            if ((i % 32) == 0) {
-                source.append("\n");
-            } else {
-                source.append(" ");
+            if (!GenerateRawDirTreeSource(root, stringTable, stringOffsets, hashTable, source)) {
+                printf("Dir tree generation failed.\n");
+                return -1;
             }
-            source.append(std::to_string((int)stringTable[i]));
-        }
-        source.append("\n}};\n\n");
-
-        source.append("static constexpr auto s_hashtable = std::array<HyoutaUtils::Hash::SHA1, ");
-        source.append(std::to_string(hashTable.size()));
-        source.append(">{{\n");
-        for (size_t i = 0; i < hashTable.size(); ++i) {
-            source.append("HyoutaUtils::Hash::SHA1(std::array<char, 20>({{");
-            for (size_t j = 0; j < 20; ++j) {
-                if (j != 0) {
-                    source.append(", ");
+            source.push_back('\n');
+            for (size_t i = 0; i < hashTable.size(); ++i) {
+                for (size_t j = 0; j < 20; ++j) {
+                    AppendChar(source, hashTable[i].Hash[j]);
+                    source.push_back(',');
                 }
-                source.append(std::to_string((int)hashTable[i].Hash[j]));
+                source.push_back('\n');
             }
-            source.append("}})),\n");
+            source.push_back('\n');
+            {
+                size_t o = 0;
+                for (size_t i = 0; i < stringTable.size(); ++i) {
+                    if (o < stringOffsets.size() && stringOffsets[o] == i) {
+                        source.push_back('\n');
+                        ++o;
+                    }
+                    AppendEscapedChar(source, stringTable[i]);
+                    source.push_back(',');
+                }
+            }
+            source.append("\n};\n");
+
+            source.append("static constexpr size_t s_raw_dirtree_entry_count = ");
+            source.append(std::to_string(count));
+            source.append(";\n");
+            source.append("static constexpr size_t s_raw_dirtree_hash_count = ");
+            source.append(std::to_string(hashTable.size()));
+            source.append(";\n");
+            source.append("static constexpr size_t s_raw_dirtree_string_size = ");
+            source.append(std::to_string(stringTable.size()));
+            source.append(";\n");
+        } else {
+            source.append("#include <array>\n\n");
+            source.append("#include \"dirtree/entry.h\"\n");
+            source.append("#include \"util/hash/sha1.h\"\n\n");
+            source.append(
+                "static constexpr auto s_dirtree = std::array<HyoutaUtils::DirTree::Entry, ");
+            source.append(std::to_string(count));
+            source.append(">{{\n");
+            GenerateDirTreeLine(root, stringTable, stringOffsets, hashTable, source);
+            GenerateDirTreeSource(root, stringTable, stringOffsets, hashTable, source);
+            source.append("}};\n\n");
+
+            source.append("static constexpr auto s_stringtable = std::array<char, ");
+            source.append(std::to_string(stringTable.size()));
+            source.append(">{{");
+            for (size_t i = 0; i < stringTable.size(); ++i) {
+                if (i != 0) {
+                    source.append(",");
+                }
+                if ((i % 32) == 0) {
+                    source.append("\n");
+                } else {
+                    source.append(" ");
+                }
+                source.append(std::to_string((int)stringTable[i]));
+            }
+            source.append("\n}};\n\n");
+
+            source.append(
+                "static constexpr auto s_hashtable = std::array<HyoutaUtils::Hash::SHA1, ");
+            source.append(std::to_string(hashTable.size()));
+            source.append(">{{\n");
+            for (size_t i = 0; i < hashTable.size(); ++i) {
+                source.append("HyoutaUtils::Hash::SHA1(std::array<char, 20>({{");
+                for (size_t j = 0; j < 20; ++j) {
+                    if (j != 0) {
+                        source.append(", ");
+                    }
+                    source.append(std::to_string((int)hashTable[i].Hash[j]));
+                }
+                source.append("}})),\n");
+            }
+            source.append("}};\n\n");
         }
-        source.append("}};\n\n");
 
         HyoutaUtils::IO::File outfile(std::string_view(outputFilename),
                                       HyoutaUtils::IO::OpenMode::Write);
