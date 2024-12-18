@@ -85,3 +85,8 @@ See the native/gtest/LICENSE for details.
 Licensed under the zlib license
 (C) 1995-2022 Jean-loup Gailly and Mark Adler
 See the native/zlib/LICENSE for details.
+
+== native/imgui ==
+Licensed under the MIT License
+Copyright (c) 2014-2024 Omar Cornut
+See the native/imgui/LICENSE.txt for details.

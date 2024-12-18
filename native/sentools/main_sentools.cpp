@@ -25,8 +25,17 @@
 #include <Windows.h>
 #endif
 
+#ifdef SENTOOLS_WITH_IMGUI
+#include "main_gui.h"
+#endif
+
 namespace SenTools {
 static constexpr auto CliTools = {
+#ifdef SENTOOLS_WITH_IMGUI
+    CliTool{.Name = "GUI",
+            .ShortDescription = "Start the interactive GUI.",
+            .Function = SenTools::RunGui},
+#endif
     CliTool{.Name = P3A_Extract_Name,
             .ShortDescription = P3A_Extract_ShortDescription,
             .Function = P3A_Extract_Function},
@@ -62,7 +71,7 @@ static constexpr auto CliTools = {
             .Function = SHA_File_Convert_Function,
             .Hidden = true},
 };
-}
+} // namespace SenTools
 
 static void PrintUsage() {
     printf("SenTools from SenPatcher " SENPATCHER_VERSION "\n");
@@ -75,6 +84,7 @@ static void PrintUsage() {
 }
 
 #ifdef BUILD_FOR_WINDOWS
+#ifndef SENTOOLS_WITH_IMGUI
 static const char* StripPathToFilename(const char* path) {
     const char* tmp = path;
     const char* rv = path;
@@ -87,12 +97,11 @@ static const char* StripPathToFilename(const char* path) {
     return rv;
 }
 #endif
+#endif
 
 static int InternalMain(int argc, char** argvUtf8) {
     try {
         if (argc < 2) {
-            PrintUsage();
-
 #ifdef BUILD_FOR_WINDOWS
             // https://devblogs.microsoft.com/oldnewthing/20160125-00/?p=92922
             // Check to see if the user launched this by double-clicking so we can tell them that
@@ -100,6 +109,10 @@ static int InternalMain(int argc, char** argvUtf8) {
             // confused by the 'flashing window' in discord...
             DWORD tmp;
             if (GetConsoleProcessList(&tmp, 1) == 1) {
+#ifdef SENTOOLS_WITH_IMGUI
+                return SenTools::RunGui(argc, argvUtf8);
+#else
+                PrintUsage();
                 printf(
                     "\n"
                     "This is a command line application.\n"
@@ -111,7 +124,12 @@ static int InternalMain(int argc, char** argvUtf8) {
                     "\n",
                     (argc >= 1 ? StripPathToFilename(argvUtf8[0]) : "sentools.exe"));
                 system("pause");
+#endif
+            } else {
+                PrintUsage();
             }
+#else
+            PrintUsage();
 #endif
 
             return -1;

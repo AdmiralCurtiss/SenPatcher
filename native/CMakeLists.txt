@@ -20,6 +20,8 @@ option(SENPATCHER_BUILD_REVTEST "build Reverie asset builder executable" OFF)
 option(SENPATCHER_BUILD_TXTEST "build Tokyo Xanadu asset builder executable" OFF)
 option(SENPATCHER_BUILD_GTESTS "build tests" ON)
 
+option(SENPATCHER_WITH_IMGUI "enable imgui GUI for tools" ON)
+
 separate_arguments(SENPATCHER_BUILDFLAGS NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS}")
 
 function(senpatcher_generate_embeddable_file SOURCE_PATH TARGET_NAME)
@@ -288,17 +290,63 @@ if (SENPATCHER_BUILD_TOOLS)
 		${SOURCES_ZSTD_DICTBUILDER}
 		${SOURCES_RAPIDJSON}
 	)
+
 	target_compile_definitions(sentools
 		PUBLIC P3A_PACKER_WITH_STD_FILESYSTEM FILE_WRAPPER_WITH_STD_FILESYSTEM ${DEFINES_ZSTD}
 	)
 	if (WIN32)
-		target_compile_definitions(sentools PUBLIC BUILD_FOR_WINDOWS)
+		target_compile_definitions(sentools PUBLIC BUILD_FOR_WINDOWS UNICODE _UNICODE)
 	endif()
 	target_compile_options(sentools PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(sentools
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
-	target_link_libraries(sentools zlibstatic)
+	target_link_libraries(sentools PUBLIC zlibstatic)
+
+	if (SENPATCHER_WITH_IMGUI)
+		target_sources(sentools PRIVATE
+			sentools/main_gui.cpp
+			sentools/main_gui.h
+
+			imgui/imgui.cpp
+			imgui/imgui_demo.cpp
+			imgui/imgui_draw.cpp
+			imgui/imgui_tables.cpp
+			imgui/imgui_widgets.cpp
+		)
+		target_include_directories(sentools
+			PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/imgui" "${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends"
+		)
+		target_compile_definitions(sentools PUBLIC SENTOOLS_WITH_IMGUI)
+
+		if (WIN32)
+			# on Windows we just use DX11 for this, all the Cold Steel games run on DX11
+			# so it's kinda guaranteed to be supported for anyone who needs the patcher
+			target_sources(sentools PRIVATE
+				sentools/gui_setup_dx11.cpp
+				sentools/gui_setup_dx11.h
+				imgui/backends/imgui_impl_dx11.cpp
+				imgui/backends/imgui_impl_win32.cpp
+			)
+			target_link_libraries(sentools PUBLIC d3d11.lib d3dcompiler.lib)
+		else()
+			# on Linux there's no obvious choice, so I just went with GLFW + Vulkan
+			target_sources(sentools PRIVATE
+				sentools/gui_setup_glfw_vulkan.cpp
+				sentools/gui_setup_glfw_vulkan.h
+				imgui/backends/imgui_impl_glfw.cpp
+				imgui/backends/imgui_impl_vulkan.cpp
+			)
+			find_package(Vulkan REQUIRED)
+			target_link_libraries(sentools PUBLIC Vulkan::Vulkan Vulkan::Headers)
+
+			find_package(PkgConfig REQUIRED)
+			pkg_check_modules(GLFW3 REQUIRED glfw3>=3.3)
+			target_link_libraries(sentools PUBLIC ${GLFW3_LIBRARIES})
+			target_include_directories(sentools PUBLIC ${GLFW3_INCLUDE_DIRS})
+		endif()
+	endif()
+
 	add_dependencies(sentools GenerateGitRevisionHeader)
 endif()
 
@@ -925,7 +973,7 @@ if (SENPATCHER_BUILD_TXTEST)
 	target_include_directories(txtest
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
-	target_link_libraries(txtest zlibstatic)
+	target_link_libraries(txtest PUBLIC zlibstatic)
 	add_dependencies(txtest GenerateGitRevisionHeader)
 endif()
 
@@ -979,7 +1027,7 @@ if (SENPATCHER_BUILD_TXHOOK)
 	target_include_directories(txhook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
-	target_link_libraries(txhook zlibstatic)
+	target_link_libraries(txhook PUBLIC zlibstatic)
 	add_dependencies(txhook GenerateGitRevisionHeader)
 endif()
 
@@ -1245,10 +1293,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds" "gtest/googletest/include"
 	)
 	add_dependencies(tests GenerateGitRevisionHeader)
-	target_link_libraries(
-		tests
-		GTest::gtest_main
-	)
+	target_link_libraries(tests PUBLIC GTest::gtest_main)
 
 	include(GoogleTest)
 	gtest_discover_tests(tests)

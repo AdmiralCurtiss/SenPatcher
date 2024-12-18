@@ -7,3 +7,6 @@
 [submodule "native/gtest"]
 	path = native/gtest
 	url = https://github.com/google/googletest.git
+[submodule "native/imgui"]
+	path = native/imgui
+	url = https://github.com/ocornut/imgui.git
