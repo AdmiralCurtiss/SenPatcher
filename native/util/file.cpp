@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -14,6 +15,7 @@
 #include <filesystem>
 #endif
 
+#include "util/scope.h"
 #include "util/text.h"
 
 #ifdef BUILD_FOR_WINDOWS
@@ -348,7 +350,7 @@ bool File::Delete() noexcept {
 bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t wstr_len) {
     // This struct has a very odd definition, because its size is dynamic, so we must do something
     // like this...
-    if (wstr_len > (32767 + 4)) {
+    if (wstr_len > 32771) {
         // not sure what the actual limit is, but this is max path length 32767 + '\\?\' prefix
         return false;
     }
@@ -357,16 +359,19 @@ bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t ws
     // sizeof(FILE_RENAME_INFO) includes a single WCHAR which accounts for the nullterminator
     size_t structLength = sizeof(FILE_RENAME_INFO) + (wstr_len * sizeof(wchar_t));
     size_t allocationLength = structLength + alignof(FILE_RENAME_INFO);
-    auto buffer = std::make_unique<char[]>(allocationLength);
+    void* buffer = std::malloc(allocationLength);
     if (!buffer) {
         return false;
     }
-    void* alignedBuffer = buffer.get();
+    auto bufferGuard = HyoutaUtils::MakeScopeGuard([&buffer]() { std::free(buffer); });
+    void* alignedBuffer = buffer;
     if (std::align(alignof(FILE_RENAME_INFO), structLength, alignedBuffer, allocationLength)
         == nullptr) {
         return false;
     }
-    FILE_RENAME_INFO* info = reinterpret_cast<FILE_RENAME_INFO*>(alignedBuffer);
+    std::memset(alignedBuffer, 0, allocationLength);
+    FILE_RENAME_INFO* info = new (alignedBuffer) FILE_RENAME_INFO;
+    auto infoGuard = HyoutaUtils::MakeScopeGuard([&info]() { info->~FILE_RENAME_INFO(); });
     info->ReplaceIfExists = TRUE;
     info->RootDirectory = nullptr;
     info->FileNameLength = static_cast<DWORD>(wstr_len * sizeof(wchar_t));
