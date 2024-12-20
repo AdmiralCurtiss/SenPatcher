@@ -22,7 +22,37 @@ public:
 };
 
 template<typename FuncT>
+struct DisposableScopeGuard {
+private:
+    FuncT Func;
+    bool Disposed = false;
+
+public:
+    DisposableScopeGuard(FuncT&& f) : Func(std::forward<FuncT>(f)) {}
+
+    DisposableScopeGuard(const DisposableScopeGuard& other) = delete;
+    DisposableScopeGuard(DisposableScopeGuard&& other) = delete;
+    DisposableScopeGuard& operator=(const DisposableScopeGuard& other) = delete;
+    DisposableScopeGuard& operator=(DisposableScopeGuard&& other) = delete;
+
+    void Dispose() {
+        Disposed = true;
+    }
+
+    ~DisposableScopeGuard() {
+        if (!Disposed) {
+            Func();
+        }
+    }
+};
+
+template<typename FuncT>
 ScopeGuard<FuncT> MakeScopeGuard(FuncT&& f) {
     return ScopeGuard<FuncT>(std::forward<FuncT>(f));
+};
+
+template<typename FuncT>
+DisposableScopeGuard<FuncT> MakeDisposableScopeGuard(FuncT&& f) {
+    return DisposableScopeGuard<FuncT>(std::forward<FuncT>(f));
 };
 } // namespace HyoutaUtils

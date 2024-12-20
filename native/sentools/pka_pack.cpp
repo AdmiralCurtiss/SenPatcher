@@ -26,6 +26,7 @@
 #include "util/hash/sha256.h"
 #include "util/memread.h"
 #include "util/memwrite.h"
+#include "util/scope.h"
 #include "util/text.h"
 
 namespace SenTools {
@@ -501,9 +502,11 @@ int PKA_Pack_Function(int argc, char** argv) {
     assert(pkaHeaderWritePtr == (pkaHeader.get() + pkaHeaderLength));
 
     // write file
+    std::string targetTmp(target);
+    targetTmp.append(".tmp");
     uint64_t fileOffset = pkaHeaderLength;
-    HyoutaUtils::IO::File outfile(HyoutaUtils::IO::FilesystemPathFromUtf8(target),
-                                  HyoutaUtils::IO::OpenMode::Write);
+    HyoutaUtils::IO::File outfile(std::string_view(targetTmp), HyoutaUtils::IO::OpenMode::Write);
+    auto outfileGuard = HyoutaUtils::MakeDisposableScopeGuard([&outfile]() { outfile.Delete(); });
     if (!outfile.IsOpen()) {
         printf("Failed to open output file.\n");
         return -1;
@@ -621,6 +624,12 @@ int PKA_Pack_Function(int argc, char** argv) {
     }
     if (outfile.Write(pkaHeader.get(), pkaHeaderLength) != pkaHeaderLength) {
         printf("Failed to write corrected header to output file.\n");
+        return -1;
+    }
+
+    outfileGuard.Dispose();
+    if (!outfile.Rename(target)) {
+        printf("Failed to rename output file to correct filename.\n");
         return -1;
     }
 
