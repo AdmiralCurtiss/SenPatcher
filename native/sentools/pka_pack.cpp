@@ -63,6 +63,500 @@ static void NormalizePkgName(std::array<char, 0x20>& pkgName) {
     }
 }
 
+namespace {
+struct PkgPackFile {
+    std::array<char, 0x40> Filename;
+    HyoutaUtils::Hash::SHA256 Hash;
+    uint32_t OffsetInPkg;
+    uint32_t CompressedSize;
+    uint32_t UncompressedSize;
+    uint32_t Flags;
+    bool IsCorruptedFile = false;
+};
+struct PkgPackArchive {
+    HyoutaUtils::IO::File FileHandle;
+    std::array<char, 0x20> PkgName;
+    size_t PkgNameLength;
+    std::vector<PkgPackFile> Files;
+    bool IncludeInPka = true;
+};
+struct FileReference {
+    size_t ArchiveIndex;
+    size_t FileIndex;
+    char* PkaHeaderPtr = nullptr;
+    bool AlreadyWritten = false;
+    bool ShouldBeWritten = true;
+};
+struct SHA256Sorter {
+    bool operator()(const HyoutaUtils::Hash::SHA256& lhs,
+                    const HyoutaUtils::Hash::SHA256& rhs) const {
+        const auto& l = lhs.Hash;
+        const auto& r = rhs.Hash;
+        return std::memcmp(l.data(), r.data(), l.size()) < 0;
+    }
+};
+struct FileToWriteInfo {
+    size_t ArchiveIndex;
+    size_t FileIndex;
+    char* PkaHeaderPtr;
+};
+struct PkaConstructionData {
+    std::unique_ptr<char[]> PkaHeader;
+    size_t PkaHeaderLength;
+    std::vector<FileToWriteInfo> FilesToWrite;
+};
+} // namespace
+
+static bool InitPkgPackArchive(std::vector<PkgPackArchive>& pkgPackFiles,
+                               const std::filesystem::path& rootDir,
+                               const std::filesystem::directory_entry& entry) {
+    std::error_code ec;
+    if (entry.is_directory()) {
+        return true;
+    }
+    const auto ext = entry.path().extension().generic_u8string();
+    if (!HyoutaUtils::TextUtils::CaseInsensitiveEquals(
+            ".pkg", std::string_view(reinterpret_cast<const char*>(ext.data()), ext.size()))) {
+        return true;
+    }
+
+    const auto relativePath = std::filesystem::relative(entry.path(), rootDir, ec);
+    if (relativePath.empty()) {
+        printf("Error while collecting files.\n");
+        return false;
+    }
+    const auto filename = relativePath.u8string();
+    const char8_t* filenameC = filename.c_str();
+
+    std::array<char, 0x20> fn{};
+    const size_t filenameLength = [&]() -> size_t {
+        for (size_t i = 0; i < fn.size() - 1; ++i) {
+            const char c = static_cast<char>(filenameC[i]);
+            if (c == '\0') {
+                return i;
+            }
+            fn[i] = c;
+        }
+        return fn.size();
+    }();
+    NormalizePkgName(fn);
+
+    auto existingArchive =
+        std::find_if(pkgPackFiles.begin(), pkgPackFiles.end(), [&](const PkgPackArchive& a) {
+            return strncmp(a.PkgName.data(), fn.data(), fn.size()) == 0;
+        });
+    const bool archiveExistsAlready = (existingArchive != pkgPackFiles.end());
+    if (archiveExistsAlready) {
+        printf(
+            "WARNING: %s exists multiple times, only the first parsed archive will be "
+            "available in the PKA (but the contents of all instances will be packed).\n",
+            filenameC);
+    }
+
+    pkgPackFiles.emplace_back(PkgPackArchive{
+        .FileHandle = HyoutaUtils::IO::File(entry.path(), HyoutaUtils::IO::OpenMode::Read),
+        .PkgName = fn,
+        .PkgNameLength = filenameLength,
+        .IncludeInPka = !archiveExistsAlready});
+
+    return true;
+}
+
+static bool LoadAndDecompressPkg(PkgPackArchive& fi) {
+    using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
+
+    HyoutaUtils::IO::File& infile = fi.FileHandle;
+    if (!infile.IsOpen()) {
+        printf("Failed opening pkg.\n");
+        return false;
+    }
+    std::array<char, 8> pkgHeaderInitialBytes;
+    if (infile.Read(pkgHeaderInitialBytes.data(), pkgHeaderInitialBytes.size())
+        != pkgHeaderInitialBytes.size()) {
+        printf("Failed to read pkg.\n");
+        return false;
+    }
+
+    const std::string_view pkgName(fi.PkgName.data(), fi.PkgNameLength);
+
+    // PKGs start with an unknown 32-bit integer, some kind of ID or maybe timestamp.
+    // As far as I can tell, this is not used by anything and can be safely discarded, so
+    // the PKA format does so. However, that technically makes packing a PKA lossy.
+    // If the length of the filename permits, however, we can use the end of the fixed-size
+    // filename field to store this data, so we can restore it when 'extracting' the PKA.
+    // This is a somewhat creative interpretation of the PKA format, but it shouldn't cause
+    // any issues in practice.
+    if (fi.PkgNameLength < 28) {
+        const uint32_t unknownId = HyoutaUtils::EndianUtils::FromEndian(
+            HyoutaUtils::MemRead::ReadUInt32(pkgHeaderInitialBytes.data()), LittleEndian);
+        HyoutaUtils::MemWrite::WriteUInt32(
+            fi.PkgName.data() + 28, HyoutaUtils::EndianUtils::ToEndian(unknownId, LittleEndian));
+    }
+
+    const uint32_t fileCountInPkg = HyoutaUtils::EndianUtils::FromEndian(
+        HyoutaUtils::MemRead::ReadUInt32(&pkgHeaderInitialBytes[4]), LittleEndian);
+    const size_t pkgHeaderLength = 8u + static_cast<size_t>(fileCountInPkg) * 0x50u;
+    auto pkgHeaderData = std::make_unique_for_overwrite<char[]>(pkgHeaderLength);
+    if (!pkgHeaderData) {
+        printf("Failed to allocate memory.\n");
+        return false;
+    }
+    std::memcpy(pkgHeaderData.get(), pkgHeaderInitialBytes.data(), pkgHeaderInitialBytes.size());
+    if (infile.Read(pkgHeaderData.get() + pkgHeaderInitialBytes.size(),
+                    pkgHeaderLength - pkgHeaderInitialBytes.size())
+        != (pkgHeaderLength - pkgHeaderInitialBytes.size())) {
+        printf("Failed to read pkg.\n");
+        return false;
+    }
+
+    SenLib::PkgHeader pkgHeader;
+    if (!SenLib::ReadPkgFromMemory(pkgHeader, pkgHeaderData.get(), pkgHeaderLength, LittleEndian)) {
+        printf("Failed to read pkg header.\n");
+        return false;
+    }
+
+    fi.Files.reserve(pkgHeader.FileCount);
+    for (uint32_t i = 0; i < pkgHeader.FileCount; ++i) {
+        const auto& f = pkgHeader.Files[i];
+        auto compressedData = std::make_unique_for_overwrite<char[]>(f.CompressedSize);
+        if (!compressedData) {
+            printf("Failed to allocate memory.\n");
+            return false;
+        }
+        if (!infile.SetPosition(f.DataPosition)) {
+            printf("Failed to seek in pkg.\n");
+            return false;
+        }
+        if (infile.Read(compressedData.get(), f.CompressedSize) != f.CompressedSize) {
+            printf("Failed to read pkg.\n");
+            return false;
+        }
+
+        auto dataBuffer = std::make_unique<char[]>(f.UncompressedSize);
+        if (!dataBuffer) {
+            printf("Failed to allocate memory.\n");
+            return false;
+        }
+        if (SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
+                                                f.UncompressedSize,
+                                                compressedData.get(),
+                                                f.CompressedSize,
+                                                f.Flags,
+                                                LittleEndian)) {
+            fi.Files.emplace_back(PkgPackFile{
+                .Filename = f.Filename,
+                .Hash = HyoutaUtils::Hash::CalculateSHA256(dataBuffer.get(), f.UncompressedSize),
+                .OffsetInPkg = f.DataPosition,
+                .CompressedSize = f.CompressedSize,
+                .UncompressedSize = f.UncompressedSize,
+                .Flags = f.Flags,
+            });
+        } else {
+            // CS2 contains two corrupted files in its PKGs. Thankfully, both of the files
+            // have uncorrupted copies in other PKGs, so this is recoverable. Check if we're
+            // processing one of those files and, if yes, try to recover the file.
+            if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(pkgName, "C_NPC290_C00.pkg")
+                && i == 10) {
+                printf(
+                    "Known corrupted file found in %s. Replacing with known good hash and "
+                    "assuming we have a clean copy in another pkg.\n",
+                    pkgName.data());
+                fi.Files.emplace_back(PkgPackFile{
+                    .Filename = f.Filename,
+                    .Hash = HyoutaUtils::Hash::SHA256FromHexString(
+                        "ff37dc7dbde66c3d79da984e57864be0ebbd03ba9c8d1a9b5b85c295076dfe85"),
+                    .OffsetInPkg = 0xffff'ffff,
+                    .CompressedSize = 0xffff'ffff,
+                    .UncompressedSize = 0xffff'ffff,
+                    .Flags = 0xffff'ffff,
+                    .IsCorruptedFile = true,
+                });
+            } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(pkgName, "O_E6303.pkg")
+                       && i == 5) {
+                printf(
+                    "Known corrupted file found in %s. Replacing with known good hash and "
+                    "assuming we have a clean copy in another pkg.\n",
+                    pkgName.data());
+                fi.Files.emplace_back(PkgPackFile{
+                    .Filename = f.Filename,
+                    .Hash = HyoutaUtils::Hash::SHA256FromHexString(
+                        "27aef8d457b29e50cbbd37bf24ca1bca2c5174e23f46fed57afc43a2bacf7b7d"),
+                    .OffsetInPkg = 0xffff'ffff,
+                    .CompressedSize = 0xffff'ffff,
+                    .UncompressedSize = 0xffff'ffff,
+                    .Flags = 0xffff'ffff,
+                    .IsCorruptedFile = true,
+                });
+            } else {
+                printf("Failed to extract file %u from pkg %s.\n", i, pkgName.data());
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+static std::optional<PkaConstructionData>
+    FindFilesToWriteAndGenerateHeader(std::vector<PkgPackArchive>& pkgPackFiles,
+                                      const std::vector<SenLib::ReferencedPka>& existingPkas) {
+    // sort pkgs by filename so that you can binary search on them.
+    std::stable_sort(pkgPackFiles.begin(),
+                     pkgPackFiles.end(),
+                     [](const PkgPackArchive& lhs, const PkgPackArchive& rhs) {
+                         const auto& l = lhs.PkgName;
+                         const auto& r = rhs.PkgName;
+                         return std::memcmp(l.data(), r.data(), l.size()) < 0;
+                     });
+
+    // deduplicate out the files via hash (in std::map so they're already sorted for binary search)
+    std::map<HyoutaUtils::Hash::SHA256, FileReference, SHA256Sorter> filesByHash;
+    for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+        PkgPackArchive& archive = pkgPackFiles[i];
+        for (size_t j = 0; j < archive.Files.size(); ++j) {
+            const PkgPackFile& file = archive.Files[j];
+            if (file.IsCorruptedFile) {
+                continue;
+            }
+
+            auto it = filesByHash.try_emplace(file.Hash,
+                                              FileReference{.ArchiveIndex = i, .FileIndex = j});
+            if (!it.second) {
+                // sanity checks
+                FileReference& existingFileReference = it.first->second;
+                const PkgPackFile& existingFile = pkgPackFiles[existingFileReference.ArchiveIndex]
+                                                      .Files[existingFileReference.FileIndex];
+                if (file.UncompressedSize != existingFile.UncompressedSize) {
+                    printf("File with same hash has different file data.\n");
+                    return std::nullopt;
+                }
+                if (file.CompressedSize < existingFile.CompressedSize) {
+                    // prefer higher compression
+                    existingFileReference.ArchiveIndex = i;
+                    existingFileReference.FileIndex = j;
+                }
+            } else {
+                FileReference& fileReference = it.first->second;
+                for (const auto& existingPka : existingPkas) {
+                    const SenLib::PkaHashToFileData* existingFile =
+                        SenLib::FindFileInPkaByHash(existingPka.PkaHeader.Files.get(),
+                                                    existingPka.PkaHeader.FilesCount,
+                                                    file.Hash.Hash);
+                    if (existingFile) {
+                        fileReference.ShouldBeWritten = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    const size_t numberOfPkgsToInclude = [&]() -> size_t {
+        size_t count = 0;
+        for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+            if (pkgPackFiles[i].IncludeInPka) {
+                ++count;
+            }
+        }
+        return count;
+    }();
+    const size_t numberOfFilesToInclude = [&]() -> size_t {
+        size_t count = 0;
+        for (const auto& kvp : filesByHash) {
+            if (kvp.second.ShouldBeWritten) {
+                ++count;
+            }
+        }
+        return count;
+    }();
+
+    // calculate file offsets
+    size_t pkaHeaderLength = (8u + 4u) + (numberOfFilesToInclude * (0x20u + 8u + 4u + 4u + 4u));
+    for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+        if (!pkgPackFiles[i].IncludeInPka) {
+            continue;
+        }
+
+        pkaHeaderLength += (0x20u + 4u + ((0x40u + 0x20u) * pkgPackFiles[i].Files.size()));
+    }
+
+    // construct header
+    using HyoutaUtils::EndianUtils::ToEndian;
+    using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
+    using HyoutaUtils::MemWrite::WriteAdvArray;
+    using HyoutaUtils::MemWrite::WriteAdvUInt32;
+    using HyoutaUtils::MemWrite::WriteAdvUInt64;
+    auto pkaHeader = std::make_unique<char[]>(pkaHeaderLength);
+    if (!pkaHeader) {
+        printf("Failed to allocate memory.\n");
+        return std::nullopt;
+    }
+
+    char* pkaHeaderWritePtr = pkaHeader.get();
+    WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(static_cast<uint32_t>(0x7ff7cf0d), LittleEndian));
+    WriteAdvUInt32(pkaHeaderWritePtr,
+                   ToEndian(static_cast<uint32_t>(numberOfPkgsToInclude), LittleEndian));
+    for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+        if (!pkgPackFiles[i].IncludeInPka) {
+            continue;
+        }
+
+        WriteAdvArray(pkaHeaderWritePtr, pkgPackFiles[i].PkgName);
+        WriteAdvUInt32(pkaHeaderWritePtr,
+                       ToEndian(static_cast<uint32_t>(pkgPackFiles[i].Files.size()), LittleEndian));
+        for (size_t j = 0; j < pkgPackFiles[i].Files.size(); ++j) {
+            WriteAdvArray(pkaHeaderWritePtr, pkgPackFiles[i].Files[j].Filename);
+            WriteAdvArray(pkaHeaderWritePtr, pkgPackFiles[i].Files[j].Hash.Hash);
+        }
+    }
+    WriteAdvUInt32(pkaHeaderWritePtr,
+                   ToEndian(static_cast<uint32_t>(numberOfFilesToInclude), LittleEndian));
+    for (auto& kvp : filesByHash) {
+        FileReference& ref = kvp.second;
+        if (kvp.second.ShouldBeWritten) {
+            WriteAdvArray(pkaHeaderWritePtr, kvp.first.Hash);
+            ref.PkaHeaderPtr = pkaHeaderWritePtr;
+
+            // dummy data for now
+            WriteAdvUInt64(pkaHeaderWritePtr, 0);
+            WriteAdvUInt32(pkaHeaderWritePtr, 0);
+            WriteAdvUInt32(pkaHeaderWritePtr, 0);
+            WriteAdvUInt32(pkaHeaderWritePtr, 0);
+        }
+    }
+    assert(pkaHeaderWritePtr == (pkaHeader.get() + pkaHeaderLength));
+
+    // collect the actual set of files to write
+    std::vector<FileToWriteInfo> fileToWriteInfos;
+    fileToWriteInfos.reserve(numberOfFilesToInclude);
+    for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+        for (size_t j = 0; j < pkgPackFiles[i].Files.size(); ++j) {
+            auto it = filesByHash.find(pkgPackFiles[i].Files[j].Hash);
+            if (it == filesByHash.end()) {
+                printf("Internal error: Failed to find file hash.\n");
+                return std::nullopt;
+            }
+            FileReference& ref = it->second;
+            if (ref.ShouldBeWritten && !ref.AlreadyWritten) {
+                fileToWriteInfos.emplace_back(FileToWriteInfo{.ArchiveIndex = ref.ArchiveIndex,
+                                                              .FileIndex = ref.FileIndex,
+                                                              .PkaHeaderPtr = ref.PkaHeaderPtr});
+                ref.AlreadyWritten = true;
+            }
+        }
+    }
+    if (fileToWriteInfos.size() != numberOfFilesToInclude) {
+        printf("Internal error: Unexpected number of files.\n");
+        return std::nullopt;
+    }
+
+    return PkaConstructionData{.PkaHeader = std::move(pkaHeader),
+                               .PkaHeaderLength = pkaHeaderLength,
+                               .FilesToWrite = std::move(fileToWriteInfos)};
+}
+
+static bool WriteToPka(HyoutaUtils::IO::File& outfile,
+                       uint64_t& fileOffset,
+                       const FileToWriteInfo& ref,
+                       std::vector<PkgPackArchive>& pkgPackFiles,
+                       const std::optional<uint32_t>& recompressFlags) {
+    using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
+    using HyoutaUtils::MemWrite::WriteAdvArray;
+    using HyoutaUtils::MemWrite::WriteAdvUInt32;
+    using HyoutaUtils::MemWrite::WriteAdvUInt64;
+
+    assert(fileOffset == outfile.GetPosition());
+    PkgPackArchive& archive = pkgPackFiles[ref.ArchiveIndex];
+    const PkgPackFile& file = archive.Files[ref.FileIndex];
+
+    if (recompressFlags) {
+        auto& infile = archive.FileHandle;
+        auto data = std::make_unique_for_overwrite<char[]>(file.CompressedSize);
+        if (!data) {
+            printf("Failed to allocate memory.\n");
+            return false;
+        }
+        if (!infile.SetPosition(file.OffsetInPkg)) {
+            printf("Failed to seek in pkg.\n");
+            return false;
+        }
+        if (infile.Read(data.get(), file.CompressedSize) != file.CompressedSize) {
+            printf("Failed to read pkg.\n");
+            return false;
+        }
+
+        auto dataBuffer = std::make_unique<char[]>(file.UncompressedSize);
+        if (!dataBuffer) {
+            printf("Failed to allocate memory.\n");
+            return false;
+        }
+        if (!SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
+                                                 file.UncompressedSize,
+                                                 data.get(),
+                                                 file.CompressedSize,
+                                                 file.Flags,
+                                                 LittleEndian)) {
+            printf("Failed to extract file from pkg.\n");
+            return false;
+        }
+
+        std::unique_ptr<char[]> recompressedDataBuffer;
+        SenLib::PkgFile pkgFile;
+        if (!SenLib::CompressPkgFile(recompressedDataBuffer,
+                                     pkgFile,
+                                     dataBuffer.get(),
+                                     file.UncompressedSize,
+                                     *recompressFlags,
+                                     LittleEndian)) {
+            printf("Failed recompressing file.\n");
+            return false;
+        }
+
+        if (outfile.Write(recompressedDataBuffer.get(), pkgFile.CompressedSize)
+            != pkgFile.CompressedSize) {
+            printf("Failed to write data to output file.\n");
+            return false;
+        }
+
+        char* ptr = ref.PkaHeaderPtr;
+        WriteAdvUInt64(ptr, ToEndian(fileOffset, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(pkgFile.CompressedSize, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(file.UncompressedSize, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(pkgFile.Flags, LittleEndian));
+
+        fileOffset += pkgFile.CompressedSize;
+    } else {
+        auto& infile = archive.FileHandle;
+        auto data = std::make_unique_for_overwrite<char[]>(file.CompressedSize);
+        if (!data) {
+            printf("Failed to allocate memory.\n");
+            return false;
+        }
+        if (!infile.SetPosition(file.OffsetInPkg)) {
+            printf("Failed to seek in pkg.\n");
+            return false;
+        }
+        if (infile.Read(data.get(), file.CompressedSize) != file.CompressedSize) {
+            printf("Failed to read pkg.\n");
+            return false;
+        }
+        if (outfile.Write(data.get(), file.CompressedSize) != file.CompressedSize) {
+            printf("Failed to write data to output file.\n");
+            return false;
+        }
+
+        char* ptr = ref.PkaHeaderPtr;
+        WriteAdvUInt64(ptr, ToEndian(fileOffset, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(file.CompressedSize, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(file.UncompressedSize, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(file.Flags, LittleEndian));
+
+        fileOffset += file.CompressedSize;
+    }
+
+    return true;
+}
+
 int PKA_Pack_Function(int argc, char** argv) {
     using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
 
@@ -141,211 +635,8 @@ int PKA_Pack_Function(int argc, char** argv) {
     }
 
     // first collect info about every file in every pkg
-    struct PkgPackFile {
-        std::array<char, 0x40> Filename;
-        HyoutaUtils::Hash::SHA256 Hash;
-        uint32_t OffsetInPkg;
-        uint32_t CompressedSize;
-        uint32_t UncompressedSize;
-        uint32_t Flags;
-        bool IsCorruptedFile = false;
-    };
-    struct PkgPackArchive {
-        HyoutaUtils::IO::File FileHandle;
-        std::array<char, 0x20> PkgName;
-        std::vector<PkgPackFile> Files;
-        bool IncludeInPka = true;
-    };
     std::vector<PkgPackArchive> pkgPackFiles;
     {
-        // returns true if we should continue processing, or false if we should exit
-        const auto add_pkg = [&](const std::filesystem::path& rootDir,
-                                 const std::filesystem::directory_entry& entry) -> bool {
-            std::error_code ec;
-            if (entry.is_directory()) {
-                return true;
-            }
-            const auto ext = entry.path().extension().generic_u8string();
-            if (!HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                    ".pkg",
-                    std::string_view(reinterpret_cast<const char*>(ext.data()), ext.size()))) {
-                return true;
-            }
-
-            const auto relativePath = std::filesystem::relative(entry.path(), rootDir, ec);
-            if (relativePath.empty()) {
-                printf("Error while collecting files.\n");
-                return false;
-            }
-            const auto filename = relativePath.u8string();
-            const char8_t* filenameC = filename.c_str();
-
-            std::array<char, 0x20> fn{};
-            const size_t filenameLength = [&]() -> size_t {
-                for (size_t i = 0; i < fn.size() - 1; ++i) {
-                    const char c = static_cast<char>(filenameC[i]);
-                    if (c == '\0') {
-                        return i;
-                    }
-                    fn[i] = c;
-                }
-                return fn.size();
-            }();
-            NormalizePkgName(fn);
-
-            auto existingArchive = std::find_if(
-                pkgPackFiles.begin(), pkgPackFiles.end(), [&](const PkgPackArchive& a) {
-                    return strncmp(a.PkgName.data(), fn.data(), fn.size()) == 0;
-                });
-            const bool archiveExistsAlready = (existingArchive != pkgPackFiles.end());
-            if (archiveExistsAlready) {
-                printf(
-                    "WARNING: %s exists multiple times, only the first parsed archive will be "
-                    "available in the PKA (but the contents of all instances will be packed).\n",
-                    filenameC);
-            }
-
-            auto& fi = pkgPackFiles.emplace_back(PkgPackArchive{
-                .FileHandle = HyoutaUtils::IO::File(entry.path(), HyoutaUtils::IO::OpenMode::Read),
-                .PkgName = fn,
-                .IncludeInPka = !archiveExistsAlready});
-
-            HyoutaUtils::IO::File& infile = fi.FileHandle;
-            if (!infile.IsOpen()) {
-                printf("Failed opening pkg.\n");
-                return false;
-            }
-            std::array<char, 8> pkgHeaderInitialBytes;
-            if (infile.Read(pkgHeaderInitialBytes.data(), pkgHeaderInitialBytes.size())
-                != pkgHeaderInitialBytes.size()) {
-                printf("Failed to read pkg.\n");
-                return false;
-            }
-
-            // PKGs start with an unknown 32-bit integer, some kind of ID or maybe timestamp.
-            // As far as I can tell, this is not used by anything and can be safely discarded, so
-            // the PKA format does so. However, that technically makes packing a PKA lossy.
-            // If the length of the filename permits, however, we can use the end of the fixed-size
-            // filename field to store this data, so we can restore it when 'extracting' the PKA.
-            // This is a somewhat creative interpretation of the PKA format, but it shouldn't cause
-            // any issues in practice.
-            if (filenameLength < 28) {
-                const uint32_t unknownId = HyoutaUtils::EndianUtils::FromEndian(
-                    HyoutaUtils::MemRead::ReadUInt32(pkgHeaderInitialBytes.data()), LittleEndian);
-                HyoutaUtils::MemWrite::WriteUInt32(
-                    fi.PkgName.data() + 28,
-                    HyoutaUtils::EndianUtils::ToEndian(unknownId, LittleEndian));
-            }
-
-            const uint32_t fileCountInPkg = HyoutaUtils::EndianUtils::FromEndian(
-                HyoutaUtils::MemRead::ReadUInt32(&pkgHeaderInitialBytes[4]), LittleEndian);
-            const size_t pkgHeaderLength = 8u + static_cast<size_t>(fileCountInPkg) * 0x50u;
-            auto pkgHeaderData = std::make_unique_for_overwrite<char[]>(pkgHeaderLength);
-            if (!pkgHeaderData) {
-                printf("Failed to allocate memory.\n");
-                return false;
-            }
-            std::memcpy(
-                pkgHeaderData.get(), pkgHeaderInitialBytes.data(), pkgHeaderInitialBytes.size());
-            if (infile.Read(pkgHeaderData.get() + pkgHeaderInitialBytes.size(),
-                            pkgHeaderLength - pkgHeaderInitialBytes.size())
-                != (pkgHeaderLength - pkgHeaderInitialBytes.size())) {
-                printf("Failed to read pkg.\n");
-                return false;
-            }
-
-            SenLib::PkgHeader pkgHeader;
-            if (!SenLib::ReadPkgFromMemory(
-                    pkgHeader, pkgHeaderData.get(), pkgHeaderLength, LittleEndian)) {
-                printf("Failed to read pkg header.\n");
-                return false;
-            }
-
-            fi.Files.reserve(pkgHeader.FileCount);
-            for (uint32_t i = 0; i < pkgHeader.FileCount; ++i) {
-                const auto& f = pkgHeader.Files[i];
-                auto compressedData = std::make_unique_for_overwrite<char[]>(f.CompressedSize);
-                if (!compressedData) {
-                    printf("Failed to allocate memory.\n");
-                    return false;
-                }
-                if (!infile.SetPosition(f.DataPosition)) {
-                    printf("Failed to seek in pkg.\n");
-                    return false;
-                }
-                if (infile.Read(compressedData.get(), f.CompressedSize) != f.CompressedSize) {
-                    printf("Failed to read pkg.\n");
-                    return false;
-                }
-
-                auto dataBuffer = std::make_unique<char[]>(f.UncompressedSize);
-                if (!dataBuffer) {
-                    printf("Failed to allocate memory.\n");
-                    return false;
-                }
-                if (SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
-                                                        f.UncompressedSize,
-                                                        compressedData.get(),
-                                                        f.CompressedSize,
-                                                        f.Flags,
-                                                        LittleEndian)) {
-                    fi.Files.emplace_back(PkgPackFile{
-                        .Filename = f.Filename,
-                        .Hash = HyoutaUtils::Hash::CalculateSHA256(dataBuffer.get(),
-                                                                   f.UncompressedSize),
-                        .OffsetInPkg = f.DataPosition,
-                        .CompressedSize = f.CompressedSize,
-                        .UncompressedSize = f.UncompressedSize,
-                        .Flags = f.Flags,
-                    });
-                } else {
-                    // CS2 contains two corrupted files in its PKGs. Thankfully, both of the files
-                    // have uncorrupted copies in other PKGs, so this is recoverable. Check if we're
-                    // processing one of those files and, if yes, try to recover the file.
-                    if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                            std::string_view(fn.data(), filenameLength), "C_NPC290_C00.pkg")
-                        && i == 10) {
-                        printf(
-                            "Known corrupted file found in %s. Replacing with known good hash and "
-                            "assuming we have a clean copy in another pkg.\n",
-                            fn.data());
-                        fi.Files.emplace_back(PkgPackFile{
-                            .Filename = f.Filename,
-                            .Hash = HyoutaUtils::Hash::SHA256FromHexString(
-                                "ff37dc7dbde66c3d79da984e57864be0ebbd03ba9c8d1a9b5b85c295076dfe85"),
-                            .OffsetInPkg = 0xffff'ffff,
-                            .CompressedSize = 0xffff'ffff,
-                            .UncompressedSize = 0xffff'ffff,
-                            .Flags = 0xffff'ffff,
-                            .IsCorruptedFile = true,
-                        });
-                    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                                   std::string_view(fn.data(), filenameLength), "O_E6303.pkg")
-                               && i == 5) {
-                        printf(
-                            "Known corrupted file found in %s. Replacing with known good hash and "
-                            "assuming we have a clean copy in another pkg.\n",
-                            fn.data());
-                        fi.Files.emplace_back(PkgPackFile{
-                            .Filename = f.Filename,
-                            .Hash = HyoutaUtils::Hash::SHA256FromHexString(
-                                "27aef8d457b29e50cbbd37bf24ca1bca2c5174e23f46fed57afc43a2bacf7b7d"),
-                            .OffsetInPkg = 0xffff'ffff,
-                            .CompressedSize = 0xffff'ffff,
-                            .UncompressedSize = 0xffff'ffff,
-                            .Flags = 0xffff'ffff,
-                            .IsCorruptedFile = true,
-                        });
-                    } else {
-                        printf("Failed to extract file %u from pkg %s.\n", i, filenameC);
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        };
-
         for (size_t i = 0; i < args.size(); ++i) {
             std::filesystem::path rootDir = HyoutaUtils::IO::FilesystemPathFromUtf8(args[i]);
             std::error_code ec;
@@ -354,275 +645,54 @@ int PKA_Pack_Function(int argc, char** argv) {
                 return false;
             }
             for (const std::filesystem::directory_entry& entry : iterator) {
-                if (!add_pkg(rootDir, entry)) {
+                if (!InitPkgPackArchive(pkgPackFiles, rootDir, entry)) {
                     return -1;
                 }
             }
         }
-    }
 
-    // sort pkgs by filename so that you can binary search on them.
-    std::stable_sort(pkgPackFiles.begin(),
-                     pkgPackFiles.end(),
-                     [](const PkgPackArchive& lhs, const PkgPackArchive& rhs) {
-                         const auto& l = lhs.PkgName;
-                         const auto& r = rhs.PkgName;
-                         return std::memcmp(l.data(), r.data(), l.size()) < 0;
-                     });
-
-    // deduplicate out the files via hash (in std::map so they're already sorted for binary search)
-    struct FileReference {
-        size_t ArchiveIndex;
-        size_t FileIndex;
-        char* PkaHeaderPtr = nullptr;
-        bool AlreadyWritten = false;
-        bool ShouldBeWritten = true;
-    };
-    struct SHA256Sorter {
-        bool operator()(const HyoutaUtils::Hash::SHA256& lhs,
-                        const HyoutaUtils::Hash::SHA256& rhs) const {
-            const auto& l = lhs.Hash;
-            const auto& r = rhs.Hash;
-            return std::memcmp(l.data(), r.data(), l.size()) < 0;
-        }
-    };
-    std::map<HyoutaUtils::Hash::SHA256, FileReference, SHA256Sorter> filesByHash;
-    for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
-        PkgPackArchive& archive = pkgPackFiles[i];
-        for (size_t j = 0; j < archive.Files.size(); ++j) {
-            const PkgPackFile& file = archive.Files[j];
-            if (file.IsCorruptedFile) {
-                continue;
-            }
-
-            auto it = filesByHash.try_emplace(file.Hash,
-                                              FileReference{.ArchiveIndex = i, .FileIndex = j});
-            if (!it.second) {
-                // sanity checks
-                FileReference& existingFileReference = it.first->second;
-                const PkgPackFile& existingFile = pkgPackFiles[existingFileReference.ArchiveIndex]
-                                                      .Files[existingFileReference.FileIndex];
-                if (file.UncompressedSize != existingFile.UncompressedSize) {
-                    printf("File with same hash has different file data.\n");
-                    return -1;
-                }
-                if (file.CompressedSize < existingFile.CompressedSize) {
-                    // prefer higher compression
-                    existingFileReference.ArchiveIndex = i;
-                    existingFileReference.FileIndex = j;
-                }
-            } else {
-                FileReference& fileReference = it.first->second;
-                for (const auto& existingPka : existingPkas) {
-                    const SenLib::PkaHashToFileData* existingFile =
-                        SenLib::FindFileInPkaByHash(existingPka.PkaHeader.Files.get(),
-                                                    existingPka.PkaHeader.FilesCount,
-                                                    file.Hash.Hash);
-                    if (existingFile) {
-                        fileReference.ShouldBeWritten = false;
-                        break;
-                    }
-                }
+        for (auto& fi : pkgPackFiles) {
+            if (!LoadAndDecompressPkg(fi)) {
+                return -1;
             }
         }
     }
 
-    const size_t numberOfPkgsToInclude = [&]() -> size_t {
-        size_t count = 0;
-        for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
-            if (pkgPackFiles[i].IncludeInPka) {
-                ++count;
-            }
-        }
-        return count;
-    }();
-    const size_t numberOfFilesToInclude = [&]() -> size_t {
-        size_t count = 0;
-        for (const auto& kvp : filesByHash) {
-            if (kvp.second.ShouldBeWritten) {
-                ++count;
-            }
-        }
-        return count;
-    }();
-
-    // calculate file offsets
-    size_t pkaHeaderLength = (8u + 4u) + (numberOfFilesToInclude * (0x20u + 8u + 4u + 4u + 4u));
-    for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
-        if (!pkgPackFiles[i].IncludeInPka) {
-            continue;
-        }
-
-        pkaHeaderLength += (0x20u + 4u + ((0x40u + 0x20u) * pkgPackFiles[i].Files.size()));
-    }
-
-    // construct header
-    using HyoutaUtils::EndianUtils::ToEndian;
-    using HyoutaUtils::MemWrite::WriteAdvArray;
-    using HyoutaUtils::MemWrite::WriteAdvUInt32;
-    using HyoutaUtils::MemWrite::WriteAdvUInt64;
-    auto pkaHeader = std::make_unique<char[]>(pkaHeaderLength);
-    if (!pkaHeader) {
-        printf("Failed to allocate memory.\n");
+    auto pkaConstructionData = FindFilesToWriteAndGenerateHeader(pkgPackFiles, existingPkas);
+    if (!pkaConstructionData) {
         return -1;
     }
 
-    char* pkaHeaderWritePtr = pkaHeader.get();
-    WriteAdvUInt32(pkaHeaderWritePtr, ToEndian(static_cast<uint32_t>(0x7ff7cf0d), LittleEndian));
-    WriteAdvUInt32(pkaHeaderWritePtr,
-                   ToEndian(static_cast<uint32_t>(numberOfPkgsToInclude), LittleEndian));
-    for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
-        if (!pkgPackFiles[i].IncludeInPka) {
-            continue;
-        }
-
-        WriteAdvArray(pkaHeaderWritePtr, pkgPackFiles[i].PkgName);
-        WriteAdvUInt32(pkaHeaderWritePtr,
-                       ToEndian(static_cast<uint32_t>(pkgPackFiles[i].Files.size()), LittleEndian));
-        for (size_t j = 0; j < pkgPackFiles[i].Files.size(); ++j) {
-            WriteAdvArray(pkaHeaderWritePtr, pkgPackFiles[i].Files[j].Filename);
-            WriteAdvArray(pkaHeaderWritePtr, pkgPackFiles[i].Files[j].Hash.Hash);
-        }
-    }
-    WriteAdvUInt32(pkaHeaderWritePtr,
-                   ToEndian(static_cast<uint32_t>(numberOfFilesToInclude), LittleEndian));
-    for (auto& kvp : filesByHash) {
-        FileReference& ref = kvp.second;
-        if (kvp.second.ShouldBeWritten) {
-            WriteAdvArray(pkaHeaderWritePtr, kvp.first.Hash);
-            ref.PkaHeaderPtr = pkaHeaderWritePtr;
-
-            // dummy data for now
-            WriteAdvUInt64(pkaHeaderWritePtr, 0);
-            WriteAdvUInt32(pkaHeaderWritePtr, 0);
-            WriteAdvUInt32(pkaHeaderWritePtr, 0);
-            WriteAdvUInt32(pkaHeaderWritePtr, 0);
-        }
-    }
-    assert(pkaHeaderWritePtr == (pkaHeader.get() + pkaHeaderLength));
-
-    // write file
+    // write PKA
     std::string targetTmp(target);
     targetTmp.append(".tmp");
-    uint64_t fileOffset = pkaHeaderLength;
+    uint64_t fileOffset = pkaConstructionData->PkaHeaderLength;
     HyoutaUtils::IO::File outfile(std::string_view(targetTmp), HyoutaUtils::IO::OpenMode::Write);
     auto outfileGuard = HyoutaUtils::MakeDisposableScopeGuard([&outfile]() { outfile.Delete(); });
     if (!outfile.IsOpen()) {
         printf("Failed to open output file.\n");
         return -1;
     }
-    if (outfile.Write(pkaHeader.get(), pkaHeaderLength) != pkaHeaderLength) {
+    if (outfile.Write(pkaConstructionData->PkaHeader.get(), pkaConstructionData->PkaHeaderLength)
+        != pkaConstructionData->PkaHeaderLength) {
         printf("Failed to write temp header to output file.\n");
         return -1;
     }
-    for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
-        for (size_t j = 0; j < pkgPackFiles[i].Files.size(); ++j) {
-            auto it = filesByHash.find(pkgPackFiles[i].Files[j].Hash);
-            if (it == filesByHash.end()) {
-                printf("Internal error: Failed to find file hash.\n");
-                return -1;
-            }
-            FileReference& ref = it->second;
-            if (ref.ShouldBeWritten && !ref.AlreadyWritten) {
-                assert(fileOffset == outfile.GetPosition());
-                PkgPackArchive& archive = pkgPackFiles[ref.ArchiveIndex];
-                const PkgPackFile& file = archive.Files[ref.FileIndex];
-
-                if (recompressFlags) {
-                    auto& infile = archive.FileHandle;
-                    auto data = std::make_unique_for_overwrite<char[]>(file.CompressedSize);
-                    if (!data) {
-                        printf("Failed to allocate memory.\n");
-                        return -1;
-                    }
-                    if (!infile.SetPosition(file.OffsetInPkg)) {
-                        printf("Failed to seek in pkg.\n");
-                        return -1;
-                    }
-                    if (infile.Read(data.get(), file.CompressedSize) != file.CompressedSize) {
-                        printf("Failed to read pkg.\n");
-                        return -1;
-                    }
-
-                    auto dataBuffer = std::make_unique<char[]>(file.UncompressedSize);
-                    if (!dataBuffer) {
-                        printf("Failed to allocate memory.\n");
-                        return false;
-                    }
-                    if (!SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
-                                                             file.UncompressedSize,
-                                                             data.get(),
-                                                             file.CompressedSize,
-                                                             file.Flags,
-                                                             LittleEndian)) {
-                        printf("Failed to extract file from pkg.\n");
-                        return false;
-                    }
-
-                    std::unique_ptr<char[]> recompressedDataBuffer;
-                    SenLib::PkgFile pkgFile;
-                    if (!SenLib::CompressPkgFile(
-                            recompressedDataBuffer,
-                            pkgFile,
-                            dataBuffer.get(),
-                            file.UncompressedSize,
-                            *recompressFlags,
-                            HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-                        printf("Failed recompressing file.\n");
-                        return -1;
-                    }
-
-                    if (outfile.Write(recompressedDataBuffer.get(), pkgFile.CompressedSize)
-                        != pkgFile.CompressedSize) {
-                        printf("Failed to write data to output file.\n");
-                        return -1;
-                    }
-
-                    char* ptr = ref.PkaHeaderPtr;
-                    WriteAdvUInt64(ptr, ToEndian(fileOffset, LittleEndian));
-                    WriteAdvUInt32(ptr, ToEndian(pkgFile.CompressedSize, LittleEndian));
-                    WriteAdvUInt32(ptr, ToEndian(file.UncompressedSize, LittleEndian));
-                    WriteAdvUInt32(ptr, ToEndian(pkgFile.Flags, LittleEndian));
-
-                    fileOffset += pkgFile.CompressedSize;
-                } else {
-                    auto& infile = archive.FileHandle;
-                    auto data = std::make_unique_for_overwrite<char[]>(file.CompressedSize);
-                    if (!data) {
-                        printf("Failed to allocate memory.\n");
-                        return -1;
-                    }
-                    if (!infile.SetPosition(file.OffsetInPkg)) {
-                        printf("Failed to seek in pkg.\n");
-                        return -1;
-                    }
-                    if (infile.Read(data.get(), file.CompressedSize) != file.CompressedSize) {
-                        printf("Failed to read pkg.\n");
-                        return -1;
-                    }
-                    if (outfile.Write(data.get(), file.CompressedSize) != file.CompressedSize) {
-                        printf("Failed to write data to output file.\n");
-                        return -1;
-                    }
-
-                    char* ptr = ref.PkaHeaderPtr;
-                    WriteAdvUInt64(ptr, ToEndian(fileOffset, LittleEndian));
-                    WriteAdvUInt32(ptr, ToEndian(file.CompressedSize, LittleEndian));
-                    WriteAdvUInt32(ptr, ToEndian(file.UncompressedSize, LittleEndian));
-                    WriteAdvUInt32(ptr, ToEndian(file.Flags, LittleEndian));
-
-                    fileOffset += file.CompressedSize;
-                }
-
-                ref.AlreadyWritten = true;
-            }
+    for (size_t i = 0; i < pkaConstructionData->FilesToWrite.size(); ++i) {
+        if (!WriteToPka(outfile,
+                        fileOffset,
+                        pkaConstructionData->FilesToWrite[i],
+                        pkgPackFiles,
+                        recompressFlags)) {
+            return -1;
         }
     }
     if (!outfile.SetPosition(0)) {
         printf("Failed to seek in output file.\n");
         return -1;
     }
-    if (outfile.Write(pkaHeader.get(), pkaHeaderLength) != pkaHeaderLength) {
+    if (outfile.Write(pkaConstructionData->PkaHeader.get(), pkaConstructionData->PkaHeaderLength)
+        != pkaConstructionData->PkaHeaderLength) {
         printf("Failed to write corrected header to output file.\n");
         return -1;
     }
