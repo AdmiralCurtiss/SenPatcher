@@ -503,7 +503,7 @@ namespace {
 struct Arg {
     std::string ShaFilePath;
     std::string GamePath;
-    size_t GameVersion;
+    size_t GameVersionBits;
     size_t DlcIndex;
 };
 struct ProgramArgs {
@@ -531,7 +531,8 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
     }
 
     rapidjson::Document json;
-    json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag,
+    json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag
+                   | rapidjson::kParseCommentsFlag,
                rapidjson::UTF8<char>>(buffer.get(), *length);
     if (json.HasParseError() || !json.IsObject()) {
         return std::nullopt;
@@ -547,13 +548,24 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
                 auto shaFilePath = ReadString(obj, "ShaFilePath");
                 auto gamePath = ReadString(obj, "GamePath");
                 auto gameVersion = ReadUInt64(obj, "GameVersion");
+                auto gameVersionBits = ReadUInt64(obj, "GameVersionBits");
                 auto dlcIndex = ReadUInt64(obj, "DlcIndex");
-                if (!shaFilePath || !gamePath || !gameVersion || !dlcIndex) {
+                if (!shaFilePath || !gamePath || !dlcIndex) {
                     return std::nullopt;
+                }
+                if (!gameVersion && !gameVersionBits) {
+                    return std::nullopt;
+                }
+                size_t bits = 0;
+                if (gameVersion) {
+                    bits |= (size_t(1) << (*gameVersion));
+                }
+                if (gameVersionBits) {
+                    bits |= static_cast<size_t>(*gameVersionBits);
                 }
                 args.Input.emplace_back(Arg{.ShaFilePath = std::move(*shaFilePath),
                                             .GamePath = std::move(*gamePath),
-                                            .GameVersion = *gameVersion,
+                                            .GameVersionBits = bits,
                                             .DlcIndex = *dlcIndex});
             } else {
                 return std::nullopt;
@@ -659,7 +671,7 @@ int SHA_File_Convert_Function(int argc, char** argv) {
 
     for (size_t i = 0; i < args.size(); ++i) {
         const auto& arg = args[i];
-        const size_t gameVersionBits = (size_t(1) << arg.GameVersion);
+        const size_t gameVersionBits = arg.GameVersionBits;
         root.GameVersionBits |= gameVersionBits;
         HyoutaUtils::IO::File infile(std::string_view(arg.ShaFilePath),
                                      HyoutaUtils::IO::OpenMode::Read);
@@ -778,7 +790,7 @@ int SHA_File_Convert_Function(int argc, char** argv) {
             source.append("#define D(a,b,c,d) d,c,b,a\n");
             source.append("#define Q(a,b,c,d,e,f,g,h) h,g,f,e,d,c,b,a\n");
             source.append("#endif\n");
-            source.append("static constexpr alignas(16) char s_raw_dirtree[] = {\n");
+            source.append("alignas(16) static constexpr char s_raw_dirtree[] = {\n");
             if (!GenerateRawDirTreeLine(root, stringTable, stringOffsets, hashTable, source)) {
                 printf("Dir tree generation failed.\n");
                 return -1;
