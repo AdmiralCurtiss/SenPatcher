@@ -324,6 +324,111 @@ static bool CalculateHashForPkgFile(PkgPackArchive& fi, PkgPackFile& f) {
     return CalculateHashForPkgFile(fi, f, compressedData.get());
 }
 
+static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& pkgPackFiles,
+                                                  size_t totalNumberOfFiles,
+                                                  size_t threadCount) {
+    // This is designed like this:
+    // - threadCount worker threads, which do the actual decompression + hashing of the files
+    // - 1 file reader thread, which reads the input files and hands them over to a worker thread
+
+    // TODO: This generally works, but uses more memory that it really needs to because the reader
+    // thread just reads all files as fast as it can.
+
+    std::atomic<bool> encounteredError = false;
+
+    struct alignas(64) WorkPacket {
+        const char* Data;
+        std::unique_ptr<char[]> Holder;
+        PkgPackArchive* Pkg;
+        PkgPackFile* PkgFile;
+    };
+    std::deque<WorkPacket> workQueue;
+    std::mutex workQueueMutex;
+    std::condition_variable workQueueCondVar;
+    size_t filesLeft = totalNumberOfFiles;
+
+    const auto do_abort = [&]() -> void {
+        encounteredError.store(true);
+
+        // break out of remaining worker threads
+        {
+            std::unique_lock lock(workQueueMutex);
+            filesLeft = 0;
+            workQueueCondVar.notify_all();
+        }
+    };
+
+    // worker threads
+    std::vector<std::thread> workerThreads;
+    workerThreads.reserve(threadCount);
+    for (size_t i = 0; i < threadCount; ++i) {
+        workerThreads.emplace_back([&]() -> void {
+            while (true) {
+                WorkPacket workPacket;
+                {
+                    std::unique_lock lock(workQueueMutex);
+                    if (filesLeft == 0) {
+                        return;
+                    }
+                    if (workQueue.empty()) {
+                        workQueueCondVar.wait(lock,
+                                              [&] { return filesLeft == 0 || !workQueue.empty(); });
+                        if (filesLeft == 0) {
+                            return;
+                        }
+                    }
+                    workPacket = std::move(workQueue.front());
+                    workQueue.pop_front();
+                    --filesLeft;
+                }
+
+                // process work packet
+                if (!CalculateHashForPkgFile(
+                        *workPacket.Pkg, *workPacket.PkgFile, workPacket.Data)) {
+                    do_abort();
+                    return;
+                }
+            }
+        });
+    }
+
+    // file reader thread
+    std::thread fileReaderThread = std::thread([&]() -> void {
+        for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+            auto& pkg = pkgPackFiles[i];
+            auto& files = pkg.Files;
+            for (size_t j = 0; j < files.size(); ++j) {
+                auto& f = files[j];
+                auto compressedData = ReadPkgFile(pkg, f);
+                if (!compressedData) {
+                    do_abort();
+                    return;
+                }
+
+                // push to worker thread
+                char* filedata = compressedData.get();
+                WorkPacket wp{.Data = filedata,
+                              .Holder = std::move(compressedData),
+                              .Pkg = &pkg,
+                              .PkgFile = &f};
+                {
+                    std::unique_lock lock(workQueueMutex);
+                    workQueue.emplace_back(std::move(wp));
+                    workQueueCondVar.notify_all();
+                }
+            }
+        }
+    });
+
+    // wait for all threads to finish
+    for (size_t i = 0; i < threadCount; ++i) {
+        workerThreads[i].join();
+    }
+    fileReaderThread.join();
+
+    return !encounteredError.load();
+}
+
 static std::optional<PkaConstructionData>
     FindFilesToWriteAndGenerateHeader(std::vector<PkgPackArchive>& pkgPackFiles,
                                       const std::vector<SenLib::ReferencedPka>& existingPkas) {
@@ -932,12 +1037,25 @@ int PKA_Pack_Function(int argc, char** argv) {
             }
         }
 
+        size_t totalNumberOfFiles = 0;
         for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
-            auto& pkg = pkgPackFiles[i];
-            auto& files = pkg.Files;
-            for (size_t j = 0; j < files.size(); ++j) {
-                if (!CalculateHashForPkgFile(pkg, files[j])) {
-                    return -1;
+            totalNumberOfFiles += pkgPackFiles[i].Files.size();
+        }
+
+        const size_t filesToHashThreadCount = std::min(totalNumberOfFiles, threadCount);
+        if (filesToHashThreadCount >= 2) {
+            if (!CalculateHashForPkgFilesMultithreaded(
+                    pkgPackFiles, totalNumberOfFiles, filesToHashThreadCount)) {
+                return -1;
+            }
+        } else {
+            for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+                auto& pkg = pkgPackFiles[i];
+                auto& files = pkg.Files;
+                for (size_t j = 0; j < files.size(); ++j) {
+                    if (!CalculateHashForPkgFile(pkg, files[j])) {
+                        return -1;
+                    }
                 }
             }
         }
