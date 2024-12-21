@@ -2,16 +2,21 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <deque>
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include "cpp-optparse/OptionParser.h"
@@ -98,6 +103,13 @@ struct SHA256Sorter {
 struct FileToWriteInfo {
     size_t ArchiveIndex;
     size_t FileIndex;
+
+    // filled while writing/recompressing
+    uint64_t FileOffset;
+    uint32_t CompressedSize;
+    uint32_t UncompressedSize;
+    uint32_t PkgFlags;
+
     char* PkaHeaderPtr;
 };
 struct PkaConstructionData {
@@ -457,14 +469,10 @@ static std::optional<PkaConstructionData>
 
 static bool WriteToPka(HyoutaUtils::IO::File& outfile,
                        uint64_t& fileOffset,
-                       const FileToWriteInfo& ref,
+                       FileToWriteInfo& ref,
                        std::vector<PkgPackArchive>& pkgPackFiles,
                        const std::optional<uint32_t>& recompressFlags) {
     using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
-    using HyoutaUtils::MemWrite::WriteAdvArray;
-    using HyoutaUtils::MemWrite::WriteAdvUInt32;
-    using HyoutaUtils::MemWrite::WriteAdvUInt64;
-
     assert(fileOffset == outfile.GetPosition());
     PkgPackArchive& archive = pkgPackFiles[ref.ArchiveIndex];
     const PkgPackFile& file = archive.Files[ref.FileIndex];
@@ -518,11 +526,10 @@ static bool WriteToPka(HyoutaUtils::IO::File& outfile,
             return false;
         }
 
-        char* ptr = ref.PkaHeaderPtr;
-        WriteAdvUInt64(ptr, ToEndian(fileOffset, LittleEndian));
-        WriteAdvUInt32(ptr, ToEndian(pkgFile.CompressedSize, LittleEndian));
-        WriteAdvUInt32(ptr, ToEndian(file.UncompressedSize, LittleEndian));
-        WriteAdvUInt32(ptr, ToEndian(pkgFile.Flags, LittleEndian));
+        ref.FileOffset = fileOffset;
+        ref.CompressedSize = pkgFile.CompressedSize;
+        ref.UncompressedSize = file.UncompressedSize;
+        ref.PkgFlags = pkgFile.Flags;
 
         fileOffset += pkgFile.CompressedSize;
     } else {
@@ -545,11 +552,10 @@ static bool WriteToPka(HyoutaUtils::IO::File& outfile,
             return false;
         }
 
-        char* ptr = ref.PkaHeaderPtr;
-        WriteAdvUInt64(ptr, ToEndian(fileOffset, LittleEndian));
-        WriteAdvUInt32(ptr, ToEndian(file.CompressedSize, LittleEndian));
-        WriteAdvUInt32(ptr, ToEndian(file.UncompressedSize, LittleEndian));
-        WriteAdvUInt32(ptr, ToEndian(file.Flags, LittleEndian));
+        ref.FileOffset = fileOffset;
+        ref.CompressedSize = file.CompressedSize;
+        ref.UncompressedSize = file.UncompressedSize;
+        ref.PkgFlags = file.Flags;
 
         fileOffset += file.CompressedSize;
     }
@@ -557,8 +563,244 @@ static bool WriteToPka(HyoutaUtils::IO::File& outfile,
     return true;
 }
 
-int PKA_Pack_Function(int argc, char** argv) {
+static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
+                                    PkaConstructionData& pkaConstructionData,
+                                    std::vector<PkgPackArchive>& pkgPackFiles,
+                                    uint32_t recompressFlags,
+                                    size_t threadCount) {
+    // This is largely the same as the P3A threading logic.
+
     using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
+
+    // This is designed like this:
+    // - threadCount worker threads, which do the actual compression of the files
+    // - 1 file reader thread, which reads the input files and hands them over to a worker thread
+    // - 1 file writer thread, which takes the output of the worker thread and writes them to the
+    //   output file
+
+    // TODO: This generally works, but uses more memory that it really needs to because the reader
+    // thread just reads all files as fast as it can.
+
+    std::atomic<bool> encounteredError = false;
+
+    struct alignas(64) FileDataToWrite {
+        bool IsValid = false;
+        const char* Data;
+        uint32_t CompressedSize;
+        uint32_t UncompressedSize;
+        std::unique_ptr<char[]> Holder;
+        size_t Index;
+        uint32_t RecompressFlags;
+    };
+    auto fileDataToWriteArray =
+        std::make_unique<FileDataToWrite[]>(pkaConstructionData.FilesToWrite.size());
+    std::mutex fileDataToWriteMutex;
+    std::condition_variable fileDataToWriteCondVar;
+    bool fileDataToWriteAbort = false;
+
+    struct alignas(64) FileDataToCompress {
+        const char* Data;
+        uint32_t OriginalCompressedSize;
+        uint32_t OriginalUncompressedSize;
+        std::unique_ptr<char[]> Holder;
+        size_t Index;
+        uint32_t OriginalFlags;
+        uint32_t RecompressFlags;
+    };
+    std::deque<FileDataToCompress> fileDataToCompressQueue;
+    std::mutex fileDataToCompressMutex;
+    std::condition_variable fileDataToCompressCondVar;
+    size_t fileDataToCompressLeft = pkaConstructionData.FilesToWrite.size();
+
+    const auto do_abort = [&]() -> void {
+        encounteredError.store(true);
+
+        // break out of file writer thread
+        {
+            std::unique_lock lock(fileDataToWriteMutex);
+            fileDataToWriteAbort = true;
+            fileDataToWriteCondVar.notify_all();
+        }
+
+        // break out of remaining worker threads
+        {
+            std::unique_lock lock(fileDataToCompressMutex);
+            fileDataToCompressLeft = 0;
+            fileDataToCompressCondVar.notify_all();
+        }
+    };
+
+    // worker threads
+    std::vector<std::thread> workerThreads;
+    workerThreads.reserve(threadCount);
+    for (size_t i = 0; i < threadCount; ++i) {
+        workerThreads.emplace_back([&]() -> void {
+            while (true) {
+                FileDataToCompress workPacket;
+                {
+                    std::unique_lock lock(fileDataToCompressMutex);
+                    if (fileDataToCompressLeft == 0) {
+                        return;
+                    }
+                    if (fileDataToCompressQueue.empty()) {
+                        fileDataToCompressCondVar.wait(lock, [&] {
+                            return fileDataToCompressLeft == 0 || !fileDataToCompressQueue.empty();
+                        });
+                        if (fileDataToCompressLeft == 0) {
+                            return;
+                        }
+                    }
+                    workPacket = std::move(fileDataToCompressQueue.front());
+                    fileDataToCompressQueue.pop_front();
+                    --fileDataToCompressLeft;
+                }
+
+                // process work packet
+                auto dataBuffer = std::make_unique<char[]>(workPacket.OriginalUncompressedSize);
+                if (!dataBuffer) {
+                    do_abort();
+                    printf("Failed to allocate memory.\n");
+                    return;
+                }
+                if (!SenLib::ExtractAndDecompressPkgFile(dataBuffer.get(),
+                                                         workPacket.OriginalUncompressedSize,
+                                                         workPacket.Data,
+                                                         workPacket.OriginalCompressedSize,
+                                                         workPacket.OriginalFlags,
+                                                         LittleEndian)) {
+                    do_abort();
+                    printf("Failed to extract file from pkg.\n");
+                    return;
+                }
+
+                std::unique_ptr<char[]> recompressedDataBuffer;
+                SenLib::PkgFile pkgFile;
+                if (!SenLib::CompressPkgFile(recompressedDataBuffer,
+                                             pkgFile,
+                                             dataBuffer.get(),
+                                             workPacket.OriginalUncompressedSize,
+                                             workPacket.RecompressFlags,
+                                             LittleEndian)) {
+                    do_abort();
+                    printf("Failed recompressing file.\n");
+                    return;
+                }
+
+                // push result to writer thread
+                char* recompressedData = recompressedDataBuffer.get();
+                FileDataToWrite data{.IsValid = true,
+                                     .Data = recompressedData,
+                                     .CompressedSize = pkgFile.CompressedSize,
+                                     .UncompressedSize = workPacket.OriginalUncompressedSize,
+                                     .Holder = std::move(recompressedDataBuffer),
+                                     .Index = workPacket.Index,
+                                     .RecompressFlags = pkgFile.Flags};
+                {
+                    std::unique_lock lock(fileDataToWriteMutex);
+                    fileDataToWriteArray[workPacket.Index] = std::move(data);
+                    fileDataToWriteCondVar.notify_all();
+                }
+            }
+        });
+    }
+
+    // file reader thread
+    std::thread fileReaderThread = std::thread([&]() -> void {
+        for (size_t i = 0; i < pkaConstructionData.FilesToWrite.size(); ++i) {
+            const auto& ref = pkaConstructionData.FilesToWrite[i];
+            PkgPackArchive& archive = pkgPackFiles[ref.ArchiveIndex];
+            const PkgPackFile& file = archive.Files[ref.FileIndex];
+
+            auto& infile = archive.FileHandle;
+            auto data = std::make_unique_for_overwrite<char[]>(file.CompressedSize);
+            if (!data) {
+                do_abort();
+                printf("Failed to allocate memory.\n");
+                return;
+            }
+            if (!infile.SetPosition(file.OffsetInPkg)) {
+                do_abort();
+                printf("Failed to seek in pkg.\n");
+                return;
+            }
+            if (infile.Read(data.get(), file.CompressedSize) != file.CompressedSize) {
+                do_abort();
+                printf("Failed to read pkg.\n");
+                return;
+            }
+
+            // push to worker thread
+            char* filedata = data.get();
+            FileDataToCompress cdata{.Data = filedata,
+                                     .OriginalCompressedSize = file.CompressedSize,
+                                     .OriginalUncompressedSize = file.UncompressedSize,
+                                     .Holder = std::move(data),
+                                     .Index = i,
+                                     .OriginalFlags = file.Flags,
+                                     .RecompressFlags = recompressFlags};
+
+            {
+                std::unique_lock lock(fileDataToCompressMutex);
+                fileDataToCompressQueue.emplace_back(std::move(cdata));
+                fileDataToCompressCondVar.notify_all();
+            }
+        }
+    });
+
+    // file writer thread
+    std::thread fileWriterThread = std::thread([&]() -> void {
+        uint64_t fileOffset = pkaConstructionData.PkaHeaderLength;
+        for (size_t i = 0; i < pkaConstructionData.FilesToWrite.size(); ++i) {
+            assert(fileOffset == outfile.GetPosition());
+            auto& ref = pkaConstructionData.FilesToWrite[i];
+
+            FileDataToWrite data;
+            {
+                std::unique_lock lock(fileDataToWriteMutex);
+                if (fileDataToWriteAbort) {
+                    return;
+                }
+                if (!fileDataToWriteArray[i].IsValid) {
+                    fileDataToWriteCondVar.wait(lock, [&] {
+                        return fileDataToWriteAbort || fileDataToWriteArray[i].IsValid;
+                    });
+                    if (fileDataToWriteAbort) {
+                        return;
+                    }
+                }
+                data = std::move(fileDataToWriteArray[i]);
+            }
+
+            if (outfile.Write(data.Data, data.CompressedSize) != data.CompressedSize) {
+                do_abort();
+                printf("Failed to write data to output file.\n");
+                return;
+            }
+
+            ref.FileOffset = fileOffset;
+            ref.CompressedSize = data.CompressedSize;
+            ref.UncompressedSize = data.UncompressedSize;
+            ref.PkgFlags = data.RecompressFlags;
+
+            fileOffset += data.CompressedSize;
+        }
+    });
+
+    // wait for all threads to finish
+    for (size_t i = 0; i < threadCount; ++i) {
+        workerThreads[i].join();
+    }
+    fileReaderThread.join();
+    fileWriterThread.join();
+
+    return !encounteredError.load();
+}
+
+int PKA_Pack_Function(int argc, char** argv) {
+    using HyoutaUtils::EndianUtils::ToEndian;
+    using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
+    using HyoutaUtils::MemWrite::WriteAdvUInt32;
+    using HyoutaUtils::MemWrite::WriteAdvUInt64;
 
     optparse::OptionParser parser;
     parser.description(PKA_Pack_ShortDescription);
@@ -582,6 +824,12 @@ int PKA_Pack_Function(int argc, char** argv) {
         .metavar("TYPE")
         .help("Recompress all files before packing them into the pka.")
         .choices({"none", "type1", "lz4", "zstd"});
+    parser.add_option("-t", "--threads")
+        .type(optparse::DataType::Int)
+        .dest("threads")
+        .metavar("THREADCOUNT")
+        .set_default(0)
+        .help("Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -612,6 +860,18 @@ int PKA_Pack_Function(int argc, char** argv) {
             return -1;
         }
     }
+
+    auto* threads_option = options.get("threads");
+    size_t desiredThreadCount = 0;
+    if (threads_option != nullptr) {
+        int64_t argThreadCount = threads_option->first_integer();
+        if (argThreadCount > 0
+            && static_cast<uint64_t>(argThreadCount) <= std::numeric_limits<size_t>::max()) {
+            desiredThreadCount = static_cast<size_t>(argThreadCount);
+        }
+    }
+    const size_t threadCount =
+        desiredThreadCount == 0 ? std::thread::hardware_concurrency() : desiredThreadCount;
 
     std::string_view target(output_option->first_string());
 
@@ -666,7 +926,6 @@ int PKA_Pack_Function(int argc, char** argv) {
     // write PKA
     std::string targetTmp(target);
     targetTmp.append(".tmp");
-    uint64_t fileOffset = pkaConstructionData->PkaHeaderLength;
     HyoutaUtils::IO::File outfile(std::string_view(targetTmp), HyoutaUtils::IO::OpenMode::Write);
     auto outfileGuard = HyoutaUtils::MakeDisposableScopeGuard([&outfile]() { outfile.Delete(); });
     if (!outfile.IsOpen()) {
@@ -678,14 +937,36 @@ int PKA_Pack_Function(int argc, char** argv) {
         printf("Failed to write temp header to output file.\n");
         return -1;
     }
-    for (size_t i = 0; i < pkaConstructionData->FilesToWrite.size(); ++i) {
-        if (!WriteToPka(outfile,
-                        fileOffset,
-                        pkaConstructionData->FilesToWrite[i],
-                        pkgPackFiles,
-                        recompressFlags)) {
-            return -1;
+
+    const size_t fileToWriteThreadCount =
+        std::min(pkaConstructionData->FilesToWrite.size(), threadCount);
+    if (recompressFlags.has_value() && fileToWriteThreadCount >= 2) {
+        if (!WriteToPkaMultithreaded(outfile,
+                                     *pkaConstructionData,
+                                     pkgPackFiles,
+                                     *recompressFlags,
+                                     fileToWriteThreadCount)) {
         }
+    } else {
+        uint64_t fileOffset = pkaConstructionData->PkaHeaderLength;
+        for (size_t i = 0; i < pkaConstructionData->FilesToWrite.size(); ++i) {
+            if (!WriteToPka(outfile,
+                            fileOffset,
+                            pkaConstructionData->FilesToWrite[i],
+                            pkgPackFiles,
+                            recompressFlags)) {
+                return -1;
+            }
+        }
+    }
+
+    // fix header
+    for (auto& ref : pkaConstructionData->FilesToWrite) {
+        char* ptr = ref.PkaHeaderPtr;
+        WriteAdvUInt64(ptr, ToEndian(ref.FileOffset, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(ref.CompressedSize, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(ref.UncompressedSize, LittleEndian));
+        WriteAdvUInt32(ptr, ToEndian(ref.PkgFlags, LittleEndian));
     }
     if (!outfile.SetPosition(0)) {
         printf("Failed to seek in output file.\n");
