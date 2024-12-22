@@ -105,41 +105,38 @@ static std::string FilterPath(std::string_view in_path) {
     return result;
 }
 
-static bool Insert(TreeNode& tree,
-                   const HyoutaUtils::Hash::SHA1& hash,
-                   std::string_view path,
-                   uint64_t filesize,
-                   size_t gameVersionBits,
-                   size_t dlcIndex) {
-    // wasteful in terms of memory but whatever
-    auto slashpos = path.find_first_of('/');
-    if (slashpos != std::string_view::npos) {
-        std::string_view dirname = path.substr(0, slashpos);
-        std::string_view rest = path.substr(slashpos + 1);
+static TreeNode& InsertDirectory(TreeNode& tree,
+                                 std::string_view dirname,
+                                 size_t gameVersionBits,
+                                 size_t dlcIndex) {
+    auto dirnameLowercase = HyoutaUtils::TextUtils::ToLower(dirname);
 
-        auto dirnameLowercase = HyoutaUtils::TextUtils::ToLower(dirname);
-
-        // if we've already seen this dir, update the game version of the dir and insert into that
-        auto& existingDirIndices = tree.ChildLookup[dirnameLowercase];
-        for (size_t existingDirIndex : existingDirIndices) {
-            auto& existingDir = tree.Children[existingDirIndex];
-            if (existingDir.IsDirectory) {
-                existingDir.GameVersionBits |= gameVersionBits;
-                return Insert(existingDir, hash, rest, filesize, gameVersionBits, dlcIndex);
-            }
+    // if we've already seen this dir, update the game version of the dir and insert into that
+    auto& existingDirIndices = tree.ChildLookup[dirnameLowercase];
+    for (size_t existingDirIndex : existingDirIndices) {
+        auto& existingDir = tree.Children[existingDirIndex];
+        if (existingDir.IsDirectory) {
+            existingDir.GameVersionBits |= gameVersionBits;
+            return existingDir;
         }
-
-        // no directory node yet, insert new
-        existingDirIndices.emplace_back(tree.Children.size());
-        auto& newChild = tree.Children.emplace_back(TreeNode{.IsDirectory = true,
-                                                             .Name = std::string(dirname),
-                                                             .Hash = HyoutaUtils::Hash::SHA1({}),
-                                                             .GameVersionBits = gameVersionBits,
-                                                             .DlcIndex = dlcIndex,
-                                                             .Filesize = filesize});
-        return Insert(newChild, hash, rest, filesize, gameVersionBits, dlcIndex);
     }
 
+    // no directory node yet, insert new
+    existingDirIndices.emplace_back(tree.Children.size());
+    auto& newChild = tree.Children.emplace_back(TreeNode{.IsDirectory = true,
+                                                         .Name = std::string(dirname),
+                                                         .Hash = HyoutaUtils::Hash::SHA1({}),
+                                                         .GameVersionBits = gameVersionBits,
+                                                         .DlcIndex = dlcIndex});
+    return newChild;
+}
+
+static bool InsertFile(TreeNode& tree,
+                       const HyoutaUtils::Hash::SHA1& hash,
+                       std::string_view path,
+                       uint64_t filesize,
+                       size_t gameVersionBits,
+                       size_t dlcIndex) {
     // found directory to put this file in
     auto pathLowercase = HyoutaUtils::TextUtils::ToLower(path);
     auto& existingFileIndices = tree.ChildLookup[pathLowercase];
@@ -501,7 +498,6 @@ static void Prettify(TreeNode& node,
 
 namespace {
 struct Arg {
-    std::string ShaFilePath;
     std::string GamePath;
     size_t GameVersionBits;
     size_t DlcIndex;
@@ -545,12 +541,11 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
     if (input != root.MemberEnd() && input->value.IsArray()) {
         for (const auto& obj : input->value.GetArray()) {
             if (obj.IsObject()) {
-                auto shaFilePath = ReadString(obj, "ShaFilePath");
                 auto gamePath = ReadString(obj, "GamePath");
                 auto gameVersion = ReadUInt64(obj, "GameVersion");
                 auto gameVersionBits = ReadUInt64(obj, "GameVersionBits");
                 auto dlcIndex = ReadUInt64(obj, "DlcIndex");
-                if (!shaFilePath || !gamePath || !dlcIndex) {
+                if (!gamePath || !dlcIndex) {
                     return std::nullopt;
                 }
                 if (!gameVersion && !gameVersionBits) {
@@ -563,8 +558,7 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
                 if (gameVersionBits) {
                     bits |= static_cast<size_t>(*gameVersionBits);
                 }
-                args.Input.emplace_back(Arg{.ShaFilePath = std::move(*shaFilePath),
-                                            .GamePath = std::move(*gamePath),
+                args.Input.emplace_back(Arg{.GamePath = std::move(*gamePath),
                                             .GameVersionBits = bits,
                                             .DlcIndex = *dlcIndex});
             } else {
@@ -587,36 +581,31 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
     return args;
 }
 
-static bool InsertExistingDirTreeRecursive(TreeNode& root,
+static bool InsertExistingDirTreeRecursive(TreeNode& node,
                                            const HyoutaUtils::DirTree::Tree& inputTree,
-                                           const HyoutaUtils::DirTree::Entry& entry,
-                                           std::string_view pathPrefix) {
+                                           const HyoutaUtils::DirTree::Entry& entry) {
     std::string_view filename(inputTree.StringTable + entry.GetFilenameOffset(),
                               entry.GetFilenameLength());
-    std::string path;
-    path.reserve(pathPrefix.size() + filename.size() + 1);
-    path.append(pathPrefix);
-    path.append(filename);
-
     if (entry.IsDirectory()) {
-        path.push_back('/');
+        TreeNode& dirnode =
+            InsertDirectory(node, filename, entry.GetGameVersionBits(), entry.GetDlcIndex());
 
         const size_t childCount = entry.GetDirectoryNumberOfEntries();
         const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
         for (size_t i = 0; i < childCount; ++i) {
             const auto& child = inputTree.Entries[firstChildIndex + i];
-            if (!InsertExistingDirTreeRecursive(root, inputTree, child, path)) {
+            if (!InsertExistingDirTreeRecursive(dirnode, inputTree, child)) {
                 return false;
             }
         }
         return true;
     } else {
-        return Insert(root,
-                      inputTree.HashTable[entry.GetFileHashIndex()],
-                      path,
-                      entry.GetFileSize(),
-                      entry.GetGameVersionBits(),
-                      entry.GetDlcIndex());
+        return InsertFile(node,
+                          inputTree.HashTable[entry.GetFileHashIndex()],
+                          filename,
+                          entry.GetFileSize(),
+                          entry.GetGameVersionBits(),
+                          entry.GetDlcIndex());
     }
 }
 
@@ -628,9 +617,78 @@ static bool InsertExistingDirTree(TreeNode& root, const HyoutaUtils::DirTree::Tr
         const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
         for (size_t i = 0; i < childCount; ++i) {
             const auto& child = inputTree.Entries[firstChildIndex + i];
-            if (!InsertExistingDirTreeRecursive(root, inputTree, child, "")) {
+            if (!InsertExistingDirTreeRecursive(root, inputTree, child)) {
                 return false;
             }
+        }
+    }
+    return true;
+}
+
+static bool InsertDirTreeEntry(TreeNode& node,
+                               const std::filesystem::directory_entry& entry,
+                               size_t gameVersionBits,
+                               size_t dlcIndex) {
+    {
+        std::string fullpath = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path());
+        printf("Inserting %s\n", fullpath.c_str());
+    }
+
+    std::string filename = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path().filename());
+    if (entry.is_directory()) {
+        TreeNode& dirnode = InsertDirectory(node, filename, gameVersionBits, dlcIndex);
+
+        std::filesystem::directory_iterator iterator(entry.path());
+        for (auto const& child : iterator) {
+            if (!InsertDirTreeEntry(dirnode, child, gameVersionBits, dlcIndex)) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        HyoutaUtils::IO::File gamefile(entry.path(), HyoutaUtils::IO::OpenMode::Read);
+        if (!gamefile.IsOpen()) {
+            std::string fullpath = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path());
+            printf("Failed to open file %s\n", fullpath.c_str());
+            return -1;
+        }
+        auto length = gamefile.GetLength();
+        if (!length) {
+            std::string fullpath = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path());
+            printf("Failed to get length of file %s\n", fullpath.c_str());
+            return -1;
+        }
+        auto buffer = std::make_unique_for_overwrite<char[]>(*length);
+        if (!buffer) {
+            printf("Failed to allocate memory\n");
+            return -1;
+        }
+        if (gamefile.Read(buffer.get(), *length) != *length) {
+            std::string fullpath = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path());
+            printf("Failed to read file %s\n", fullpath.c_str());
+            return -1;
+        }
+        gamefile.Close();
+
+        return InsertFile(node,
+                          HyoutaUtils::Hash::CalculateSHA1(buffer.get(), *length),
+                          filename,
+                          *length,
+                          gameVersionBits,
+                          dlcIndex);
+    }
+}
+
+static bool InsertDirTreeFromFolder(TreeNode& root,
+                                    const std::filesystem::path& folder,
+                                    size_t gameVersionBits,
+                                    size_t dlcIndex) {
+    root.GameVersionBits |= gameVersionBits;
+
+    std::filesystem::directory_iterator iterator(folder);
+    for (auto const& entry : iterator) {
+        if (!InsertDirTreeEntry(root, entry, gameVersionBits, dlcIndex)) {
+            return false;
         }
     }
     return true;
@@ -671,85 +729,11 @@ int SHA_File_Convert_Function(int argc, char** argv) {
 
     for (size_t i = 0; i < args.size(); ++i) {
         const auto& arg = args[i];
-        const size_t gameVersionBits = arg.GameVersionBits;
-        root.GameVersionBits |= gameVersionBits;
-        HyoutaUtils::IO::File infile(std::string_view(arg.ShaFilePath),
-                                     HyoutaUtils::IO::OpenMode::Read);
-        if (!infile.IsOpen()) {
-            printf("Failed to open input file.\n");
-            return -1;
-        }
-        auto filesize = infile.GetLength();
-        if (!filesize) {
-            printf("Failed to get size of input file.\n");
-            return -1;
-        }
-        auto data = std::make_unique_for_overwrite<char[]>(*filesize);
-        if (!data) {
-            printf("Failed to allocate memory.\n");
-            return -1;
-        }
-        if (infile.Read(data.get(), *filesize) != *filesize) {
-            printf("Failed to read input file.\n");
-            return -1;
-        }
-
-        std::string_view remaining(data.get(), *filesize);
-
-        // skip UTF8 BOM if it's there
-        if (remaining.starts_with("\xef\xbb\xbf")) {
-            remaining = remaining.substr(3);
-        }
-
-        while (!remaining.empty()) {
-            const size_t nextLineSeparator = remaining.find_first_of("\r\n");
-            std::string_view line = remaining.substr(0, nextLineSeparator);
-            remaining = nextLineSeparator != std::string_view::npos
-                            ? remaining.substr(nextLineSeparator + 1)
-                            : std::string_view();
-
-            line = HyoutaUtils::TextUtils::Trim(line);
-            if (line.empty()) {
-                continue;
-            }
-
-            if (line.size() < 43 || line[40] != ' ' || line[41] != '*') {
-                printf("Invalid file format.\n");
-                return -1;
-            }
-            auto hash = HyoutaUtils::Hash::TrySHA1FromHexString(line.substr(0, 40));
-            if (!hash) {
-                printf("Invalid file format.\n");
-                return -1;
-            }
-
-            auto path = FilterPath(line.substr(42));
-            if (path.empty()) {
-                printf("Invalid file format.\n");
-                return -1;
-            }
-
-            uint64_t length = 0;
-            {
-                std::string fullpath = arg.GamePath + "/" + path;
-                HyoutaUtils::IO::File gamefile(std::string_view(fullpath),
-                                               HyoutaUtils::IO::OpenMode::Read);
-                if (!gamefile.IsOpen()) {
-                    printf("Failed to open file %s\n", fullpath.c_str());
-                    return -1;
-                }
-                auto l = gamefile.GetLength();
-                if (!l) {
-                    printf("Failed to get length of file %s\n", fullpath.c_str());
-                    return -1;
-                }
-                length = *l;
-            }
-
-            if (!Insert(root, *hash, path, length, gameVersionBits, arg.DlcIndex)) {
-                printf("Insert error for file %s\n", path.c_str());
-                return -1;
-            }
+        if (!InsertDirTreeFromFolder(root,
+                                     HyoutaUtils::IO::FilesystemPathFromUtf8(arg.GamePath),
+                                     arg.GameVersionBits,
+                                     arg.DlcIndex)) {
+            printf("Failed to insert %s\n", arg.GamePath.c_str());
         }
     }
 

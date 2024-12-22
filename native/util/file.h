@@ -81,5 +81,6 @@ bool DirectoryExists(const std::filesystem::path& p) noexcept;
 bool CreateDirectory(std::string_view p) noexcept;
 
 std::filesystem::path FilesystemPathFromUtf8(std::string_view path);
+std::string FilesystemPathToUtf8(const std::filesystem::path& p);
 #endif
 } // namespace HyoutaUtils::IO

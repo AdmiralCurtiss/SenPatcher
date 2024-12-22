@@ -557,5 +557,19 @@ std::filesystem::path FilesystemPathFromUtf8(std::string_view path) {
     return std::filesystem::path((const char8_t*)path.data(),
                                  (const char8_t*)path.data() + path.size());
 }
+
+std::string FilesystemPathToUtf8(const std::filesystem::path& p) {
+#ifdef BUILD_FOR_WINDOWS
+    const auto& w = p.native();
+    auto utf8 = HyoutaUtils::TextUtils::WStringToUtf8(w.data(), w.size());
+    if (utf8) {
+        return *utf8;
+    }
+    assert(0); // this should never happen
+    return std::string();
+#else
+    return p.native();
+#endif
+}
 #endif
 } // namespace HyoutaUtils::IO

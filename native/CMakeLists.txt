@@ -210,19 +210,22 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/sha_file_convert.cpp
 		sentools/sha_file_convert.h
 
-		util/align.h
-		util/align.cpp
 		util/hash/crc32.h
 		util/hash/crc32.c
-		util/file.h
-		util/file.cpp
+		util/hash/sha1.h
+		util/hash/sha1.cpp
 		util/hash/sha256.h
 		util/hash/sha256.cpp
 		util/hash/util.h
+		util/align.h
+		util/align.cpp
 		util/endian.h
+		util/file.h
+		util/file.cpp
 		util/memread.h
 		util/memwrite.h
 		util/result.h
+		util/scope.h
 		util/stream.cpp
 		util/stream.h
 		util/text.cpp
