@@ -115,7 +115,8 @@ static TreeNode& InsertDirectory(TreeNode& tree,
     auto& existingDirIndices = tree.ChildLookup[dirnameLowercase];
     for (size_t existingDirIndex : existingDirIndices) {
         auto& existingDir = tree.Children[existingDirIndex];
-        if (existingDir.IsDirectory) {
+        if (existingDir.IsDirectory
+            && (existingDir.DlcIndex == 0 || existingDir.DlcIndex == dlcIndex)) {
             existingDir.GameVersionBits |= gameVersionBits;
             return existingDir;
         }
@@ -145,7 +146,7 @@ static bool InsertFile(TreeNode& tree,
     for (size_t existingFileIndex : existingFileIndices) {
         auto& existingFile = tree.Children[existingFileIndex];
         if (!existingFile.IsDirectory && existingFile.Hash == hash
-            && existingFile.Filesize == filesize) {
+            && existingFile.Filesize == filesize && existingFile.DlcIndex == dlcIndex) {
             existingFile.GameVersionBits |= gameVersionBits;
             return true;
         }
@@ -170,6 +171,16 @@ static void FillFirstChildIndex(TreeNode& node, size_t& index) {
             FillFirstChildIndex(child, index);
         }
     }
+}
+
+static size_t GetMaxDlcIndex(TreeNode& node) {
+    size_t maxDlcIndex = node.DlcIndex;
+    if (node.IsDirectory) {
+        for (auto& child : node.Children) {
+            maxDlcIndex = std::max(maxDlcIndex, GetMaxDlcIndex(child));
+        }
+    }
+    return maxDlcIndex;
 }
 
 static size_t InsertFilename(std::string_view name,
@@ -583,7 +594,13 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
 
 static bool InsertExistingDirTreeRecursive(TreeNode& node,
                                            const HyoutaUtils::DirTree::Tree& inputTree,
-                                           const HyoutaUtils::DirTree::Entry& entry) {
+                                           const HyoutaUtils::DirTree::Entry& entry,
+                                           bool dlc) {
+    if (!dlc && entry.GetDlcIndex() != 0) {
+        // don't insert DLC unless we want to insert DLC
+        return true;
+    }
+
     std::string_view filename(inputTree.StringTable + entry.GetFilenameOffset(),
                               entry.GetFilenameLength());
     if (entry.IsDirectory()) {
@@ -594,22 +611,25 @@ static bool InsertExistingDirTreeRecursive(TreeNode& node,
         const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
         for (size_t i = 0; i < childCount; ++i) {
             const auto& child = inputTree.Entries[firstChildIndex + i];
-            if (!InsertExistingDirTreeRecursive(dirnode, inputTree, child)) {
+            if (!InsertExistingDirTreeRecursive(dirnode, inputTree, child, dlc)) {
                 return false;
             }
         }
-        return true;
     } else {
-        return InsertFile(node,
-                          inputTree.HashTable[entry.GetFileHashIndex()],
-                          filename,
-                          entry.GetFileSize(),
-                          entry.GetGameVersionBits(),
-                          entry.GetDlcIndex());
+        if ((!dlc && entry.GetDlcIndex() == 0) || (dlc && entry.GetDlcIndex() != 0)) {
+            return InsertFile(node,
+                              inputTree.HashTable[entry.GetFileHashIndex()],
+                              filename,
+                              entry.GetFileSize(),
+                              entry.GetGameVersionBits(),
+                              entry.GetDlcIndex());
+        }
     }
+    return true;
 }
 
-static bool InsertExistingDirTree(TreeNode& root, const HyoutaUtils::DirTree::Tree& inputTree) {
+static bool
+    InsertExistingDirTree(TreeNode& root, const HyoutaUtils::DirTree::Tree& inputTree, bool dlc) {
     if (inputTree.NumberOfEntries > 0) {
         const auto& entry = inputTree.Entries[0];
         root.GameVersionBits = entry.GetGameVersionBits();
@@ -617,7 +637,7 @@ static bool InsertExistingDirTree(TreeNode& root, const HyoutaUtils::DirTree::Tr
         const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
         for (size_t i = 0; i < childCount; ++i) {
             const auto& child = inputTree.Entries[firstChildIndex + i];
-            if (!InsertExistingDirTreeRecursive(root, inputTree, child)) {
+            if (!InsertExistingDirTreeRecursive(root, inputTree, child, dlc)) {
                 return false;
             }
         }
@@ -722,18 +742,24 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         return -1;
     }
 
-    if (!InsertExistingDirTree(root, internalInputTree)) {
-        printf("Internal error.\n");
-        return -1;
-    }
-
-    for (size_t i = 0; i < args.size(); ++i) {
-        const auto& arg = args[i];
-        if (!InsertDirTreeFromFolder(root,
-                                     HyoutaUtils::IO::FilesystemPathFromUtf8(arg.GamePath),
-                                     arg.GameVersionBits,
-                                     arg.DlcIndex)) {
-            printf("Failed to insert %s\n", arg.GamePath.c_str());
+    // we need to insert all non-DLC files before inserting the DLC files, otherwise the directories
+    // might end up with wrong DLC indices
+    for (size_t i = 0; i < 2; ++i) {
+        bool dlc = (i != 0);
+        if (!InsertExistingDirTree(root, internalInputTree, dlc)) {
+            printf("Internal error.\n");
+            return -1;
+        }
+        for (size_t i = 0; i < args.size(); ++i) {
+            const auto& arg = args[i];
+            if ((!dlc && arg.DlcIndex == 0) || (dlc && arg.DlcIndex != 0)) {
+                if (!InsertDirTreeFromFolder(root,
+                                             HyoutaUtils::IO::FilesystemPathFromUtf8(arg.GamePath),
+                                             arg.GameVersionBits,
+                                             arg.DlcIndex)) {
+                    printf("Failed to insert %s\n", arg.GamePath.c_str());
+                }
+            }
         }
     }
 
@@ -746,6 +772,7 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         root.ChildFirstIndex =
             root.Children.empty() ? static_cast<size_t>(0) : static_cast<size_t>(1);
         FillFirstChildIndex(root, count);
+        size_t maxDlcIndex = GetMaxDlcIndex(root);
 
         // I previously had this printed all nice and tidy with std::array and constexpr and
         // properly calling HyoutaUtils::DirTree::Entry::MakeFile() and the like... but it turns out
@@ -815,6 +842,9 @@ int SHA_File_Convert_Function(int argc, char** argv) {
             source.append("static constexpr size_t s_raw_dirtree_string_size = ");
             source.append(std::to_string(stringTable.size()));
             source.append(";\n");
+            source.append("static constexpr size_t s_max_dlc_index = ");
+            source.append(std::to_string(maxDlcIndex));
+            source.append(";\n");
         } else {
             source.append("#include <array>\n\n");
             source.append("#include \"dirtree/entry.h\"\n");
@@ -858,6 +888,10 @@ int SHA_File_Convert_Function(int argc, char** argv) {
                 source.append("}})),\n");
             }
             source.append("}};\n\n");
+
+            source.append("static constexpr size_t s_max_dlc_index = ");
+            source.append(std::to_string(maxDlcIndex));
+            source.append(";\n");
         }
 
         HyoutaUtils::IO::File outfile(std::string_view(outputFilename),
