@@ -166,7 +166,7 @@ static void FillFirstChildIndex(TreeNode& node, size_t& index) {
     if (node.IsDirectory) {
         index += node.Children.size();
         for (auto& child : node.Children) {
-            child.ChildFirstIndex = index;
+            child.ChildFirstIndex = child.Children.empty() ? static_cast<size_t>(0) : index;
             FillFirstChildIndex(child, index);
         }
     }
@@ -743,7 +743,8 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         std::vector<HyoutaUtils::Hash::SHA1> hashTable;
         Prettify(root, stringTable, stringOffsets, hashTable);
         size_t count = 1;
-        root.ChildFirstIndex = 1;
+        root.ChildFirstIndex =
+            root.Children.empty() ? static_cast<size_t>(0) : static_cast<size_t>(1);
         FillFirstChildIndex(root, count);
 
         // I previously had this printed all nice and tidy with std::array and constexpr and
