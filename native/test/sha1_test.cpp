@@ -1,11 +1,13 @@
 #include <cstdio>
 #include <filesystem>
+#include <string_view>
 #include <vector>
 
 #include "gtest/gtest.h"
 
 #include "util/file.h"
 #include "util/hash/sha1.h"
+#include "util/xorshift.h"
 
 using HyoutaUtils::Hash::SHA1FromHexString;
 static std::array<HyoutaUtils::Hash::SHA1, 1025> reference = {
@@ -1045,5 +1047,25 @@ TEST(SHA1, ZeroTo1024) {
         EXPECT_EQ(reference[i], hash);
 
         tmp.push_back((char)i);
+    }
+}
+
+// Disabled because it's very slow; I'm brute-forcing all possible paths in the from-file code.
+TEST(SHA1, DISABLED_ShaFromFile) {
+    HyoutaUtils::RNG::xorshift rng(20241223);
+
+    std::vector<char> tmp;
+    for (int i = 0; i <= (64 * 1024); ++i) {
+        auto hash = HyoutaUtils::Hash::CalculateSHA1(tmp.data(), tmp.size());
+        {
+            HyoutaUtils::IO::File f(std::string_view("hash.tmp"), HyoutaUtils::IO::OpenMode::Write);
+            EXPECT_EQ(tmp.size(), f.Write(tmp.data(), tmp.size()));
+        }
+        {
+            HyoutaUtils::IO::File f(std::string_view("hash.tmp"), HyoutaUtils::IO::OpenMode::Read);
+            EXPECT_EQ(hash, HyoutaUtils::Hash::CalculateSHA1FromFile(f))
+                << "hash mismatch in iteration " << i;
+        }
+        tmp.push_back(static_cast<char>(rng()));
     }
 }

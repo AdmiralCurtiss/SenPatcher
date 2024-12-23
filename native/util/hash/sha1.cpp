@@ -2,6 +2,9 @@
 
 #include <cassert>
 #include <cstdint>
+#include <optional>
+
+#include "util/file.h"
 
 // sha.cpp - modified by Wei Dai from Steve Reid's public domain sha1.c
 
@@ -245,10 +248,7 @@ static void SHA1_All(word32* digest, const char* data, size_t length) noexcept
 }
 
 namespace HyoutaUtils::Hash {
-SHA1 CalculateSHA1(const void* data, size_t length) noexcept {
-    word32 state[5];
-    SHA1_All(state, ((const char*)data), length);
-
+SHA1 DigestToSHA1(word32* state) noexcept {
     SHA1 rv;
     for (size_t i = 0; i < 5; ++i) {
         rv.Hash[i * 4 + 0] = (char)(state[i] >> 24);
@@ -257,5 +257,62 @@ SHA1 CalculateSHA1(const void* data, size_t length) noexcept {
         rv.Hash[i * 4 + 3] = (char)(state[i]);
     }
     return rv;
+}
+
+SHA1 CalculateSHA1(const void* data, size_t length) noexcept {
+    word32 state[5];
+    SHA1_All(state, ((const char*)data), length);
+    return DigestToSHA1(state);
+}
+
+std::optional<SHA1> CalculateSHA1FromFile(HyoutaUtils::IO::File& file) noexcept {
+    if (!file.IsOpen()) {
+        return std::nullopt;
+    }
+
+    const auto length = file.GetLength();
+    if (!length) {
+        return std::nullopt;
+    }
+    const auto previousPos = file.GetPosition();
+    if (!previousPos) {
+        return std::nullopt;
+    }
+    if (!file.SetPosition(0)) {
+        return std::nullopt;
+    }
+
+    word32 digest[5];
+    SHA1_InitState(digest);
+
+#define BUFFER_LENGTH 4096
+    static_assert((BUFFER_LENGTH % 64) == 0);
+
+    char buffer[BUFFER_LENGTH];
+    uint64_t rest = *length;
+    while (true) {
+        if (rest == 0) {
+            SHA1_Rest(digest, *length, nullptr, 0);
+            break;
+        }
+
+        const size_t currentRound =
+            (rest > BUFFER_LENGTH) ? BUFFER_LENGTH : static_cast<size_t>(rest);
+        if (file.Read(buffer, currentRound) != currentRound) {
+            file.SetPosition(*previousPos);
+            return std::nullopt;
+        }
+
+        const size_t bytesConsumed = SHA1_Update(digest, buffer, currentRound);
+        if (currentRound != bytesConsumed) {
+            SHA1_Rest(digest, *length, buffer + bytesConsumed, currentRound - bytesConsumed);
+            break;
+        }
+
+        rest -= bytesConsumed;
+    }
+    file.SetPosition(*previousPos);
+
+    return DigestToSHA1(digest);
 }
 } // namespace HyoutaUtils::Hash

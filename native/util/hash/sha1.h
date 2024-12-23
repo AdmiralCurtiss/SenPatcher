@@ -5,6 +5,7 @@
 #include <optional>
 #include <string_view>
 
+#include "util/file.h"
 #include "util/hash/util.h"
 
 namespace HyoutaUtils::Hash {
@@ -14,6 +15,7 @@ struct SHA1 {
 static_assert(sizeof(SHA1) == 20);
 
 SHA1 CalculateSHA1(const void* data, size_t length) noexcept;
+std::optional<SHA1> CalculateSHA1FromFile(HyoutaUtils::IO::File& file) noexcept;
 
 constexpr std::optional<SHA1> TrySHA1FromHexString(std::string_view sv) {
     if (sv.size() != 40) {
