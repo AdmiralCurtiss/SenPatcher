@@ -13,7 +13,7 @@ struct SHA1 {
 };
 static_assert(sizeof(SHA1) == 20);
 
-SHA1 CalculateSHA1(const void* data, size_t length);
+SHA1 CalculateSHA1(const void* data, size_t length) noexcept;
 
 constexpr std::optional<SHA1> TrySHA1FromHexString(std::string_view sv) {
     if (sv.size() != 40) {

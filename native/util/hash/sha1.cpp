@@ -1,5 +1,6 @@
 #include "sha1.h"
 
+#include <cassert>
 #include <cstdint>
 
 // sha.cpp - modified by Wei Dai from Steve Reid's public domain sha1.c
@@ -61,7 +62,7 @@ namespace {
 ///  counterparts.
 /// \sa rotlConstant, rotrConstant, rotlFixed, rotrFixed, rotlVariable, rotrVariable
 /// \since Crypto++ 6.0
-template <unsigned int R, class T> inline T rotlConstant(T x)
+template <unsigned int R, class T> inline T rotlConstant(T x) noexcept
 {
 	// Portable rotate that reduces to single instruction...
 	// http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57157,
@@ -92,7 +93,7 @@ template <unsigned int R, class T> inline T rotlConstant(T x)
 #define R3(v,w,x,y,z,i) z+=f3(w,x,y)+blk1(i)+0x8F1BBCDC+rotlConstant<5>(v);w=rotlConstant<30>(w);
 #define R4(v,w,x,y,z,i) z+=f4(w,x,y)+blk1(i)+0xCA62C1D6+rotlConstant<5>(v);w=rotlConstant<30>(w);
 
-void SHA1_HashBlock_CXX(word32 *state, const word32 *data)
+void SHA1_HashBlock_CXX(word32 *state, const word32 *data) noexcept
 {
     word32 W[16];
     /* Copy context->state[] to working vars */
@@ -147,7 +148,7 @@ void SHA1_HashBlock_CXX(word32 *state, const word32 *data)
 // end of Steve Reid's code //
 //////////////////////////////
 
-static void SHA1_InitState(word32 *state)
+static void SHA1_InitState(word32 *state) noexcept
 {
     state[0] = 0x67452301;
     state[1] = 0xEFCDAB89;
@@ -156,11 +157,9 @@ static void SHA1_InitState(word32 *state)
     state[4] = 0xC3D2E1F0;
 }
 
-static void SHA1_All(word32* digest, const char* data, size_t length)
+static size_t SHA1_Update(word32* digest, const char* data, size_t length) noexcept
 {
     word32 buffer[16];
-
-    SHA1_InitState(digest);
     size_t rest = length;
     const char* input = data;
     size_t i;
@@ -177,6 +176,18 @@ static void SHA1_All(word32* digest, const char* data, size_t length)
         rest -= 64;
         input += 64;
     }
+
+    // number of bytes consumed
+    return static_cast<size_t>(input - data);
+}
+
+static void SHA1_Rest(word32* digest, uint64_t totalByteLength, const char* data, size_t rest) noexcept
+{
+    word32 buffer[16];
+    const char* input = data;
+    size_t i;
+
+    assert(rest < 64);
 
     // handle remaining bytes and '1' bit at the end of message
     for (i = 0; i < rest / 4; ++i) {
@@ -216,18 +227,25 @@ static void SHA1_All(word32* digest, const char* data, size_t length)
         }
     }
 
-    const word32 lowbits = (word32)((length << 3) & 0xffffffff);
-    const word32 highbits = (word32)((length >> 29) & 0xffffffff);
+    const word32 lowbits = (word32)((totalByteLength << 3) & 0xffffffff);
+    const word32 highbits = (word32)((totalByteLength >> 29) & 0xffffffff);
     buffer[14] = highbits;
     buffer[15] = lowbits;
 
     SHA1_HashBlock_CXX(digest, buffer);
 }
 
+static void SHA1_All(word32* digest, const char* data, size_t length) noexcept
+{
+    SHA1_InitState(digest);
+    const size_t bytesConsumed = SHA1_Update(digest, data, length);
+    SHA1_Rest(digest, length, data + bytesConsumed, length - bytesConsumed);
+}
+
 }
 
 namespace HyoutaUtils::Hash {
-SHA1 CalculateSHA1(const void* data, size_t length) {
+SHA1 CalculateSHA1(const void* data, size_t length) noexcept {
     word32 state[5];
     SHA1_All(state, ((const char*)data), length);
 
