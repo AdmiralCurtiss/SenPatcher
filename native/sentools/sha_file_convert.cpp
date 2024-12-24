@@ -678,24 +678,15 @@ static bool InsertDirTreeEntry(TreeNode& node,
             printf("Failed to get length of file %s\n", fullpath.c_str());
             return -1;
         }
-        auto buffer = std::make_unique_for_overwrite<char[]>(*length);
-        if (!buffer) {
-            printf("Failed to allocate memory\n");
-            return -1;
-        }
-        if (gamefile.Read(buffer.get(), *length) != *length) {
+        auto hash = HyoutaUtils::Hash::CalculateSHA1FromFile(gamefile);
+        if (!hash) {
             std::string fullpath = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path());
-            printf("Failed to read file %s\n", fullpath.c_str());
+            printf("Failed to calculate hash of file %s\n", fullpath.c_str());
             return -1;
         }
         gamefile.Close();
 
-        return InsertFile(node,
-                          HyoutaUtils::Hash::CalculateSHA1(buffer.get(), *length),
-                          filename,
-                          *length,
-                          gameVersionBits,
-                          dlcIndex);
+        return InsertFile(node, *hash, filename, *length, gameVersionBits, dlcIndex);
     }
 }
 
