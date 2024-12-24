@@ -1,11 +1,86 @@
 {
 	"Input": [
 		{
-			"ShaFilePath": "steam_version_1.1.4.sha",
-			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails into Reverie",
+			"GamePath": "f:\\_reverie_builds\\1.0.2",
 			"GameVersion": 0,
 			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\1.0.3",
+			"GameVersion": 1,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\1.0.4",
+			"GameVersion": 2,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\1.0.5",
+			"GameVersion": 3,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\1.0.6",
+			"GameVersion": 4,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\1.0.7",
+			"GameVersion": 5,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\1.0.8",
+			"GameVersion": 6,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\1.1.4",
+			"GameVersion": 7,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\1.1.5",
+			"GameVersion": 8,
+			"DlcIndex": 0
+		},
+
+		{
+			"GamePath": "f:\\_reverie_builds\\dlc\\Standard Cosmetic Set",
+			"GameVersionBits": 127,
+			"DlcIndex": 1
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\dlc\\Standard Cosmetic Set 2024-03-26",
+			"GameVersionBits": 384,
+			"DlcIndex": 1
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\dlc\\Premium Cosmetic Set",
+			"GameVersionBits": 511,
+			"DlcIndex": 2
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\dlc\\SSS Summer Splash Set",
+			"GameVersionBits": 511,
+			"DlcIndex": 3
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\dlc\\Starter Set",
+			"GameVersionBits": 511,
+			"DlcIndex": 4
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\dlc\\Advanced Set 1",
+			"GameVersionBits": 511,
+			"DlcIndex": 5
+		},
+		{
+			"GamePath": "f:\\_reverie_builds\\dlc\\Advanced Set 2",
+			"GameVersionBits": 511,
+			"DlcIndex": 6
 		}
 	],
-	"Output": "dirtree_reverie.h"
+	"Output": "internal_dirtree_reverie.h"
 }
