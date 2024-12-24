@@ -1,11 +1,125 @@
 {
 	"Input": [
 		{
-			"ShaFilePath": "steam_version_1.4.1.sha",
-			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel II",
+			"GamePath": "f:\\_cs2_builds\\1.0",
 			"GameVersion": 0,
 			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\1.1",
+			"GameVersion": 1,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\1.2",
+			"GameVersion": 2,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\1.3",
+			"GameVersion": 3,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\1.3.1",
+			"GameVersion": 4,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\1.4",
+			"GameVersion": 5,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\1.4.1",
+			"GameVersion": 6,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\1.4.2",
+			"GameVersion": 7,
+			"DlcIndex": 0
+		},
+
+		// On Steam, the DLC is handled entirely via the Steam API, so no files exist there.
+		// On GoG and presumably Humble, there's actual files that act as unlock keys.
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\All Casual Clothes",
+			"GameVersionBits": 255,
+			"DlcIndex": 1
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\All Ride-Alongs",
+			"GameVersionBits": 255,
+			"DlcIndex": 2
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\All Accessories",
+			"GameVersionBits": 255,
+			"DlcIndex": 3
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\All Glasses",
+			"GameVersionBits": 255,
+			"DlcIndex": 4
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\All Arcus Covers",
+			"GameVersionBits": 255,
+			"DlcIndex": 5
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\Unspeakable Costumes",
+			"GameVersionBits": 255,
+			"DlcIndex": 6
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\Shining Pom Bait Set 1",
+			"GameVersionBits": 255,
+			"DlcIndex": 7
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\Shining Pom Bait Set 2",
+			"GameVersionBits": 255,
+			"DlcIndex": 8
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\Shining Pom Bait Set 3",
+			"GameVersionBits": 255,
+			"DlcIndex": 9
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\Shining Pom Bait Set 4",
+			"GameVersionBits": 255,
+			"DlcIndex": 10
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\Shining Pom Bait Set 5",
+			"GameVersionBits": 255,
+			"DlcIndex": 11
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\Shining Pom Bait Value Set 1",
+			"GameVersionBits": 255,
+			"DlcIndex": 12
+		},
+		{
+			"GamePath": "f:\\_cs2_builds\\dlc\\Shining Pom Bait Value Set 2",
+			"GameVersionBits": 255,
+			"DlcIndex": 13
+		},
+		{
+			// Not an error. The CS1 costume DLCs actually work fine in CS2.
+			"GamePath": "f:\\_cs1_builds\\dlc\\Costume Pack",
+			"GameVersionBits": 255,
+			"DlcIndex": 14
+		},
+		{
+			// Not buyable by itself, you get this automatically for owning any Trails in the Sky game.
+			"GamePath": "f:\\_cs2_builds\\dlc\\Trails in the Sky Costumes",
+			"GameVersionBits": 255,
+			"DlcIndex": 15
 		}
 	],
-	"Output": "dirtree_cs2.h"
+	"Output": "internal_dirtree_cs2.h"
 }
