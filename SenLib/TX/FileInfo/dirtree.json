@@ -1,35 +1,39 @@
 {
 	"Input": [
 		{
-			"ShaFilePath": "f:\\_tx_steam_builds\\4095545013704040242.sha",
-			"GamePath": "f:\\_tx_steam_builds\\4095545013704040242",
+			// Steam v1.00, initial public build
+			"GamePath": "f:\\_tx_builds\\4095545013704040242",
 			"GameVersion": 0,
 			"DlcIndex": 0
 		},
 		{
-			"ShaFilePath": "f:\\_tx_steam_builds\\335826758534539653.sha",
-			"GamePath": "f:\\_tx_steam_builds\\335826758534539653",
+			// Steam v1.00, this is the same as above but with a single changed file,
+			// System.bra/text/dat/t_hikitugi.tbl (which is the New Game+ option table)
+			"GamePath": "f:\\_tx_builds\\335826758534539653",
 			"GameVersion": 1,
 			"DlcIndex": 0
 		},
 		{
-			"ShaFilePath": "f:\\_tx_steam_builds\\4131679022382070012.sha",
-			"GamePath": "f:\\_tx_steam_builds\\4131679022382070012",
+			// Steam v1.07, this adds Japanese language support
+			"GamePath": "f:\\_tx_builds\\4131679022382070012",
 			"GameVersion": 2,
 			"DlcIndex": 0
 		},
 		{
-			"ShaFilePath": "f:\\_tx_steam_builds\\4859767950184847777.sha",
-			"GamePath": "f:\\_tx_steam_builds\\4859767950184847777",
+			// Steam v1.08, this is the latest version at the time of writing
+			"GamePath": "f:\\_tx_builds\\4859767950184847777",
 			"GameVersion": 3,
 			"DlcIndex": 0
 		},
 		{
-			"ShaFilePath": "gog_version_1.08.sha",
-			"GamePath": "f:\\GOG Games\\Tokyo Xanadu eX+",
+			// GoG v1.08, as far as I can tell this is the only version ever released on GoG
+			// identical to the Steam v1.08 except for the executable and API dll
+			"GamePath": "f:\\_tx_builds\\gog_v1.08",
 			"GameVersion": 4,
 			"DlcIndex": 0
 		}
+
+		// No DLC files. DLC is handled entirely via the Steam and GOG Galaxy APIs.
 	],
 	"Output": "internal_dirtree_tx.h"
 }
