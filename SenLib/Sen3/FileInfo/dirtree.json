@@ -1,11 +1,426 @@
 {
 	"Input": [
 		{
-			"ShaFilePath": "steam_version_1.06.sha",
-			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel III",
+			"GamePath": "f:\\_cs3_builds\\1.03",
 			"GameVersion": 0,
 			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\1.04",
+			"GameVersion": 1,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\1.05",
+			"GameVersion": 2,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\1.06",
+			"GameVersion": 3,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\1.07",
+			"GameVersion": 4,
+			"DlcIndex": 0
+		},
+
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Angel Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 1
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Advanced Medicine Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 2
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Altina's Kitty Noir Costume",
+			"GameVersionBits": 31,
+			"DlcIndex": 3
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Advanced Medicine Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 4
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Free Sample Set A",
+			"GameVersionBits": 31,
+			"DlcIndex": 5
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Free Sample Set B",
+			"GameVersionBits": 31,
+			"DlcIndex": 6
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Faculty Swimsuit Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 7
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Juna's Lloyd Bannings Costume",
+			"GameVersionBits": 31,
+			"DlcIndex": 8
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Rean's Unspeakable Costume",
+			"GameVersionBits": 31,
+			"DlcIndex": 9
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Advanced Medicine Set 3",
+			"GameVersionBits": 31,
+			"DlcIndex": 10
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Dragon Incense Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 11
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Dragon Incense Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 12
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Droplet Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 13
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Droplet Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 14
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Droplet Set 3",
+			"GameVersionBits": 31,
+			"DlcIndex": 15
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Droplet Set 4",
+			"GameVersionBits": 31,
+			"DlcIndex": 16
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Droplet Set 5",
+			"GameVersionBits": 31,
+			"DlcIndex": 17
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Monster Ingredients Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 18
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Monster Ingredients Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 19
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Monster Ingredients Set 3",
+			"GameVersionBits": 31,
+			"DlcIndex": 20
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Sepith Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 21
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Sepith Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 22
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 23
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 24
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Set 3",
+			"GameVersionBits": 31,
+			"DlcIndex": 25
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Set 4",
+			"GameVersionBits": 31,
+			"DlcIndex": 26
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Set 5",
+			"GameVersionBits": 31,
+			"DlcIndex": 27
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Value Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 28
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Value Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 29
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Value Set 3",
+			"GameVersionBits": 31,
+			"DlcIndex": 30
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Value Set 4",
+			"GameVersionBits": 31,
+			"DlcIndex": 31
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Shining Pom Droplet Value Set 5",
+			"GameVersionBits": 31,
+			"DlcIndex": 32
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Spirit Incense Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 33
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Spirit Incense Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 34
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Spirit Incense Set 3",
+			"GameVersionBits": 31,
+			"DlcIndex": 35
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\U-Material Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 36
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\U-Material Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 37
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\U-Material Set 3",
+			"GameVersionBits": 31,
+			"DlcIndex": 38
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Useful Accessories Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 39
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Zeram Capsule Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 40
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Zeram Capsule Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 41
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Zeram Powder Set 1",
+			"GameVersionBits": 31,
+			"DlcIndex": 42
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Zeram Powder Set 2",
+			"GameVersionBits": 31,
+			"DlcIndex": 43
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Zeram Powder Set 3",
+			"GameVersionBits": 31,
+			"DlcIndex": 44
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Altina's Casual Clothes",
+			"GameVersionBits": 31,
+			"DlcIndex": 45
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\ARCUS Cover Set A",
+			"GameVersionBits": 31,
+			"DlcIndex": 46
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\ARCUS Cover Set B",
+			"GameVersionBits": 31,
+			"DlcIndex": 47
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\ARCUS Cover Set C",
+			"GameVersionBits": 31,
+			"DlcIndex": 48
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\ARCUS Cover Set D",
+			"GameVersionBits": 31,
+			"DlcIndex": 49
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Ashen Knight Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 50
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Ash's Casual Clothes",
+			"GameVersionBits": 31,
+			"DlcIndex": 51
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Bunny Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 52
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Cool Hair Extension Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 53
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Cute Hair Extension Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 54
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Devil Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 55
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Hardcore Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 56
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Juna's Active Red Costume",
+			"GameVersionBits": 31,
+			"DlcIndex": 57
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Juna's Crossbell Cheer! Costume",
+			"GameVersionBits": 31,
+			"DlcIndex": 58
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Juna's Casual Clothes",
+			"GameVersionBits": 31,
+			"DlcIndex": 59
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Kurt's Casual Clothes",
+			"GameVersionBits": 31,
+			"DlcIndex": 60
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Mascot Headgear Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 61
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Mask Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 62
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Musse's Coquettish Blue Costume",
+			"GameVersionBits": 31,
+			"DlcIndex": 63
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Musse's Casual Clothes",
+			"GameVersionBits": 31,
+			"DlcIndex": 64
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Raccoon Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 65
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Rainbow Hair Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 66
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Rare Eyewear",
+			"GameVersionBits": 31,
+			"DlcIndex": 67
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Rean's Casual Clothes",
+			"GameVersionBits": 31,
+			"DlcIndex": 68
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Rean's Traveling Outfit (Cold Steel II)",
+			"GameVersionBits": 31,
+			"DlcIndex": 69
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Ride-Along Black Rabbit",
+			"GameVersionBits": 31,
+			"DlcIndex": 70
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Ride-Along Dana",
+			"GameVersionBits": 31,
+			"DlcIndex": 71
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Ride-Along Elie",
+			"GameVersionBits": 31,
+			"DlcIndex": 72
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Ride-Along Ozzie",
+			"GameVersionBits": 31,
+			"DlcIndex": 73
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Ride-Along School Renne",
+			"GameVersionBits": 31,
+			"DlcIndex": 74
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Self-Assertion Panels",
+			"GameVersionBits": 31,
+			"DlcIndex": 75
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Snow Leopard Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 76
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Standard Glasses Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 77
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Stylish Sunglasses Set",
+			"GameVersionBits": 31,
+			"DlcIndex": 78
+		},
+		{
+			"GamePath": "f:\\_cs3_builds\\dlc\\Thors Main Campus Uniforms",
+			"GameVersionBits": 31,
+			"DlcIndex": 79
 		}
 	],
-	"Output": "dirtree_cs3.h"
+	"Output": "internal_dirtree_cs3.h"
 }
