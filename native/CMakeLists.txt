@@ -191,6 +191,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/cli_tool.h
 		sentools/bra_extract.cpp
 		sentools/bra_extract.h
+		sentools/game_verify.cpp
+		sentools/game_verify.h
 		sentools/p3a_extract.cpp
 		sentools/p3a_extract.h
 		sentools/p3a_pack.cpp

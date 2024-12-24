@@ -9,6 +9,7 @@
 
 #include "bra_extract.h"
 #include "cli_tool.h"
+#include "game_verify.h"
 #include "p3a_extract.h"
 #include "p3a_pack.h"
 #include "p3a_repack.h"
@@ -53,6 +54,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = BRA_Extract_Name,
             .ShortDescription = BRA_Extract_ShortDescription,
             .Function = BRA_Extract_Function},
+    CliTool{.Name = Game_Verify_Name,
+            .ShortDescription = Game_Verify_ShortDescription,
+            .Function = Game_Verify_Function},
     CliTool{.Name = SHA_File_Convert_Name,
             .ShortDescription = SHA_File_Convert_ShortDescription,
             .Function = SHA_File_Convert_Function,
