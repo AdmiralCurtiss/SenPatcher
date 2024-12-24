@@ -1,11 +1,118 @@
 {
 	"Input": [
 		{
-			"ShaFilePath": "steam_version_1.2.1.sha",
-			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails of Cold Steel IV",
+			"GamePath": "f:\\_cs4_builds\\1.0.2",
 			"GameVersion": 0,
 			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\1.1.0",
+			"GameVersion": 1,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\1.1.1",
+			"GameVersion": 2,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\1.2.0",
+			"GameVersion": 3,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\1.2.1",
+			"GameVersion": 4,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\1.2.2",
+			"GameVersion": 5,
+			"DlcIndex": 0
+		},
+
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Self-Assertion Panels Vol. 2",
+			"GameVersionBits": 63,
+			"DlcIndex": 1
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Swimsuit Bundle",
+			"GameVersionBits": 63,
+			"DlcIndex": 2
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Magical Girl Bundle",
+			"GameVersionBits": 15,
+			"DlcIndex": 3
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Magical Girl Bundle 2024-02-11",
+			"GameVersionBits": 48,
+			"DlcIndex": 3
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Hair Extension Set",
+			"GameVersionBits": 63,
+			"DlcIndex": 4
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Attachment Set",
+			"GameVersionBits": 63,
+			"DlcIndex": 5
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Ride-Along Set",
+			"GameVersionBits": 63,
+			"DlcIndex": 6
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Standard Costume Bundle",
+			"GameVersionBits": 63,
+			"DlcIndex": 7
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Headwear Set",
+			"GameVersionBits": 63,
+			"DlcIndex": 8
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Free Sample Set A",
+			"GameVersionBits": 63,
+			"DlcIndex": 9
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Free Sample Set B",
+			"GameVersionBits": 63,
+			"DlcIndex": 10
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Free Sample Set C",
+			"GameVersionBits": 63,
+			"DlcIndex": 11
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Consumable Starter Set",
+			"GameVersionBits": 63,
+			"DlcIndex": 12
+		},
+		{
+			"GamePath": "f:\\_cs4_builds\\dlc\\Consumable Value Set",
+			"GameVersionBits": 63,
+			"DlcIndex": 13
+		},
+		{
+			// Not buyable by itself, you get this automatically for owning CS3.
+			"GamePath": "f:\\_cs4_builds\\dlc\\Cold Steel III Costume Bundle",
+			"GameVersionBits": 63,
+			"DlcIndex": 14
+		},
+		{
+			// Support for this was added in v1.1.0
+			"GamePath": "f:\\_cs4_builds\\dlc\\Lossless Audio Pack",
+			"GameVersionBits": 62,
+			"DlcIndex": 15
 		}
 	],
-	"Output": "dirtree_cs4.h"
+	"Output": "internal_dirtree_cs4.h"
 }

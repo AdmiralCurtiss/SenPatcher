@@ -22,6 +22,7 @@
 #include "dirtree/dirtree_cs1.h"
 #include "dirtree/dirtree_cs2.h"
 #include "dirtree/dirtree_cs3.h"
+#include "dirtree/dirtree_cs4.h"
 #include "dirtree/dirtree_tx.h"
 #include "dirtree/entry.h"
 #include "dirtree/tree.h"
@@ -735,6 +736,8 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         internalInputTree = SenLib::Sen2::GetDirTree();
     } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("CS3", internalInputKey)) {
         internalInputTree = SenLib::Sen3::GetDirTree();
+    } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("CS4", internalInputKey)) {
+        internalInputTree = SenLib::Sen4::GetDirTree();
     } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("TX", internalInputKey)) {
         internalInputTree = SenLib::TX::GetDirTree();
     } else {
