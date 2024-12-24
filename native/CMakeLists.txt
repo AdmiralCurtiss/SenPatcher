@@ -257,8 +257,11 @@ if (SENPATCHER_BUILD_TOOLS)
 		dirtree/entry.h
 		dirtree/tree.h
 
+		dirtree/dirtree_cs1.cpp
+		dirtree/dirtree_cs1.h
 		dirtree/dirtree_tx.cpp
 		dirtree/dirtree_tx.h
+		dirtree/generated/internal_dirtree_cs1.h
 		dirtree/generated/internal_dirtree_tx.h
 
 		cpp-optparse/OptionParser.cpp

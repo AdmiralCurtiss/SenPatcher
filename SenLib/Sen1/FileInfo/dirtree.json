@@ -1,11 +1,63 @@
 {
 	"Input": [
 		{
-			"ShaFilePath": "steam_version_1.6.sha",
-			"GamePath": "f:\\SteamLibrary\\steamapps\\common\\Trails of Cold Steel",
+			"GamePath": "f:\\_cs1_builds\\1.0",
 			"GameVersion": 0,
 			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\1.1",
+			"GameVersion": 1,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\1.2.1",
+			"GameVersion": 2,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\1.3",
+			"GameVersion": 3,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\1.3.5",
+			"GameVersion": 4,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\1.4",
+			"GameVersion": 5,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\1.5",
+			"GameVersion": 6,
+			"DlcIndex": 0
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\1.6",
+			"GameVersion": 7,
+			"DlcIndex": 0
+		},
+
+		// On Steam, the DLC is handled entirely via the Steam API, so no files exist there.
+		// On GoG and presumably Humble, there's actual files that act as unlock keys.
+		{
+			"GamePath": "f:\\_cs1_builds\\dlc\\Costume Pack",
+			"GameVersionBits": 255,
+			"DlcIndex": 1
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\dlc\\Special Item Pack",
+			"GameVersionBits": 255,
+			"DlcIndex": 2
+		},
+		{
+			"GamePath": "f:\\_cs1_builds\\dlc\\Shining Pom Bait Pack",
+			"GameVersionBits": 255,
+			"DlcIndex": 3
 		}
 	],
-	"Output": "dirtree_cs1.h"
+	"Output": "internal_dirtree_cs1.h"
 }
