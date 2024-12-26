@@ -247,6 +247,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		p3a/unpackfs.cpp
 		p3a/unpackfs.h
 
+		sen/decompress_helper.cpp
+		sen/decompress_helper.h
 		sen/pka.cpp
 		sen/pka.h
 		sen/pka_to_pkg.cpp
@@ -305,6 +307,8 @@ if (SENPATCHER_BUILD_TOOLS)
 
 	if (SENPATCHER_WITH_IMGUI)
 		target_sources(sentools PRIVATE
+			sentools/gui_fonts.cpp
+			sentools/gui_fonts.h
 			sentools/main_gui.cpp
 			sentools/main_gui.h
 
@@ -394,6 +398,10 @@ if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0011.bin" "embed_sen3_v72_e0011.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0012.bin" "embed_sen3_v72_e0012.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v93_e0300.bin" "embed_sen3_v93_e0300.h")
+endif()
+if (SENPATCHER_BUILD_TOOLS AND SENPATCHER_WITH_IMGUI)
+	senpatcher_generate_embeddable_file("../fonts/Cuprum/Cuprum-Regular.ttf.bin" "cuprum.h")
+	senpatcher_generate_embeddable_file("../fonts/Noto_Sans_JP/NotoSansJP-Medium.ttf.bin" "noto_sans_jp.h")
 endif()
 
 set(SOURCES_CS1_FIXES

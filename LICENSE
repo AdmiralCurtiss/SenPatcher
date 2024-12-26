@@ -90,3 +90,14 @@ See the native/zlib/LICENSE for details.
 Licensed under the MIT License
 Copyright (c) 2014-2024 Omar Cornut
 See the native/imgui/LICENSE.txt for details.
+
+== fonts/Cuprum ==
+The Cuprum font is licensed under the SIL Open Font License, Version 1.1
+Copyright 2020 The Cuprum Project Authors (https://github.com/alexeiva/cuprum)
+Copyright (c) 2006-2012 by Jovanny Lemonad (jovanny.ru)
+See fonts/Cuprum/OFL.txt for details.
+
+== fonts/Noto_Sans_JP ==
+The Noto Sans JP font is licensed under the SIL Open Font License, Version 1.1
+Copyright 2014-2021 Adobe (http://www.adobe.com/)
+See fonts/Noto_Sans_JP/OFL.txt for details.
