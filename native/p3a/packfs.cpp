@@ -66,14 +66,20 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
                            const std::filesystem::path& rootDir,
                            const std::filesystem::path& currentDir,
                            std::error_code& ec,
-                           std::optional<P3ACompressionType> desiredCompressionType) {
+                           std::optional<P3ACompressionType> desiredCompressionType,
+                           bool allowUppercaseInFilenames) {
     std::filesystem::directory_iterator iterator(currentDir, ec);
     if (ec) {
         return false;
     }
     for (auto const& entry : iterator) {
         if (entry.is_directory()) {
-            if (!CollectEntries(fileinfos, rootDir, entry.path(), ec, desiredCompressionType)) {
+            if (!CollectEntries(fileinfos,
+                                rootDir,
+                                entry.path(),
+                                ec,
+                                desiredCompressionType,
+                                allowUppercaseInFilenames)) {
                 return false;
             }
             continue;
@@ -102,7 +108,7 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
 
         auto& entryPath = entry.path();
         fileinfos.emplace_back(entryPath,
-                               NormalizeP3AFilename(fn),
+                               NormalizeP3AFilename(fn, allowUppercaseInFilenames),
                                DetermineCompressionTypeForFile(entryPath, desiredCompressionType));
     }
     return true;
@@ -112,27 +118,38 @@ std::optional<SenPatcher::P3APackData>
     P3APackDataFromDirectory(const std::filesystem::path& directoryPath,
                              uint32_t archiveVersion,
                              std::optional<P3ACompressionType> desiredCompressionType,
-                             const std::filesystem::path& dictPath) {
+                             const std::filesystem::path& dictPath,
+                             bool allowUppercaseInFilenames) {
     P3APackData packData;
     packData.SetVersion(archiveVersion);
     packData.SetAlignment(0x40);
     std::error_code ec;
     auto& packFiles = packData.GetMutableFiles();
-    if (!CollectEntries(packFiles, directoryPath, directoryPath, ec, desiredCompressionType)) {
+    if (!CollectEntries(packFiles,
+                        directoryPath,
+                        directoryPath,
+                        ec,
+                        desiredCompressionType,
+                        allowUppercaseInFilenames)) {
         return std::nullopt;
     }
 
     // probably not needed but makes the packing order reproduceable
     std::stable_sort(
         packFiles.begin(), packFiles.end(), [](const P3APackFile& lhs, const P3APackFile& rhs) {
-            const auto& l = lhs.GetFilename();
-            const auto& r = rhs.GetFilename();
-            return memcmp(l.data(), r.data(), l.size()) < 0;
+            const auto& lhsName = lhs.GetFilename();
+            const auto& rhsName = rhs.GetFilename();
+            return HyoutaUtils::TextUtils::CaseInsensitiveCompare(
+                       std::string_view(lhsName.data(), lhsName.data() + lhsName.size()),
+                       std::string_view(rhsName.data(), rhsName.data() + rhsName.size()))
+                   < 0;
         });
 
     if (!dictPath.empty()) {
         packData.SetZStdDictionaryPathData(dictPath);
     }
+
+    packData.SetAllowUppercaseInFilenames(allowUppercaseInFilenames);
 
     return packData;
 }

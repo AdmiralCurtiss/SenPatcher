@@ -10,5 +10,6 @@ std::optional<SenPatcher::P3APackData>
     P3APackDataFromDirectory(const std::filesystem::path& directoryPath,
                              uint32_t archiveVersion,
                              std::optional<P3ACompressionType> desiredCompressionType,
-                             const std::filesystem::path& dictPath);
+                             const std::filesystem::path& dictPath,
+                             bool allowUppercaseInFilenames);
 } // namespace SenPatcher

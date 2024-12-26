@@ -92,6 +92,9 @@ struct P3APackData {
     void SetZStdDictionaryPathData(std::filesystem::path path);
 #endif
 
+    bool IsAllowUppercaseInFilenames() const;
+    void SetAllowUppercaseInFilenames(bool allowUppercase);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> Data;
@@ -99,7 +102,8 @@ private:
 
 // Replaces uppercase with lowercase, replaces backslash with forward slash for path separator, and
 // strips data past the first null byte.
-std::array<char, 0x100> NormalizeP3AFilename(const std::array<char, 0x100>& filename);
+std::array<char, 0x100> NormalizeP3AFilename(const std::array<char, 0x100>& filename,
+                                             bool allowUppercase = false);
 
 struct P3ACompressionResult {
     std::unique_ptr<char[]> Buffer;

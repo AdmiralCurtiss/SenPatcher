@@ -43,6 +43,14 @@ int P3A_Pack_Function(int argc, char** argv) {
         .help(
             "The version of the archive to pack. Defaults to the newest supported version.\n"
             "1100 and 1200 are supported.");
+    parser.add_option("--allow-uppercase")
+        .action(optparse::ActionType::StoreTrue)
+        .dest("allow-uppercase")
+        .set_default(false)
+        .help(
+            "P3A typically wants all-lowercase in filenames. This can be disabled with this "
+            "option. SenPatcher handles files with uppercase filenames correctly, but the official "
+            "implementation may not.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -108,11 +116,18 @@ int P3A_Pack_Function(int argc, char** argv) {
         }
     }
 
+    bool allowUppercaseInFilenames = false;
+    auto* allowUppercase_option = options.get("allow-uppercase");
+    if (allowUppercase_option != nullptr) {
+        allowUppercaseInFilenames = allowUppercase_option->flag();
+    }
+
     std::optional<SenPatcher::P3APackData> packData =
         SenPatcher::P3APackDataFromDirectory(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
                                              archiveVersion,
                                              compressionType,
-                                             std::filesystem::path());
+                                             std::filesystem::path(),
+                                             allowUppercaseInFilenames);
     if (!packData) {
         printf("Failed to collect input files.\n");
         return -1;

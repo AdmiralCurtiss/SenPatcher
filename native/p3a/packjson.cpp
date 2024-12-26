@@ -183,6 +183,8 @@ std::optional<SenPatcher::P3APackData>
         }
     }
 
+    packData.SetAllowUppercaseInFilenames(true);
+
     return packData;
 }
 } // namespace SenPatcher

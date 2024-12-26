@@ -170,6 +170,10 @@ struct P3APackData::Impl {
 #endif
     size_t Alignment = 0;
     uint32_t Version = 0;
+
+    // P3A typically wants all-lowercase in filenames. This can be disabled. SenPatcher handles
+    // files with uppercase filenames correctly, but the official implementation may not.
+    bool AllowUppercaseInFilenames = false;
 };
 
 P3APackData::P3APackData() : Data(std::make_unique<P3APackData::Impl>()) {}
@@ -236,6 +240,14 @@ void P3APackData::SetZStdDictionaryVectorData(std::vector<char> data) {
 }
 #endif
 
+bool P3APackData::IsAllowUppercaseInFilenames() const {
+    return Data->AllowUppercaseInFilenames;
+}
+
+void P3APackData::SetAllowUppercaseInFilenames(bool allowUppercase) {
+    Data->AllowUppercaseInFilenames = allowUppercase;
+}
+
 namespace {
 struct ZSTD_CDict_Deleter {
     void operator()(ZSTD_CDict* ptr) {
@@ -256,7 +268,8 @@ struct ZSTD_CCtx_Deleter {
 using ZSTD_CCtx_UniquePtr = std::unique_ptr<ZSTD_CCtx, ZSTD_CCtx_Deleter>;
 } // namespace
 
-std::array<char, 0x100> NormalizeP3AFilename(const std::array<char, 0x100>& filename) {
+std::array<char, 0x100> NormalizeP3AFilename(const std::array<char, 0x100>& filename,
+                                             bool allowUppercase) {
     std::array<char, 0x100> output{};
     for (size_t i = 0; i < filename.size(); ++i) {
         char c = filename[i];
@@ -265,7 +278,7 @@ std::array<char, 0x100> NormalizeP3AFilename(const std::array<char, 0x100>& file
         }
         if (c == '\\') {
             output[i] = '/';
-        } else if (c >= 'A' && c <= 'Z') {
+        } else if (!allowUppercase && (c >= 'A' && c <= 'Z')) {
             output[i] = static_cast<char>(c + ('a' - 'A'));
         } else {
             output[i] = c;
@@ -460,6 +473,7 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
                                        uint64_t sizePerFileInfo,
                                        uint64_t positionFileInfoStart,
                                        const ZSTD_CDict* cdict,
+                                       bool allowUppercase,
                                        size_t numberOfFilesThatNeedCompressing,
                                        size_t threadCount) {
     // This is designed like this:
@@ -682,7 +696,7 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
 
             // fill in header
             P3AFileInfo tmp{};
-            tmp.Filename = NormalizeP3AFilename(fileinfo.GetFilename());
+            tmp.Filename = NormalizeP3AFilename(fileinfo.GetFilename(), allowUppercase);
             tmp.CompressionType = compressionType;
             tmp.CompressedSize = compressedSize;
             tmp.UncompressedSize = data.UncompressedSize;
@@ -735,6 +749,7 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t de
     std::unique_ptr<uint8_t[]> dict;
     uint64_t dictLength = 0;
     ZSTD_CDict_UniquePtr cdict = nullptr;
+    const bool allowUppercase = packData.IsAllowUppercaseInFilenames();
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
     if (packData.HasZStdDictionaryPathData()) {
         HyoutaUtils::IO::File dictfile(packData.GetZStdDictionaryPathData(),
@@ -857,6 +872,7 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t de
                 sizePerFileInfo,
                 positionFileInfoStart,
                 cdict.get(),
+                allowUppercase,
                 numberOfFilesThatNeedCompressing,
                 std::min(numberOfFilesThatNeedCompressing, threadCount));
         }
@@ -932,7 +948,7 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t de
 
         // fill in header
         P3AFileInfo tmp{};
-        tmp.Filename = NormalizeP3AFilename(fileinfo.GetFilename());
+        tmp.Filename = NormalizeP3AFilename(fileinfo.GetFilename(), allowUppercase);
         tmp.CompressionType = compressionType;
         tmp.CompressedSize = compressedSize;
         tmp.UncompressedSize = uncompressedSize;
