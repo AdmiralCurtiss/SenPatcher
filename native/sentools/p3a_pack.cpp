@@ -108,13 +108,28 @@ int P3A_Pack_Function(int argc, char** argv) {
         }
     }
 
-    if (!SenPatcher::PackP3AFromDirectory(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
-                                          HyoutaUtils::IO::FilesystemPathFromUtf8(target),
-                                          archiveVersion,
-                                          compressionType,
-                                          std::filesystem::path(),
-                                          threadCount)) {
+    std::optional<SenPatcher::P3APackData> packData =
+        SenPatcher::P3APackDataFromDirectory(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
+                                             archiveVersion,
+                                             compressionType,
+                                             std::filesystem::path());
+    if (!packData) {
+        printf("Failed to collect input files.\n");
+        return -1;
+    }
+
+    std::string tmpTargetFilePath(target);
+    tmpTargetFilePath += ".tmp";
+    HyoutaUtils::IO::File targetFile(std::string_view(tmpTargetFilePath),
+                                     HyoutaUtils::IO::OpenMode::Write);
+    if (!SenPatcher::PackP3A(targetFile, *packData, threadCount)) {
         printf("Packing failed.\n");
+        targetFile.Delete();
+        return -1;
+    }
+    if (!targetFile.Rename(target)) {
+        printf("Renaming temp file failed.\n");
+        targetFile.Delete();
         return -1;
     }
     return 0;

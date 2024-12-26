@@ -108,19 +108,18 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
     return true;
 }
 
-bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
-                          const std::filesystem::path& archivePath,
-                          uint32_t archiveVersion,
-                          std::optional<P3ACompressionType> desiredCompressionType,
-                          const std::filesystem::path& dictPath,
-                          size_t desiredThreadCount) {
+std::optional<SenPatcher::P3APackData>
+    P3APackDataFromDirectory(const std::filesystem::path& directoryPath,
+                             uint32_t archiveVersion,
+                             std::optional<P3ACompressionType> desiredCompressionType,
+                             const std::filesystem::path& dictPath) {
     P3APackData packData;
     packData.SetVersion(archiveVersion);
     packData.SetAlignment(0x40);
     std::error_code ec;
     auto& packFiles = packData.GetMutableFiles();
     if (!CollectEntries(packFiles, directoryPath, directoryPath, ec, desiredCompressionType)) {
-        return false;
+        return std::nullopt;
     }
 
     // probably not needed but makes the packing order reproduceable
@@ -135,13 +134,6 @@ bool PackP3AFromDirectory(const std::filesystem::path& directoryPath,
         packData.SetZStdDictionaryPathData(dictPath);
     }
 
-    return PackP3A(archivePath, packData, desiredThreadCount);
-}
-
-bool PackP3A(const std::filesystem::path& archivePath,
-             const P3APackData& packData,
-             size_t desiredThreadCount) {
-    HyoutaUtils::IO::File file(archivePath, HyoutaUtils::IO::OpenMode::Write);
-    return PackP3A(file, packData, desiredThreadCount);
+    return packData;
 }
 } // namespace SenPatcher

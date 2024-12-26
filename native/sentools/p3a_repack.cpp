@@ -63,10 +63,25 @@ int P3A_Repack_Function(int argc, char** argv) {
         }
     }
 
-    if (!SenPatcher::PackP3AFromJsonFile(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
-                                         HyoutaUtils::IO::FilesystemPathFromUtf8(target),
-                                         threadCount)) {
+    std::optional<SenPatcher::P3APackData> packData =
+        SenPatcher::P3APackDataFromJsonFile(HyoutaUtils::IO::FilesystemPathFromUtf8(source));
+    if (!packData) {
+        printf("Failed to parse or evaluate json.\n");
+        return -1;
+    }
+
+    std::string tmpTargetFilePath(target);
+    tmpTargetFilePath += ".tmp";
+    HyoutaUtils::IO::File targetFile(std::string_view(tmpTargetFilePath),
+                                     HyoutaUtils::IO::OpenMode::Write);
+    if (!SenPatcher::PackP3A(targetFile, *packData, threadCount)) {
         printf("Packing failed.\n");
+        targetFile.Delete();
+        return -1;
+    }
+    if (!targetFile.Rename(target)) {
+        printf("Renaming temp file failed.\n");
+        targetFile.Delete();
         return -1;
     }
     return 0;

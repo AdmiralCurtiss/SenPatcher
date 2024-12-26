@@ -1,9 +1,11 @@
 #pragma once
 
+#include <filesystem>
+#include <optional>
+
 #include "p3a/pack.h"
 
 namespace SenPatcher {
-bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
-                         const std::filesystem::path& archivePath,
-                         size_t desiredThreadCount);
+std::optional<SenPatcher::P3APackData>
+    P3APackDataFromJsonFile(const std::filesystem::path& jsonPath);
 } // namespace SenPatcher

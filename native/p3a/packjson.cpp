@@ -80,41 +80,40 @@ static std::optional<std::string> ReadString(T& json, const char* key) {
     return std::nullopt;
 }
 
-bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
-                         const std::filesystem::path& archivePath,
-                         size_t desiredThreadCount) {
+std::optional<SenPatcher::P3APackData>
+    P3APackDataFromJsonFile(const std::filesystem::path& jsonPath) {
     P3APackData packData;
 
     HyoutaUtils::IO::File f(jsonPath, HyoutaUtils::IO::OpenMode::Read);
     if (!f.IsOpen()) {
-        return false;
+        return std::nullopt;
     }
     auto length = f.GetLength();
     if (!length) {
-        return false;
+        return std::nullopt;
     }
     auto buffer = std::make_unique_for_overwrite<char[]>(*length);
     if (!buffer) {
-        return false;
+        return std::nullopt;
     }
     if (f.Read(buffer.get(), *length) != *length) {
-        return false;
+        return std::nullopt;
     }
 
     rapidjson::Document json;
     json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag,
                rapidjson::UTF8<char>>(buffer.get(), *length);
     if (json.HasParseError() || !json.IsObject()) {
-        return false;
+        return std::nullopt;
     }
 
     const auto root = json.GetObject();
     const auto archiveVersion = ReadUInt32(root, "Version");
     if (!archiveVersion) {
-        return false;
+        return std::nullopt;
     }
     if (!(*archiveVersion == 1100 || *archiveVersion == 1200)) {
-        return false;
+        return std::nullopt;
     }
     packData.SetVersion(*archiveVersion);
     packData.SetAlignment(ReadUInt64(root, "Alignment").value_or(0));
@@ -140,17 +139,17 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                     ReadUInt64(file, "UncompressedFilesize");
                 const auto precompressedUncompressedHash = ReadUInt64(file, "UncompressedHash");
                 if (!nameInArchive || !pathOnDisk || !compression) {
-                    return false;
+                    return std::nullopt;
                 }
                 if (isPrecompressed && !precompressedUncompressedFilesize) {
-                    return false;
+                    return std::nullopt;
                 }
                 if (isPrecompressed && *archiveVersion >= 1200 && !precompressedUncompressedHash) {
-                    return false;
+                    return std::nullopt;
                 }
                 std::array<char, 0x100> fn{};
                 if (nameInArchive->size() > fn.size()) {
-                    return false;
+                    return std::nullopt;
                 }
                 std::memcpy(fn.data(), nameInArchive->data(), nameInArchive->size());
                 SenPatcher::P3ACompressionType ct = SenPatcher::P3ACompressionType::None;
@@ -164,7 +163,7 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                 } else if (CaseInsensitiveEquals(*compression, "zStdDict")) {
                     ct = SenPatcher::P3ACompressionType::ZSTD_DICT;
                 } else {
-                    return false;
+                    return std::nullopt;
                 }
 
                 packDataFiles.emplace_back(
@@ -179,11 +178,11 @@ bool PackP3AFromJsonFile(const std::filesystem::path& jsonPath,
                         ? *precompressedUncompressedHash
                         : 0u);
             } else {
-                return false;
+                return std::nullopt;
             }
         }
     }
 
-    return PackP3A(archivePath, packData, desiredThreadCount);
+    return packData;
 }
 } // namespace SenPatcher
