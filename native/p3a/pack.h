@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #ifdef P3A_PACKER_WITH_STD_FILESYSTEM
@@ -59,6 +60,13 @@ struct P3APackFile {
     bool HasPathData() const;
     const std::filesystem::path& GetPathData() const;
 #endif
+
+    // This file may be a duplicate of another file that is already being packed.
+    // If so, this can be set so that only one copy is stored.
+    // For N copies of a file, there must be 1 that does have this set as std::nullopt,
+    // and N-1 that all have it set to the index of the file that has the std::nullopt.
+    std::optional<size_t> IsSameAsIndex() const;
+    void SetSameAsIndex(std::optional<size_t> index);
 
 private:
     struct Impl;
@@ -130,6 +138,8 @@ HyoutaUtils::Result<P3ACompressionResult, P3ACompressionError>
                    const char* filedata,
                    uint64_t uncompressedSize,
                    const void* zstdCDict = nullptr);
+
+bool DeduplicateP3APackFiles(P3APackData& packData);
 
 bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t desiredThreadCount);
 } // namespace SenPatcher

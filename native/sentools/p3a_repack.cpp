@@ -35,6 +35,11 @@ int P3A_Repack_Function(int argc, char** argv) {
         .metavar("THREADCOUNT")
         .set_default(0)
         .help("Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection.");
+    parser.add_option("--no-deduplicate")
+        .action(optparse::ActionType::StoreTrue)
+        .dest("no-deduplicate")
+        .set_default(false)
+        .help("Skip file deduplication.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -48,6 +53,12 @@ int P3A_Repack_Function(int argc, char** argv) {
     if (output_option == nullptr) {
         parser.error("No output filename given.");
         return -1;
+    }
+
+    bool noDeduplicate = false;
+    auto* noDeduplicate_option = options.get("no-deduplicate");
+    if (noDeduplicate_option != nullptr) {
+        noDeduplicate = noDeduplicate_option->flag();
     }
 
     std::string_view source(args[0]);
@@ -68,6 +79,13 @@ int P3A_Repack_Function(int argc, char** argv) {
     if (!packData) {
         printf("Failed to parse or evaluate json.\n");
         return -1;
+    }
+
+    if (!noDeduplicate) {
+        if (!SenPatcher::DeduplicateP3APackFiles(*packData)) {
+            printf("File deduplication failed.\n");
+            return -1;
+        }
     }
 
     std::string tmpTargetFilePath(target);

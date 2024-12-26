@@ -51,6 +51,11 @@ int P3A_Pack_Function(int argc, char** argv) {
             "P3A typically wants all-lowercase in filenames. This can be disabled with this "
             "option. SenPatcher handles files with uppercase filenames correctly, but the official "
             "implementation may not.");
+    parser.add_option("--no-deduplicate")
+        .action(optparse::ActionType::StoreTrue)
+        .dest("no-deduplicate")
+        .set_default(false)
+        .help("Skip file deduplication.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -122,6 +127,12 @@ int P3A_Pack_Function(int argc, char** argv) {
         allowUppercaseInFilenames = allowUppercase_option->flag();
     }
 
+    bool noDeduplicate = false;
+    auto* noDeduplicate_option = options.get("no-deduplicate");
+    if (noDeduplicate_option != nullptr) {
+        noDeduplicate = noDeduplicate_option->flag();
+    }
+
     std::optional<SenPatcher::P3APackData> packData =
         SenPatcher::P3APackDataFromDirectory(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
                                              archiveVersion,
@@ -131,6 +142,13 @@ int P3A_Pack_Function(int argc, char** argv) {
     if (!packData) {
         printf("Failed to collect input files.\n");
         return -1;
+    }
+
+    if (!noDeduplicate) {
+        if (!SenPatcher::DeduplicateP3APackFiles(*packData)) {
+            printf("File deduplication failed.\n");
+            return -1;
+        }
     }
 
     std::string tmpTargetFilePath(target);

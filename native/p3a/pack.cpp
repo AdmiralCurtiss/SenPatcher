@@ -6,6 +6,7 @@
 #include <cassert>
 #include <condition_variable>
 #include <cstdint>
+#include <cstring>
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -43,6 +44,7 @@ struct P3APackFile::Impl {
     P3APackFilePrecompressed IsPrecompressed = P3APackFilePrecompressed::No;
     uint64_t DecompressedFilesizeForPrecompressed = 0u;
     uint64_t DecompressedHashForPrecompressed = 0u;
+    std::optional<size_t> SameAsIndex = std::nullopt;
 
     Impl(std::vector<char> data,
          const std::array<char, 0x100>& filename,
@@ -159,6 +161,14 @@ void P3APackFile::SetVectorData(std::vector<char> data) {
     Data->Data = std::move(data);
 }
 #endif
+
+std::optional<size_t> P3APackFile::IsSameAsIndex() const {
+    return Data->SameAsIndex;
+}
+
+void P3APackFile::SetSameAsIndex(std::optional<size_t> index) {
+    Data->SameAsIndex = index;
+}
 
 struct P3APackData::Impl {
     std::vector<P3APackFile> Files;
@@ -467,6 +477,7 @@ static bool WriteUncompressed(HyoutaUtils::IO::File& file,
 }
 
 static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
+                                       P3AFileInfo* fileHeaders, // same length as fileinfos
                                        const std::vector<P3APackFile>& fileinfos,
                                        const uint64_t alignment,
                                        uint64_t& position,
@@ -607,6 +618,11 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
     std::thread fileReaderThread = std::thread([&]() -> void {
         for (size_t i = 0; i < fileinfos.size(); ++i) {
             const auto& fileinfo = fileinfos[i];
+            if (fileinfo.IsSameAsIndex().has_value()) {
+                // nothing to read here
+                continue;
+            }
+
             uint64_t filesize = 0u;
             std::unique_ptr<char[]> filedataHolder;
             const char* filedata = GetFileData(filesize, filedataHolder, fileinfo);
@@ -658,6 +674,11 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
     std::thread fileWriterThread = std::thread([&]() -> void {
         for (size_t i = 0; i < fileinfos.size(); ++i) {
             const auto& fileinfo = fileinfos[i];
+            if (fileinfo.IsSameAsIndex().has_value()) {
+                // don't write these, we will just copy the header entry afterwards
+                continue;
+            }
+
             if (!HyoutaUtils::AlignFile(file, position, alignment)) {
                 do_abort();
                 return;
@@ -695,7 +716,7 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
             }
 
             // fill in header
-            P3AFileInfo tmp{};
+            P3AFileInfo& tmp = fileHeaders[i];
             tmp.Filename = NormalizeP3AFilename(fileinfo.GetFilename(), allowUppercase);
             tmp.CompressionType = compressionType;
             tmp.CompressedSize = compressedSize;
@@ -703,21 +724,7 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
             tmp.Offset = position;
             tmp.CompressedHash = compressedHash;
             tmp.UncompressedHash = data.UncompressedHash;
-
-            if (!file.SetPosition(positionFileInfoStart + sizePerFileInfo * i)) {
-                do_abort();
-                return;
-            }
-            if (file.Write(&tmp, sizePerFileInfo) != sizePerFileInfo) {
-                do_abort();
-                return;
-            }
-
             position += compressedSize;
-            if (!file.SetPosition(position)) {
-                do_abort();
-                return;
-            }
         }
     });
 
@@ -729,6 +736,282 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
     fileWriterThread.join();
 
     return !encounteredError.load();
+}
+
+static bool FillHeadersForSameAsFiles(P3AFileInfo* fileHeaders, // same length as fileinfos
+                                      const std::vector<P3APackFile>& fileinfos,
+                                      bool allowUppercase) {
+    for (size_t i = 0; i < fileinfos.size(); ++i) {
+        const auto& fileinfo = fileinfos[i];
+        auto sameAs = fileinfo.IsSameAsIndex();
+        if (!sameAs.has_value()) {
+            continue;
+        }
+        if (*sameAs >= fileinfos.size()) {
+            return false;
+        }
+        if (fileinfos[*sameAs].IsSameAsIndex().has_value()) {
+            // reference to a file that doesn't store data is invalid, otherwise we'd need to
+            // dependency sort the copy order...
+            return false;
+        }
+
+        P3AFileInfo& selfHeader = fileHeaders[i];
+        P3AFileInfo& otherHeader = fileHeaders[*sameAs];
+        selfHeader.Filename = NormalizeP3AFilename(fileinfo.GetFilename(), allowUppercase);
+        selfHeader.CompressionType = otherHeader.CompressionType;
+        selfHeader.CompressedSize = otherHeader.CompressedSize;
+        selfHeader.UncompressedSize = otherHeader.UncompressedSize;
+        selfHeader.Offset = otherHeader.Offset;
+        selfHeader.CompressedHash = otherHeader.CompressedHash;
+        selfHeader.UncompressedHash = otherHeader.UncompressedHash;
+    }
+
+    return true;
+}
+
+static bool WriteHeaders(HyoutaUtils::IO::File& file,
+                         P3AFileInfo* fileHeaders, // same length as fileinfos
+                         const std::vector<P3APackFile>& fileinfos,
+                         uint64_t sizePerFileInfo,
+                         uint64_t positionFileInfoStart) {
+    if (!file.SetPosition(positionFileInfoStart)) {
+        return false;
+    }
+    for (size_t i = 0; i < fileinfos.size(); ++i) {
+        const P3AFileInfo& tmp = fileHeaders[i];
+        if (file.Write(&tmp, sizePerFileInfo) != sizePerFileInfo) {
+            return false;
+        }
+    }
+    return true;
+}
+
+namespace {
+enum class IdentStatus {
+    FailedToDetermine,
+    IsSame,
+    IsNotSame,
+};
+}
+
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+static IdentStatus DoFilesHaveSameData(HyoutaUtils::IO::File& lhs, HyoutaUtils::IO::File& rhs) {
+    if (!lhs.IsOpen() || !rhs.IsOpen()) {
+        return IdentStatus::FailedToDetermine;
+    }
+    auto size_lhs = lhs.GetLength();
+    if (!size_lhs) {
+        return IdentStatus::FailedToDetermine;
+    }
+    auto size_rhs = rhs.GetLength();
+    if (!size_rhs) {
+        return IdentStatus::FailedToDetermine;
+    }
+    if (*size_lhs != *size_rhs) {
+        return IdentStatus::IsNotSame;
+    }
+
+    static constexpr size_t bufferSize = 4096;
+    std::array<char, bufferSize> lhs_buffer;
+    std::array<char, bufferSize> rhs_buffer;
+    uint64_t rest = *size_lhs;
+    while (rest > 0) {
+        const size_t chunkSize = (rest > bufferSize) ? bufferSize : static_cast<size_t>(rest);
+        if (lhs.Read(lhs_buffer.data(), chunkSize) != chunkSize) {
+            return IdentStatus::FailedToDetermine;
+        }
+        if (rhs.Read(rhs_buffer.data(), chunkSize) != chunkSize) {
+            return IdentStatus::FailedToDetermine;
+        }
+        if (std::memcmp(lhs_buffer.data(), rhs_buffer.data(), chunkSize) != 0) {
+            return IdentStatus::IsNotSame;
+        }
+
+        rest -= chunkSize;
+    }
+
+    return IdentStatus::IsSame;
+}
+
+static IdentStatus DoFileAndVectorHaveSameData(HyoutaUtils::IO::File& lhs,
+                                               const std::vector<char>& rhs) {
+    if (!lhs.IsOpen()) {
+        return IdentStatus::FailedToDetermine;
+    }
+    auto size_lhs = lhs.GetLength();
+    if (!size_lhs) {
+        return IdentStatus::FailedToDetermine;
+    }
+    if (size_lhs != rhs.size()) {
+        return IdentStatus::IsNotSame;
+    }
+
+    static constexpr size_t bufferSize = 4096;
+    std::array<char, bufferSize> lhs_buffer;
+    uint64_t rest = *size_lhs;
+    size_t rhs_offset = 0;
+    while (rest > 0) {
+        const size_t chunkSize = (rest > bufferSize) ? bufferSize : static_cast<size_t>(rest);
+        if (lhs.Read(lhs_buffer.data(), chunkSize) != chunkSize) {
+            return IdentStatus::FailedToDetermine;
+        }
+        if (std::memcmp(lhs_buffer.data(), rhs.data() + rhs_offset, chunkSize) != 0) {
+            return IdentStatus::IsNotSame;
+        }
+
+        rhs_offset += chunkSize;
+        rest -= chunkSize;
+    }
+
+    return IdentStatus::IsSame;
+}
+#endif
+
+static IdentStatus IsDuplicate(P3APackFile& lhs, P3APackFile& rhs) {
+    if (lhs.GetDesiredCompressionType() != rhs.GetDesiredCompressionType()) {
+        // Even if the data is identical, only mark duplicates if the compression type matches.
+        return IdentStatus::IsNotSame;
+    }
+
+    if (lhs.IsPrecompressed() != rhs.IsPrecompressed()) {
+        // TODO: This case is possible to handle.
+        return IdentStatus::IsNotSame;
+    }
+
+    if (lhs.HasVectorData() && rhs.HasVectorData()) {
+        return (lhs.GetVectorData() == rhs.GetVectorData()) ? IdentStatus::IsSame
+                                                            : IdentStatus::IsNotSame;
+    }
+
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+    if (lhs.HasPathData() && rhs.HasPathData()) {
+        HyoutaUtils::IO::File fl(lhs.GetPathData(), HyoutaUtils::IO::OpenMode::Read);
+        HyoutaUtils::IO::File fr(rhs.GetPathData(), HyoutaUtils::IO::OpenMode::Read);
+        return DoFilesHaveSameData(fl, fr);
+    }
+    if (lhs.HasPathData() && rhs.HasVectorData()) {
+        HyoutaUtils::IO::File f(lhs.GetPathData(), HyoutaUtils::IO::OpenMode::Read);
+        return DoFileAndVectorHaveSameData(f, rhs.GetVectorData());
+    }
+    if (lhs.HasVectorData() && rhs.HasPathData()) {
+        HyoutaUtils::IO::File f(rhs.GetPathData(), HyoutaUtils::IO::OpenMode::Read);
+        return DoFileAndVectorHaveSameData(f, lhs.GetVectorData());
+    }
+#endif
+
+    return IdentStatus::FailedToDetermine;
+}
+
+std::optional<uint64_t> GetFilesize(P3APackFile& packFile) {
+    if (packFile.IsPrecompressed()) {
+        return packFile.GetDecompressedFilesizeForPrecompressed();
+    }
+    if (packFile.HasVectorData()) {
+        return packFile.GetVectorData().size();
+    }
+#ifdef P3A_PACKER_WITH_STD_FILESYSTEM
+    if (packFile.HasPathData()) {
+        return HyoutaUtils::IO::GetFilesize(packFile.GetPathData());
+    }
+#endif
+    return std::nullopt;
+}
+
+namespace {
+struct SizeWithIndex {
+    uint64_t Filesize;
+    size_t Index;
+};
+
+struct BlockState {
+    size_t Begin;
+    size_t End;
+};
+bool GetFirstBlock(BlockState& state, const SizeWithIndex* sizes, size_t count) {
+    if (count == 0) {
+        return false;
+    }
+
+    state.Begin = 0;
+    for (size_t i = 1; i < count; ++i) {
+        if (sizes[0].Filesize != sizes[i].Filesize) {
+            state.End = i;
+            return true;
+        }
+    }
+    state.End = count;
+    return true;
+}
+bool GetNextBlock(BlockState& state, const SizeWithIndex* sizes, size_t count) {
+    const size_t last = state.End;
+    if (last == count) {
+        return false;
+    }
+
+    state.Begin = last;
+    for (size_t i = last + 1; i < count; ++i) {
+        if (sizes[last].Filesize != sizes[i].Filesize) {
+            state.End = i;
+            return true;
+        }
+    }
+    state.End = count;
+    return true;
+}
+} // namespace
+
+bool DeduplicateP3APackFiles(P3APackData& packData) {
+    std::vector<P3APackFile>& files = packData.GetMutableFiles();
+    if (files.empty()) {
+        return true;
+    }
+
+    // comparing each file with each is very slow due to n^2, so instead we pre-query each file's
+    // filesize, sort by filesize, and then only compare within the blocks with the same filesize.
+    auto sizes = std::make_unique_for_overwrite<SizeWithIndex[]>(files.size());
+    for (size_t i = 0; i < files.size(); ++i) {
+        auto fs = GetFilesize(files[i]);
+        if (!fs) {
+            return false;
+        }
+        sizes[i].Filesize = *fs;
+        sizes[i].Index = i;
+    }
+    std::stable_sort(sizes.get(),
+                     sizes.get() + files.size(),
+                     [](const SizeWithIndex& lhs, const SizeWithIndex& rhs) {
+                         return lhs.Filesize < rhs.Filesize;
+                     });
+
+    BlockState block;
+    if (GetFirstBlock(block, sizes.get(), files.size())) {
+        do {
+            const size_t begin = block.Begin;
+            const size_t end = block.End;
+            for (size_t i = begin; i < end; ++i) {
+                auto& fi = files[sizes[i].Index];
+                if (fi.IsSameAsIndex().has_value()) {
+                    continue;
+                }
+                for (size_t j = begin; j < i; ++j) {
+                    auto& fj = files[sizes[j].Index];
+                    if (fj.IsSameAsIndex().has_value()) {
+                        continue;
+                    }
+                    auto dup = IsDuplicate(fi, fj);
+                    if (dup == IdentStatus::FailedToDetermine) {
+                        return false;
+                    }
+                    if (dup == IdentStatus::IsSame) {
+                        fi.SetSameAsIndex(sizes[j].Index);
+                        break;
+                    }
+                }
+            }
+        } while (GetNextBlock(block, sizes.get(), files.size()));
+    }
+    return true;
 }
 
 bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t desiredThreadCount) {
@@ -854,32 +1137,49 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t de
 
     size_t threadCount =
         desiredThreadCount == 0 ? std::thread::hardware_concurrency() : desiredThreadCount;
+    auto fileHeaders = std::make_unique<P3AFileInfo[]>(fileinfos.size());
     if (threadCount >= 2) {
         size_t numberOfFilesThatNeedCompressing = 0;
         for (size_t i = 0; i < fileinfos.size(); ++i) {
             const auto& fileinfo = fileinfos[i];
-            if (!fileinfo.IsPrecompressed()
+            if (!fileinfo.IsSameAsIndex().has_value() && !fileinfo.IsPrecompressed()
                 && fileinfo.GetDesiredCompressionType() != P3ACompressionType::None) {
                 ++numberOfFilesThatNeedCompressing;
             }
         }
         if (numberOfFilesThatNeedCompressing >= 2) {
-            return MultithreadedWriteP3AFiles(
-                file,
-                fileinfos,
-                alignment,
-                position,
-                sizePerFileInfo,
-                positionFileInfoStart,
-                cdict.get(),
-                allowUppercase,
-                numberOfFilesThatNeedCompressing,
-                std::min(numberOfFilesThatNeedCompressing, threadCount));
+            if (!MultithreadedWriteP3AFiles(
+                    file,
+                    fileHeaders.get(),
+                    fileinfos,
+                    alignment,
+                    position,
+                    sizePerFileInfo,
+                    positionFileInfoStart,
+                    cdict.get(),
+                    allowUppercase,
+                    numberOfFilesThatNeedCompressing,
+                    std::min(numberOfFilesThatNeedCompressing, threadCount))) {
+                return false;
+            }
+            if (!FillHeadersForSameAsFiles(fileHeaders.get(), fileinfos, allowUppercase)) {
+                return false;
+            }
+            if (!WriteHeaders(
+                    file, fileHeaders.get(), fileinfos, sizePerFileInfo, positionFileInfoStart)) {
+                return false;
+            }
+            return true;
         }
     }
 
     for (size_t i = 0; i < fileinfos.size(); ++i) {
         const auto& fileinfo = fileinfos[i];
+        if (fileinfo.IsSameAsIndex().has_value()) {
+            // don't write these, we will just copy the header entry afterwards
+            continue;
+        }
+
         if (!HyoutaUtils::AlignFile(file, position, alignment)) {
             return false;
         }
@@ -947,7 +1247,7 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t de
         }
 
         // fill in header
-        P3AFileInfo tmp{};
+        P3AFileInfo& tmp = fileHeaders[i];
         tmp.Filename = NormalizeP3AFilename(fileinfo.GetFilename(), allowUppercase);
         tmp.CompressionType = compressionType;
         tmp.CompressedSize = compressedSize;
@@ -955,18 +1255,14 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t de
         tmp.Offset = position;
         tmp.CompressedHash = compressedHash;
         tmp.UncompressedHash = uncompressedHash;
-
-        if (!file.SetPosition(positionFileInfoStart + sizePerFileInfo * i)) {
-            return false;
-        }
-        if (file.Write(&tmp, sizePerFileInfo) != sizePerFileInfo) {
-            return false;
-        }
-
         position += compressedSize;
-        if (!file.SetPosition(position)) {
-            return false;
-        }
+    }
+
+    if (!FillHeadersForSameAsFiles(fileHeaders.get(), fileinfos, allowUppercase)) {
+        return false;
+    }
+    if (!WriteHeaders(file, fileHeaders.get(), fileinfos, sizePerFileInfo, positionFileInfoStart)) {
+        return false;
     }
 
     return true;
