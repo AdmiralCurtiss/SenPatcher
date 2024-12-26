@@ -1,5 +1,6 @@
 #include "text.h"
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <optional>
@@ -9,6 +10,7 @@
 
 #ifdef BUILD_FOR_WINDOWS
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
 #else
 #include <iconv.h>
@@ -413,6 +415,29 @@ bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
         }
     }
     return true;
+}
+
+int CaseInsensitiveCompare(std::string_view lhs, std::string_view rhs) {
+    const size_t shorter = std::min(lhs.size(), rhs.size());
+    for (size_t i = 0; i < shorter; ++i) {
+        const uint8_t cl = static_cast<uint8_t>(
+            (lhs[i] >= 'A' && lhs[i] <= 'Z') ? (lhs[i] + ('a' - 'A')) : lhs[i]);
+        const uint8_t cr = static_cast<uint8_t>(
+            (rhs[i] >= 'A' && rhs[i] <= 'Z') ? (rhs[i] + ('a' - 'A')) : rhs[i]);
+        if (cl < cr) {
+            return -1;
+        }
+        if (cl > cr) {
+            return 1;
+        }
+    }
+    if (lhs.size() < rhs.size()) {
+        return -1;
+    }
+    if (lhs.size() > rhs.size()) {
+        return 1;
+    }
+    return 0;
 }
 
 std::string ToLower(std::string_view sv) {

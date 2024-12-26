@@ -65,6 +65,7 @@ std::string Join(const std::vector<std::string_view>& svs, std::string_view join
 
 // These only care about the ASCII A-Z <-> a-z, everything else is still handled case sensitive.
 bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs);
+int CaseInsensitiveCompare(std::string_view lhs, std::string_view rhs);
 std::string ToLower(std::string_view sv);
 std::string ToUpper(std::string_view sv);
 } // namespace HyoutaUtils::TextUtils

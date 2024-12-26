@@ -26,3 +26,38 @@ TEST(TextCase, ToUpper) {
     EXPECT_EQ("\xef\xbd\x8d", HyoutaUtils::TextUtils::ToUpper("\xef\xbd\x8d"));
     EXPECT_EQ("\xef\xbc\xad", HyoutaUtils::TextUtils::ToUpper("\xef\xbc\xad"));
 }
+
+template<typename T>
+static int Signum(T number) {
+    if (number < 0) {
+        return -1;
+    }
+    if (number > 0) {
+        return 1;
+    }
+    return 0;
+}
+
+static void TestCompare(std::string_view lhs, std::string_view rhs) {
+    auto lhs_lower = HyoutaUtils::TextUtils::ToLower(lhs);
+    auto rhs_lower = HyoutaUtils::TextUtils::ToLower(rhs);
+    EXPECT_TRUE(Signum(HyoutaUtils::TextUtils::CaseInsensitiveCompare(lhs, rhs))
+                == Signum(lhs_lower.compare(rhs_lower)));
+    EXPECT_TRUE(Signum(HyoutaUtils::TextUtils::CaseInsensitiveCompare(rhs, lhs))
+                == Signum(rhs_lower.compare(lhs_lower)));
+}
+
+TEST(TextCase, Compare) {
+    using HyoutaUtils::TextUtils::CaseInsensitiveCompare;
+    TestCompare("", "");
+    TestCompare("a", "a");
+    TestCompare("a", "A");
+    TestCompare("a", "b");
+    TestCompare("a", "B");
+    TestCompare("A", "b");
+    TestCompare("A", "B");
+    TestCompare("Aa", "a");
+    TestCompare("A", "aA");
+    TestCompare("left", "RIGHT");
+    TestCompare("a_B", "aBc");
+}
