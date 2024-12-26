@@ -84,13 +84,18 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
             return false;
         }
         const auto filename = relativePath.u8string();
-        const char8_t* filenameC = filename.c_str();
+        const size_t filenameLength = filename.size();
+        if (filenameLength > 0x100) {
+            // maximum length of p3a filename
+            return false;
+        }
 
         std::array<char, 0x100> fn{};
-        for (size_t i = 0; i < fn.size(); ++i) {
-            const char c = static_cast<char>(filenameC[i]);
+        for (size_t i = 0; i < filenameLength; ++i) {
+            const char c = static_cast<char>(filename[i]);
             if (c == '\0') {
-                break;
+                // mid-filename nulls are not supported, would truncate the rest of the name
+                return false;
             }
             fn[i] = c;
         }
