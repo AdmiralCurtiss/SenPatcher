@@ -469,6 +469,56 @@ bool FileExists(const std::filesystem::path& p) noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
+static std::optional<uint64_t> GetFilesizeWindows(const wchar_t* path) {
+    WIN32_FILE_ATTRIBUTE_DATA data{};
+    const auto rv = GetFileAttributesExW(path, GetFileExInfoStandard, &data);
+    if (rv == 0) {
+        return std::nullopt;
+    }
+    if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+        return (static_cast<uint64_t>(data.nFileSizeHigh) << 32)
+               | static_cast<uint64_t>(data.nFileSizeLow);
+    }
+    // is a directory
+    return std::nullopt;
+}
+#else
+static std::optional<uint64_t> GetFilesizeLinux(const char* path) {
+    struct stat buf {};
+    if (stat(path, &buf) != 0) {
+        return std::nullopt;
+    }
+    if (S_ISREG(buf.st_mode)) {
+        return static_cast<uint64_t>(buf.st_size);
+    }
+    return std::nullopt;
+}
+#endif
+
+std::optional<uint64_t> GetFilesize(std::string_view p) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+    if (!wstr) {
+        return std::nullopt;
+    }
+    return GetFilesizeWindows(wstr->data());
+#else
+    std::string s(p);
+    return GetFilesizeLinux(s.c_str());
+#endif
+}
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+std::optional<uint64_t> GetFilesize(const std::filesystem::path& p) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return GetFilesizeWindows(p.native().data());
+#else
+    return GetFilesizeLinux(p.c_str());
+#endif
+}
+#endif
+
+#ifdef BUILD_FOR_WINDOWS
 static bool DirectoryExistsWindows(const wchar_t* path) {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {

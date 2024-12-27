@@ -72,11 +72,13 @@ private:
 };
 
 bool FileExists(std::string_view p) noexcept;
+std::optional<uint64_t> GetFilesize(std::string_view p) noexcept;
 bool DirectoryExists(std::string_view p) noexcept;
 bool CreateDirectory(std::string_view p) noexcept;
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 bool FileExists(const std::filesystem::path& p) noexcept;
+std::optional<uint64_t> GetFilesize(const std::filesystem::path& p) noexcept;
 bool DirectoryExists(const std::filesystem::path& p) noexcept;
 bool CreateDirectory(const std::filesystem::path& p) noexcept;
 
