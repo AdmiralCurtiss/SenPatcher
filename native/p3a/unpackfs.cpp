@@ -15,6 +15,7 @@
 #include "p3a/structs.h"
 
 #include "util/file.h"
+#include "util/text.h"
 
 namespace SenPatcher {
 static std::string_view StripTrailingNull(std::string_view sv) {
@@ -47,6 +48,7 @@ using ZSTD_DCtx_UniquePtr = std::unique_ptr<ZSTD_DCtx, ZSTD_DCtx_Deleter>;
 
 bool UnpackP3A(const std::filesystem::path& archivePath,
                const std::filesystem::path& extractPath,
+               std::string_view pathFilter,
                bool generateJson,
                bool noDecompression) {
     rapidjson::StringBuffer jsonbuffer;
@@ -179,17 +181,20 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
     json.StartArray();
 
     for (size_t i = 0; i < header.FileCount; ++i) {
-        json.StartObject();
-
         const auto& fileinfo = fileinfos[i];
         auto filename =
             StripTrailingNull(std::string_view(fileinfo.Filename.begin(), fileinfo.Filename.end()));
+        if (!HyoutaUtils::TextUtils::CaseInsensitiveGlobMatches(filename, pathFilter)) {
+            continue;
+        }
+
         std::filesystem::path relativePath(
             std::u8string_view((const char8_t*)filename.data(), filename.size()));
         if (relativePath.is_absolute()) {
             return false; // there's probably a better way to handle this case...
         }
 
+        json.StartObject();
         {
             json.Key("NameInArchive");
             json.String(filename.data(), filename.size());

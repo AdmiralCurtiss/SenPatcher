@@ -29,6 +29,12 @@ int P3A_Extract_Function(int argc, char** argv) {
             "If set, a __p3a.json will be generated that contains information about the files in "
             "the archive. This file can be used to repack the archive with the P3A.Repack option "
             "while preserving compression types and file order within the archive.");
+    parser.add_option("--filter")
+        .dest("filter")
+        .metavar("FILTER")
+        .help(
+            "Glob filter for files to extract, matched against the relative path of the file in "
+            "the archive. Case-insensitive. All files will be extracted if this is not given.");
     parser.add_option("--no-decompress")
         .dest("no-decompress")
         .action(optparse::ActionType::StoreTrue)
@@ -52,9 +58,16 @@ int P3A_Extract_Function(int argc, char** argv) {
         target = tmp;
     }
 
+    std::string_view pathFilter;
+    if (auto* filter_option = options.get("filter")) {
+        pathFilter = std::string_view(filter_option->first_string());
+    } else {
+        pathFilter = "*";
+    }
 
     if (!SenPatcher::UnpackP3A(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
                                HyoutaUtils::IO::FilesystemPathFromUtf8(target),
+                               pathFilter,
                                options["json"].flag(),
                                options["no-decompress"].flag())) {
         printf("Unpacking failed.\n");
