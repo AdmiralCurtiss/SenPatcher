@@ -42,6 +42,7 @@ public:
     std::optional<uint64_t> GetLength() noexcept;
     size_t Read(void* data, size_t length) noexcept;
     size_t Write(const void* data, size_t length) noexcept;
+    uint64_t Write(File& source, uint64_t length) noexcept; // copies up to length bytes from source
     bool Delete() noexcept;
     bool Rename(std::string_view p) noexcept;
 

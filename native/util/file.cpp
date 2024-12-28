@@ -4,6 +4,7 @@
 
 #include "file.h"
 
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -322,6 +323,47 @@ size_t File::Write(const void* data, size_t length) noexcept {
         rest -= blockWritten;
         totalWritten += blockWritten;
         buffer += blockWritten;
+    }
+    return totalWritten;
+}
+
+uint64_t File::Write(File& source, uint64_t length) noexcept {
+    assert(IsOpen());
+    assert(source.IsOpen());
+
+    static constexpr size_t bufferSize = 4096;
+    std::array<char, bufferSize> buffer;
+    uint64_t totalWritten = 0;
+    uint64_t rest = length;
+    while (rest > 0) {
+        DWORD blockSize = (rest > bufferSize) ? bufferSize : static_cast<DWORD>(rest);
+
+        DWORD blockRead = 0;
+#ifdef BUILD_FOR_WINDOWS
+        if (ReadFile(source.Filehandle, buffer.data(), blockSize, &blockRead, nullptr) == 0) {
+            return totalWritten;
+        }
+#else
+        blockRead = (DWORD)fread(buffer.data(), 1, blockSize, (FILE*)source.Filehandle);
+#endif
+        if (blockRead == 0) {
+            return totalWritten;
+        }
+
+        DWORD blockWritten = 0;
+#ifdef BUILD_FOR_WINDOWS
+        if (WriteFile(Filehandle, buffer.data(), blockRead, &blockWritten, nullptr) == 0) {
+            return totalWritten;
+        }
+#else
+        blockWritten = (DWORD)fwrite(buffer, 1, blockRead, (FILE*)Filehandle);
+#endif
+        if (blockWritten != blockRead) {
+            return (totalWritten + blockWritten);
+        }
+
+        rest -= blockWritten;
+        totalWritten += blockWritten;
     }
     return totalWritten;
 }
