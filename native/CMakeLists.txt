@@ -309,6 +309,9 @@ if (SENPATCHER_BUILD_TOOLS)
 		target_sources(sentools PRIVATE
 			sentools/gui_fonts.cpp
 			sentools/gui_fonts.h
+			sentools/gui_senpatcher_main_window.cpp
+			sentools/gui_senpatcher_main_window.h
+			sentools/gui_state.h
 			sentools/main_gui.cpp
 			sentools/main_gui.h
 
