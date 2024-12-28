@@ -68,4 +68,7 @@ bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs);
 int CaseInsensitiveCompare(std::string_view lhs, std::string_view rhs);
 std::string ToLower(std::string_view sv);
 std::string ToUpper(std::string_view sv);
+
+bool GlobMatches(std::string_view string, std::string_view glob);
+bool CaseInsensitiveGlobMatches(std::string_view string, std::string_view glob);
 } // namespace HyoutaUtils::TextUtils

@@ -457,4 +457,141 @@ std::string ToUpper(std::string_view sv) {
     }
     return result;
 }
+
+template<typename CharMatchF>
+static bool MatchesSameLengthNoAsterik(const char* string,
+                                       const char* glob,
+                                       size_t length,
+                                       const CharMatchF& charMatchFunc) {
+    for (size_t i = 0; i < length; ++i) {
+        const char c = *(glob + i);
+        if (!(c == '?' || charMatchFunc(c, *(string + i)))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename CharMatchF>
+static size_t FindLastMatchNoAsterik(std::string_view string,
+                                     std::string_view glob,
+                                     const CharMatchF& charMatchFunc) {
+    if (glob.size() > string.size()) {
+        return std::string_view::npos;
+    }
+
+    size_t pos = string.size() - glob.size();
+    while (true) {
+        if (MatchesSameLengthNoAsterik(
+                string.data() + pos, glob.data(), glob.size(), charMatchFunc)) {
+            return pos;
+        }
+        if (pos == 0) {
+            return std::string_view::npos;
+        }
+        --pos;
+    }
+}
+
+template<typename CharMatchF>
+static bool GlobMatchesTemplate(std::string_view string,
+                                std::string_view glob,
+                                const CharMatchF& charMatchFunc) {
+    std::string_view restString = string;
+    std::string_view restGlob = glob;
+
+    while (true) {
+        // strip front to first asterik
+        while (!restGlob.empty()) {
+            const char c = restGlob.front();
+            if (c == '*') {
+                break;
+            }
+            if (restString.empty()) {
+                return false;
+            }
+            if (c == '?' || charMatchFunc(c, restString.front())) {
+                restGlob = restGlob.substr(1);
+                restString = restString.substr(1);
+                continue;
+            }
+            return false;
+        }
+
+        // strip back to last asterik
+        while (!restGlob.empty()) {
+            const char c = restGlob.back();
+            if (c == '*') {
+                break;
+            }
+            if (restString.empty()) {
+                return false;
+            }
+            if (c == '?' || charMatchFunc(c, restString.back())) {
+                restGlob = restGlob.substr(0, restGlob.size() - 1);
+                restString = restString.substr(0, restString.size() - 1);
+                continue;
+            }
+            return false;
+        }
+
+        // collapse sequential asteriks in front
+        while (restGlob.size() > 1) {
+            if (restGlob.front() == '*' && restGlob[1] == '*') {
+                restGlob = restGlob.substr(1);
+            } else {
+                break;
+            }
+        }
+
+        // collapse sequential asteriks in back
+        while (restGlob.size() > 1) {
+            if (restGlob.back() == '*' && restGlob[restGlob.size() - 2] == '*') {
+                restGlob = restGlob.substr(0, restGlob.size() - 1);
+            } else {
+                break;
+            }
+        }
+
+        // if the glob is now empty it only matches the empty string
+        if (restGlob.empty()) {
+            return restString.empty();
+        }
+
+        if (restGlob.size() == 1) {
+            // this means that restGlob is a single asterik
+            return true;
+        }
+
+        // this means we have something like "*stuff*" or "*?anything?*" or "*abc*def*".
+
+        // extract the next non-* string from restGlob
+        // note that since we know there is a '*' at the end of the string we don't need to check if
+        // we actually find one, it's guaranteed to exist
+        std::string_view nextGlobSeq = restGlob.substr(1, restGlob.find_first_of('*', 1) - 1);
+        const size_t lastMatchAt = FindLastMatchNoAsterik(restString, nextGlobSeq, charMatchFunc);
+        if (lastMatchAt == std::string_view::npos) {
+            return false;
+        }
+
+        // asterik matched a sequence of characters, strip and restart
+        restString = restString.substr(lastMatchAt + nextGlobSeq.size());
+        restGlob = restGlob.substr(nextGlobSeq.size() + 1);
+
+        continue;
+    }
+}
+
+bool GlobMatches(std::string_view string, std::string_view glob) {
+    return GlobMatchesTemplate(
+        string, glob, [](const char lhs, const char rhs) { return lhs == rhs; });
+}
+
+bool CaseInsensitiveGlobMatches(std::string_view string, std::string_view glob) {
+    return GlobMatchesTemplate(string, glob, [](const char lhs, const char rhs) {
+        const char cl = (lhs >= 'A' && lhs <= 'Z') ? (lhs + ('a' - 'A')) : lhs;
+        const char cr = (rhs >= 'A' && rhs <= 'Z') ? (rhs + ('a' - 'A')) : rhs;
+        return cl == cr;
+    });
+}
 } // namespace HyoutaUtils::TextUtils

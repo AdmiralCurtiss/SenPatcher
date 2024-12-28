@@ -1293,6 +1293,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		test/sha256_test.cpp
 		test/text_case_test.cpp
 		test/text_encoding_test.cpp
+		test/text_glob_test.cpp
 	)
 	target_compile_definitions(tests
 		PUBLIC ${DEFINES_ZSTD}
