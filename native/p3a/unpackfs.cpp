@@ -1,5 +1,6 @@
 #include "unpackfs.h"
 
+#include <cassert>
 #include <filesystem>
 #include <memory>
 #include <string_view>
@@ -15,6 +16,7 @@
 #include "p3a/structs.h"
 
 #include "util/file.h"
+#include "util/scope.h"
 #include "util/text.h"
 
 namespace SenPatcher {
@@ -214,107 +216,156 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             return false;
         }
 
-        // not particularly memory efficient but whatever
-        auto filedata = std::make_unique_for_overwrite<char[]>(fileinfo.CompressedSize);
-        uint64_t filedataSize = fileinfo.CompressedSize;
-        if (!filedata) {
-            return false;
-        }
-        if (!f.SetPosition(fileinfo.Offset)) {
-            return false;
-        }
-        if (f.Read(filedata.get(), fileinfo.CompressedSize) != fileinfo.CompressedSize) {
-            return false;
-        }
-
-        if (fileinfo.CompressedHash != XXH64(filedata.get(), fileinfo.CompressedSize, 0)) {
-            return false;
-        }
-
+        bool uncompressed = false;
         json.Key("Compression");
         if (fileinfo.CompressionType == P3ACompressionType::LZ4) {
             json.String("lz4");
-            if (!noDecompression) {
-                auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
-                if (!decomp) {
-                    return false;
-                }
-                if (LZ4_decompress_safe(filedata.get(),
-                                        decomp.get(),
-                                        fileinfo.CompressedSize,
-                                        fileinfo.UncompressedSize)
-                    != fileinfo.UncompressedSize) {
-                    return false;
-                }
-                decomp.swap(filedata);
-                filedataSize = fileinfo.UncompressedSize;
-
-                if (hasUncompressedHash
-                    && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
-                    return false;
-                }
-            }
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD) {
             json.String("zStd");
-            if (!noDecompression) {
-                auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
-                if (!decomp) {
-                    return false;
-                }
-                if (ZSTD_decompress(decomp.get(),
-                                    fileinfo.UncompressedSize,
-                                    filedata.get(),
-                                    fileinfo.CompressedSize)
-                    != fileinfo.UncompressedSize) {
-                    return false;
-                }
-                decomp.swap(filedata);
-                filedataSize = fileinfo.UncompressedSize;
-
-                if (hasUncompressedHash
-                    && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
-                    return false;
-                }
-            }
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD_DICT) {
             json.String("zStdDict");
-            if (!noDecompression) {
-                if (!ddict) {
-                    return false;
-                }
-
-                auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
-                if (!decomp) {
-                    return false;
-                }
-                ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
-                if (!dctx) {
-                    return false;
-                }
-                if (ZSTD_decompress_usingDDict(dctx.get(),
-                                               decomp.get(),
-                                               fileinfo.UncompressedSize,
-                                               filedata.get(),
-                                               fileinfo.CompressedSize,
-                                               ddict.get())
-                    != fileinfo.UncompressedSize) {
-                    return false;
-                }
-
-                decomp.swap(filedata);
-                filedataSize = fileinfo.UncompressedSize;
-
-                if (hasUncompressedHash
-                    && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
-                    return false;
-                }
-            }
         } else {
             json.String("none");
-            if (fileinfo.CompressedSize != fileinfo.UncompressedSize) {
+            uncompressed = true;
+        }
+
+        if (uncompressed || noDecompression) {
+            if (uncompressed) {
+                if (fileinfo.CompressedSize != fileinfo.UncompressedSize) {
+                    return false;
+                }
+                if (hasUncompressedHash && fileinfo.CompressedHash != fileinfo.UncompressedHash) {
+                    return false;
+                }
+            }
+
+            uint64_t filedataSize = fileinfo.CompressedSize;
+            if (!f.SetPosition(fileinfo.Offset)) {
                 return false;
             }
-            if (hasUncompressedHash && fileinfo.CompressedHash != fileinfo.UncompressedHash) {
+
+            XXH64_state_t* hashState = XXH64_createState();
+            if (hashState == nullptr) {
+                return false;
+            }
+            auto hashStateGuard =
+                HyoutaUtils::MakeScopeGuard([&hashState] { XXH64_freeState(hashState); });
+            XXH64_reset(hashState, 0);
+
+            static constexpr size_t bufferSize = 4096;
+            std::array<char, bufferSize> buffer;
+            uint64_t rest = filedataSize;
+            while (rest > 0) {
+                size_t blockSize = (rest > bufferSize) ? bufferSize : static_cast<size_t>(rest);
+                if (f.Read(buffer.data(), blockSize) != blockSize) {
+                    return false;
+                }
+                XXH64_update(hashState, buffer.data(), blockSize);
+                if (f2.Write(buffer.data(), blockSize) != blockSize) {
+                    return false;
+                }
+                rest -= blockSize;
+            }
+            if (fileinfo.CompressedHash != XXH64_digest(hashState)) {
+                return false;
+            }
+        } else {
+            auto filedata = std::make_unique_for_overwrite<char[]>(fileinfo.CompressedSize);
+            uint64_t filedataSize = fileinfo.CompressedSize;
+            if (!filedata) {
+                return false;
+            }
+            if (!f.SetPosition(fileinfo.Offset)) {
+                return false;
+            }
+            if (f.Read(filedata.get(), fileinfo.CompressedSize) != fileinfo.CompressedSize) {
+                return false;
+            }
+
+            if (fileinfo.CompressedHash != XXH64(filedata.get(), fileinfo.CompressedSize, 0)) {
+                return false;
+            }
+
+            if (fileinfo.CompressionType == P3ACompressionType::LZ4) {
+                if (!noDecompression) {
+                    auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
+                    if (!decomp) {
+                        return false;
+                    }
+                    if (LZ4_decompress_safe(filedata.get(),
+                                            decomp.get(),
+                                            fileinfo.CompressedSize,
+                                            fileinfo.UncompressedSize)
+                        != fileinfo.UncompressedSize) {
+                        return false;
+                    }
+                    decomp.swap(filedata);
+                    filedataSize = fileinfo.UncompressedSize;
+
+                    if (hasUncompressedHash
+                        && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
+                        return false;
+                    }
+                }
+            } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD) {
+                if (!noDecompression) {
+                    auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
+                    if (!decomp) {
+                        return false;
+                    }
+                    if (ZSTD_decompress(decomp.get(),
+                                        fileinfo.UncompressedSize,
+                                        filedata.get(),
+                                        fileinfo.CompressedSize)
+                        != fileinfo.UncompressedSize) {
+                        return false;
+                    }
+                    decomp.swap(filedata);
+                    filedataSize = fileinfo.UncompressedSize;
+
+                    if (hasUncompressedHash
+                        && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
+                        return false;
+                    }
+                }
+            } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD_DICT) {
+                if (!noDecompression) {
+                    if (!ddict) {
+                        return false;
+                    }
+
+                    auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
+                    if (!decomp) {
+                        return false;
+                    }
+                    ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
+                    if (!dctx) {
+                        return false;
+                    }
+                    if (ZSTD_decompress_usingDDict(dctx.get(),
+                                                   decomp.get(),
+                                                   fileinfo.UncompressedSize,
+                                                   filedata.get(),
+                                                   fileinfo.CompressedSize,
+                                                   ddict.get())
+                        != fileinfo.UncompressedSize) {
+                        return false;
+                    }
+
+                    decomp.swap(filedata);
+                    filedataSize = fileinfo.UncompressedSize;
+
+                    if (hasUncompressedHash
+                        && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
+                        return false;
+                    }
+                }
+            } else {
+                assert(0); // should never come here
+                return false;
+            }
+
+            if (f2.Write(filedata.get(), filedataSize) != filedataSize) {
                 return false;
             }
         }
@@ -328,10 +379,6 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
                 json.Key("UncompressedHash");
                 json.Uint64(fileinfo.UncompressedHash);
             }
-        }
-
-        if (f2.Write(filedata.get(), filedataSize) != filedataSize) {
-            return false;
         }
 
         json.EndObject();
