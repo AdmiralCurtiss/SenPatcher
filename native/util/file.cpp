@@ -25,6 +25,7 @@
 #undef CreateDirectory
 #else
 #include <cstdio>
+#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -256,19 +257,17 @@ std::optional<uint64_t> File::GetLength() noexcept {
         return static_cast<uint64_t>(size.QuadPart);
     }
 #else
-    auto oldPos = GetPosition();
-    if (!oldPos) {
+    int fd = fileno((FILE*)Filehandle);
+    if (fd == -1) {
         return std::nullopt;
     }
-    if (!SetPosition(0, SetPositionMode::End)) {
+    struct stat buf {};
+    if (fstat(fd, &buf) != 0) {
         return std::nullopt;
     }
-    auto length = GetPosition();
-    if (!length) {
-        return std::nullopt;
+    if (S_ISREG(buf.st_mode)) {
+        return static_cast<uint64_t>(buf.st_size);
     }
-    SetPosition(*oldPos, SetPositionMode::Begin);
-    return length;
 #endif
     return std::nullopt;
 }
