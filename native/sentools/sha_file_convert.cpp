@@ -530,6 +530,7 @@ struct ProgramArgs {
     std::vector<Arg> Input;
     std::string InternalInput;
     std::string Output;
+    bool GenerateRaw = false;
 };
 } // namespace
 
@@ -599,6 +600,17 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
     auto output = ReadString(root, "Output");
     if (!output) {
         return std::nullopt;
+    }
+    auto outputType = ReadString(root, "OutputType");
+    args.GenerateRaw = true;
+    if (outputType) {
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(*outputType, "structs")) {
+            args.GenerateRaw = false;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(*outputType, "raw")) {
+            args.GenerateRaw = true;
+        } else {
+            return std::nullopt;
+        }
     }
     args.Output = std::move(*output);
 
@@ -795,11 +807,10 @@ int SHA_File_Convert_Function(int argc, char** argv) {
         // limit for the Entries but also results in a "fatal error C1060: compiler is out of heap
         // space". So we'll be dumb and just pre-generate a huge byte array, and then
         // reinterpret_cast that to the correct data types, technical UB be damned.
-        static constexpr bool generateRawBytes = true;
 
         std::string source;
         source.append("#pragma once\n\n");
-        if (generateRawBytes) {
+        if (programArgs->GenerateRaw) {
             source.append("#ifdef D\n");
             source.append("#undef D\n");
             source.append("#endif\n");
