@@ -120,10 +120,18 @@ static TreeNode& InsertDirectory(TreeNode& tree,
     auto& existingDirIndices = tree.ChildLookup[dirnameLowercase];
     for (size_t existingDirIndex : existingDirIndices) {
         auto& existingDir = tree.Children[existingDirIndex];
-        if (existingDir.IsDirectory
-            && (existingDir.DlcIndex == 0 || existingDir.DlcIndex == dlcIndex)) {
-            existingDir.GameVersionBits |= gameVersionBits;
-            return existingDir;
+        if (existingDir.IsDirectory) {
+            if (existingDir.DlcIndex == dlcIndex) {
+                existingDir.GameVersionBits |= gameVersionBits;
+                return existingDir;
+            }
+
+            // when inserting DLC, it is also okay to insert into an existing non-DLC directory, as
+            // long as the non-DLC directory has all version bits of the DLC set
+            if (dlcIndex != 0 && existingDir.DlcIndex == 0
+                && ((existingDir.GameVersionBits & gameVersionBits) == gameVersionBits)) {
+                return existingDir;
+            }
         }
     }
 
