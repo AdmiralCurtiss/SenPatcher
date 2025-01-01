@@ -5,7 +5,9 @@
 #include "imgui.h"
 
 #include "gui_fonts.h"
+#include "gui_senpatcher_main_window.h"
 #include "gui_state.h"
+#include "gui_window.h"
 #include "senpatcher_version.h"
 #include "util/text.h"
 
@@ -17,7 +19,18 @@
 
 namespace SenTools {
 static void RenderFrame(ImGuiIO& io, GuiState& state) {
-    state.MainWindow.RenderFrame();
+    size_t windowCount = state.Windows.size();
+    for (size_t i = 0; i < windowCount;) {
+        GUI::Window* window = state.Windows[i].get();
+        ImGui::PushID(static_cast<const void*>(window));
+        if (!window->RenderFrame(state)) {
+            state.Windows.erase(state.Windows.begin() + i);
+            --windowCount;
+        } else {
+            ++i;
+        }
+        ImGui::PopID();
+    }
 
     // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You
     // can browse its code to learn more about Dear ImGui!).
@@ -67,6 +80,7 @@ static void RenderFrame(ImGuiIO& io, GuiState& state) {
 
 int RunGui(int argc, char** argvUtf8) {
     GuiState state;
+    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherMainWindow>());
     const std::string_view windowTitle("SenPatcher " SENPATCHER_VERSION);
 #ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(windowTitle.data(), windowTitle.size());

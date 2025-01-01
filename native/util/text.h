@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -71,4 +72,18 @@ std::string ToUpper(std::string_view sv);
 
 bool GlobMatches(std::string_view string, std::string_view glob);
 bool CaseInsensitiveGlobMatches(std::string_view string, std::string_view glob);
+
+// Extracts a string from a fixed-length maybe-nullterminated buffer.
+inline std::string_view StripToNull(std::string_view sv) {
+    for (size_t i = 0; i < sv.size(); ++i) {
+        if (sv[i] == '\0') {
+            return sv.substr(0, i);
+        }
+    }
+    return sv;
+}
+template<size_t length>
+inline std::string_view StripToNull(const std::array<char, length>& arr) {
+    return StripToNull(std::string_view(arr.data(), arr.size()));
+}
 } // namespace HyoutaUtils::TextUtils

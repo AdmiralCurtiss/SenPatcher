@@ -1,7 +1,9 @@
 #include "pkg_extract.h"
+#include "pkg_extract_main.h"
 
 #include <cstdio>
 #include <filesystem>
+#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -55,42 +57,46 @@ int PKG_Extract_Function(int argc, char** argv) {
         target = tmp;
     }
 
+    auto result = ExtractPkg(source, target, generateJson);
+    if (result.IsError()) {
+        printf("%s\n", result.GetErrorValue().c_str());
+        return -1;
+    }
 
+    return 0;
+}
+
+HyoutaUtils::Result<ExtractPkgResult, std::string>
+    ExtractPkg(std::string_view source, std::string_view target, bool generateJson) {
     std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
     HyoutaUtils::IO::File infile(std::string_view(source), HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
-        printf("Failed to open input file.\n");
-        return -1;
+        return std::string("Failed to open input file.");
     }
     auto filesize = infile.GetLength();
     if (!filesize) {
-        printf("Failed to get size of input file.\n");
-        return -1;
+        return std::string("Failed to get size of input file.");
     }
 
     auto pkgMemory = std::make_unique_for_overwrite<char[]>(*filesize);
     if (!pkgMemory) {
-        printf("Failed to allocate memory.\n");
-        return -1;
+        return std::string("Failed to allocate memory.");
     }
     if (infile.Read(pkgMemory.get(), *filesize) != *filesize) {
-        printf("Failed read input file.\n");
-        return -1;
+        return std::string("Failed read input file.");
     }
 
     SenLib::PkgHeader pkg;
     if (!SenLib::ReadPkgFromMemory(
             pkg, pkgMemory.get(), *filesize, HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-        printf("Failed to parse pkg header.\n");
-        return -1;
+        return std::string("Failed to parse pkg header.");
     }
 
     {
         std::error_code ec;
         std::filesystem::create_directories(targetpath, ec);
         if (ec) {
-            printf("Failed to create output directoy.\n");
-            return -1;
+            return std::string("Failed to create output directoy.");
         }
     }
 
@@ -109,8 +115,7 @@ int PKG_Extract_Function(int argc, char** argv) {
 
         auto buffer = std::make_unique<char[]>(pkgFile.UncompressedSize);
         if (!buffer) {
-            printf("Failed to allocate memory.\n");
-            return false;
+            return std::string("Failed to allocate memory.");
         }
         if (!SenLib::ExtractAndDecompressPkgFile(
                 buffer.get(),
@@ -119,8 +124,7 @@ int PKG_Extract_Function(int argc, char** argv) {
                 pkgFile.CompressedSize,
                 pkgFile.Flags,
                 HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-            printf("Failed to extract file %zu from pkg.\n", i);
-            return -1;
+            return std::format("Failed to extract file {} from pkg.", i);
         }
 
         const auto& pkgName = pkgFile.Filename;
@@ -133,13 +137,11 @@ int PKG_Extract_Function(int argc, char** argv) {
         HyoutaUtils::IO::File outfile(targetpath / pkgNameSv.substr(0, pkgFilenameLength),
                                       HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
-            printf("Failed to open output file.\n");
-            return -1;
+            return std::string("Failed to open output file.");
         }
 
         if (outfile.Write(buffer.get(), pkgFile.UncompressedSize) != pkgFile.UncompressedSize) {
-            printf("Failed to write to output file.\n");
-            return -1;
+            return std::string("Failed to write to output file.");
         }
 
         json.Key("NameInArchive");
@@ -156,16 +158,16 @@ int PKG_Extract_Function(int argc, char** argv) {
     if (generateJson) {
         HyoutaUtils::IO::File f2(targetpath / L"__pkg.json", HyoutaUtils::IO::OpenMode::Write);
         if (!f2.IsOpen()) {
-            return false;
+            return std::string("Failed to open __pkg.json.");
         }
 
         const char* jsonstring = jsonbuffer.GetString();
         const size_t jsonstringsize = jsonbuffer.GetSize();
         if (f2.Write(jsonstring, jsonstringsize) != jsonstringsize) {
-            return false;
+            return std::string("Failed to write __pkg.json.");
         }
     }
 
-    return 0;
+    return ExtractPkgResult::Success;
 }
 } // namespace SenTools

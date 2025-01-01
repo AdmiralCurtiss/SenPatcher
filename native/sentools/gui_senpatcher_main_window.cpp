@@ -4,7 +4,10 @@
 
 #include "imgui.h"
 
+#include "gui_senpatcher_extract_pkg_window.h"
+#include "gui_state.h"
 #include "senpatcher_version.h"
+#include "util/scope.h"
 
 namespace SenTools::GUI {
 static void TextUnformatted(std::string_view sv) {
@@ -16,12 +19,18 @@ static void TextUnformattedRightAlign(std::string_view sv) {
     ImGui::TextUnformatted(sv.data(), sv.data() + sv.size());
 }
 
-void SenPatcherMainWindow::RenderFrame() {
-    ImGui::Begin("SenPatcher", nullptr, ImGuiWindowFlags_MenuBar);
+bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
+    bool visible = ImGui::Begin("SenPatcher", nullptr, ImGuiWindowFlags_MenuBar);
+    const auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
+    if (!visible) {
+        return true;
+    }
 
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Toolbox")) {
             if (ImGui::MenuItem("Extract PKG...")) {
+                state.Windows.emplace_back(
+                    std::make_unique<GUI::SenPatcherExtractPkgWindow>(state));
             }
             if (ImGui::MenuItem("Extract PKA...")) {
             }
@@ -76,7 +85,6 @@ void SenPatcherMainWindow::RenderFrame() {
     if (ImGui::Button("Patch game##X", ImVec2(-1.0f, 0.0f))) {
     }
 
-
-    ImGui::End();
+    return true;
 }
 } // namespace SenTools::GUI

@@ -207,6 +207,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/pka_pack.h
 		sentools/pkg_extract.cpp
 		sentools/pkg_extract.h
+		sentools/pkg_extract_main.h
 		sentools/pkg_pack.cpp
 		sentools/pkg_pack.h
 		sentools/pkg_repack.cpp
@@ -309,9 +310,14 @@ if (SENPATCHER_BUILD_TOOLS)
 		target_sources(sentools PRIVATE
 			sentools/gui_fonts.cpp
 			sentools/gui_fonts.h
+			sentools/gui_senpatcher_extract_pkg_window.cpp
+			sentools/gui_senpatcher_extract_pkg_window.h
 			sentools/gui_senpatcher_main_window.cpp
 			sentools/gui_senpatcher_main_window.h
+			sentools/gui_state.cpp
 			sentools/gui_state.h
+			sentools/gui_window.cpp
+			sentools/gui_window.h
 			sentools/main_gui.cpp
 			sentools/main_gui.h
 

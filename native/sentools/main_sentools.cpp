@@ -15,7 +15,7 @@
 #include "p3a_repack.h"
 #include "pka_extract.h"
 #include "pka_pack.h"
-#include "pkg_extract.h"
+#include "pkg_extract_main.h"
 #include "pkg_pack.h"
 #include "pkg_repack.h"
 #include "sha_file_convert.h"
