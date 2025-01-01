@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+#include "gui_file_browser.h"
 #include "gui_window.h"
 
 namespace SenTools::GUI {
@@ -21,6 +22,9 @@ private:
     std::array<char, 1024> OutputPath{};
     bool GenerateJson = false;
     std::string StatusMessage;
+
+    FileBrowser InputFileBrowser;
+    FileBrowser OutputFileBrowser;
 
     struct ExtractionThreadState;
     std::unique_ptr<ExtractionThreadState> ExtractionThread = nullptr;

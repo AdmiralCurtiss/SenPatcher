@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -85,5 +86,24 @@ inline std::string_view StripToNull(std::string_view sv) {
 template<size_t length>
 inline std::string_view StripToNull(const std::array<char, length>& arr) {
     return StripToNull(std::string_view(arr.data(), arr.size()));
+}
+
+inline void WriteToFixedLengthBuffer(char* buffer,
+                                     size_t length,
+                                     std::string_view source,
+                                     bool mustBeNullTerminated) {
+    if (buffer == nullptr || length == 0) {
+        return;
+    }
+
+    std::memset(buffer, 0, length);
+    const size_t l = (mustBeNullTerminated ? (length - 1) : length);
+    std::memcpy(buffer, source.data(), l < source.size() ? l : source.size());
+}
+template<size_t length>
+inline void WriteToFixedLengthBuffer(std::array<char, length>& target,
+                                     std::string_view source,
+                                     bool mustBeNullTerminated) {
+    WriteToFixedLengthBuffer(target.data(), target.size(), source, mustBeNullTerminated);
 }
 } // namespace HyoutaUtils::TextUtils

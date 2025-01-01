@@ -308,6 +308,8 @@ if (SENPATCHER_BUILD_TOOLS)
 
 	if (SENPATCHER_WITH_IMGUI)
 		target_sources(sentools PRIVATE
+			sentools/gui_file_browser.cpp
+			sentools/gui_file_browser.h
 			sentools/gui_fonts.cpp
 			sentools/gui_fonts.h
 			sentools/gui_senpatcher_extract_pkg_window.cpp

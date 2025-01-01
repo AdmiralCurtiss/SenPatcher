@@ -80,7 +80,35 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
             ImGui::InputText(
                 "##Input", InputPath.data(), InputPath.size(), ImGuiInputTextFlags_ElideLeft);
             ImGui::TableNextColumn();
-            ImGui::Button("Browse...##BrowseInput");
+            if (ImGui::Button("Browse...##BrowseInput")) {
+                InputFileBrowser.Reset(FileBrowserMode::OpenExistingFile,
+                                       HyoutaUtils::TextUtils::StripToNull(InputPath),
+                                       "CS/Reverie/TX PKG file (*.pkg)|*.pkg|All files (*.*)|*.*",
+                                       false,
+                                       false);
+                ImGui::OpenPopup("Select PKG to unpack");
+            }
+
+            ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+            bool modal_open = true;
+            if (ImGui::BeginPopupModal(
+                    "Select PKG to unpack", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
+                FileBrowserResult result = InputFileBrowser.RenderFrame(state);
+                if (result != FileBrowserResult::None) {
+                    if (result == FileBrowserResult::FileSelected) {
+                        HyoutaUtils::TextUtils::WriteToFixedLengthBuffer(
+                            InputPath, InputFileBrowser.GetSelectedPath(), true);
+
+                        // pre-fill output too if not yet done so
+                        if (HyoutaUtils::TextUtils::StripToNull(OutputPath).empty()) {
+                            HyoutaUtils::TextUtils::WriteToFixedLengthBuffer(
+                                OutputPath, InputFileBrowser.GetSelectedPath() + ".ex", true);
+                        }
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
 
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Output path:");
@@ -89,7 +117,30 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
             ImGui::InputText(
                 "##Output", OutputPath.data(), OutputPath.size(), ImGuiInputTextFlags_ElideLeft);
             ImGui::TableNextColumn();
-            ImGui::Button("Browse...##BrowseOutput");
+            if (ImGui::Button("Browse...##BrowseOutput")) {
+                InputFileBrowser.Reset(FileBrowserMode::SaveNewFile,
+                                       HyoutaUtils::TextUtils::StripToNull(OutputPath),
+                                       "Target Directory|new directory name",
+                                       false,
+                                       false);
+                ImGui::OpenPopup("Select target directory name (will be created)");
+            }
+
+            ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+            modal_open = true;
+            if (ImGui::BeginPopupModal("Select target directory name (will be created)",
+                                       &modal_open,
+                                       ImGuiWindowFlags_NoSavedSettings)) {
+                FileBrowserResult result = OutputFileBrowser.RenderFrame(state);
+                if (result != FileBrowserResult::None) {
+                    if (result == FileBrowserResult::FileSelected) {
+                        HyoutaUtils::TextUtils::WriteToFixedLengthBuffer(
+                            OutputPath, OutputFileBrowser.GetSelectedPath(), true);
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
 
             ImGui::TableNextColumn();
             ImGui::TableNextColumn();
