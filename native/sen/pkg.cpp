@@ -23,7 +23,7 @@ bool ReadPkgFromMemory(PkgHeader& pkg,
 
     const uint32_t unknown = FromEndian(ReadUInt32(&buffer[0]), e);
     const uint32_t fileCount = FromEndian(ReadUInt32(&buffer[4]), e);
-    const size_t headerSize = 8 + (static_cast<size_t>(pkg.FileCount) * 0x50);
+    const size_t headerSize = 8 + (static_cast<size_t>(fileCount) * 0x50);
     if (length < headerSize) {
         return false;
     }
