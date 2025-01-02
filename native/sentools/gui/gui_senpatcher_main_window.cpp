@@ -4,6 +4,7 @@
 
 #include "imgui.h"
 
+#include "gui_senpatcher_extract_pka_window.h"
 #include "gui_senpatcher_extract_pkg_window.h"
 #include "gui_state.h"
 #include "senpatcher_version.h"
@@ -33,6 +34,8 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
                     std::make_unique<GUI::SenPatcherExtractPkgWindow>(state));
             }
             if (ImGui::MenuItem("Extract PKA...")) {
+                state.Windows.emplace_back(
+                    std::make_unique<GUI::SenPatcherExtractPkaWindow>(state));
             }
             if (ImGui::MenuItem("Fix Checksum of CS4 save...")) {
             }
