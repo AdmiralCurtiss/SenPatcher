@@ -8,12 +8,21 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <thread>
 
 #include "imgui.h"
 
 #include "gui_state.h"
 #include "util/file.h"
+#include "util/scope.h"
 #include "util/text.h"
+
+#ifdef BUILD_FOR_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#include <shobjidl.h>
+#endif
 
 namespace SenTools::GUI {
 namespace {
@@ -34,10 +43,12 @@ struct FileEntry {
 struct FileBrowser::Impl {
     FileBrowserMode Mode;
     std::optional<std::filesystem::path> CurrentDirectory;
-    std::array<char, 1024> Filename;
-    std::string Filter;
+    std::string Filename;
+    std::vector<FileFilter> Filters;
+    std::string DefaultExtension;
     bool PromptForOverwrite;
     bool Multiselect;
+    bool UseNativeDialogIfAvailable;
 
     std::optional<std::vector<FileEntry>> FilesInCurrentDirectory;
     ImGuiSelectionBasicStorage SelectionStorage;
@@ -46,14 +57,15 @@ struct FileBrowser::Impl {
 };
 
 FileBrowser::FileBrowser() : PImpl(std::make_unique<Impl>()) {
-    Reset(FileBrowserMode::OpenExistingFile, "", "", "All files (*)|*", false, false);
+    Reset(FileBrowserMode::OpenExistingFile, "", "", {}, "", false, false);
 }
 
 FileBrowser::~FileBrowser() = default;
 
 void FileBrowser::Reset(FileBrowserMode mode,
                         std::string_view initialPath,
-                        std::string_view filter,
+                        std::vector<FileFilter> filter,
+                        std::string_view defaultExtension,
                         bool promptForOverwrite,
                         bool multiselect) {
     size_t lastPathSep = initialPath.find_last_of(
@@ -73,13 +85,20 @@ void FileBrowser::Reset(FileBrowserMode mode,
         suggestedFilename = initialPath;
     }
 
-    Reset(mode, initialDirectory, suggestedFilename, filter, promptForOverwrite, multiselect);
+    Reset(mode,
+          initialDirectory,
+          suggestedFilename,
+          std::move(filter),
+          defaultExtension,
+          promptForOverwrite,
+          multiselect);
 }
 
 void FileBrowser::Reset(FileBrowserMode mode,
                         std::string_view initialDirectory,
                         std::string_view suggestedFilename,
-                        std::string_view filter,
+                        std::vector<FileFilter> filter,
+                        std::string_view defaultExtension,
                         bool promptForOverwrite,
                         bool multiselect) {
     PImpl->Mode = mode;
@@ -89,15 +108,229 @@ void FileBrowser::Reset(FileBrowserMode mode,
     } else {
         PImpl->CurrentDirectory = HyoutaUtils::IO::FilesystemPathFromUtf8(initialDirectory);
     }
-    HyoutaUtils::TextUtils::WriteToFixedLengthBuffer(PImpl->Filename, suggestedFilename, true);
-    PImpl->Filter = std::string(filter);
+    PImpl->Filename = std::string(suggestedFilename);
+    PImpl->Filters = std::move(filter);
+    PImpl->DefaultExtension = std::string(defaultExtension);
     PImpl->FilesInCurrentDirectory.reset();
     PImpl->SelectionStorage.Clear();
     PImpl->PromptForOverwrite = promptForOverwrite;
     PImpl->Multiselect = multiselect;
+    PImpl->UseNativeDialogIfAvailable = true;
 }
 
 FileBrowserResult FileBrowser::RenderFrame(GuiState& state) {
+#ifdef BUILD_FOR_WINDOWS
+    if (PImpl->UseNativeDialogIfAvailable) {
+        FileBrowserResult result = FileBrowserResult::Canceled;
+        std::thread nativeFileDialogThread([&]() -> void {
+            // native Windows file dialog is COM, so we need to init that
+            HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+            if (FAILED(hr)) {
+                return;
+            }
+            auto coInitializeGuard = HyoutaUtils::MakeScopeGuard([]() { CoUninitialize(); });
+
+            // the rest of the windows dialog code here is pretty much just an adaptation of
+            // https://learn.microsoft.com/en-us/windows/win32/shell/common-file-dialog
+            IFileDialog* pfd = nullptr;
+            if (PImpl->Mode == FileBrowserMode::OpenExistingFile) {
+                IFileOpenDialog* pfod = nullptr;
+                hr = CoCreateInstance(
+                    CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfod));
+                pfd = pfod;
+            } else if (PImpl->Mode == FileBrowserMode::SaveNewFile) {
+                IFileSaveDialog* pfsd = nullptr;
+                hr = CoCreateInstance(
+                    CLSID_FileSaveDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfsd));
+                pfd = pfsd;
+            } else {
+                return;
+            }
+            if (FAILED(hr)) {
+                return;
+            }
+            auto coCreateGuard = HyoutaUtils::MakeScopeGuard([&]() { pfd->Release(); });
+
+            // TODO: pfd->SetClientGuid()?
+
+            DWORD options;
+            hr = pfd->GetOptions(&options);
+            if (FAILED(hr)) {
+                return;
+            }
+
+            // TODO: Expose FOS_PICKFOLDERS somehow?
+
+            options &= ~FOS_STRICTFILETYPES;
+            options |= FOS_FORCEFILESYSTEM;
+            if (PImpl->PromptForOverwrite && PImpl->Mode == FileBrowserMode::SaveNewFile) {
+                options |= FOS_OVERWRITEPROMPT;
+            } else {
+                options &= ~FOS_OVERWRITEPROMPT;
+            }
+            if (PImpl->Multiselect && PImpl->Mode == FileBrowserMode::OpenExistingFile) {
+                options |= FOS_ALLOWMULTISELECT;
+            } else {
+                options &= ~FOS_ALLOWMULTISELECT;
+            }
+            hr = pfd->SetOptions(options);
+            if (FAILED(hr)) {
+                return;
+            }
+
+            // not sure if these need to stay in memory so better be safe...
+            std::vector<std::wstring> filterStrings;
+            std::vector<COMDLG_FILTERSPEC> filterSpec;
+            if (!PImpl->Filters.empty()) {
+                const size_t sz = PImpl->Filters.size();
+                filterStrings.reserve(sz * 2u);
+                filterSpec.reserve(sz);
+                for (const FileFilter& f : PImpl->Filters) {
+                    auto name = HyoutaUtils::TextUtils::Utf8ToWString(f.Name.data(), f.Name.size());
+                    if (!name) {
+                        return;
+                    }
+                    auto filter =
+                        HyoutaUtils::TextUtils::Utf8ToWString(f.Filter.data(), f.Filter.size());
+                    if (!filter) {
+                        return;
+                    }
+                    filterStrings.push_back(std::move(*name));
+                    filterStrings.push_back(std::move(*filter));
+                }
+                for (size_t i = 0; i < sz; ++i) {
+                    auto& spec = filterSpec.emplace_back();
+                    spec.pszName = filterStrings[i * 2].c_str();
+                    spec.pszSpec = filterStrings[i * 2 + 1].c_str();
+                }
+                hr = pfd->SetFileTypes(static_cast<UINT>(sz), filterSpec.data());
+                if (FAILED(hr)) {
+                    return;
+                }
+            }
+
+            std::wstring defaultExtension;
+            if (!PImpl->DefaultExtension.empty()) {
+                auto ext = HyoutaUtils::TextUtils::Utf8ToWString(PImpl->DefaultExtension.data(),
+                                                                 PImpl->DefaultExtension.size());
+                if (!ext) {
+                    return;
+                }
+                defaultExtension = std::move(*ext);
+                hr = pfd->SetDefaultExtension(defaultExtension.c_str());
+                if (FAILED(hr)) {
+                    return;
+                }
+            }
+
+            IShellItem* defaultFolder = nullptr;
+            auto defaultFolderGuard = HyoutaUtils::MakeScopeGuard([&]() {
+                if (defaultFolder != nullptr) {
+                    defaultFolder->Release();
+                }
+            });
+            if (PImpl->CurrentDirectory) {
+                hr = SHCreateItemFromParsingName(
+                    PImpl->CurrentDirectory->c_str(), nullptr, IID_PPV_ARGS(&defaultFolder));
+                if (SUCCEEDED(hr)) {
+                    pfd->SetFolder(defaultFolder);
+                } else {
+                    defaultFolder = nullptr;
+                }
+            }
+
+            std::wstring defaultName;
+            if (!PImpl->Filename.empty()) {
+                auto name = HyoutaUtils::TextUtils::Utf8ToWString(PImpl->Filename.data(),
+                                                                  PImpl->Filename.size());
+                if (!name) {
+                    return;
+                }
+                defaultName = std::move(*name);
+                hr = pfd->SetFileName(defaultName.c_str());
+                if (FAILED(hr)) {
+                    return;
+                }
+            }
+
+            hr = pfd->Show(nullptr);
+            if (FAILED(hr)) {
+                return;
+            }
+
+            if (PImpl->Multiselect && PImpl->Mode == FileBrowserMode::OpenExistingFile) {
+                IShellItemArray* psiaResults;
+                hr = static_cast<IFileOpenDialog*>(pfd)->GetResults(&psiaResults);
+                if (FAILED(hr)) {
+                    return;
+                }
+                auto psiaResultsGuard =
+                    HyoutaUtils::MakeScopeGuard([&]() { psiaResults->Release(); });
+
+                PImpl->SelectedPaths.clear();
+                DWORD count = 0;
+                hr = psiaResults->GetCount(&count);
+                if (FAILED(hr)) {
+                    return;
+                }
+
+                PImpl->SelectedPaths.reserve(count);
+                for (DWORD i = 0; i < count; ++i) {
+                    IShellItem* psiResult;
+                    hr = psiaResults->GetItemAt(i, &psiResult);
+                    if (FAILED(hr)) {
+                        return;
+                    }
+
+                    PWSTR pszFilePath = nullptr;
+                    hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+                    if (FAILED(hr)) {
+                        return;
+                    }
+                    auto pszFilePathGuard =
+                        HyoutaUtils::MakeScopeGuard([&]() { CoTaskMemFree(pszFilePath); });
+
+                    auto utf8 = HyoutaUtils::TextUtils::WStringToUtf8(
+                        pszFilePath, static_cast<size_t>(lstrlenW(pszFilePath)));
+                    if (!utf8) {
+                        return;
+                    }
+
+                    PImpl->SelectedPaths.push_back(std::move(*utf8));
+                }
+                result = FileBrowserResult::FileSelected;
+            } else {
+                IShellItem* psiResult;
+                hr = pfd->GetResult(&psiResult);
+                if (FAILED(hr)) {
+                    return;
+                }
+                auto psiResultGuard = HyoutaUtils::MakeScopeGuard([&]() { psiResult->Release(); });
+
+                PWSTR pszFilePath = nullptr;
+                hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+                if (FAILED(hr)) {
+                    return;
+                }
+                auto pszFilePathGuard =
+                    HyoutaUtils::MakeScopeGuard([&]() { CoTaskMemFree(pszFilePath); });
+
+                auto utf8 = HyoutaUtils::TextUtils::WStringToUtf8(
+                    pszFilePath, static_cast<size_t>(lstrlenW(pszFilePath)));
+                if (!utf8) {
+                    return;
+                }
+
+                PImpl->SelectedPaths.clear();
+                PImpl->SelectedPaths.push_back(std::move(*utf8));
+                result = FileBrowserResult::FileSelected;
+            }
+        });
+        nativeFileDialogThread.join();
+        return result;
+    }
+#endif
+
     if (!PImpl->CurrentDirectory) {
 #ifdef BUILD_FOR_WINDOWS
         PImpl->CurrentDirectory.emplace(u8"C:\\");
@@ -277,7 +510,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state) {
     return FileBrowserResult::None;
 }
 
-const std::string& FileBrowser::GetSelectedPath() const {
+std::string_view FileBrowser::GetSelectedPath() const {
     if (PImpl->SelectedPaths.empty()) {
         return "";
     }

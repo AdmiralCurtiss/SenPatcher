@@ -19,6 +19,10 @@ enum class FileBrowserResult {
     FileSelected,
     Canceled,
 };
+struct FileFilter {
+    std::string Name;
+    std::string Filter;
+};
 
 struct FileBrowser {
     FileBrowser();
@@ -30,20 +34,22 @@ struct FileBrowser {
 
     void Reset(FileBrowserMode mode,
                std::string_view initialPath,
-               std::string_view filter,
+               std::vector<FileFilter> filter,
+               std::string_view defaultExtension,
                bool promptForOverwrite,
                bool multiselect);
 
     void Reset(FileBrowserMode mode,
                std::string_view initialDirectory,
                std::string_view suggestedFilename,
-               std::string_view filter,
+               std::vector<FileFilter> filter,
+               std::string_view defaultExtension,
                bool promptForOverwrite,
                bool multiselect);
 
     FileBrowserResult RenderFrame(GuiState& state);
 
-    const std::string& GetSelectedPath() const;
+    std::string_view GetSelectedPath() const;
     const std::vector<std::string>& GetSelectedPaths() const;
 
 private:

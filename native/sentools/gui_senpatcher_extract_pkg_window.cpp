@@ -81,9 +81,14 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
                 "##Input", InputPath.data(), InputPath.size(), ImGuiInputTextFlags_ElideLeft);
             ImGui::TableNextColumn();
             if (ImGui::Button("Browse...##BrowseInput")) {
+                std::vector<FileFilter> filters;
+                filters.reserve(2);
+                filters.push_back(FileFilter{"CS/Reverie/TX PKG file (*.pkg)", "*.pkg"});
+                filters.push_back(FileFilter{"All files (*.*)", "*"});
                 InputFileBrowser.Reset(FileBrowserMode::OpenExistingFile,
                                        HyoutaUtils::TextUtils::StripToNull(InputPath),
-                                       "CS/Reverie/TX PKG file (*.pkg)|*.pkg|All files (*.*)|*.*",
+                                       std::move(filters),
+                                       "pkg",
                                        false,
                                        false);
                 ImGui::OpenPopup("Select PKG to unpack");
@@ -102,7 +107,9 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
                         // pre-fill output too if not yet done so
                         if (HyoutaUtils::TextUtils::StripToNull(OutputPath).empty()) {
                             HyoutaUtils::TextUtils::WriteToFixedLengthBuffer(
-                                OutputPath, InputFileBrowser.GetSelectedPath() + ".ex", true);
+                                OutputPath,
+                                std::string(InputFileBrowser.GetSelectedPath()) + ".ex",
+                                true);
                         }
                     }
                     ImGui::CloseCurrentPopup();
@@ -118,11 +125,15 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
                 "##Output", OutputPath.data(), OutputPath.size(), ImGuiInputTextFlags_ElideLeft);
             ImGui::TableNextColumn();
             if (ImGui::Button("Browse...##BrowseOutput")) {
-                InputFileBrowser.Reset(FileBrowserMode::SaveNewFile,
-                                       HyoutaUtils::TextUtils::StripToNull(OutputPath),
-                                       "Target Directory|new directory name",
-                                       false,
-                                       false);
+                std::vector<FileFilter> filters;
+                filters.reserve(1);
+                filters.push_back(FileFilter{"Target Directory", "new directory name"});
+                OutputFileBrowser.Reset(FileBrowserMode::SaveNewFile,
+                                        HyoutaUtils::TextUtils::StripToNull(OutputPath),
+                                        std::move(filters),
+                                        "",
+                                        false,
+                                        false);
                 ImGui::OpenPopup("Select target directory name (will be created)");
             }
 
