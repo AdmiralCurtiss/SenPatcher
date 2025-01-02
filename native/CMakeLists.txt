@@ -204,6 +204,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/p3a_repack/p3a_repack.cpp
 		sentools/p3a_repack/p3a_repack_main.h
 		sentools/pka_extract/pka_extract.cpp
+		sentools/pka_extract/pka_extract.h
 		sentools/pka_extract/pka_extract_main.h
 		sentools/pka_pack/pka_pack.cpp
 		sentools/pka_pack/pka_pack_main.h

@@ -1,7 +1,9 @@
+#include "pka_extract.h"
 #include "pka_extract_main.h"
 
 #include <cstdio>
 #include <filesystem>
+#include <format>
 #include <memory>
 #include <optional>
 #include <string>
@@ -15,17 +17,9 @@
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/memread.h"
+#include "util/text.h"
 
 namespace SenTools {
-static std::string_view StripToNull(std::string_view sv) {
-    for (size_t i = 0; i < sv.size(); ++i) {
-        if (sv[i] == '\0') {
-            return sv.substr(0, i);
-        }
-    }
-    return sv;
-}
-
 int PKA_Extract_Function(int argc, char** argv) {
     optparse::OptionParser parser;
     parser.description(
@@ -69,36 +63,48 @@ int PKA_Extract_Function(int argc, char** argv) {
         target = tmp;
     }
 
+    std::span<const std::string> referencedPkaPaths;
+    if (auto* referenced_pka_option = options.get("referenced-pka")) {
+        referencedPkaPaths = referenced_pka_option->strings();
+    }
 
+    auto result = ExtractPka(source, target, referencedPkaPaths);
+    if (result.IsError()) {
+        printf("%s\n", result.GetErrorValue().c_str());
+        return -1;
+    }
+
+    return 0;
+}
+
+HyoutaUtils::Result<ExtractPkaResult, std::string>
+    ExtractPka(std::string_view source,
+               std::string_view target,
+               std::span<const std::string> referencedPkaPaths) {
     std::filesystem::path sourcepath = HyoutaUtils::IO::FilesystemPathFromUtf8(source);
     std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
     HyoutaUtils::IO::File infile(sourcepath, HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
-        printf("Failed to open input file.\n");
-        return -1;
+        return std::string("Failed to open input file.");
     }
 
     SenLib::PkaHeader pkaHeader;
     if (!SenLib::ReadPkaFromFile(pkaHeader, infile)) {
-        printf("Failed to read pka header.\n");
-        return -1;
+        return std::string("Failed to read pka header.");
     }
 
     std::vector<SenLib::ReferencedPka> referencedPkas;
-    if (auto* referenced_pka_option = options.get("referenced-pka")) {
-        const auto& referencedPkaPaths = referenced_pka_option->strings();
+    {
         referencedPkas.reserve(referencedPkaPaths.size());
         for (const auto& referencedPkaPath : referencedPkaPaths) {
             auto& refPka = referencedPkas.emplace_back();
             refPka.PkaFile.Open(std::filesystem::path(referencedPkaPath),
                                 HyoutaUtils::IO::OpenMode::Read);
             if (!refPka.PkaFile.IsOpen()) {
-                printf("Error opening referenced pka.\n");
-                return -1;
+                return std::string("Error opening referenced pka.");
             }
             if (!SenLib::ReadPkaFromFile(refPka.PkaHeader, refPka.PkaFile)) {
-                printf("Error reading referenced pka.\n");
-                return -1;
+                return std::string("Error reading referenced pka.");
             }
         }
     }
@@ -107,20 +113,18 @@ int PKA_Extract_Function(int argc, char** argv) {
         std::error_code ec;
         std::filesystem::create_directories(targetpath, ec);
         if (ec) {
-            printf("Failed to create output directoy.\n");
-            return -1;
+            return std::string("Failed to create output directoy.");
         }
     }
 
     for (size_t i = 0; i < pkaHeader.PkgCount; ++i) {
         const auto& pkgName = pkaHeader.Pkgs[i].PkgName;
-        std::string_view pkgNameSv = StripToNull(std::string_view(pkgName.data(), pkgName.size()));
+        std::string_view pkgNameSv = HyoutaUtils::TextUtils::StripToNull(pkgName);
 
         SenLib::PkgHeader pkg;
         std::unique_ptr<char[]> buffer;
         if (!SenLib::ConvertPkaToSinglePkg(pkg, buffer, pkaHeader, i, infile, referencedPkas)) {
-            printf("Failed to convert archive %zu to pkg.\n", i);
-            return -1;
+            return std::format("Failed to convert archive {} ({}) to pkg.", i, pkgNameSv);
         }
 
         // Restore the possibly stored initial PKG bytes.
@@ -134,8 +138,7 @@ int PKA_Extract_Function(int argc, char** argv) {
         size_t msSize;
         if (!SenLib::CreatePkgInMemory(
                 ms, msSize, pkg, HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-            printf("Failed to convert archive %zu to pkg.\n", i);
-            return -1;
+            return std::format("Failed to convert archive {} ({}) to pkg.", i, pkgNameSv);
         }
 
         HyoutaUtils::IO::File outfile(
@@ -144,16 +147,14 @@ int PKA_Extract_Function(int argc, char** argv) {
                                      pkgNameSv.size()),
             HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
-            printf("Failed to open output file.\n");
-            return -1;
+            return std::string("Failed to open output file.\n");
         }
 
         if (outfile.Write(ms.get(), msSize) != msSize) {
-            printf("Failed to write to output file.\n");
-            return -1;
+            return std::string("Failed to write to output file.\n");
         }
     }
 
-    return 0;
+    return ExtractPkaResult::Success;
 }
 } // namespace SenTools
