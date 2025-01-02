@@ -319,6 +319,10 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_file_browser.h
 			sentools/gui/gui_fonts.cpp
 			sentools/gui/gui_fonts.h
+			sentools/gui/gui_senpatcher_compress_type1_window.cpp
+			sentools/gui/gui_senpatcher_compress_type1_window.h
+			sentools/gui/gui_senpatcher_decompress_type1_window.cpp
+			sentools/gui/gui_senpatcher_decompress_type1_window.h
 			sentools/gui/gui_senpatcher_extract_pka_window.cpp
 			sentools/gui/gui_senpatcher_extract_pka_window.h
 			sentools/gui/gui_senpatcher_extract_pkg_window.cpp

@@ -4,6 +4,8 @@
 
 #include "imgui.h"
 
+#include "gui_senpatcher_compress_type1_window.h"
+#include "gui_senpatcher_decompress_type1_window.h"
 #include "gui_senpatcher_extract_pka_window.h"
 #include "gui_senpatcher_extract_pkg_window.h"
 #include "gui_state.h"
@@ -39,7 +41,13 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             }
             if (ImGui::MenuItem("Fix Checksum of CS4 save...")) {
             }
-            if (ImGui::MenuItem("Decompress PKG Type 1 (little endian)...")) {
+            if (ImGui::MenuItem("Decompress 'type 1' compressed file...")) {
+                state.Windows.emplace_back(
+                    std::make_unique<GUI::SenPatcherDecompressType1Window>(state));
+            }
+            if (ImGui::MenuItem("Compress as 'type 1' compressed file...")) {
+                state.Windows.emplace_back(
+                    std::make_unique<GUI::SenPatcherCompressType1Window>(state));
             }
             ImGui::EndMenu();
         }
