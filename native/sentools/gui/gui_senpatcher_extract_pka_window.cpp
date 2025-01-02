@@ -48,6 +48,8 @@ SenPatcherExtractPkaWindow::SenPatcherExtractPkaWindow(GuiState& state) {
     sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
 }
 
+SenPatcherExtractPkaWindow::~SenPatcherExtractPkaWindow() = default;
+
 bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
     ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
     bool open = true;

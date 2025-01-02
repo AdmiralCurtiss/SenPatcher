@@ -10,6 +10,11 @@
 namespace SenTools::GUI {
 struct SenPatcherDecompressType1Window : public SenTools::GUI::Window {
     SenPatcherDecompressType1Window(GuiState& state);
+    SenPatcherDecompressType1Window(const SenPatcherDecompressType1Window& other) = delete;
+    SenPatcherDecompressType1Window(SenPatcherDecompressType1Window&& other) = delete;
+    SenPatcherDecompressType1Window& operator=(const SenPatcherDecompressType1Window& other) = delete;
+    SenPatcherDecompressType1Window& operator=(SenPatcherDecompressType1Window&& other) = delete;
+    ~SenPatcherDecompressType1Window();
 
     bool RenderFrame(GuiState& state) override;
 
@@ -26,6 +31,6 @@ private:
     FileBrowser OutputFileBrowser;
 
     struct WorkThreadState;
-    std::unique_ptr<WorkThreadState> WorkThread = nullptr;
+    std::unique_ptr<WorkThreadState> WorkThread;
 };
 } // namespace SenTools::GUI

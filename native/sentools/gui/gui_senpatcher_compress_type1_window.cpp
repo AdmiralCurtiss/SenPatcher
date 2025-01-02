@@ -49,6 +49,8 @@ SenPatcherCompressType1Window::SenPatcherCompressType1Window(GuiState& state) {
     sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
 }
 
+SenPatcherCompressType1Window::~SenPatcherCompressType1Window() = default;
+
 bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
     ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
     bool open = true;

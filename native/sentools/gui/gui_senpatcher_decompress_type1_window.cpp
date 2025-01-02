@@ -49,6 +49,8 @@ SenPatcherDecompressType1Window::SenPatcherDecompressType1Window(GuiState& state
     sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
 }
 
+SenPatcherDecompressType1Window::~SenPatcherDecompressType1Window() = default;
+
 bool SenPatcherDecompressType1Window::RenderFrame(GuiState& state) {
     ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
     bool open = true;

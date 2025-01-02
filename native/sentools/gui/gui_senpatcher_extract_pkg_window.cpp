@@ -50,6 +50,8 @@ SenPatcherExtractPkgWindow::SenPatcherExtractPkgWindow(GuiState& state) {
     sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
 }
 
+SenPatcherExtractPkgWindow::~SenPatcherExtractPkgWindow() = default;
+
 bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
     ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
     bool open = true;
