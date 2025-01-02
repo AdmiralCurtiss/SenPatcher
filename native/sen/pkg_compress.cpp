@@ -198,7 +198,8 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
                      const char* uncompressedData,
                      uint32_t uncompressedLength,
                      uint32_t flags,
-                     HyoutaUtils::EndianUtils::Endianness e) {
+                     HyoutaUtils::EndianUtils::Endianness e,
+                     bool forceCompression) {
     const bool wantsChecksum = (flags & static_cast<uint32_t>(0x2)) != 0;
 
     std::unique_ptr<char[]> data;
@@ -222,7 +223,7 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
 
     if (flags & static_cast<uint32_t>(0x1)) {
         // this is the built-in compression from Falcom
-        if (uncompressedLength <= 12) {
+        if (!forceCompression && uncompressedLength <= 12) {
             if (!write_uncompressed()) {
                 return false;
             }
@@ -233,7 +234,7 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
             const auto bound =
                 CompressType1BoundForBackrefByte(countPerByte, uncompressedLength, backrefByte);
             if (bound >= SIZE_MAX - offset) {
-                if (!write_uncompressed()) {
+                if (forceCompression || !write_uncompressed()) {
                     return false;
                 }
             } else {
@@ -243,14 +244,15 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
                     return false;
                 }
                 uint32_t compressedLength;
-                if (!CompressType1(compressedData.get() + offset,
-                                   compressedLength,
-                                   uncompressedData,
-                                   uncompressedLength,
-                                   backrefByte)
-                    || compressedLength >= uncompressedLength) {
+                const bool compressionSuccess = CompressType1(compressedData.get() + offset,
+                                                              compressedLength,
+                                                              uncompressedData,
+                                                              uncompressedLength,
+                                                              backrefByte);
+                if (!compressionSuccess
+                    || (!forceCompression && compressedLength >= uncompressedLength)) {
                     // compression failed or pointless, write uncompressed instead
-                    if (!write_uncompressed()) {
+                    if (forceCompression || !write_uncompressed()) {
                         return false;
                     }
                 } else {
@@ -262,15 +264,19 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
         }
     } else if (flags & static_cast<uint32_t>(0x4)) {
         // LZ4
-        if (uncompressedLength == 0 || uncompressedLength > LZ4_MAX_INPUT_SIZE) {
+        if (!forceCompression && uncompressedLength == 0) {
             if (!write_uncompressed()) {
+                return false;
+            }
+        } else if (uncompressedLength > LZ4_MAX_INPUT_SIZE) {
+            if (forceCompression || !write_uncompressed()) {
                 return false;
             }
         } else {
             const int signedSize = static_cast<int>(uncompressedLength);
             const int bound = LZ4_compressBound(signedSize);
             if (bound <= 0) {
-                if (!write_uncompressed()) {
+                if (forceCompression || !write_uncompressed()) {
                     return false;
                 }
             } else {
@@ -284,10 +290,12 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
                                                       signedSize,
                                                       bound,
                                                       LZ4HC_CLEVEL_MAX);
-                if (lz4return <= 0 || static_cast<unsigned int>(lz4return) >= uncompressedLength) {
+                if (lz4return <= 0
+                    || (!forceCompression
+                        && static_cast<unsigned int>(lz4return) >= uncompressedLength)) {
                     // compression failed or pointless, write uncompressed instead
                     compressedData.reset();
-                    if (!write_uncompressed()) {
+                    if (forceCompression || !write_uncompressed()) {
                         return false;
                     }
                 } else {
@@ -303,27 +311,34 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
         return false;
     } else if (flags & static_cast<uint32_t>(0x10)) {
         // ZSTD
-        size_t bound = ZSTD_compressBound(uncompressedLength);
-        if (uncompressedLength == 0 || ZSTD_isError(bound)) {
+        if (!forceCompression && uncompressedLength == 0) {
             if (!write_uncompressed()) {
                 return false;
             }
         } else {
-            auto compressedData = std::make_unique_for_overwrite<char[]>(bound + offset);
-            if (!compressedData) {
-                return false;
-            }
-            const size_t zstdReturn = ZSTD_compress(
-                compressedData.get() + offset, bound, uncompressedData, uncompressedLength, 22);
-            if (ZSTD_isError(zstdReturn)) {
-                compressedData.reset();
-                if (!write_uncompressed()) {
+            size_t bound = ZSTD_compressBound(uncompressedLength);
+            if (ZSTD_isError(bound)) {
+                if (forceCompression || !write_uncompressed()) {
                     return false;
                 }
             } else {
-                length = zstdReturn + offset;
-                data = std::move(compressedData);
-                resultFlags = (wantsChecksum ? 2u : 0u) | 0x10u;
+                auto compressedData = std::make_unique_for_overwrite<char[]>(bound + offset);
+                if (!compressedData) {
+                    return false;
+                }
+                const size_t zstdReturn = ZSTD_compress(
+                    compressedData.get() + offset, bound, uncompressedData, uncompressedLength, 22);
+                if (ZSTD_isError(zstdReturn)
+                    || (!forceCompression && zstdReturn >= uncompressedLength)) {
+                    compressedData.reset();
+                    if (forceCompression || !write_uncompressed()) {
+                        return false;
+                    }
+                } else {
+                    length = zstdReturn + offset;
+                    data = std::move(compressedData);
+                    resultFlags = (wantsChecksum ? 2u : 0u) | 0x10u;
+                }
             }
         }
     } else {

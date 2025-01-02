@@ -14,5 +14,6 @@ bool CompressPkgFile(std::unique_ptr<char[]>& dataBuffer,
                      const char* uncompressedData,
                      uint32_t uncompressedLength,
                      uint32_t flags,
-                     HyoutaUtils::EndianUtils::Endianness e);
+                     HyoutaUtils::EndianUtils::Endianness e,
+                     bool forceCompression = false);
 } // namespace SenLib

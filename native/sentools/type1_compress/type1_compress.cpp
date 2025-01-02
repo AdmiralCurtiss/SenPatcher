@@ -80,7 +80,8 @@ HyoutaUtils::Result<CompressType1Result, std::string> CompressType1(std::string_
                                  pkgMemory.get(),
                                  static_cast<uint32_t>(*filesize),
                                  1,
-                                 HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+                                 HyoutaUtils::EndianUtils::Endianness::LittleEndian,
+                                 true)) {
         return std::string("Compressing failed.");
     }
 
