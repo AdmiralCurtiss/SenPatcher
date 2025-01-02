@@ -20,6 +20,7 @@
 #include "pkg_extract/pkg_extract_main.h"
 #include "pkg_pack/pkg_pack_main.h"
 #include "pkg_repack/pkg_repack_main.h"
+#include "type1_compress/type1_compress_main.h"
 #include "type1_decompress/type1_decompress_main.h"
 
 #ifdef BUILD_FOR_WINDOWS
@@ -68,6 +69,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = Type1_Decompress_Name,
             .ShortDescription = Type1_Decompress_ShortDescription,
             .Function = Type1_Decompress_Function},
+    CliTool{.Name = Type1_Compress_Name,
+            .ShortDescription = Type1_Compress_ShortDescription,
+            .Function = Type1_Compress_Function},
     CliTool{.Name = Game_Verify_Name,
             .ShortDescription = Game_Verify_ShortDescription,
             .Function = Game_Verify_Function},
@@ -83,7 +87,7 @@ static void PrintUsage() {
     printf("Select one of the following tools via the first argument:\n");
     for (const auto& tool : SenTools::CliTools) {
         if (!tool.Hidden) {
-            printf(" %-15s %s\n", tool.Name, tool.ShortDescription);
+            printf(" %-18s %s\n", tool.Name, tool.ShortDescription);
         }
     }
 }
