@@ -98,7 +98,8 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
             bool modal_open = true;
             if (ImGui::BeginPopupModal(
                     "Select PKG to unpack", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
-                FileBrowserResult result = InputFileBrowser.RenderFrame(state);
+                FileBrowserResult result =
+                    InputFileBrowser.RenderFrame(state, "Select PKG to unpack");
                 if (result != FileBrowserResult::None) {
                     if (result == FileBrowserResult::FileSelected) {
                         HyoutaUtils::TextUtils::WriteToFixedLengthBuffer(
@@ -142,7 +143,8 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
             if (ImGui::BeginPopupModal("Select target directory name (will be created)",
                                        &modal_open,
                                        ImGuiWindowFlags_NoSavedSettings)) {
-                FileBrowserResult result = OutputFileBrowser.RenderFrame(state);
+                FileBrowserResult result = OutputFileBrowser.RenderFrame(
+                    state, "Select target directory name (will be created)");
                 if (result != FileBrowserResult::None) {
                     if (result == FileBrowserResult::FileSelected) {
                         HyoutaUtils::TextUtils::WriteToFixedLengthBuffer(

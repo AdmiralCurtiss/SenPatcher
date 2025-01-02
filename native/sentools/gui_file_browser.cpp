@@ -118,7 +118,7 @@ void FileBrowser::Reset(FileBrowserMode mode,
     PImpl->UseNativeDialogIfAvailable = true;
 }
 
-FileBrowserResult FileBrowser::RenderFrame(GuiState& state) {
+FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view title) {
 #ifdef BUILD_FOR_WINDOWS
     if (PImpl->UseNativeDialogIfAvailable) {
         FileBrowserResult result = FileBrowserResult::Canceled;
@@ -248,6 +248,19 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state) {
                 }
                 defaultName = std::move(*name);
                 hr = pfd->SetFileName(defaultName.c_str());
+                if (FAILED(hr)) {
+                    return;
+                }
+            }
+
+            std::wstring windowTitle;
+            if (!title.empty()) {
+                auto name = HyoutaUtils::TextUtils::Utf8ToWString(title.data(), title.size());
+                if (!name) {
+                    return;
+                }
+                windowTitle = std::move(*name);
+                hr = pfd->SetTitle(windowTitle.c_str());
                 if (FAILED(hr)) {
                     return;
                 }

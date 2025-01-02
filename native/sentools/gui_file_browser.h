@@ -47,7 +47,7 @@ struct FileBrowser {
                bool promptForOverwrite,
                bool multiselect);
 
-    FileBrowserResult RenderFrame(GuiState& state);
+    FileBrowserResult RenderFrame(GuiState& state, std::string_view title);
 
     std::string_view GetSelectedPath() const;
     const std::vector<std::string>& GetSelectedPaths() const;
