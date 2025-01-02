@@ -215,6 +215,9 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/pkg_pack/pkg_pack_main.h
 		sentools/pkg_repack/pkg_repack.cpp
 		sentools/pkg_repack/pkg_repack_main.h
+		sentools/type1_decompress/type1_decompress.cpp
+		sentools/type1_decompress/type1_decompress.h
+		sentools/type1_decompress/type1_decompress_main.h
 
 		util/hash/crc32.h
 		util/hash/crc32.c
