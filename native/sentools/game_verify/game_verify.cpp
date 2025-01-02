@@ -1,4 +1,4 @@
-#include "game_verify.h"
+#include "game_verify_main.h"
 
 #include <cstdint>
 #include <filesystem>

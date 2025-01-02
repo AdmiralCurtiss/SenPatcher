@@ -1,4 +1,4 @@
-#include "sha_file_convert.h"
+#include "dirtree_create_main.h"
 
 #include <algorithm>
 #include <array>
@@ -730,7 +730,7 @@ static bool InsertDirTreeFromFolder(TreeNode& root,
     return true;
 }
 
-int SHA_File_Convert_Function(int argc, char** argv) {
+int DirTree_Create_Function(int argc, char** argv) {
     if (argc <= 1) {
         printf("First argument must point to .json describing the data to convert.\n");
         return -1;

@@ -189,31 +189,31 @@ set(SOURCES_RAPIDJSON
 if (SENPATCHER_BUILD_TOOLS)
 	add_executable(sentools)
 	target_sources(sentools PRIVATE
-		sentools/main_sentools.cpp
 		sentools/cli_tool.h
-		sentools/bra_extract.cpp
-		sentools/bra_extract.h
-		sentools/game_verify.cpp
-		sentools/game_verify.h
-		sentools/p3a_extract.cpp
-		sentools/p3a_extract.h
-		sentools/p3a_pack.cpp
-		sentools/p3a_pack.h
-		sentools/p3a_repack.cpp
-		sentools/p3a_repack.h
-		sentools/pka_extract.cpp
-		sentools/pka_extract.h
-		sentools/pka_pack.cpp
-		sentools/pka_pack.h
-		sentools/pkg_extract.cpp
-		sentools/pkg_extract.h
-		sentools/pkg_extract_main.h
-		sentools/pkg_pack.cpp
-		sentools/pkg_pack.h
-		sentools/pkg_repack.cpp
-		sentools/pkg_repack.h
-		sentools/sha_file_convert.cpp
-		sentools/sha_file_convert.h
+		sentools/main_sentools.cpp
+		sentools/bra_extract/bra_extract.cpp
+		sentools/bra_extract/bra_extract_main.h
+		sentools/dirtree_create/dirtree_create.cpp
+		sentools/dirtree_create/dirtree_create_main.h
+		sentools/game_verify/game_verify.cpp
+		sentools/game_verify/game_verify_main.h
+		sentools/p3a_extract/p3a_extract.cpp
+		sentools/p3a_extract/p3a_extract_main.h
+		sentools/p3a_pack/p3a_pack.cpp
+		sentools/p3a_pack/p3a_pack_main.h
+		sentools/p3a_repack/p3a_repack.cpp
+		sentools/p3a_repack/p3a_repack_main.h
+		sentools/pka_extract/pka_extract.cpp
+		sentools/pka_extract/pka_extract_main.h
+		sentools/pka_pack/pka_pack.cpp
+		sentools/pka_pack/pka_pack_main.h
+		sentools/pkg_extract/pkg_extract.cpp
+		sentools/pkg_extract/pkg_extract.h
+		sentools/pkg_extract/pkg_extract_main.h
+		sentools/pkg_pack/pkg_pack.cpp
+		sentools/pkg_pack/pkg_pack_main.h
+		sentools/pkg_repack/pkg_repack.cpp
+		sentools/pkg_repack/pkg_repack_main.h
 
 		util/hash/crc32.h
 		util/hash/crc32.c
@@ -308,20 +308,20 @@ if (SENPATCHER_BUILD_TOOLS)
 
 	if (SENPATCHER_WITH_IMGUI)
 		target_sources(sentools PRIVATE
-			sentools/gui_file_browser.cpp
-			sentools/gui_file_browser.h
-			sentools/gui_fonts.cpp
-			sentools/gui_fonts.h
-			sentools/gui_senpatcher_extract_pkg_window.cpp
-			sentools/gui_senpatcher_extract_pkg_window.h
-			sentools/gui_senpatcher_main_window.cpp
-			sentools/gui_senpatcher_main_window.h
-			sentools/gui_state.cpp
-			sentools/gui_state.h
-			sentools/gui_window.cpp
-			sentools/gui_window.h
-			sentools/main_gui.cpp
-			sentools/main_gui.h
+			sentools/gui/gui_file_browser.cpp
+			sentools/gui/gui_file_browser.h
+			sentools/gui/gui_fonts.cpp
+			sentools/gui/gui_fonts.h
+			sentools/gui/gui_senpatcher_extract_pkg_window.cpp
+			sentools/gui/gui_senpatcher_extract_pkg_window.h
+			sentools/gui/gui_senpatcher_main_window.cpp
+			sentools/gui/gui_senpatcher_main_window.h
+			sentools/gui/gui_state.cpp
+			sentools/gui/gui_state.h
+			sentools/gui/gui_window.cpp
+			sentools/gui/gui_window.h
+			sentools/gui/main_gui.cpp
+			sentools/gui/main_gui.h
 
 			imgui/imgui.cpp
 			imgui/imgui_demo.cpp
@@ -338,8 +338,8 @@ if (SENPATCHER_BUILD_TOOLS)
 			# on Windows we just use DX11 for this, all the Cold Steel games run on DX11
 			# so it's kinda guaranteed to be supported for anyone who needs the patcher
 			target_sources(sentools PRIVATE
-				sentools/gui_setup_dx11.cpp
-				sentools/gui_setup_dx11.h
+				sentools/gui/gui_setup_dx11.cpp
+				sentools/gui/gui_setup_dx11.h
 				imgui/backends/imgui_impl_dx11.cpp
 				imgui/backends/imgui_impl_win32.cpp
 			)
@@ -347,8 +347,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		else()
 			# on Linux there's no obvious choice, so I just went with GLFW + Vulkan
 			target_sources(sentools PRIVATE
-				sentools/gui_setup_glfw_vulkan.cpp
-				sentools/gui_setup_glfw_vulkan.h
+				sentools/gui/gui_setup_glfw_vulkan.cpp
+				sentools/gui/gui_setup_glfw_vulkan.h
 				imgui/backends/imgui_impl_glfw.cpp
 				imgui/backends/imgui_impl_vulkan.cpp
 			)

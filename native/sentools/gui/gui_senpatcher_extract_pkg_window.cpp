@@ -8,7 +8,7 @@
 #include "imgui.h"
 
 #include "gui_state.h"
-#include "pkg_extract.h"
+#include "sentools/pkg_extract/pkg_extract.h"
 #include "util/scope.h"
 #include "util/text.h"
 

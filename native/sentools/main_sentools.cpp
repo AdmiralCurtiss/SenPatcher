@@ -7,18 +7,19 @@
 
 #include "util/text.h"
 
-#include "bra_extract.h"
 #include "cli_tool.h"
-#include "game_verify.h"
-#include "p3a_extract.h"
-#include "p3a_pack.h"
-#include "p3a_repack.h"
-#include "pka_extract.h"
-#include "pka_pack.h"
-#include "pkg_extract_main.h"
-#include "pkg_pack.h"
-#include "pkg_repack.h"
-#include "sha_file_convert.h"
+
+#include "bra_extract/bra_extract_main.h"
+#include "dirtree_create/dirtree_create_main.h"
+#include "game_verify/game_verify_main.h"
+#include "p3a_extract/p3a_extract_main.h"
+#include "p3a_pack/p3a_pack_main.h"
+#include "p3a_repack/p3a_repack_main.h"
+#include "pka_extract/pka_extract_main.h"
+#include "pka_pack/pka_pack_main.h"
+#include "pkg_extract/pkg_extract_main.h"
+#include "pkg_pack/pkg_pack_main.h"
+#include "pkg_repack/pkg_repack_main.h"
 
 #ifdef BUILD_FOR_WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -26,7 +27,7 @@
 #endif
 
 #ifdef SENTOOLS_WITH_IMGUI
-#include "main_gui.h"
+#include "gui/main_gui.h"
 #endif
 
 namespace SenTools {
@@ -66,9 +67,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = Game_Verify_Name,
             .ShortDescription = Game_Verify_ShortDescription,
             .Function = Game_Verify_Function},
-    CliTool{.Name = SHA_File_Convert_Name,
-            .ShortDescription = SHA_File_Convert_ShortDescription,
-            .Function = SHA_File_Convert_Function,
+    CliTool{.Name = DirTree_Create_Name,
+            .ShortDescription = DirTree_Create_ShortDescription,
+            .Function = DirTree_Create_Function,
             .Hidden = true},
 };
 } // namespace SenTools
