@@ -356,7 +356,7 @@ uint64_t File::Write(File& source, uint64_t length) noexcept {
             return totalWritten;
         }
 #else
-        blockWritten = (DWORD)fwrite(buffer, 1, blockRead, (FILE*)Filehandle);
+        blockWritten = (DWORD)fwrite(buffer.data(), 1, blockRead, (FILE*)Filehandle);
 #endif
         if (blockWritten != blockRead) {
             return (totalWritten + blockWritten);
