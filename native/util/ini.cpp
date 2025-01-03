@@ -25,16 +25,16 @@ bool IniFile::ParseFile(HyoutaUtils::IO::File& file) {
         return false;
     }
 
-    ParseMemory(std::move(buffer), *length);
-    return true;
+    return ParseMemory(std::move(buffer), *length);
 }
 
-void IniFile::ParseExternalMemory(char* buffer, size_t bufferLength) {
+bool IniFile::ParseExternalMemory(const char* buffer, size_t bufferLength) {
     using HyoutaUtils::TextUtils::Trim;
 
     std::vector<IniKeyValueView> values;
     std::string_view remainingIni(buffer, bufferLength);
     std::string_view currentSection;
+    std::string_view currentComment;
 
     // skip UTF8 BOM if it's there
     if (remainingIni.starts_with("\xef\xbb\xbf")) {
@@ -56,14 +56,20 @@ void IniFile::ParseExternalMemory(char* buffer, size_t bufferLength) {
 
         // is this a comment? if yes skip to next line
         if (line.front() == ';') {
+            if (currentComment.empty()) {
+                currentComment = line;
+            } else {
+                // combine the content between the start of the comment and the current line end
+                currentComment = std::string_view(currentComment.data(), line.data() + line.size());
+            }
             continue;
         }
 
         // is this a section?
         if (line.front() == '[') {
             if (line.back() != ']') {
-                // malformed section, skip to next line
-                continue;
+                // malformed section
+                return false;
             }
 
             // remove brackets and whitespace
@@ -73,26 +79,39 @@ void IniFile::ParseExternalMemory(char* buffer, size_t bufferLength) {
 
             // remaining string is new section name
             currentSection = line;
+
+            if (!currentComment.empty()) {
+                // create a value entry for the section comment
+                values.emplace_back(
+                    IniKeyValueView{.Section = currentSection, .Comment = currentComment});
+                currentComment = std::string_view();
+            }
+
             continue;
         }
 
         // should be a key/value pair, find equals sign
         const size_t equalsSign = line.find_first_of('=');
         if (equalsSign == std::string_view::npos) {
-            // couldn't find one, skip to next line
-            continue;
+            // couldn't find one, malformed key/value pair
+            return false;
         }
 
         std::string_view key = Trim(line.substr(0, equalsSign));
         std::string_view value = Trim(line.substr(equalsSign + 1));
         if (key.empty() || value.empty()) {
             // this is not valid either
-            continue;
+            return false;
         }
 
-        // we should technically unescape strings here (in-place is fine), but all our SenPatcher
-        // settings are boolean or integer so let's skip that for now...
-        values.emplace_back(IniKeyValueView{.Section = currentSection, .Key = key, .Value = value});
+        values.emplace_back(IniKeyValueView{
+            .Section = currentSection, .Key = key, .Value = value, .Comment = currentComment});
+        currentComment = std::string_view();
+    }
+
+    if (!currentComment.empty()) {
+        // create a value entry for the remaining comment
+        values.emplace_back(IniKeyValueView{.Comment = currentComment});
     }
 
     Values = std::make_unique_for_overwrite<IniKeyValueView[]>(values.size());
@@ -100,12 +119,16 @@ void IniFile::ParseExternalMemory(char* buffer, size_t bufferLength) {
         Values[i] = std::move(values[i]);
     }
     ValueCount = values.size();
+    return true;
 }
 
-void IniFile::ParseMemory(std::unique_ptr<char[]> buffer, size_t bufferLength) {
-    ParseExternalMemory(buffer.get(), bufferLength);
+bool IniFile::ParseMemory(std::unique_ptr<char[]> buffer, size_t bufferLength) {
+    if (!ParseExternalMemory(buffer.get(), bufferLength)) {
+        return false;
+    }
     DataBuffer = std::move(buffer);
     DataBufferLength = bufferLength;
+    return true;
 }
 
 std::span<const IniKeyValueView> IniFile::GetValues() const {

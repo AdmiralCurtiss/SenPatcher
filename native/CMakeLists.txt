@@ -1315,6 +1315,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/text.h
 		util/xorshift.h
 
+		test/ini_test.cpp
 		test/p3a_lookup_test.cpp
 		test/sen_script_patcher_test.cpp
 		test/sha1_test.cpp
