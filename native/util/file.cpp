@@ -643,6 +643,48 @@ bool CreateDirectory(const std::filesystem::path& p) noexcept {
 }
 #endif
 
+#if defined(BUILD_FOR_WINDOWS) && defined(CopyFile)
+#undef CopyFile
+#endif
+bool CopyFile(std::string_view source, std::string_view target, bool overwrite) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    auto wsource = HyoutaUtils::TextUtils::Utf8ToWString(source.data(), source.size());
+    if (!wsource) {
+        return false;
+    }
+    auto wtarget = HyoutaUtils::TextUtils::Utf8ToWString(target.data(), target.size());
+    if (!wtarget) {
+        return false;
+    }
+    return CopyFileExW(wsource->c_str(),
+                       wtarget->c_str(),
+                       nullptr,
+                       nullptr,
+                       nullptr,
+                       static_cast<DWORD>(overwrite ? 0 : COPY_FILE_FAIL_IF_EXISTS))
+           != 0;
+#else
+    return false; // TODO: Linux implementation
+#endif
+}
+
+#if defined(BUILD_FOR_WINDOWS) && defined(DeleteFile)
+#undef DeleteFile
+#endif
+bool DeleteFile(std::string_view path) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(path.data(), path.size());
+    if (!wstr) {
+        return false;
+    }
+    return DeleteFileW(wstr->c_str()) != 0;
+#else
+    std::string p(path);
+    int result = unlink(p.c_str());
+    return result == 0;
+#endif
+}
+
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 std::filesystem::path FilesystemPathFromUtf8(std::string_view path) {
     return std::filesystem::path((const char8_t*)path.data(),
