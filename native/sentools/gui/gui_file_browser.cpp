@@ -11,6 +11,7 @@
 #include <thread>
 
 #include "imgui.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 #include "gui_state.h"
 #include "util/file.h"
@@ -384,7 +385,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
     ImGui::SetNextWindowContentSize(
         ImVec2(0.0f, PImpl->FilesInCurrentDirectory->size() * items_height));
     if (ImGui::BeginChild("##Basket",
-                          ImVec2(-FLT_MIN, -(ImGui::GetFontSize() * 2)),
+                          ImVec2(-FLT_MIN, -(ImGui::GetFontSize() * 3.5f)),
                           ImGuiChildFlags_FrameStyle)) {
         ImGuiMultiSelectIO* ms_io =
             ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_ClearOnEscape
@@ -427,10 +428,14 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                 // Submit item
                 bool item_is_selected = PImpl->SelectionStorage.Contains((ImGuiID)n);
                 ImGui::SetNextItemSelectionUserData(n);
-                ImGui::Selectable(
-                    entry.Filename.c_str(), item_is_selected, ImGuiSelectableFlags_SpanAllColumns);
+                if (ImGui::Selectable(entry.Filename.c_str(),
+                                      item_is_selected,
+                                      ImGuiSelectableFlags_SpanAllColumns)) {
+                    PImpl->Filename = entry.Filename;
+                }
 
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                    PImpl->Filename = entry.Filename;
                     double_clicked = true;
                 }
 
@@ -460,8 +465,44 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
     ImGui::EndChild();
 
 
-    if (ImGui::Button(PImpl->Mode == FileBrowserMode::OpenExistingFile ? "Open" : "Save")
-        || double_clicked) {
+    ImGui::InputText("Filename", &PImpl->Filename, ImGuiInputTextFlags_ElideLeft);
+    bool button_clicked =
+        ImGui::Button(PImpl->Mode == FileBrowserMode::OpenExistingFile ? "Open" : "Save");
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel")) {
+        return FileBrowserResult::Canceled;
+    }
+
+    if (button_clicked) {
+        auto path = HyoutaUtils::IO::FilesystemPathFromUtf8(PImpl->Filename);
+        if (path.is_relative()) {
+            path = (*PImpl->CurrentDirectory / path);
+        }
+        std::error_code ec{};
+        path = std::filesystem::weakly_canonical(path, ec);
+        if (ec) {
+            // not sure what we do here?
+            return FileBrowserResult::Canceled;
+        }
+        if (std::filesystem::is_directory(path, ec)) {
+            // enter this directory
+            PImpl->CurrentDirectory = std::move(path);
+            PImpl->FilesInCurrentDirectory.reset();
+            PImpl->Filename.clear();
+        } else {
+            if (ec) {
+                // not sure what we do here?
+                return FileBrowserResult::Canceled;
+            }
+
+            // treat this as the result
+            PImpl->SelectedPaths.clear();
+            PImpl->SelectedPaths.push_back(HyoutaUtils::IO::FilesystemPathToUtf8(path));
+            return FileBrowserResult::FileSelected;
+        }
+    }
+
+    if (double_clicked) {
         void* it = nullptr;
         ImGuiID id;
         while (PImpl->SelectionStorage.GetNextSelectedItem(&it, &id)) {
@@ -477,6 +518,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                         // go up once
                         PImpl->CurrentDirectory = PImpl->CurrentDirectory->parent_path();
                         PImpl->FilesInCurrentDirectory.reset();
+                        PImpl->Filename.clear();
                     } else if (entry.Type == FileEntryType::Directory) {
                         // go down once
                         PImpl->CurrentDirectory =
@@ -484,6 +526,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                             / std::u8string_view((const char8_t*)entry.Filename.data(),
                                                  entry.Filename.size());
                         PImpl->FilesInCurrentDirectory.reset();
+                        PImpl->Filename.clear();
                     } else {
                         // selected a file
                         // TODO: ask for overwrite confirmation in save case
@@ -497,11 +540,6 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                 }
             }
         }
-    }
-    ImGui::SameLine();
-
-    if (ImGui::Button("Cancel")) {
-        return FileBrowserResult::Canceled;
     }
 
     return FileBrowserResult::None;

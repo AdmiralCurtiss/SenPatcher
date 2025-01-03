@@ -354,6 +354,7 @@ if (SENPATCHER_BUILD_TOOLS)
 			imgui/imgui_draw.cpp
 			imgui/imgui_tables.cpp
 			imgui/imgui_widgets.cpp
+			imgui/misc/cpp/imgui_stdlib.cpp
 		)
 		target_include_directories(sentools
 			PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/imgui" "${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends"
