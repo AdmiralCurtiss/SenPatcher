@@ -9,6 +9,7 @@
 
 #include "imgui.h"
 
+#include "gui_senpatcher_patch_window_utils.h"
 #include "gui_state.h"
 #include "util/file.h"
 #include "util/ini.h"
@@ -46,65 +47,8 @@ static constexpr char RELATIVE_INI_PATH[] = "/senpatcher_settings.ini";
 } // namespace
 
 namespace SenTools::GUI {
-static bool WriteToIni(const SenPatcherPatchCS1Window::Settings& settings,
-                       const std::string& gamePath) {
-    HyoutaUtils::Ini::IniWriter writer;
-    const auto strip_comment = [](std::string_view comment) -> std::string {
-        std::string stripped;
-        std::string_view rest = comment;
-        while (!rest.empty()) {
-            const size_t nextLineSeparator = rest.find_first_of("\r\n");
-            std::string_view line = rest.substr(0, nextLineSeparator);
-            rest = nextLineSeparator != std::string_view::npos ? rest.substr(nextLineSeparator + 1)
-                                                               : std::string_view();
-            if (line.starts_with(';')) {
-                line = line.substr(1);
-            }
-            if (!line.empty()) {
-                if (!stripped.empty()) {
-                    stripped.push_back('\n');
-                }
-                stripped.append(line);
-            }
-        }
-        return stripped;
-    };
-    const auto add_to_writer = [&](HyoutaUtils::Ini::IniFile& ini) {
-        for (const auto& entry : ini.GetValues()) {
-            std::string comment = strip_comment(entry.Comment);
-            if (entry.Key.empty()) {
-                if (entry.Section.empty()) {
-                    writer.SetEndOfFileComment(comment);
-                } else {
-                    writer.MakeOrGetSection(entry.Section).SetComment(comment);
-                }
-            } else {
-                writer.MakeOrGetSection(entry.Section)
-                    .Insert(entry.Key, entry.Value, comment, true, false);
-            }
-        }
-    };
-
-    // load both user ini and the current defaults and combine them
-    {
-        HyoutaUtils::Ini::IniFile defaultIni;
-        if (!defaultIni.ParseExternalMemory(IniData, IniLength)) {
-            return false;
-        }
-        add_to_writer(defaultIni);
-    }
-
-    // failing to parse the user ini is okay, in that case we just overwrite it
-    std::string gameIniPath = gamePath + RELATIVE_INI_PATH;
-    {
-        HyoutaUtils::Ini::IniFile userIni;
-        HyoutaUtils::IO::File f(std::string_view(gameIniPath), HyoutaUtils::IO::OpenMode::Read);
-        if (f.IsOpen()) {
-            userIni.ParseFile(f);
-        }
-        add_to_writer(userIni);
-    }
-
+static void WriteToIni(const SenPatcherPatchCS1Window::Settings& settings,
+                       HyoutaUtils::Ini::IniWriter& writer) {
     writer.SetBool("CS1", "AssetFixes", settings.CheckBoxAssetPatches);
     writer.SetBool("CS1", "RemoveTurboSkip", settings.CheckBoxBattleAutoSkip);
     writer.SetBool("CS1", "MakeTurboToggle", settings.CheckBoxTurboToggle);
@@ -118,16 +62,6 @@ static bool WriteToIni(const SenPatcherPatchCS1Window::Settings& settings,
     writer.SetBool("CS1", "AlwaysUseNotebookR2", settings.CheckBoxAllowR2InTurboMode);
     writer.SetBool("CS1", "FixBgmEnqueue", settings.CheckBoxBgmEnqueueingLogic);
     writer.SetInt("CS1", "TurboModeButton", settings.ComboBoxTurboModeKey);
-
-    std::string text = writer.GenerateIniText();
-    HyoutaUtils::IO::File outfile(std::string_view(gameIniPath), HyoutaUtils::IO::OpenMode::Write);
-    if (!outfile.IsOpen()) {
-        return false;
-    }
-    if (outfile.Write(text.data(), text.size()) != text.size()) {
-        return false;
-    }
-    return true;
 }
 
 struct SenPatcherPatchCS1Window::WorkThreadState {
@@ -148,34 +82,17 @@ struct SenPatcherPatchCS1Window::WorkThreadState {
       , Thread([this]() -> void {
           auto doneGuard = HyoutaUtils::MakeScopeGuard([&]() { IsDone.store(true); });
           try {
+              std::string localDllPath = std::string(LOCAL_GAME_DIR) + RELATIVE_DLL_PATH;
               std::string gameDllPath = GamePath + RELATIVE_DLL_PATH;
-              if (Unpatch) {
-                  if (HyoutaUtils::IO::FileExists(std::string_view(gameDllPath))) {
-                      if (!HyoutaUtils::IO::DeleteFile(std::string_view(gameDllPath))) {
-                          Result = std::string("Deleting SenPatcher DLL failed.");
-                          return;
-                      }
-                      Result = std::string(
-                          "Removed SenPatcher. Files for installed mods have not been removed, but "
-                          "will no longer be loaded. To remove them, navigate to the game "
-                          "directory and delete the 'mods' folder.");
-                  } else {
-                      Result = std::string("Could not find anything to remove.");
-                  }
-              } else {
-                  if (!WriteToIni(GameSettings, GamePath)) {
-                      Result = std::string("Writing senpatcher_settings.ini failed.");
-                      return;
-                  }
-
-                  if (!HyoutaUtils::IO::CopyFile(std::string(LOCAL_GAME_DIR) + RELATIVE_DLL_PATH,
-                                                 gameDllPath)) {
-                      Result = std::string("Copying SenPatcher DLL failed.");
-                      return;
-                  }
-
-                  Result = std::string("SenPatcher DLL successfully copied to game directory.");
-              }
+              std::string gameIniPath = GamePath + RELATIVE_INI_PATH;
+              std::string_view defaultIniString(IniData, IniLength);
+              Result = SenTools::GUI::PatchOrUnpatchGame(
+                  [&](HyoutaUtils::Ini::IniWriter& writer) { WriteToIni(GameSettings, writer); },
+                  localDllPath,
+                  gameDllPath,
+                  gameIniPath,
+                  defaultIniString,
+                  Unpatch);
           } catch (...) {
               Result = std::string("Unexpected error.");
           }
