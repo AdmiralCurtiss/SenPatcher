@@ -68,26 +68,10 @@ void FileBrowser::Reset(FileBrowserMode mode,
                         std::string_view defaultExtension,
                         bool promptForOverwrite,
                         bool multiselect) {
-    size_t lastPathSep = initialPath.find_last_of(
-#ifdef BUILD_FOR_WINDOWS
-        "\\/"
-#else
-        '/'
-#endif
-    );
-
-    std::string_view initialDirectory;
-    std::string_view suggestedFilename;
-    if (lastPathSep != std::string_view::npos) {
-        initialDirectory = initialPath.substr(0, lastPathSep);
-        suggestedFilename = initialPath.substr(lastPathSep + 1);
-    } else {
-        suggestedFilename = initialPath;
-    }
-
+    auto split = HyoutaUtils::IO::SplitPath(initialPath);
     Reset(mode,
-          initialDirectory,
-          suggestedFilename,
+          split.Directory,
+          split.Filename,
           std::move(filter),
           defaultExtension,
           promptForOverwrite,

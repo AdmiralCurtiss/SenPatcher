@@ -663,4 +663,23 @@ std::string FilesystemPathToUtf8(const std::filesystem::path& p) {
 #endif
 }
 #endif
+
+SplitPathData SplitPath(std::string_view path) {
+    size_t lastPathSep = path.find_last_of(
+#ifdef BUILD_FOR_WINDOWS
+        "\\/"
+#else
+        '/'
+#endif
+    );
+
+    SplitPathData result;
+    if (lastPathSep != std::string_view::npos) {
+        result.Directory = path.substr(0, lastPathSep);
+        result.Filename = path.substr(lastPathSep + 1);
+    } else {
+        result.Filename = path;
+    }
+    return result;
+}
 } // namespace HyoutaUtils::IO

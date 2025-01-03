@@ -86,4 +86,13 @@ bool CreateDirectory(const std::filesystem::path& p) noexcept;
 std::filesystem::path FilesystemPathFromUtf8(std::string_view path);
 std::string FilesystemPathToUtf8(const std::filesystem::path& p);
 #endif
+
+// Splits a path at the last path separator. No actual checks for anything on disk are performed.
+// If there is no path separator, the returned Directory will be empty and the Filename will be the
+// given path. If the path ends with a path separator, the Filename component will be empty.
+struct SplitPathData {
+    std::string_view Directory;
+    std::string_view Filename;
+};
+SplitPathData SplitPath(std::string_view path);
 } // namespace HyoutaUtils::IO
