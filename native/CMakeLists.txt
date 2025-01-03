@@ -340,6 +340,8 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_senpatcher_extract_pkg_window.h
 			sentools/gui/gui_senpatcher_main_window.cpp
 			sentools/gui/gui_senpatcher_main_window.h
+			sentools/gui/gui_senpatcher_patch_cs1_window.cpp
+			sentools/gui/gui_senpatcher_patch_cs1_window.h
 			sentools/gui/gui_state.cpp
 			sentools/gui/gui_state.h
 			sentools/gui/gui_window.cpp
@@ -437,6 +439,12 @@ endif()
 if (SENPATCHER_BUILD_TOOLS AND SENPATCHER_WITH_IMGUI)
 	senpatcher_generate_embeddable_file("../fonts/Cuprum/Cuprum-Regular.ttf.bin" "cuprum.h")
 	senpatcher_generate_embeddable_file("../fonts/Noto_Sans_JP/NotoSansJP-Medium.ttf.bin" "noto_sans_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen1/senpatcher_settings.ini" "ini_cs1.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/senpatcher_settings.ini" "ini_cs2.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/senpatcher_settings.ini" "ini_cs3.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen4/senpatcher_settings.ini" "ini_cs4.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen5/senpatcher_settings.ini" "ini_reverie.h")
+	senpatcher_generate_embeddable_file("../SenLib/TX/senpatcher_settings.ini" "ini_tx.h")
 endif()
 
 set(SOURCES_CS1_FIXES

@@ -8,8 +8,10 @@
 #include "gui_senpatcher_decompress_type1_window.h"
 #include "gui_senpatcher_extract_pka_window.h"
 #include "gui_senpatcher_extract_pkg_window.h"
+#include "gui_senpatcher_patch_cs1_window.h"
 #include "gui_state.h"
 #include "senpatcher_version.h"
+#include "util/file.h"
 #include "util/scope.h"
 
 namespace SenTools::GUI {
@@ -60,7 +62,35 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
 
     TextUnformatted("Trails of Cold Steel: (XSEED PC release version 1.6)");
     if (ImGui::Button("Patch game##1", ImVec2(-1.0f, 0.0f))) {
+        std::vector<FileFilter> filters;
+        filters.reserve(2);
+        filters.push_back(FileFilter{"CS1 game directory root", "Sen1Launcher.exe"});
+        filters.push_back(FileFilter{"All files (*.*)", "*"});
+        GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
+                          "", // TODO: GamePaths.GetDefaultPathCS1()
+                          std::move(filters),
+                          "exe",
+                          false,
+                          false);
+        ImGui::OpenPopup("Select CS1 game directory root (Sen1Launcher.exe)");
     }
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    bool modal_open = true;
+    if (ImGui::BeginPopupModal("Select CS1 game directory root (Sen1Launcher.exe)",
+                               &modal_open,
+                               ImGuiWindowFlags_NoSavedSettings)) {
+        FileBrowserResult result =
+            GameBrowser.RenderFrame(state, "Select CS1 game directory root (Sen1Launcher.exe)");
+        if (result != FileBrowserResult::None) {
+            if (result == FileBrowserResult::FileSelected) {
+                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS1Window>(
+                    state, HyoutaUtils::IO::SplitPath(GameBrowser.GetSelectedPath()).Directory));
+            }
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+
     if (ImGui::Button("Edit System Save Data##1", ImVec2(-1.0f, 0.0f))) {
     }
 
