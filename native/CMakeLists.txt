@@ -241,6 +241,10 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/endian.h
 		util/file.h
 		util/file.cpp
+		util/ini.h
+		util/ini.cpp
+		util/ini_writer.cpp
+		util/ini_writer.h
 		util/memread.h
 		util/memwrite.h
 		util/result.h
