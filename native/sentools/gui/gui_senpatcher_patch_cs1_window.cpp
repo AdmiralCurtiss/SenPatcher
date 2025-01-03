@@ -161,11 +161,11 @@ SenPatcherPatchCS1Window::SenPatcherPatchCS1Window(GuiState& state, std::string_
 
 SenPatcherPatchCS1Window::~SenPatcherPatchCS1Window() = default;
 
-static void HelpMarker(const char* desc) {
+static void HelpMarker(std::string_view desc) {
     ImGui::TextDisabled("(?)");
     if (ImGui::BeginItemTooltip()) {
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc);
+        ImGui::TextUnformatted(desc.data(), desc.data() + desc.size());
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
@@ -267,7 +267,9 @@ bool SenPatcherPatchCS1Window::RenderFrame(GuiState& state) {
     }
 
     if (!StatusMessage.empty()) {
+        ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
         ImGui::TextUnformatted(StatusMessage.data(), StatusMessage.data() + StatusMessage.size());
+        ImGui::PopTextWrapPos();
     }
 
     return open;

@@ -184,8 +184,10 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
         }
 
         if (!StatusMessage.empty()) {
+            ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
             ImGui::TextUnformatted(StatusMessage.data(),
                                    StatusMessage.data() + StatusMessage.size());
+            ImGui::PopTextWrapPos();
         }
     }
 
