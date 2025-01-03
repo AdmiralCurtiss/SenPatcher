@@ -664,7 +664,45 @@ bool CopyFile(std::string_view source, std::string_view target, bool overwrite) 
                        static_cast<DWORD>(overwrite ? 0 : COPY_FILE_FAIL_IF_EXISTS))
            != 0;
 #else
-    return false; // TODO: Linux implementation
+    std::string sourcePath(source);
+    std::string targetPath(target);
+
+    // try to link() first, that will succeed in many cases
+    errno = 0;
+    if (link(sourcePath.c_str(), targetPath.c_str()) == 0) {
+        return true;
+    }
+    if (errno == EEXIST) {
+        if (!overwrite) {
+            return false;
+        }
+        // we do want to overwrite, so delete the file and try again
+        if (unlink(targetPath.c_str()) != 0) {
+            return false;
+        }
+        if (link(sourcePath.c_str(), targetPath.c_str()) == 0) {
+            return true;
+        }
+    }
+
+    // link() failed, do a naive file copy instead
+    HyoutaUtils::IO::File sourceFile(source, HyoutaUtils::IO::OpenMode::Read);
+    if (!sourceFile.IsOpen()) {
+        return false;
+    }
+    auto length = sourceFile.GetLength();
+    if (!length) {
+        return false;
+    }
+    HyoutaUtils::IO::File targetFile(target, HyoutaUtils::IO::OpenMode::Write);
+    if (!targetFile.IsOpen()) {
+        return false;
+    }
+    if (targetFile.Write(sourceFile, *length) != *length) {
+        targetFile.Delete();
+        return false;
+    }
+    return true;
 #endif
 }
 
