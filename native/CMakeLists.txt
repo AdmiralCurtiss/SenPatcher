@@ -342,6 +342,16 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_senpatcher_main_window.h
 			sentools/gui/gui_senpatcher_patch_cs1_window.cpp
 			sentools/gui/gui_senpatcher_patch_cs1_window.h
+			sentools/gui/gui_senpatcher_patch_cs2_window.cpp
+			sentools/gui/gui_senpatcher_patch_cs2_window.h
+			sentools/gui/gui_senpatcher_patch_cs3_window.cpp
+			sentools/gui/gui_senpatcher_patch_cs3_window.h
+			sentools/gui/gui_senpatcher_patch_cs4_window.cpp
+			sentools/gui/gui_senpatcher_patch_cs4_window.h
+			sentools/gui/gui_senpatcher_patch_reverie_window.cpp
+			sentools/gui/gui_senpatcher_patch_reverie_window.h
+			sentools/gui/gui_senpatcher_patch_tx_window.cpp
+			sentools/gui/gui_senpatcher_patch_tx_window.h
 			sentools/gui/gui_senpatcher_patch_window_utils.cpp
 			sentools/gui/gui_senpatcher_patch_window_utils.h
 			sentools/gui/gui_state.cpp
