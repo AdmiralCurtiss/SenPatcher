@@ -38,10 +38,20 @@ static void TextUnformattedRightAlign(std::string_view sv) {
 bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     bool visible = ImGui::Begin("SenPatcher", nullptr, ImGuiWindowFlags_MenuBar);
     const auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
-    if (!visible) {
-        return true;
+    if (visible) {
+        RenderContents(state);
     }
+    if (HasPendingWindowRequest()) {
+        HandlePendingWindowRequest(state);
+    }
+    return true;
+}
 
+bool SenPatcherMainWindow::HasPendingWindowRequest() const {
+    return PendingWindowRequest != PendingWindowType::None;
+}
+
+void SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Toolbox")) {
             if (ImGui::MenuItem("Extract PKG...")) {
@@ -71,8 +81,15 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
 
     ImGui::Spacing();
 
+    auto disabledScope = HyoutaUtils::MakeDisposableScopeGuard([&]() { ImGui::EndDisabled(); });
+    if (HasPendingWindowRequest()) {
+        ImGui::BeginDisabled();
+    } else {
+        disabledScope.Dispose();
+    }
+
     TextUnformatted("Trails of Cold Steel: (XSEED PC release version 1.6)");
-    if (ImGui::Button("Patch game##1", ImVec2(-1.0f, 0.0f))) {
+    if (ImGui::Button("Patch game##1", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS1 game directory root", "Sen1Launcher.exe"});
@@ -94,15 +111,16 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             GameBrowser.RenderFrame(state, "Select CS1 game directory root (Sen1Launcher.exe)");
         if (result != FileBrowserResult::None) {
             if (result == FileBrowserResult::FileSelected) {
-                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS1Window>(
-                    state, HyoutaUtils::IO::SplitPath(GameBrowser.GetSelectedPath()).Directory));
+                PendingWindowRequest = PendingWindowType::CS1Patch;
+                PendingWindowSelectedPath = GameBrowser.GetSelectedPath();
             }
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
 
-    if (ImGui::Button("Edit System Save Data##1", ImVec2(-1.0f, 0.0f))) {
+    if (ImGui::Button("Edit System Save Data##1", ImVec2(-1.0f, 0.0f))
+        && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS1 System Data file", "save511.dat"});
@@ -130,16 +148,8 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             GameBrowser.RenderFrame(state, "Select CS1 System Data file (save511.dat)");
         if (result != FileBrowserResult::None) {
             if (result == FileBrowserResult::FileSelected) {
-                std::string_view selectedPath = GameBrowser.GetSelectedPath();
-                HyoutaUtils::IO::File f(selectedPath, HyoutaUtils::IO::OpenMode::Read);
-                std::array<char, SenLib::Sen1::SystemData::FileLength> systemData;
-                SenLib::Sen1::SystemData systemDataStruct;
-                if (f.IsOpen() && f.GetLength() == systemData.size()
-                    && f.Read(systemData.data(), systemData.size()) == systemData.size()
-                    && systemDataStruct.Deserialize(systemData.data(), systemData.size())) {
-                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherCS1SystemDataWindow>(
-                        state, selectedPath, systemDataStruct));
-                }
+                PendingWindowRequest = PendingWindowType::CS1SystemData;
+                PendingWindowSelectedPath = GameBrowser.GetSelectedPath();
             }
             ImGui::CloseCurrentPopup();
         }
@@ -149,7 +159,7 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     ImGui::Spacing();
 
     TextUnformatted("Trails of Cold Steel II: (XSEED PC release version 1.4, 1.4.1, or 1.4.2)");
-    if (ImGui::Button("Patch game##2", ImVec2(-1.0f, 0.0f))) {
+    if (ImGui::Button("Patch game##2", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS2 game directory root", "Sen2Launcher.exe"});
@@ -171,15 +181,16 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             GameBrowser.RenderFrame(state, "Select CS2 game directory root (Sen2Launcher.exe)");
         if (result != FileBrowserResult::None) {
             if (result == FileBrowserResult::FileSelected) {
-                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS2Window>(
-                    state, HyoutaUtils::IO::SplitPath(GameBrowser.GetSelectedPath()).Directory));
+                PendingWindowRequest = PendingWindowType::CS2Patch;
+                PendingWindowSelectedPath = GameBrowser.GetSelectedPath();
             }
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
 
-    if (ImGui::Button("Edit System Save Data##2", ImVec2(-1.0f, 0.0f))) {
+    if (ImGui::Button("Edit System Save Data##2", ImVec2(-1.0f, 0.0f))
+        && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS2 System Data file", "save255.dat"});
@@ -207,16 +218,8 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             GameBrowser.RenderFrame(state, "Select CS2 System Data file (save255.dat)");
         if (result != FileBrowserResult::None) {
             if (result == FileBrowserResult::FileSelected) {
-                std::string_view selectedPath = GameBrowser.GetSelectedPath();
-                HyoutaUtils::IO::File f(selectedPath, HyoutaUtils::IO::OpenMode::Read);
-                std::array<char, SenLib::Sen2::SystemData::FileLength> systemData;
-                SenLib::Sen2::SystemData systemDataStruct;
-                if (f.IsOpen() && f.GetLength() == systemData.size()
-                    && f.Read(systemData.data(), systemData.size()) == systemData.size()
-                    && systemDataStruct.Deserialize(systemData.data(), systemData.size())) {
-                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherCS2SystemDataWindow>(
-                        state, selectedPath, systemDataStruct));
-                }
+                PendingWindowRequest = PendingWindowType::CS2SystemData;
+                PendingWindowSelectedPath = GameBrowser.GetSelectedPath();
             }
             ImGui::CloseCurrentPopup();
         }
@@ -226,7 +229,7 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     ImGui::Spacing();
 
     TextUnformatted("Trails of Cold Steel III: (NISA PC release version 1.07)");
-    if (ImGui::Button("Patch game##3", ImVec2(-1.0f, 0.0f))) {
+    if (ImGui::Button("Patch game##3", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS3 game directory root", "Sen3Launcher.exe"});
@@ -248,8 +251,8 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             GameBrowser.RenderFrame(state, "Select CS3 game directory root (Sen3Launcher.exe)");
         if (result != FileBrowserResult::None) {
             if (result == FileBrowserResult::FileSelected) {
-                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS3Window>(
-                    state, HyoutaUtils::IO::SplitPath(GameBrowser.GetSelectedPath()).Directory));
+                PendingWindowRequest = PendingWindowType::CS3Patch;
+                PendingWindowSelectedPath = GameBrowser.GetSelectedPath();
             }
             ImGui::CloseCurrentPopup();
         }
@@ -259,7 +262,7 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     ImGui::Spacing();
 
     TextUnformatted("Trails of Cold Steel IV: (NISA PC release version 1.2.2)");
-    if (ImGui::Button("Patch game##4", ImVec2(-1.0f, 0.0f))) {
+    if (ImGui::Button("Patch game##4", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS4 game directory root", "Sen4Launcher.exe"});
@@ -281,8 +284,8 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             GameBrowser.RenderFrame(state, "Select CS4 game directory root (Sen4Launcher.exe)");
         if (result != FileBrowserResult::None) {
             if (result == FileBrowserResult::FileSelected) {
-                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS4Window>(
-                    state, HyoutaUtils::IO::SplitPath(GameBrowser.GetSelectedPath()).Directory));
+                PendingWindowRequest = PendingWindowType::CS4Patch;
+                PendingWindowSelectedPath = GameBrowser.GetSelectedPath();
             }
             ImGui::CloseCurrentPopup();
         }
@@ -292,7 +295,7 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     ImGui::Spacing();
 
     TextUnformatted("Trails into Reverie: (NISA PC release version 1.1.5)");
-    if (ImGui::Button("Patch game##5", ImVec2(-1.0f, 0.0f))) {
+    if (ImGui::Button("Patch game##5", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"Reverie game directory", "hnk.exe"});
@@ -314,13 +317,8 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             GameBrowser.RenderFrame(state, "Select Reverie game directory (hnk.exe)");
         if (result != FileBrowserResult::None) {
             if (result == FileBrowserResult::FileSelected) {
-                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchReverieWindow>(
-                    state,
-                    HyoutaUtils::IO::SplitPath(
-                        HyoutaUtils::IO::SplitPath(
-                            HyoutaUtils::IO::SplitPath(GameBrowser.GetSelectedPath()).Directory)
-                            .Directory)
-                        .Directory));
+                PendingWindowRequest = PendingWindowType::ReveriePatch;
+                PendingWindowSelectedPath = GameBrowser.GetSelectedPath();
             }
             ImGui::CloseCurrentPopup();
         }
@@ -330,7 +328,7 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     ImGui::Spacing();
 
     TextUnformatted("Tokyo Xanadu eX+: (Aksys PC release version 1.08)");
-    if (ImGui::Button("Patch game##X", ImVec2(-1.0f, 0.0f))) {
+    if (ImGui::Button("Patch game##X", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"TX game directory root", "TokyoXanadu.exe"});
@@ -352,14 +350,90 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
             GameBrowser.RenderFrame(state, "Select TX game directory root (TokyoXanadu.exe)");
         if (result != FileBrowserResult::None) {
             if (result == FileBrowserResult::FileSelected) {
-                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchTXWindow>(
-                    state, HyoutaUtils::IO::SplitPath(GameBrowser.GetSelectedPath()).Directory));
+                PendingWindowRequest = PendingWindowType::TXPatch;
+                PendingWindowSelectedPath = GameBrowser.GetSelectedPath();
             }
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
+}
 
-    return true;
+void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
+    switch (PendingWindowRequest) {
+        default: {
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+        case PendingWindowType::CS1Patch: {
+            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS1Window>(
+                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+        case PendingWindowType::CS1SystemData: {
+            std::string_view selectedPath = PendingWindowSelectedPath;
+            HyoutaUtils::IO::File f(selectedPath, HyoutaUtils::IO::OpenMode::Read);
+            std::array<char, SenLib::Sen1::SystemData::FileLength> systemData;
+            SenLib::Sen1::SystemData systemDataStruct;
+            if (f.IsOpen() && f.GetLength() == systemData.size()
+                && f.Read(systemData.data(), systemData.size()) == systemData.size()
+                && systemDataStruct.Deserialize(systemData.data(), systemData.size())) {
+                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherCS1SystemDataWindow>(
+                    state, selectedPath, systemDataStruct));
+            }
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+        case PendingWindowType::CS2Patch: {
+            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS2Window>(
+                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+        case PendingWindowType::CS2SystemData: {
+            std::string_view selectedPath = PendingWindowSelectedPath;
+            HyoutaUtils::IO::File f(selectedPath, HyoutaUtils::IO::OpenMode::Read);
+            std::array<char, SenLib::Sen2::SystemData::FileLength> systemData;
+            SenLib::Sen2::SystemData systemDataStruct;
+            if (f.IsOpen() && f.GetLength() == systemData.size()
+                && f.Read(systemData.data(), systemData.size()) == systemData.size()
+                && systemDataStruct.Deserialize(systemData.data(), systemData.size())) {
+                state.Windows.emplace_back(std::make_unique<GUI::SenPatcherCS2SystemDataWindow>(
+                    state, selectedPath, systemDataStruct));
+            }
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+        case PendingWindowType::CS3Patch: {
+            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS3Window>(
+                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+        case PendingWindowType::CS4Patch: {
+            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS4Window>(
+                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+        case PendingWindowType::ReveriePatch: {
+            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchReverieWindow>(
+                state,
+                HyoutaUtils::IO::SplitPath(
+                    HyoutaUtils::IO::SplitPath(
+                        HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory)
+                        .Directory)
+                    .Directory));
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+        case PendingWindowType::TXPatch: {
+            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchTXWindow>(
+                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
+            PendingWindowRequest = PendingWindowType::None;
+            break;
+        }
+    }
 }
 } // namespace SenTools::GUI
