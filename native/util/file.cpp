@@ -725,8 +725,29 @@ bool DeleteFile(std::string_view path) noexcept {
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 std::filesystem::path FilesystemPathFromUtf8(std::string_view path) {
+#ifdef BUILD_FOR_WINDOWS
+    // convert forward slashes to backslashes, some Windows functions need that
+    std::array<char8_t, 1024> stackBuffer;
+    std::unique_ptr<char8_t[]> heapBuffer;
+    char8_t* buffer;
+    if (path.size() <= stackBuffer.size()) {
+        buffer = stackBuffer.data();
+    } else {
+        heapBuffer = std::make_unique_for_overwrite<char8_t[]>(path.size());
+        buffer = heapBuffer.get();
+        if (!buffer) {
+            assert(0); // uuuh...
+        }
+    }
+    for (size_t i = 0; i < path.size(); ++i) {
+        char c = path[i];
+        buffer[i] = (c == '/') ? u8'\\' : static_cast<char8_t>(c);
+    }
+    return std::filesystem::path(buffer, buffer + path.size());
+#else
     return std::filesystem::path((const char8_t*)path.data(),
                                  (const char8_t*)path.data() + path.size());
+#endif
 }
 
 std::string FilesystemPathToUtf8(const std::filesystem::path& p) {
