@@ -1,10 +1,13 @@
 #include "gui_senpatcher_main_window.h"
 
+#include <array>
 #include <string_view>
 
 #include "imgui.h"
 
 #include "gui_senpatcher_compress_type1_window.h"
+#include "gui_senpatcher_cs1_system_data_window.h"
+#include "gui_senpatcher_cs2_system_data_window.h"
 #include "gui_senpatcher_decompress_type1_window.h"
 #include "gui_senpatcher_extract_pka_window.h"
 #include "gui_senpatcher_extract_pkg_window.h"
@@ -15,7 +18,10 @@
 #include "gui_senpatcher_patch_reverie_window.h"
 #include "gui_senpatcher_patch_tx_window.h"
 #include "gui_state.h"
+#include "sen1/system_data.h"
+#include "sen2/system_data.h"
 #include "senpatcher_version.h"
+#include "sentools/common_paths.h"
 #include "util/file.h"
 #include "util/scope.h"
 
@@ -97,6 +103,47 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     }
 
     if (ImGui::Button("Edit System Save Data##1", ImVec2(-1.0f, 0.0f))) {
+        std::vector<FileFilter> filters;
+        filters.reserve(2);
+        filters.push_back(FileFilter{"CS1 System Data file", "save511.dat"});
+        filters.push_back(FileFilter{"All files (*.*)", "*"});
+        auto savedGames = SenTools::CommonPaths::GetSavedGamesFolder();
+        std::string saveFolder;
+        if (savedGames) {
+            saveFolder = (*savedGames + "/FALCOM/ed8");
+        }
+        GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
+                          saveFolder,
+                          "save511.dat",
+                          std::move(filters),
+                          "dat",
+                          false,
+                          false);
+        ImGui::OpenPopup("Select CS1 System Data file (save511.dat)");
+    }
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    modal_open = true;
+    if (ImGui::BeginPopupModal("Select CS1 System Data file (save511.dat)",
+                               &modal_open,
+                               ImGuiWindowFlags_NoSavedSettings)) {
+        FileBrowserResult result =
+            GameBrowser.RenderFrame(state, "Select CS1 System Data file (save511.dat)");
+        if (result != FileBrowserResult::None) {
+            if (result == FileBrowserResult::FileSelected) {
+                std::string_view selectedPath = GameBrowser.GetSelectedPath();
+                HyoutaUtils::IO::File f(selectedPath, HyoutaUtils::IO::OpenMode::Read);
+                std::array<char, SenLib::Sen1::SystemData::FileLength> systemData;
+                SenLib::Sen1::SystemData systemDataStruct;
+                if (f.IsOpen() && f.GetLength() == systemData.size()
+                    && f.Read(systemData.data(), systemData.size()) == systemData.size()
+                    && systemDataStruct.Deserialize(systemData.data(), systemData.size())) {
+                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherCS1SystemDataWindow>(
+                        state, selectedPath, systemDataStruct));
+                }
+            }
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
     }
 
     ImGui::Spacing();
@@ -133,6 +180,47 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     }
 
     if (ImGui::Button("Edit System Save Data##2", ImVec2(-1.0f, 0.0f))) {
+        std::vector<FileFilter> filters;
+        filters.reserve(2);
+        filters.push_back(FileFilter{"CS2 System Data file", "save255.dat"});
+        filters.push_back(FileFilter{"All files (*.*)", "*"});
+        auto savedGames = SenTools::CommonPaths::GetSavedGamesFolder();
+        std::string saveFolder;
+        if (savedGames) {
+            saveFolder = (*savedGames + "/FALCOM/ed8_2");
+        }
+        GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
+                          saveFolder,
+                          "save255.dat",
+                          std::move(filters),
+                          "dat",
+                          false,
+                          false);
+        ImGui::OpenPopup("Select CS2 System Data file (save255.dat)");
+    }
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    modal_open = true;
+    if (ImGui::BeginPopupModal("Select CS2 System Data file (save255.dat)",
+                               &modal_open,
+                               ImGuiWindowFlags_NoSavedSettings)) {
+        FileBrowserResult result =
+            GameBrowser.RenderFrame(state, "Select CS2 System Data file (save255.dat)");
+        if (result != FileBrowserResult::None) {
+            if (result == FileBrowserResult::FileSelected) {
+                std::string_view selectedPath = GameBrowser.GetSelectedPath();
+                HyoutaUtils::IO::File f(selectedPath, HyoutaUtils::IO::OpenMode::Read);
+                std::array<char, SenLib::Sen2::SystemData::FileLength> systemData;
+                SenLib::Sen2::SystemData systemDataStruct;
+                if (f.IsOpen() && f.GetLength() == systemData.size()
+                    && f.Read(systemData.data(), systemData.size()) == systemData.size()
+                    && systemDataStruct.Deserialize(systemData.data(), systemData.size())) {
+                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherCS2SystemDataWindow>(
+                        state, selectedPath, systemDataStruct));
+                }
+            }
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
     }
 
     ImGui::Spacing();
@@ -174,7 +262,7 @@ bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     if (ImGui::Button("Patch game##4", ImVec2(-1.0f, 0.0f))) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"CS1 game directory root", "Sen4Launcher.exe"});
+        filters.push_back(FileFilter{"CS4 game directory root", "Sen4Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
                           "", // TODO: GamePaths.GetDefaultPathCS4()

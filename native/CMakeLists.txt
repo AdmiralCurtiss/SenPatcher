@@ -280,6 +280,10 @@ if (SENPATCHER_BUILD_TOOLS)
 		sen/pkg_compress.h
 		sen/pkg_extract.cpp
 		sen/pkg_extract.h
+		sen1/system_data.cpp
+		sen1/system_data.h
+		sen2/system_data.cpp
+		sen2/system_data.h
 
 		dirtree/entry.h
 		dirtree/tree.h
@@ -332,6 +336,10 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_file_browser.h
 			sentools/gui/gui_fonts.cpp
 			sentools/gui/gui_fonts.h
+			sentools/gui/gui_senpatcher_cs1_system_data_window.cpp
+			sentools/gui/gui_senpatcher_cs1_system_data_window.h
+			sentools/gui/gui_senpatcher_cs2_system_data_window.cpp
+			sentools/gui/gui_senpatcher_cs2_system_data_window.h
 			sentools/gui/gui_senpatcher_compress_type1_window.cpp
 			sentools/gui/gui_senpatcher_compress_type1_window.h
 			sentools/gui/gui_senpatcher_decompress_type1_window.cpp
