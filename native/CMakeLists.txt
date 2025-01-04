@@ -197,6 +197,8 @@ if (SENPATCHER_BUILD_TOOLS)
 	add_executable(sentools)
 	target_sources(sentools PRIVATE
 		sentools/cli_tool.h
+		sentools/common_paths.cpp
+		sentools/common_paths.h
 		sentools/main_sentools.cpp
 		sentools/bra_extract/bra_extract.cpp
 		sentools/bra_extract/bra_extract_main.h
