@@ -562,14 +562,50 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             break;
         }
         case PendingWindowType::ReveriePatch: {
-            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchReverieWindow>(
-                state,
-                HyoutaUtils::IO::SplitPath(
-                    HyoutaUtils::IO::SplitPath(
-                        HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory)
-                        .Directory)
-                    .Directory));
-            PendingWindowRequest = PendingWindowType::None;
+            if (!WorkThread) {
+                WorkThread = std::make_unique<SenPatcherMainWindow::WorkThreadState>();
+                auto* threadState = WorkThread.get();
+                WorkThread->Thread.emplace([threadState,
+                                            selectedPath = PendingWindowSelectedPath]() -> void {
+                    auto doneGuard =
+                        HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
+                    try {
+                        auto size = HyoutaUtils::IO::GetFilesize(std::string_view(selectedPath));
+                        if (!size) {
+                            threadState->ShowError("Could not access selected file.");
+                            return;
+                        }
+                        if (!(*size == 15807384)) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "Selected file does not appear to be hnk.exe of version 1.1.5. "
+                                    "Correct patching behavior cannot be guaranteed. Proceed "
+                                    "anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
+
+                        threadState->PathToOpen =
+                            HyoutaUtils::IO::SplitPath(
+                                HyoutaUtils::IO::SplitPath(
+                                    HyoutaUtils::IO::SplitPath(selectedPath).Directory)
+                                    .Directory)
+                                .Directory;
+                        threadState->Success.store(true);
+                    } catch (...) {
+                        threadState->ShowError("Unexpected error while opening window.");
+                    }
+                });
+            }
+            if (WorkThread && WorkThread->IsDone.load()) {
+                WorkThread->Thread->join();
+                if (WorkThread->Success.load()) {
+                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchReverieWindow>(
+                        state, WorkThread->PathToOpen));
+                }
+                WorkThread.reset();
+                PendingWindowRequest = PendingWindowType::None;
+            }
             break;
         }
         case PendingWindowType::TXPatch: {
