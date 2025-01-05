@@ -233,6 +233,7 @@ if (SENPATCHER_BUILD_TOOLS)
 
 		util/hash/crc32.h
 		util/hash/crc32.c
+		util/hash/md5.h
 		util/hash/sha1.h
 		util/hash/sha1.cpp
 		util/hash/sha256.h
