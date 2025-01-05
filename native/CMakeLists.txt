@@ -199,6 +199,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/cli_tool.h
 		sentools/common_paths.cpp
 		sentools/common_paths.h
+		sentools/hyouta_archive.cpp
+		sentools/hyouta_archive.h
 		sentools/main_sentools.cpp
 		sentools/bra_extract/bra_extract.cpp
 		sentools/bra_extract/bra_extract_main.h
@@ -241,6 +243,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/hash/util.h
 		util/align.h
 		util/align.cpp
+		util/bps.h
+		util/bps.cpp
 		util/endian.h
 		util/file.h
 		util/file.cpp

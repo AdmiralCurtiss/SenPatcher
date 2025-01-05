@@ -576,6 +576,146 @@ void DuplicatableByteArrayStream::End() {
     CurrentPosition = 0;
 }
 
+DuplicatableSharedVectorStream::DuplicatableSharedVectorStream(
+    std::shared_ptr<std::vector<char>> data)
+  : Data(std::move(data)), CurrentPosition(0) {}
+
+DuplicatableSharedVectorStream::~DuplicatableSharedVectorStream() = default;
+
+uint64_t DuplicatableSharedVectorStream::GetPosition() const {
+    return CurrentPosition;
+}
+
+void DuplicatableSharedVectorStream::SetPosition(uint64_t position) {
+    CurrentPosition = position;
+}
+
+uint64_t DuplicatableSharedVectorStream::GetLength() const {
+    return Data->size();
+}
+
+size_t DuplicatableSharedVectorStream::Read(char* buffer, size_t count) {
+    const size_t pos = CurrentPosition;
+    const size_t len = Data->size();
+    if (pos >= len) {
+        return 0;
+    }
+
+    size_t cnt = len - pos;
+    if (cnt > count) {
+        cnt = count;
+    }
+
+    std::memcpy(buffer, &(*Data)[pos], cnt);
+    CurrentPosition += cnt;
+
+    return cnt;
+}
+
+int DuplicatableSharedVectorStream::ReadByte() {
+    if (CurrentPosition < Data->size()) {
+        int rv = static_cast<uint8_t>((*Data)[CurrentPosition]);
+        ++CurrentPosition;
+        return rv;
+    } else {
+        return -1;
+    }
+}
+
+std::unique_ptr<DuplicatableStream> DuplicatableSharedVectorStream::Duplicate() const {
+    return std::make_unique<DuplicatableSharedVectorStream>(Data);
+}
+
+void DuplicatableSharedVectorStream::ReStart() {
+    CurrentPosition = 0;
+}
+
+void DuplicatableSharedVectorStream::End() {
+    CurrentPosition = 0;
+}
+
+PartialStream::PartialStream(const DuplicatableStream& stream, uint64_t position, uint64_t length)
+  : BaseStreamInternal(stream.Duplicate())
+  , PartialStart(position)
+  , PartialLength(length)
+  , CurrentPosition(0)
+  , Initialized(false) {
+    // C# has an optimization here for chaining partial streams but that needs RTTI,
+    // which is not guaranteed to be available depending on compiler settings...
+    // if (stream is PartialStream) {
+    //    // optimization to better chain partial stream of partial stream
+    //    PartialStream parent = stream as PartialStream;
+    //    BaseStreamInternal = parent.BaseStreamInternal.Duplicate();
+    //    Initialized = false;
+    //    PartialStart = parent.PartialStart + position;
+    //    PartialLength = length;
+    //    CurrentPosition = 0;
+    // }
+}
+
+PartialStream::~PartialStream() = default;
+
+uint64_t PartialStream::GetPosition() const {
+    return CurrentPosition;
+}
+
+void PartialStream::SetPosition(uint64_t position) {
+    const uint64_t v = position < PartialLength ? position : PartialLength;
+    if (!Initialized) {
+        BaseStreamInternal->ReStart();
+        Initialized = true;
+    }
+    BaseStreamInternal->SetPosition(PartialStart + v);
+    CurrentPosition = v;
+}
+
+uint64_t PartialStream::GetLength() const {
+    return PartialLength;
+}
+
+size_t PartialStream::Read(char* buffer, size_t count) {
+    const uint64_t partialBytesLeft = PartialLength - CurrentPosition;
+    const size_t c = partialBytesLeft < count ? static_cast<size_t>(partialBytesLeft) : count;
+    if (!Initialized) {
+        ReStart();
+    }
+    const size_t v = BaseStreamInternal->Read(buffer, c);
+    CurrentPosition += v;
+    return v;
+}
+
+int PartialStream::ReadByte() {
+    const uint64_t partialBytesLeft = PartialLength - CurrentPosition;
+    if (partialBytesLeft > 0) {
+        if (!Initialized) {
+            ReStart();
+        }
+        int v = BaseStreamInternal->ReadByte();
+        if (v != -1) {
+            ++CurrentPosition;
+        }
+        return v;
+    }
+    return -1;
+}
+
+std::unique_ptr<DuplicatableStream> PartialStream::Duplicate() const {
+    return std::make_unique<PartialStream>(*BaseStreamInternal, PartialStart, PartialLength);
+}
+
+void PartialStream::ReStart() {
+    BaseStreamInternal->ReStart();
+    BaseStreamInternal->SetPosition(PartialStart);
+    CurrentPosition = 0;
+    Initialized = true;
+}
+
+void PartialStream::End() {
+    BaseStreamInternal->End();
+    CurrentPosition = 0;
+    Initialized = false;
+}
+
 MemoryStream::MemoryStream(std::vector<char>& data, size_t initialPosition)
   : Data(data), CurrentPosition(initialPosition) {}
 

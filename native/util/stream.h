@@ -159,6 +159,57 @@ private:
     size_t CurrentPosition;
 };
 
+struct DuplicatableSharedVectorStream final : public DuplicatableStream {
+    DuplicatableSharedVectorStream(std::shared_ptr<std::vector<char>> data);
+    DuplicatableSharedVectorStream(const DuplicatableSharedVectorStream& other) = delete;
+    DuplicatableSharedVectorStream(DuplicatableSharedVectorStream&& other) = delete;
+    DuplicatableSharedVectorStream& operator=(const DuplicatableSharedVectorStream& other) = delete;
+    DuplicatableSharedVectorStream& operator=(DuplicatableSharedVectorStream&& other) = delete;
+    ~DuplicatableSharedVectorStream() override;
+
+    uint64_t GetPosition() const override;
+    void SetPosition(uint64_t position) override;
+    uint64_t GetLength() const override;
+
+    size_t Read(char* buffer, size_t count) override;
+    int ReadByte() override;
+
+    std::unique_ptr<DuplicatableStream> Duplicate() const override;
+    void ReStart() override;
+    void End() override;
+
+private:
+    std::shared_ptr<std::vector<char>> Data;
+    size_t CurrentPosition;
+};
+
+struct PartialStream final : public DuplicatableStream {
+    PartialStream(const DuplicatableStream& stream, uint64_t position, uint64_t length);
+    PartialStream(const PartialStream& other) = delete;
+    PartialStream(PartialStream&& other) = delete;
+    PartialStream& operator=(const PartialStream& other) = delete;
+    PartialStream& operator=(PartialStream&& other) = delete;
+    ~PartialStream() override;
+
+    uint64_t GetPosition() const override;
+    void SetPosition(uint64_t position) override;
+    uint64_t GetLength() const override;
+
+    size_t Read(char* buffer, size_t count) override;
+    int ReadByte() override;
+
+    std::unique_ptr<DuplicatableStream> Duplicate() const override;
+    void ReStart() override;
+    void End() override;
+
+private:
+    std::unique_ptr<DuplicatableStream> BaseStreamInternal;
+    uint64_t PartialStart;
+    uint64_t PartialLength;
+    uint64_t CurrentPosition;
+    bool Initialized;
+};
+
 struct MemoryStream final : public WriteStream {
     explicit MemoryStream(std::vector<char>& data, size_t initialPosition = 0);
     MemoryStream(const MemoryStream& other) = delete;
