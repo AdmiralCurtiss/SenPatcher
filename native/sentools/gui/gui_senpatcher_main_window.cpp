@@ -1,7 +1,14 @@
 #include "gui_senpatcher_main_window.h"
 
 #include <array>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <string>
 #include <string_view>
+#include <thread>
+#include <vector>
 
 #include "imgui.h"
 
@@ -34,6 +41,68 @@ static void TextUnformattedRightAlign(std::string_view sv) {
     ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (ImGui::GetCursorPosX() + width));
     ImGui::TextUnformatted(sv.data(), sv.data() + sv.size());
 }
+
+struct SenPatcherMainWindow::WorkThreadState {
+    std::atomic_bool CancelAll = false;
+    std::atomic_bool IsDone = false;
+    std::atomic_bool Success = false;
+
+    enum class UserInputRequestType {
+        None,
+        ErrorMessage,
+        YesNoQuestion,
+    };
+    enum class UserInputReplyType {
+        None,
+        OK,
+        Yes,
+        No,
+    };
+    UserInputRequestType UserInputRequest = UserInputRequestType::None;
+    UserInputReplyType UserInputReply = UserInputReplyType::None;
+    std::string UserInputRequestMessage;
+    std::mutex UserInputRequestMutex;
+    std::condition_variable UserInputRequestCondVar;
+
+    std::optional<std::thread> Thread;
+
+    std::string PathToOpen;
+
+
+    // Shows an error message in a modal message box and waits for the user to confirm it.
+    UserInputReplyType ShowError(std::string errorMessage) {
+        std::unique_lock lk(UserInputRequestMutex);
+        UserInputRequest = UserInputRequestType::ErrorMessage;
+        UserInputReply = UserInputReplyType::None;
+        UserInputRequestMessage = std::move(errorMessage);
+        UserInputRequestCondVar.wait(
+            lk, [this] { return CancelAll.load() || UserInputReply != UserInputReplyType::None; });
+        return UserInputReply;
+    }
+
+    // Asks the user a yes/no question, waits for the reply, and returns.
+    // If the message box is closed we assume a 'no' answer.
+    UserInputReplyType ShowYesNoQuestion(std::string message) {
+        std::unique_lock lk(UserInputRequestMutex);
+        UserInputRequest = UserInputRequestType::YesNoQuestion;
+        UserInputReply = UserInputReplyType::None;
+        UserInputRequestMessage = std::move(message);
+        UserInputRequestCondVar.wait(
+            lk, [this] { return CancelAll.load() || UserInputReply != UserInputReplyType::None; });
+        return UserInputReply;
+    }
+
+    ~WorkThreadState() {
+        CancelAll.store(true);
+        UserInputRequestCondVar.notify_all();
+        if (Thread && Thread->joinable()) {
+            Thread->join();
+        }
+    }
+};
+
+SenPatcherMainWindow::SenPatcherMainWindow() = default;
+SenPatcherMainWindow::~SenPatcherMainWindow() = default;
 
 bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     bool visible = ImGui::Begin("SenPatcher", nullptr, ImGuiWindowFlags_MenuBar);
@@ -360,6 +429,81 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
 }
 
 void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
+    if (WorkThread) {
+        std::unique_lock lk(WorkThread->UserInputRequestMutex);
+        switch (WorkThread->UserInputRequest) {
+            case SenPatcherMainWindow::WorkThreadState::UserInputRequestType::None: break;
+            case SenPatcherMainWindow::WorkThreadState::UserInputRequestType::ErrorMessage: {
+                if (!ImGui::IsPopupOpen("Error")) {
+                    ImGui::OpenPopup("Error");
+                }
+                ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_Once);
+                bool modal_open = true;
+                if (ImGui::BeginPopupModal(
+                        "Error", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
+                    ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
+                    ImGui::TextUnformatted(WorkThread->UserInputRequestMessage.data(),
+                                           WorkThread->UserInputRequestMessage.data()
+                                               + WorkThread->UserInputRequestMessage.size());
+                    ImGui::PopTextWrapPos();
+                    if (ImGui::Button("OK", ImVec2(-1.0f, 0.0f))) {
+                        ImGui::CloseCurrentPopup();
+                        modal_open = false;
+                    }
+                    ImGui::EndPopup();
+                }
+                if (!modal_open) {
+                    WorkThread->UserInputRequest =
+                        SenPatcherMainWindow::WorkThreadState::UserInputRequestType::None;
+                    WorkThread->UserInputReply =
+                        SenPatcherMainWindow::WorkThreadState::UserInputReplyType::OK;
+                    WorkThread->UserInputRequestCondVar.notify_all();
+                }
+                break;
+            }
+            case SenPatcherMainWindow::WorkThreadState::UserInputRequestType::YesNoQuestion: {
+                if (!ImGui::IsPopupOpen("Question")) {
+                    ImGui::OpenPopup("Question");
+                }
+                ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_Once);
+                bool modal_open = true;
+                if (ImGui::BeginPopupModal(
+                        "Question", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
+                    ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
+                    ImGui::TextUnformatted(WorkThread->UserInputRequestMessage.data(),
+                                           WorkThread->UserInputRequestMessage.data()
+                                               + WorkThread->UserInputRequestMessage.size());
+                    ImGui::PopTextWrapPos();
+                    if (ImGui::Button("Yes", ImVec2(-1.0f, 0.0f))) {
+                        WorkThread->UserInputReply =
+                            SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes;
+                        ImGui::CloseCurrentPopup();
+                        modal_open = false;
+                    }
+                    if (ImGui::Button("No", ImVec2(-1.0f, 0.0f))) {
+                        WorkThread->UserInputReply =
+                            SenPatcherMainWindow::WorkThreadState::UserInputReplyType::No;
+                        ImGui::CloseCurrentPopup();
+                        modal_open = false;
+                    }
+                    ImGui::EndPopup();
+                }
+                if (!modal_open) {
+                    WorkThread->UserInputRequest =
+                        SenPatcherMainWindow::WorkThreadState::UserInputRequestType::None;
+                    if (WorkThread->UserInputReply
+                        == SenPatcherMainWindow::WorkThreadState::UserInputReplyType::None) {
+                        WorkThread->UserInputReply =
+                            SenPatcherMainWindow::WorkThreadState::UserInputReplyType::No;
+                    }
+                    WorkThread->UserInputRequestCondVar.notify_all();
+                }
+                break;
+            }
+            default: assert(0); break;
+        }
+    }
+
     switch (PendingWindowRequest) {
         default: {
             PendingWindowRequest = PendingWindowType::None;
@@ -429,9 +573,46 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             break;
         }
         case PendingWindowType::TXPatch: {
-            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchTXWindow>(
-                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
-            PendingWindowRequest = PendingWindowType::None;
+            if (!WorkThread) {
+                WorkThread = std::make_unique<SenPatcherMainWindow::WorkThreadState>();
+                auto* threadState = WorkThread.get();
+                WorkThread->Thread.emplace([threadState,
+                                            selectedPath = PendingWindowSelectedPath]() -> void {
+                    auto doneGuard =
+                        HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
+                    try {
+                        auto size = HyoutaUtils::IO::GetFilesize(std::string_view(selectedPath));
+                        if (!size) {
+                            threadState->ShowError("Could not access selected file.");
+                            return;
+                        }
+                        if (!(*size == 7373456 || *size == 7232000 || *size == 7225344)) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "Selected file does not appear to be TokyoXanadu.exe of "
+                                    "version 1.08. Correct patching behavior cannot be guaranteed. "
+                                    "Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
+
+                        threadState->PathToOpen =
+                            HyoutaUtils::IO::SplitPath(selectedPath).Directory;
+                        threadState->Success.store(true);
+                    } catch (...) {
+                        threadState->ShowError("Unexpected error while opening window.");
+                    }
+                });
+            }
+            if (WorkThread && WorkThread->IsDone.load()) {
+                WorkThread->Thread->join();
+                if (WorkThread->Success.load()) {
+                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchTXWindow>(
+                        state, WorkThread->PathToOpen));
+                }
+                WorkThread.reset();
+                PendingWindowRequest = PendingWindowType::None;
+            }
             break;
         }
     }
