@@ -13,6 +13,7 @@
 #include "util/hash/crc32.h"
 #include "util/memread.h"
 #include "util/memwrite.h"
+#include "util/scope.h"
 #include "zstd/zstd.h"
 
 namespace SenTools {
@@ -170,13 +171,18 @@ HyoutaUtils::Result<SaveChecksumFixResult, std::string> SaveChecksumFix(std::str
         }
     }
 
-    HyoutaUtils::IO::File outfile(std::string_view(target), HyoutaUtils::IO::OpenMode::Write);
-    if (!outfile.IsOpen()) {
+    HyoutaUtils::IO::File outfile;
+    if (!outfile.OpenWithTempFilename(target, HyoutaUtils::IO::OpenMode::Write)) {
         return std::string("Failed to open output file.");
     }
+    auto outfileScope = HyoutaUtils::MakeDisposableScopeGuard([&]() { outfile.Delete(); });
     if (outfile.Write(saveMemory.get(), szlen) != szlen) {
         return std::string("Failed to write to output file.");
     }
+    if (!outfile.Rename(target)) {
+        return std::string("Failed to rename output file.");
+    }
+    outfileScope.Dispose();
 
     return SaveChecksumFixResult::Success;
 }
