@@ -228,6 +228,9 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/pkg_pack/pkg_pack_main.h
 		sentools/pkg_repack/pkg_repack.cpp
 		sentools/pkg_repack/pkg_repack_main.h
+		sentools/save_checksum_fix/save_checksum_fix.cpp
+		sentools/save_checksum_fix/save_checksum_fix.h
+		sentools/save_checksum_fix/save_checksum_fix_main.h
 		sentools/type1_compress/type1_compress.cpp
 		sentools/type1_compress/type1_compress.h
 		sentools/type1_compress/type1_compress_main.h
