@@ -78,6 +78,7 @@ bool DirectoryExists(std::string_view p) noexcept;
 bool CreateDirectory(std::string_view p) noexcept;
 bool CopyFile(std::string_view source, std::string_view target, bool overwrite = true) noexcept;
 bool DeleteFile(std::string_view path) noexcept;
+bool DeleteDirectory(std::string_view path) noexcept; // must be empty
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 bool FileExists(const std::filesystem::path& p) noexcept;

@@ -723,6 +723,20 @@ bool DeleteFile(std::string_view path) noexcept {
 #endif
 }
 
+bool DeleteDirectory(std::string_view path) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(path.data(), path.size());
+    if (!wstr) {
+        return false;
+    }
+    return RemoveDirectoryW(wstr->c_str()) != 0;
+#else
+    std::string p(path);
+    int result = rmdir(p.c_str());
+    return result == 0;
+#endif
+}
+
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 std::filesystem::path FilesystemPathFromUtf8(std::string_view path) {
 #ifdef BUILD_FOR_WINDOWS
