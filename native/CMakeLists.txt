@@ -202,6 +202,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/hyouta_archive.cpp
 		sentools/hyouta_archive.h
 		sentools/main_sentools.cpp
+		sentools/old_senpatcher_unpatch.cpp
+		sentools/old_senpatcher_unpatch.h
 		sentools/bra_extract/bra_extract.cpp
 		sentools/bra_extract/bra_extract_main.h
 		sentools/dirtree_create/dirtree_create.cpp

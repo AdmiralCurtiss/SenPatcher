@@ -29,7 +29,9 @@
 #include "sen2/system_data.h"
 #include "senpatcher_version.h"
 #include "sentools/common_paths.h"
+#include "sentools/old_senpatcher_unpatch.h"
 #include "util/file.h"
+#include "util/hash/sha1.h"
 #include "util/scope.h"
 
 namespace SenTools::GUI {
@@ -98,6 +100,29 @@ struct SenPatcherMainWindow::WorkThreadState {
         if (Thread && Thread->joinable()) {
             Thread->join();
         }
+    }
+
+    bool DoUnpatchWithUserConfirmation(const std::string& path, int sengame) {
+        if (SenPatcher::HasOldSenpatcherBackups(path, sengame)) {
+            UserInputReplyType result = ShowYesNoQuestion(
+                "Old SenPatcher backup files have been detected.\nThis version of SenPatcher "
+                "requires an unpatched game to work correctly, so any existing patches need to be "
+                "removed first.\n\nWould you like to remove any remaining old SenPatcher patches "
+                "before proceeding? This may take a few seconds.\n\n"
+                "(This may remove some non-SenPatcher mods you may have installed as well.)");
+            if (result == UserInputReplyType::Yes) {
+                if (!SenPatcher::UnpatchGame(path, sengame)) {
+                    ShowError(
+                        "Not all patches could be removed.\n\nYou should run a file verification "
+                        "through Steam or GOG Galaxy before proceeding.");
+                    return false;
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 };
 
@@ -510,9 +535,60 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             break;
         }
         case PendingWindowType::CS1Patch: {
-            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS1Window>(
-                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
-            PendingWindowRequest = PendingWindowType::None;
+            if (!WorkThread) {
+                WorkThread = std::make_unique<SenPatcherMainWindow::WorkThreadState>();
+                auto* threadState = WorkThread.get();
+                WorkThread->Thread.emplace([threadState,
+                                            selectedPath = PendingWindowSelectedPath]() -> void {
+                    auto doneGuard =
+                        HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
+                    try {
+                        HyoutaUtils::IO::File f(std::string_view(selectedPath),
+                                                HyoutaUtils::IO::OpenMode::Read);
+                        if (!f.IsOpen()) {
+                            threadState->ShowError("Could not open selected file.");
+                            return;
+                        }
+                        const auto size = f.GetLength();
+                        if (!size) {
+                            threadState->ShowError("Could not access selected file.");
+                            return;
+                        }
+                        if (!(*size == 549888
+                              || HyoutaUtils::Hash::CalculateSHA1FromFile(f)
+                                     != HyoutaUtils::Hash::SHA1FromHexString(
+                                         "8dde2b39f128179a0beb3301cfd56a98c0f98a55"))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "Selected file does not appear to be Sen1Launcher.exe of "
+                                    "version 1.6. Correct patching behavior cannot be guaranteed. "
+                                    "Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
+
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+
+                        // TODO: Check/fix filename encoding issues.
+
+                        threadState->DoUnpatchWithUserConfirmation(path, 1);
+
+                        threadState->PathToOpen = std::move(path);
+                        threadState->Success.store(true);
+                    } catch (...) {
+                        threadState->ShowError("Unexpected error while opening window.");
+                    }
+                });
+            }
+            if (WorkThread && WorkThread->IsDone.load()) {
+                WorkThread->Thread->join();
+                if (WorkThread->Success.load()) {
+                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS1Window>(
+                        state, WorkThread->PathToOpen));
+                }
+                WorkThread.reset();
+                PendingWindowRequest = PendingWindowType::None;
+            }
             break;
         }
         case PendingWindowType::CS1SystemData: {
