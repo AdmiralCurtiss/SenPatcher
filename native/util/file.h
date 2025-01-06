@@ -46,6 +46,11 @@ public:
     bool Delete() noexcept;
     bool Rename(std::string_view p) noexcept;
 
+    // Like Open(), except that we will not open the file at the given filename, but instead try to
+    // find a unused filename in the same directory so that we can later rename the file to the
+    // given filename after writes are done. This makes the target file replacement atomic.
+    bool OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept;
+
     void* ReleaseHandle() noexcept;
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM

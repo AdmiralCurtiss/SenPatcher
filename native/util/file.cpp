@@ -131,6 +131,63 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
     }
 }
 
+bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
+    Close();
+    switch (mode) {
+        case OpenMode::Read: {
+            // This cannot work, we'll never successfully open a not-yet-existing file.
+            Filehandle = INVALID_HANDLE_VALUE;
+            return false;
+        }
+        case OpenMode::Write: {
+#ifdef BUILD_FOR_WINDOWS
+            auto s = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+            if (!s) {
+                return false;
+            }
+            s->append(L".tmp");
+            size_t extraCharsAppended = 0;
+            size_t loopIndex = 0;
+            do {
+                Filehandle = CreateFileW(s->c_str(),
+                                         GENERIC_WRITE | DELETE,
+                                         0,
+                                         nullptr,
+                                         CREATE_NEW,
+                                         FILE_ATTRIBUTE_NORMAL,
+                                         nullptr);
+                if (Filehandle != INVALID_HANDLE_VALUE) {
+                    break;
+                }
+                if (GetLastError() != ERROR_FILE_EXISTS) {
+                    return false;
+                }
+
+                // file exists, try next
+                // TODO: might be better to RNG something here, or use a timestamp or something?
+                for (size_t i = 0; i < extraCharsAppended; ++i) {
+                    s->pop_back();
+                }
+                extraCharsAppended = 0;
+                size_t x = loopIndex;
+                do {
+                    // this counts from the wrong side but whatever...
+                    s->push_back(L'0' + (x % 10));
+                    x = (x / 10);
+                    ++extraCharsAppended;
+                } while (x > 0);
+                ++loopIndex;
+            } while (true);
+            return true;
+#else
+            // TODO: This is doable with open() + fdopen(), I think.
+            return false;
+#endif
+        }
+        default: Filehandle = INVALID_HANDLE_VALUE; return false;
+    }
+}
+
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
     Close();
