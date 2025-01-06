@@ -606,9 +606,62 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             break;
         }
         case PendingWindowType::CS2Patch: {
-            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS2Window>(
-                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
-            PendingWindowRequest = PendingWindowType::None;
+            if (!WorkThread) {
+                WorkThread = std::make_unique<SenPatcherMainWindow::WorkThreadState>();
+                auto* threadState = WorkThread.get();
+                WorkThread->Thread.emplace([threadState,
+                                            selectedPath = PendingWindowSelectedPath]() -> void {
+                    auto doneGuard =
+                        HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
+                    try {
+                        HyoutaUtils::IO::File f(std::string_view(selectedPath),
+                                                HyoutaUtils::IO::OpenMode::Read);
+                        if (!f.IsOpen()) {
+                            threadState->ShowError("Could not open selected file.");
+                            return;
+                        }
+                        const auto size = f.GetLength();
+                        if (!size) {
+                            threadState->ShowError("Could not access selected file.");
+                            return;
+                        }
+                        if (!(*size == 572928
+                              || HyoutaUtils::Hash::CalculateSHA1FromFile(f)
+                                     != HyoutaUtils::Hash::SHA1FromHexString(
+                                         "81024410cc1fd1b462c600e0378714bd7704b202"))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "Selected file does not appear to be Sen2Launcher.exe of "
+                                    "version 1.4/1.4.1/1.4.2. Correct patching behavior cannot be "
+                                    "guaranteed. Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
+
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+
+                        // TODO: Check/fix filename encoding issues.
+
+                        // TODO: Check for Humble v1.4 and handle.
+
+                        threadState->DoUnpatchWithUserConfirmation(path, 2);
+
+                        threadState->PathToOpen = std::move(path);
+                        threadState->Success.store(true);
+                    } catch (...) {
+                        threadState->ShowError("Unexpected error while opening window.");
+                    }
+                });
+            }
+            if (WorkThread && WorkThread->IsDone.load()) {
+                WorkThread->Thread->join();
+                if (WorkThread->Success.load()) {
+                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS2Window>(
+                        state, WorkThread->PathToOpen));
+                }
+                WorkThread.reset();
+                PendingWindowRequest = PendingWindowType::None;
+            }
             break;
         }
         case PendingWindowType::CS2SystemData: {
@@ -626,15 +679,113 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             break;
         }
         case PendingWindowType::CS3Patch: {
-            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS3Window>(
-                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
-            PendingWindowRequest = PendingWindowType::None;
+            if (!WorkThread) {
+                WorkThread = std::make_unique<SenPatcherMainWindow::WorkThreadState>();
+                auto* threadState = WorkThread.get();
+                WorkThread->Thread.emplace([threadState,
+                                            selectedPath = PendingWindowSelectedPath]() -> void {
+                    auto doneGuard =
+                        HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
+                    try {
+                        HyoutaUtils::IO::File f(std::string_view(selectedPath),
+                                                HyoutaUtils::IO::OpenMode::Read);
+                        if (!f.IsOpen()) {
+                            threadState->ShowError("Could not open selected file.");
+                            return;
+                        }
+                        const auto size = f.GetLength();
+                        if (!size) {
+                            threadState->ShowError("Could not access selected file.");
+                            return;
+                        }
+                        if (!(*size == 569856
+                              || HyoutaUtils::Hash::CalculateSHA1FromFile(f)
+                                     != HyoutaUtils::Hash::SHA1FromHexString(
+                                         "21de3b088a5ddad7ed1fdb8e40061497c248ca65"))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "Selected file does not appear to be Sen3Launcher.exe of "
+                                    "version 1.07. Correct patching behavior cannot be guaranteed. "
+                                    "Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
+
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+
+                        threadState->DoUnpatchWithUserConfirmation(path, 3);
+
+                        threadState->PathToOpen = std::move(path);
+                        threadState->Success.store(true);
+                    } catch (...) {
+                        threadState->ShowError("Unexpected error while opening window.");
+                    }
+                });
+            }
+            if (WorkThread && WorkThread->IsDone.load()) {
+                WorkThread->Thread->join();
+                if (WorkThread->Success.load()) {
+                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS3Window>(
+                        state, WorkThread->PathToOpen));
+                }
+                WorkThread.reset();
+                PendingWindowRequest = PendingWindowType::None;
+            }
             break;
         }
         case PendingWindowType::CS4Patch: {
-            state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS4Window>(
-                state, HyoutaUtils::IO::SplitPath(PendingWindowSelectedPath).Directory));
-            PendingWindowRequest = PendingWindowType::None;
+            if (!WorkThread) {
+                WorkThread = std::make_unique<SenPatcherMainWindow::WorkThreadState>();
+                auto* threadState = WorkThread.get();
+                WorkThread->Thread.emplace([threadState,
+                                            selectedPath = PendingWindowSelectedPath]() -> void {
+                    auto doneGuard =
+                        HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
+                    try {
+                        HyoutaUtils::IO::File f(std::string_view(selectedPath),
+                                                HyoutaUtils::IO::OpenMode::Read);
+                        if (!f.IsOpen()) {
+                            threadState->ShowError("Could not open selected file.");
+                            return;
+                        }
+                        const auto size = f.GetLength();
+                        if (!size) {
+                            threadState->ShowError("Could not access selected file.");
+                            return;
+                        }
+                        if (!(*size == 605184
+                              || HyoutaUtils::Hash::CalculateSHA1FromFile(f)
+                                     != HyoutaUtils::Hash::SHA1FromHexString(
+                                         "5f480136aa4c3b53add422bf75b63350fa58d202"))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "Selected file does not appear to be Sen4Launcher.exe of "
+                                    "version 1.2.2. Correct patching behavior cannot be "
+                                    "guaranteed. Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
+
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+
+                        threadState->DoUnpatchWithUserConfirmation(path, 4);
+
+                        threadState->PathToOpen = std::move(path);
+                        threadState->Success.store(true);
+                    } catch (...) {
+                        threadState->ShowError("Unexpected error while opening window.");
+                    }
+                });
+            }
+            if (WorkThread && WorkThread->IsDone.load()) {
+                WorkThread->Thread->join();
+                if (WorkThread->Success.load()) {
+                    state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS4Window>(
+                        state, WorkThread->PathToOpen));
+                }
+                WorkThread.reset();
+                PendingWindowRequest = PendingWindowType::None;
+            }
             break;
         }
         case PendingWindowType::ReveriePatch: {
