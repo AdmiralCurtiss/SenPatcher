@@ -175,7 +175,7 @@ bool SenPatcherPatchCS4Window::RenderFrame(GuiState& state) {
         if (!GameSettings.CheckBoxButtonLayout) {
             ImGui::BeginDisabled();
         }
-        if (ImGui::BeginCombo("",
+        if (ImGui::BeginCombo("##ButtonLayoutCombo",
                               BUTTON_LAYOUTS[GameSettings.ComboBoxForceJp ? 1 : 0],
                               ImGuiComboFlags_WidthFitPreview | ImGuiComboFlags_HeightLargest)) {
             for (int n = 0; n < IM_ARRAYSIZE(BUTTON_LAYOUTS); ++n) {
