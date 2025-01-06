@@ -918,4 +918,20 @@ SplitPathData SplitPath(std::string_view path) {
     }
     return result;
 }
+
+bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noexcept {
+    HyoutaUtils::IO::File outfile;
+    if (!outfile.OpenWithTempFilename(path, HyoutaUtils::IO::OpenMode::Write)) {
+        return false;
+    }
+    auto outfileScope = HyoutaUtils::MakeDisposableScopeGuard([&]() { outfile.Delete(); });
+    if (outfile.Write(data, length) != length) {
+        return false;
+    }
+    if (!outfile.Rename(path)) {
+        return false;
+    }
+    outfileScope.Dispose();
+    return true;
+}
 } // namespace HyoutaUtils::IO

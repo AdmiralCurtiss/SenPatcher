@@ -103,4 +103,11 @@ struct SplitPathData {
     std::string_view Filename;
 };
 SplitPathData SplitPath(std::string_view path);
+
+// Simulates an atomic file write.
+// More specifically, opens a temp file, writes to it, then renames that temp file to the given path
+// if the write succeeds. The temp file is deleted if the write fails.
+// On success, the data will be written to the file at 'path'.
+// On failure, the file at 'path' will not have been touched, retaining its previous data.
+bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noexcept;
 } // namespace HyoutaUtils::IO
