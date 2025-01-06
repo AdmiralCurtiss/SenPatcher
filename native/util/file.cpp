@@ -715,6 +715,31 @@ bool DeleteFile(std::string_view path) noexcept {
     if (!wstr) {
         return false;
     }
+    if (DeleteFileW(wstr->c_str()) != 0) {
+        return true;
+    }
+    if (GetLastError() != ERROR_ACCESS_DENIED) {
+        return false;
+    }
+
+    // DeleteFileW() fails on read-only files.
+    // Check if this is the case, remove the attribute, and retry.
+    WIN32_FILE_ATTRIBUTE_DATA data{};
+    const auto rv = GetFileAttributesExW(wstr->c_str(), GetFileExInfoStandard, &data);
+    if (rv == 0) {
+        return false;
+    }
+    if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+        // is a directory
+        return false;
+    }
+    if ((data.dwFileAttributes & FILE_ATTRIBUTE_READONLY) == 0) {
+        // not read-only
+        return false;
+    }
+    if (SetFileAttributesW(wstr->c_str(), data.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY) == 0) {
+        return false;
+    }
     return DeleteFileW(wstr->c_str()) != 0;
 #else
     std::string p(path);
