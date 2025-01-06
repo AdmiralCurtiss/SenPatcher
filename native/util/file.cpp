@@ -26,6 +26,7 @@
 #undef CreateDirectory
 #else
 #include <cstdio>
+#include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -180,8 +181,46 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
             } while (true);
             return true;
 #else
-            // TODO: This is doable with open() + fdopen(), I think.
-            return false;
+            // TODO: Apparently on modern Linux you can do this much neater with
+            // open(O_TMPFILE) + linkat(), but we'd need to use fd instead of a FILE*
+            std::string s(p);
+            s.append(".tmp");
+            size_t extraCharsAppended = 0;
+            size_t loopIndex = 0;
+            do {
+                int fd = open(s.c_str(),
+                              O_CREAT | O_EXCL | O_WRONLY,
+                              S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+                if (fd != -1) {
+                    Filehandle = fdopen(fd, "w");
+                    if (Filehandle == INVALID_HANDLE_VALUE) {
+                        close(fd);
+                        return false;
+                    }
+                    break;
+                }
+                if (errno != EEXIST) {
+                    return false;
+                }
+
+                // file exists, try next
+                // TODO: might be better to RNG something here, or use a timestamp or something?
+                for (size_t i = 0; i < extraCharsAppended; ++i) {
+                    s.pop_back();
+                }
+                extraCharsAppended = 0;
+                size_t x = loopIndex;
+                do {
+                    // this counts from the wrong side but whatever...
+                    s.push_back('0' + (x % 10));
+                    x = (x / 10);
+                    ++extraCharsAppended;
+                } while (x > 0);
+                ++loopIndex;
+            } while (true);
+
+            Path = std::move(s);
+            return true;
 #endif
         }
         default: Filehandle = INVALID_HANDLE_VALUE; return false;
