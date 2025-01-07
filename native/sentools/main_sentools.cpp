@@ -20,6 +20,7 @@
 #include "pkg_extract/pkg_extract_main.h"
 #include "pkg_pack/pkg_pack_main.h"
 #include "pkg_repack/pkg_repack_main.h"
+#include "save_checksum_fix/save_checksum_fix_main.h"
 #include "type1_compress/type1_compress_main.h"
 #include "type1_decompress/type1_decompress_main.h"
 
@@ -75,6 +76,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = Game_Verify_Name,
             .ShortDescription = Game_Verify_ShortDescription,
             .Function = Game_Verify_Function},
+    CliTool{.Name = Save_Checksum_Fix_Name,
+            .ShortDescription = Save_Checksum_Fix_ShortDescription,
+            .Function = Save_Checksum_Fix_Function},
     CliTool{.Name = DirTree_Create_Name,
             .ShortDescription = DirTree_Create_ShortDescription,
             .Function = DirTree_Create_Function,

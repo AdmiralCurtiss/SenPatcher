@@ -358,6 +358,8 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_senpatcher_extract_pka_window.h
 			sentools/gui/gui_senpatcher_extract_pkg_window.cpp
 			sentools/gui/gui_senpatcher_extract_pkg_window.h
+			sentools/gui/gui_senpatcher_fix_checksum_window.cpp
+			sentools/gui/gui_senpatcher_fix_checksum_window.h
 			sentools/gui/gui_senpatcher_main_window.cpp
 			sentools/gui/gui_senpatcher_main_window.h
 			sentools/gui/gui_senpatcher_patch_cs1_window.cpp

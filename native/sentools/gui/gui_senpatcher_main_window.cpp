@@ -18,6 +18,7 @@
 #include "gui_senpatcher_decompress_type1_window.h"
 #include "gui_senpatcher_extract_pka_window.h"
 #include "gui_senpatcher_extract_pkg_window.h"
+#include "gui_senpatcher_fix_checksum_window.h"
 #include "gui_senpatcher_patch_cs1_window.h"
 #include "gui_senpatcher_patch_cs2_window.h"
 #include "gui_senpatcher_patch_cs3_window.h"
@@ -156,7 +157,9 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
                 state.Windows.emplace_back(
                     std::make_unique<GUI::SenPatcherExtractPkaWindow>(state));
             }
-            if (ImGui::MenuItem("Fix Checksum of CS4 save...")) {
+            if (ImGui::MenuItem("Fix Checksum of CS4 or Reverie save...")) {
+                state.Windows.emplace_back(
+                    std::make_unique<GUI::SenPatcherFixChecksumWindow>(state));
             }
             if (ImGui::MenuItem("Decompress 'type 1' compressed file...")) {
                 state.Windows.emplace_back(
