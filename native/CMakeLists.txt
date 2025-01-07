@@ -204,6 +204,10 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/main_sentools.cpp
 		sentools/old_senpatcher_unpatch.cpp
 		sentools/old_senpatcher_unpatch.h
+		sentools/pe_exe.cpp
+		sentools/pe_exe.h
+		sentools/rom_mapper.cpp
+		sentools/rom_mapper.h
 		sentools/bra_extract/bra_extract.cpp
 		sentools/bra_extract/bra_extract_main.h
 		sentools/dirtree_create/dirtree_create.cpp
