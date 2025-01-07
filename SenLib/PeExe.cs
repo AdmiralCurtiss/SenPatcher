@@ -139,6 +139,73 @@ namespace SenLib {
 				return importTables;
 			}
 		}
+
+		public ExportTable GenerateDllExportList() {
+			if (OptionalHeader.ImageDataDirectoryIndexExportTable >= OptionalHeader.DataDirectories.Length) {
+				return null;
+			}
+			var exportDataDir = OptionalHeader.DataDirectories[OptionalHeader.ImageDataDirectoryIndexExportTable];
+			if (exportDataDir.Size == 0) {
+				return null;
+			}
+
+			ulong exportSectionStart = OptionalHeader.ImageBase + exportDataDir.VirtualAddress;
+			uint exportSectionSize = exportDataDir.Size;
+
+			ExportTable exportTable = new ExportTable();
+			var mapper = CreateRomMapper();
+			ulong romAddress = mapper.MapRamToRom(exportSectionStart);
+			var e = Endian;
+			ExportDirectory exportDirectory = new ExportDirectory();
+			using (DuplicatableStream s = Stream.Duplicate()) {
+				s.Position = (long)romAddress;
+				exportDirectory.Characteristics = s.ReadUInt32(e);
+				exportDirectory.TimeDateStamp = s.ReadUInt32(e);
+				exportDirectory.MajorVersion = s.ReadUInt16(e);
+				exportDirectory.MinorVersion = s.ReadUInt16(e);
+				exportDirectory.NameRVA = s.ReadUInt32(e);
+				exportDirectory.OrdinalBase = s.ReadUInt32(e);
+				exportDirectory.NumberOfAddressTableEntries = s.ReadUInt32(e);
+				exportDirectory.NumberOfNamePointers = s.ReadUInt32(e);
+				exportDirectory.ExportAddressTableRVA = s.ReadUInt32(e);
+				exportDirectory.NamePointerRVA = s.ReadUInt32(e);
+				exportDirectory.OrdinalTableRVA = s.ReadUInt32(e);
+
+				exportTable.Name = s.ReadAsciiNulltermFromLocationAndReset((long)mapper.MapRamToRom(OptionalHeader.ImageBase + exportDirectory.NameRVA));
+				exportTable.OridinalBase = exportDirectory.OrdinalBase;
+
+				ulong romAddressFunctions = mapper.MapRamToRom(OptionalHeader.ImageBase + exportDirectory.ExportAddressTableRVA);
+				ulong romAddressNames = mapper.MapRamToRom(OptionalHeader.ImageBase + exportDirectory.NamePointerRVA);
+				ulong romAddressNameOrdinals = mapper.MapRamToRom(OptionalHeader.ImageBase + exportDirectory.OrdinalTableRVA);
+
+				List<(ulong address, string forwarder)> addressTable = new List<(ulong address, string forwarder)>();
+				List<(string name, ushort ordinal)> nameLookupTable = new List<(string name, ushort ordinal)>();
+
+				s.Position = (long)romAddressFunctions;
+				for (uint i = 0; i < exportDirectory.NumberOfAddressTableEntries; ++i) {
+					ulong address = OptionalHeader.ImageBase + s.ReadUInt32(e);
+					if (address >= exportSectionStart && address < (exportSectionStart + exportSectionSize)) {
+						string forwarder = s.ReadAsciiNulltermFromLocationAndReset((long)mapper.MapRamToRom(address));
+						addressTable.Add((0, forwarder));
+					} else {
+						addressTable.Add((address, null));
+					}
+				}
+				for (uint i = 0; i < exportDirectory.NumberOfNamePointers; ++i) {
+					s.Position = (long)(romAddressNames + i * 4);
+					uint nameLocation = s.ReadUInt32(e);
+					s.Position = (long)(romAddressNameOrdinals + i * 2);
+					ushort ordinal = s.ReadUInt16(e);
+					string name = s.ReadAsciiNulltermFromLocationAndReset((long)mapper.MapRamToRom(OptionalHeader.ImageBase + nameLocation));
+					nameLookupTable.Add((name, ordinal));
+				}
+
+				exportTable.AddressTable = addressTable;
+				exportTable.NameLookupTable = nameLookupTable;
+			}
+
+			return exportTable;
+		}
 	}
 
 	public class Coff {
@@ -319,5 +386,26 @@ namespace SenLib {
 	public class ImportTable {
 		public string DllName;
 		public List<(ushort ordinalOrHint, string name)> ImportedObjects;
+	}
+
+	public class ExportDirectory {
+		public uint Characteristics;
+		public uint TimeDateStamp;
+		public ushort MajorVersion;
+		public ushort MinorVersion;
+		public uint NameRVA;
+		public uint OrdinalBase;
+		public uint NumberOfAddressTableEntries;
+		public uint NumberOfNamePointers;
+		public uint ExportAddressTableRVA;
+		public uint NamePointerRVA;
+		public uint OrdinalTableRVA;
+	}
+
+	public class ExportTable {
+		public string Name;
+		public uint OridinalBase; // needs to be added to the index in the NameLookupTable to get the ordinal
+		public List<(ulong address, string forwarder)> AddressTable;
+		public List<(string name, ushort index)> NameLookupTable;
 	}
 }
