@@ -28,6 +28,11 @@
 
 #include "senpatcher_version.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherHook[] = "Sen1";
+__declspec(dllexport) char SenPatcherVersion[] = SENPATCHER_VERSION;
+}
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
