@@ -53,4 +53,7 @@ void PatchDisableCameraAutoCenter(PatchExecData& execData);
 
 // removes the already-used checks for custom DLC. official DLC is unaffected.
 void PatchCustomDlcMultiuse(PatchExecData& execData);
+
+// removes the allowed-to-load checks for custom DLC. official DLC is unaffected.
+void PatchCustomDlcAllow(PatchExecData& execData);
 } // namespace SenLib::TX

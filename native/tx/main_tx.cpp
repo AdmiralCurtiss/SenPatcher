@@ -1159,6 +1159,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::TX::PatchValidDlcIds(patchExecData, dlcValidBitfield, maxDlcId);
     Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::TX::PatchCustomDlcAllow(patchExecData);
+    Align16CodePage(logger, patchExecData.Codespace);
 
     SenLib::TX::PatchSkipMovies(patchExecData, skipLogos, skipAllMovies);
     Align16CodePage(logger, patchExecData.Codespace);
