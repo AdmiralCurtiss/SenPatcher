@@ -85,13 +85,19 @@ void PatchCustomDlcAllow(PatchExecData& execData) {
     GameVersion version = execData.Version;
     using namespace SenPatcher::x86;
 
-    char* const injectAddress = GetCodeAddressSteamGog(version, textRegion, 0x5f385c, 0x5f1ced);
+    char* const injectAddress = GetCodeAddressSteamGog(version, textRegion, 0x5f3800, 0x5f1cb0);
+    char* const flagSetAddress = GetCodeAddressSteamGog(version, textRegion, 0x5f3875, 0x5f1d03);
 
     char* codespace = execData.Codespace;
-    auto injectResult = InjectJumpIntoCode<5>(logger, injectAddress, codespace);
+    auto injectResult =
+        InjectJumpIntoCode<6, PaddingInstruction::Nop>(logger, injectAddress, codespace);
     BranchHelper4Byte jump_back;
     jump_back.SetTarget(injectResult.JumpBackAddress);
     const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+
+    // preserve registers
+    Emit_PUSH_R32(codespace, R32::EDX);
+    Emit_PUSH_R32(codespace, R32::ECX);
 
     WriteInstruction24(codespace, 0x0fb716); // movzx edx,word ptr[esi]
     WriteInstruction24(codespace, 0x6681fa); // cmp dx,(s_InternalDlcBitfield.size() * 32)
@@ -100,11 +106,6 @@ void PatchCustomDlcAllow(PatchExecData& execData) {
     // if out of range it's custom
     BranchHelper1Byte isCustom;
     isCustom.WriteJump(codespace, JumpCondition::JAE);
-
-    // on Steam we need to preserve eax here
-    if (version == GameVersion::Steam) {
-        Emit_PUSH_R32(codespace, R32::EAX);
-    }
 
     // this sets eax to the array index and edx to the bit index
     Emit_MOV_R32_R32(codespace, R32::EAX, R32::EDX);
@@ -117,27 +118,20 @@ void PatchCustomDlcAllow(PatchExecData& execData) {
     isCustom.WriteJump(codespace, JumpCondition::JNC);
 
     // not custom, continue with regular code
-    if (version == GameVersion::Steam) {
-        Emit_POP_R32(codespace, R32::EAX);
-    }
+    Emit_POP_R32(codespace, R32::ECX);
+    Emit_POP_R32(codespace, R32::EDX);
     std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
     codespace += overwrittenInstructions.size();
     jump_back.WriteJump(codespace, JumpCondition::JMP);
 
-    // on custom, skip the call and set al nonzero for the next check
+    // is custom, skip forward to the flag setting code
     isCustom.SetTarget(codespace);
 
-    // fix up stack for the call we just interrupted
-    if (version == GameVersion::Steam) {
-        Emit_POP_R32(codespace, R32::EAX);
-    }
     Emit_POP_R32(codespace, R32::ECX);
-
-    WriteInstruction16(codespace, 0xb001); // mov al,1
+    Emit_POP_R32(codespace, R32::EDX);
     BranchHelper4Byte jump_back_skip;
-    jump_back_skip.SetTarget(injectResult.JumpBackAddress + 5);
+    jump_back_skip.SetTarget(flagSetAddress);
     jump_back_skip.WriteJump(codespace, JumpCondition::JMP);
-
 
     execData.Codespace = codespace;
 }
