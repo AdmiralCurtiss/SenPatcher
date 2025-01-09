@@ -11,6 +11,7 @@
 
 #include "gui_senpatcher_patch_window_utils.h"
 #include "gui_state.h"
+#include "sentools/senpatcher_dll_loader.h"
 #include "util/file.h"
 #include "util/ini.h"
 #include "util/ini_writer.h"
@@ -41,7 +42,6 @@ static constexpr const char* CONTROLLER_BUTTONS[] = {"Square / X",
                                                      "D-Pad Down",
                                                      "D-Pad Left"};
 
-static constexpr char LOCAL_GAME_DIR[] = "Trails of Cold Steel";
 static constexpr char RELATIVE_DLL_PATH[] = "/DINPUT8.dll";
 static constexpr char RELATIVE_INI_PATH[] = "/senpatcher_settings.ini";
 } // namespace
@@ -67,6 +67,7 @@ static void WriteToIni(const SenPatcherPatchCS1Window::Settings& settings,
 struct SenPatcherPatchCS1Window::WorkThreadState {
     Settings GameSettings;
     std::string GamePath;
+    std::string LocalDllPath;
     bool Unpatch;
 
     HyoutaUtils::Result<bool, std::string> Result;
@@ -74,21 +75,24 @@ struct SenPatcherPatchCS1Window::WorkThreadState {
 
     std::thread Thread;
 
-    WorkThreadState(const Settings& gameSettings, std::string gamePath, bool unpatch)
+    WorkThreadState(const Settings& gameSettings,
+                    std::string gamePath,
+                    std::string localDllPath,
+                    bool unpatch)
       : GameSettings(gameSettings)
       , GamePath(std::move(gamePath))
+      , LocalDllPath(std::move(localDllPath))
       , Unpatch(unpatch)
       , Result(false)
       , Thread([this]() -> void {
           auto doneGuard = HyoutaUtils::MakeScopeGuard([&]() { IsDone.store(true); });
           try {
-              std::string localDllPath = std::string(LOCAL_GAME_DIR) + RELATIVE_DLL_PATH;
               std::string gameDllPath = GamePath + RELATIVE_DLL_PATH;
               std::string gameIniPath = GamePath + RELATIVE_INI_PATH;
               std::string_view defaultIniString(IniData, IniLength);
               Result = SenTools::GUI::PatchOrUnpatchGame(
                   [&](HyoutaUtils::Ini::IniWriter& writer) { WriteToIni(GameSettings, writer); },
-                  localDllPath,
+                  LocalDllPath,
                   gameDllPath,
                   gameIniPath,
                   defaultIniString,
@@ -105,8 +109,17 @@ struct SenPatcherPatchCS1Window::WorkThreadState {
     }
 };
 
-SenPatcherPatchCS1Window::SenPatcherPatchCS1Window(GuiState& state, std::string_view gamePath)
-  : GamePath(gamePath) {
+SenPatcherPatchCS1Window::SenPatcherPatchCS1Window(GuiState& state,
+                                                   std::string gamePath,
+                                                   std::string patchDllPath,
+                                                   HyoutaUtils::IO::File patchDllFile,
+                                                   SenPatcherDllIdentificationResult patchDllInfo)
+  : GamePath(std::move(gamePath))
+  , PatchDllPath(std::move(patchDllPath))
+  , PatchDllFile(std::move(patchDllFile))
+  , PatchDllInfo(std::move(patchDllInfo)) {
+    UpdateInstalledDllInfo();
+
     // TODO: Is there a better way to get imgui to handle windows where the user can create as many
     // copies as they want at will?
     sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
@@ -159,6 +172,11 @@ SenPatcherPatchCS1Window::SenPatcherPatchCS1Window(GuiState& state, std::string_
     }
 }
 
+void SenPatcherPatchCS1Window::UpdateInstalledDllInfo() {
+    std::string gameDllPath = GamePath + RELATIVE_DLL_PATH;
+    InstalledDllInfo = SenTools::IdentifySenPatcherDll(gameDllPath);
+}
+
 SenPatcherPatchCS1Window::~SenPatcherPatchCS1Window() = default;
 
 static void HelpMarker(std::string_view desc) {
@@ -189,20 +207,37 @@ bool SenPatcherPatchCS1Window::RenderFrame(GuiState& state) {
         }
 
         ImGui::Text("Path: %s", GamePath.c_str());
+        ImGui::Text("SenPatcher version currently installed: %s",
+                    InstalledDllInfo.Type == SenPatcherDllIdentificationType::CS1Hook
+                        ? (InstalledDllInfo.Version.has_value() ? InstalledDllInfo.Version->c_str()
+                                                                : "Unknown")
+                        : "None");
+        ImGui::Text("SenPatcher version to be installed: %s",
+                    PatchDllInfo.Version.has_value() ? PatchDllInfo.Version->c_str() : "Unknown");
 
         if (ImGui::Button("Remove Patches / Restore Original", ImVec2(-1.0f, 30.0f))
             && !WorkThread) {
             StatusMessage = "Unpatching...";
             WorkThread = std::make_unique<SenPatcherPatchCS1Window::WorkThreadState>(
-                GameSettings, GamePath, true);
+                GameSettings, GamePath, PatchDllPath, true);
         }
 
         ImGui::Checkbox("Apply fixes for known script/asset errors",
                         &GameSettings.CheckBoxAssetPatches);
-        // ImGui::SameLine();
-        // if (ImGui::Button("Show asset fix details (may contain spoilers)")) {
-        //     // TODO
-        // }
+        if (PatchDllInfo.FileFixInfo.has_value()) {
+            ImGui::SameLine();
+            if (ImGui::Button("Show asset fix details (may contain spoilers)")) {
+                ImGui::OpenPopup("Asset fix details");
+            }
+            bool modal_open = true;
+            if (ImGui::BeginPopupModal(
+                    "Asset fix details", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
+                ImGui::TextUnformatted(PatchDllInfo.FileFixInfo->data(),
+                                       PatchDllInfo.FileFixInfo->data()
+                                           + PatchDllInfo.FileFixInfo->size());
+                ImGui::EndPopup();
+            }
+        }
         ImGui::Checkbox("Remove animation skip in Turbo mode",
                         &GameSettings.CheckBoxBattleAutoSkip);
         ImGui::Checkbox("Make turbo mode a toggle instead of hold",
@@ -252,7 +287,7 @@ bool SenPatcherPatchCS1Window::RenderFrame(GuiState& state) {
         if (ImGui::Button("Patch!", ImVec2(-1.0f, 40.0f)) && !WorkThread) {
             StatusMessage = "Patching...";
             WorkThread = std::make_unique<SenPatcherPatchCS1Window::WorkThreadState>(
-                GameSettings, GamePath, false);
+                GameSettings, GamePath, PatchDllPath, false);
         }
     }
 
@@ -264,6 +299,7 @@ bool SenPatcherPatchCS1Window::RenderFrame(GuiState& state) {
             StatusMessage.clear();
         }
         WorkThread.reset();
+        UpdateInstalledDllInfo();
     }
 
     if (!StatusMessage.empty()) {

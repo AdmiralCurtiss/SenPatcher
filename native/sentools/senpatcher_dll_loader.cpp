@@ -13,14 +13,22 @@
 
 namespace SenTools {
 SenPatcherDllIdentificationResult IdentifySenPatcherDll(std::string_view path) {
-    SenPatcherDllIdentificationResult result;
     if (!HyoutaUtils::IO::FileExists(path)) {
+        SenPatcherDllIdentificationResult result;
         result.Type = SenPatcherDllIdentificationType::FileDoesNotExist;
         return result;
     }
-
     HyoutaUtils::IO::File f(path, HyoutaUtils::IO::OpenMode::Read);
+    return IdentifySenPatcherDll(f);
+}
+
+SenPatcherDllIdentificationResult IdentifySenPatcherDll(HyoutaUtils::IO::File& f) {
+    SenPatcherDllIdentificationResult result;
     if (!f.IsOpen()) {
+        result.Type = SenPatcherDllIdentificationType::FileInaccessible;
+        return result;
+    }
+    if (!f.SetPosition(0)) {
         result.Type = SenPatcherDllIdentificationType::FileInaccessible;
         return result;
     }

@@ -7,10 +7,16 @@
 
 #include "gui_file_browser.h"
 #include "gui_window.h"
+#include "sentools/senpatcher_dll_loader.h"
+#include "util/file.h"
 
 namespace SenTools::GUI {
 struct SenPatcherPatchCS1Window : public SenTools::GUI::Window {
-    SenPatcherPatchCS1Window(GuiState& state, std::string_view gamePath);
+    SenPatcherPatchCS1Window(GuiState& state,
+                             std::string gamePath,
+                             std::string patchDllPath,
+                             HyoutaUtils::IO::File patchDllFile,
+                             SenPatcherDllIdentificationResult patchDllInfo);
     SenPatcherPatchCS1Window(const SenPatcherPatchCS1Window& other) = delete;
     SenPatcherPatchCS1Window(SenPatcherPatchCS1Window&& other) = delete;
     SenPatcherPatchCS1Window& operator=(const SenPatcherPatchCS1Window& other) = delete;
@@ -18,6 +24,7 @@ struct SenPatcherPatchCS1Window : public SenTools::GUI::Window {
     ~SenPatcherPatchCS1Window();
 
     bool RenderFrame(GuiState& state) override;
+    void UpdateInstalledDllInfo();
 
     struct Settings {
         bool CheckBoxAssetPatches = true;
@@ -42,6 +49,10 @@ private:
 
     Settings GameSettings;
     std::string GamePath;
+    std::string PatchDllPath;
+    HyoutaUtils::IO::File PatchDllFile;
+    SenPatcherDllIdentificationResult PatchDllInfo;
+    SenPatcherDllIdentificationResult InstalledDllInfo;
 
     std::string StatusMessage;
 

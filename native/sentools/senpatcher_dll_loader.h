@@ -4,6 +4,8 @@
 #include <string>
 #include <string_view>
 
+#include "util/file.h"
+
 namespace SenTools {
 enum class SenPatcherDllIdentificationType {
     UnspecifiedError,
@@ -29,4 +31,5 @@ struct SenPatcherDllIdentificationResult {
 };
 
 SenPatcherDllIdentificationResult IdentifySenPatcherDll(std::string_view path);
+SenPatcherDllIdentificationResult IdentifySenPatcherDll(HyoutaUtils::IO::File& file);
 } // namespace SenTools

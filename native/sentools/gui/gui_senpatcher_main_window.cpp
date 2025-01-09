@@ -31,6 +31,7 @@
 #include "senpatcher_version.h"
 #include "sentools/common_paths.h"
 #include "sentools/old_senpatcher_unpatch.h"
+#include "sentools/senpatcher_dll_loader.h"
 #include "util/file.h"
 #include "util/hash/sha1.h"
 #include "util/scope.h"
@@ -70,7 +71,9 @@ struct SenPatcherMainWindow::WorkThreadState {
     std::optional<std::thread> Thread;
 
     std::string PathToOpen;
-
+    std::string PatchDllPath;
+    HyoutaUtils::IO::File PatchDllFile;
+    SenPatcherDllIdentificationResult PatchDllInfo;
 
     // Shows an error message in a modal message box and waits for the user to confirm it.
     UserInputReplyType ShowError(std::string errorMessage) {
@@ -546,6 +549,31 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     auto doneGuard =
                         HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
                     try {
+                        auto currentExeDir = HyoutaUtils::IO::GetCurrentExecutableDirectory();
+                        if (!currentExeDir) {
+                            // fall back to the current working directory
+                            currentExeDir.emplace(".");
+                        }
+                        std::string patchDllPath =
+                            *currentExeDir + "/Trails of Cold Steel/DINPUT8.dll";
+
+                        HyoutaUtils::IO::File patchDllFile(std::string_view(patchDllPath),
+                                                           HyoutaUtils::IO::OpenMode::Read);
+                        if (!patchDllFile.IsOpen()) {
+                            threadState->ShowError(
+                                "Could not open the patch DLL file at '" + patchDllPath
+                                + "'. Please ensure you've extracted SenPatcher correctly.");
+                            return;
+                        }
+                        auto dllInfo = SenTools::IdentifySenPatcherDll(patchDllFile);
+                        if (dllInfo.Type != SenPatcherDllIdentificationType::CS1Hook) {
+                            threadState->ShowError(
+                                "The file at '" + patchDllPath + "' does not appear to be a "
+                                "SenPatcher DLL for CS1. "
+                                "Please redownload SenPatcher and try again.");
+                            return;
+                        }
+
                         HyoutaUtils::IO::File f(std::string_view(selectedPath),
                                                 HyoutaUtils::IO::OpenMode::Read);
                         if (!f.IsOpen()) {
@@ -577,6 +605,9 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                         threadState->DoUnpatchWithUserConfirmation(path, 1);
 
                         threadState->PathToOpen = std::move(path);
+                        threadState->PatchDllPath = std::move(patchDllPath);
+                        threadState->PatchDllFile = std::move(patchDllFile);
+                        threadState->PatchDllInfo = std::move(dllInfo);
                         threadState->Success.store(true);
                     } catch (...) {
                         threadState->ShowError("Unexpected error while opening window.");
@@ -587,7 +618,11 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                 WorkThread->Thread->join();
                 if (WorkThread->Success.load()) {
                     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS1Window>(
-                        state, WorkThread->PathToOpen));
+                        state,
+                        std::move(WorkThread->PathToOpen),
+                        std::move(WorkThread->PatchDllPath),
+                        std::move(WorkThread->PatchDllFile),
+                        std::move(WorkThread->PatchDllInfo)));
                 }
                 WorkThread.reset();
                 PendingWindowRequest = PendingWindowType::None;
