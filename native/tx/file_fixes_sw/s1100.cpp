@@ -9,11 +9,11 @@
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
-namespace SenLib::TX::FileFixesSw::s1100 {
-std::string_view GetDescription() {
-    return "Text fixes in Kokonoe Shrine (inside).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_s1100[] = "Text fixes in Kokonoe Shrine (inside).";
 }
 
+namespace SenLib::TX::FileFixesSw::s1100 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

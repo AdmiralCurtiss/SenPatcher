@@ -8,6 +8,11 @@
 #include "p3a/util.h"
 #include "util/hash/sha1.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_9_missing_se[] =
+    "Fix missing sound effects and voice clips";
+}
+
 namespace {
 static constexpr char PatchData_ed8m2150[] = {
 #include "embed_sen1_ed8m2150.h"
@@ -32,10 +37,6 @@ static constexpr size_t PatchLength_pc8v10286_15 = sizeof(PatchData_pc8v10286_15
 } // namespace
 
 namespace SenLib::Sen1::FileFixes::missing_audio_files {
-std::string_view GetDescription() {
-    return "Fix missing sound effects and voice clips";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -12,11 +12,12 @@
 #include "util/stream.h"
 #include "util/text.h"
 
-namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book00_dat {
-std::string_view GetDescription() {
-    return "Minor text fixes in Imperial Chronicle issues.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_2_book00[] =
+    "Minor text fixes in Imperial Chronicle issues.";
 }
 
+namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book00_dat {
 static void InjectNewlines(BookTable& book, int index, std::span<const int> linebreaks) {
     auto& e = book.Entries[index];
     auto split = HyoutaUtils::TextUtils::Split(*e.Text, "\\n");

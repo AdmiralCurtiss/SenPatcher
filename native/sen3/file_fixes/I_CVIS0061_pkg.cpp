@@ -1,13 +1,17 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "sen/decompress_helper.h"
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/decompress_helper.h"
+#include "sen/file_getter.h"
 #include "sen3/file_fixes.h"
 #include "sen3/patch_pkg.h"
 #include "util/hash/sha1.h"
+
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_8_I_CVIS0061[] = "Fix McBurn nametag.";
+}
 
 namespace {
 static constexpr char PatchData[] = {
@@ -17,10 +21,6 @@ static constexpr size_t PatchLength = sizeof(PatchData);
 } // namespace
 
 namespace SenLib::Sen3::FileFixes::I_CVIS0061_pkg {
-std::string_view GetDescription() {
-    return "Fix McBurn nametag.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

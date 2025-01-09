@@ -1,14 +1,19 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
-#include "util/bps.h"
-#include "sen/decompress_helper.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "p3a/util.h"
+#include "sen/decompress_helper.h"
+#include "sen/file_getter.h"
 #include "sen1/tbl.h"
+#include "util/bps.h"
 #include "util/hash/sha1.h"
+
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_voice_jp[] =
+    "Fix Japanese voice tables. This is half of a fix for JP voice lipsync.";
+}
 
 namespace {
 static constexpr char PatchData3[] = {
@@ -22,10 +27,6 @@ static constexpr size_t PatchLength4 = sizeof(PatchData4);
 } // namespace
 
 namespace SenLib::Sen1::FileFixes::text_dat_t_voice_tbl {
-std::string_view GetDescription() {
-    return "Fix Japanese voice tables. This is half of a fix for JP voice lipsync.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
@@ -49,7 +50,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             std::vector<char> vctiming4 = DecompressFromBuffer(PatchData4, PatchLength4);
             auto p3d = DecompressFromBuffer(PatchData3, PatchLength3);
-            HyoutaUtils::Stream::DuplicatableByteArrayStream tmp(vctiming4.data(), vctiming4.size());
+            HyoutaUtils::Stream::DuplicatableByteArrayStream tmp(vctiming4.data(),
+                                                                 vctiming4.size());
             HyoutaUtils::Stream::DuplicatableByteArrayStream patch3(p3d.data(), p3d.size());
             HyoutaUtils::Bps::ApplyPatchToStream(tmp, patch3, vctiming3);
         }

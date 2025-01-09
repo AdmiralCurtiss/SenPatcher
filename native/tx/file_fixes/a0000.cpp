@@ -11,14 +11,14 @@
 
 #include "../file_fixes_sw/dungeon_names.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_a0000[] = "Translate the main debug map.";
+}
+
 #define STR_WITH_LEN(text) text, (sizeof(text) - 1)
 #define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
 
 namespace SenLib::TX::FileFixes::a0000 {
-std::string_view GetDescription() {
-    return "Translate the main debug map.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
@@ -385,7 +385,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x99fc, 0x42, 0x99ff + 10, 0x3c - 10, STR_SPAN(" Start working?"));
         patcher.ReplacePartialCommand(0x9a3e, 0x42, 0x9a41 + 10, 0x3c - 10, STR_SPAN(" Part-time work at Hama's"));
         patcher.ReplacePartialCommand(0x9a80, 0x42, 0x9a83 + 10, 0x3c - 10, STR_SPAN(" Houraichou at night"));
-        patcher.ReplacePartialCommand(0x9ac2, 0x42, 0x9ac5 + 10, 0x3c - 10, STR_SPAN(" Gorou visits the cafe"));
+        patcher.ReplacePartialCommand(0x9ac2, 0x42, 0x9ac5 + 10, 0x3c - 10, STR_SPAN(" Gorou visits the caf\xc3\xa9"));
         patcher.ReplacePartialCommand(0x9b04, 0x42, 0x9b07 + 10, 0x3c - 10, STR_SPAN(" Call from Ryouta"));
         patcher.ReplacePartialCommand(0x9b46, 0x42, 0x9b49 + 10, 0x3c - 10, STR_SPAN(" Next day, Ryouta is safe"));
         patcher.ReplacePartialCommand(0x9b88, 0x42, 0x9b8b + 10, 0x3c - 10, STR_SPAN(" After school, looking into God's App"));
@@ -521,12 +521,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0xc886, 0x42, 0xc889 + 10, 0x3c - 10, STR_SPAN(" Starting investigation during lunch break"));
         patcher.ReplacePartialCommand(0xc8c8, 0x42, 0xc8cb + 10, 0x3c - 10, STR_SPAN(" Splitting up and leaving school"));
         patcher.ReplacePartialCommand(0xc90a, 0x42, 0xc90d + 10, 0x3c - 10, STR_SPAN(" Entering Brick Alley, encounter with Mikuriya"));
-        patcher.ReplacePartialCommand(0xc94c, 0x42, 0xc94f + 10, 0x3c - 10, STR_SPAN(" Enter cafe?"));
+        patcher.ReplacePartialCommand(0xc94c, 0x42, 0xc94f + 10, 0x3c - 10, STR_SPAN(" Enter caf\xc3\xa9?"));
         patcher.ReplacePartialCommand(0xc98e, 0x42, 0xc991 + 10, 0x3c - 10, STR_SPAN(" Conversation with Yamaoka"));
         patcher.ReplacePartialCommand(0xc9d0, 0x42, 0xc9d3 + 10, 0x3c - 10, STR_SPAN(" Enter antique shop?"));
         patcher.ReplacePartialCommand(0xca12, 0x42, 0xca15 + 10, 0x3c - 10, STR_SPAN(" Conversation with Yukino"));
         patcher.ReplacePartialCommand(0xca54, 0x42, 0xca57 + 10, 0x3c - 10, STR_SPAN(" Encounter with black hound (from antique shop)"));
-        patcher.ReplacePartialCommand(0xca96, 0x42, 0xca99 + 10, 0x3c - 10, STR_SPAN(" Encounter with black hound (from cafe)"));
+        patcher.ReplacePartialCommand(0xca96, 0x42, 0xca99 + 10, 0x3c - 10, STR_SPAN(" Encounter with black hound (from caf\xc3\xa9)"));
         patcher.ReplacePartialCommand(0xcad8, 0x42, 0xcadb + 10, 0x3c - 10, STR_SPAN(" Entering Scarlet Labyrinth"));
         patcher.ReplacePartialCommand(0xcb1a, 0x42, 0xcb1d + 10, 0x3c - 10, STR_SPAN(" Boss fight"));
         patcher.ReplacePartialCommand(0xcb5c, 0x42, 0xcb5f + 10, 0x3c - 10, STR_SPAN(" After boss fight"));
@@ -739,7 +739,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x11e70, 0x42, 0x11e73 + 10, 0x3c - 10, STR_SPAN(" Battle at Brick Alley"));
         patcher.ReplacePartialCommand(0x11eb2, 0x42, 0x11eb5 + 10, 0x3c - 10, STR_SPAN(" After battle, meeting with Yukino and Yamaoka"));
         patcher.ReplacePartialCommand(0x11ef4, 0x42, 0x11ef7 + 10, 0x3c - 10, STR_SPAN(" Securing Brick Alley with barrier devices"));
-        patcher.ReplacePartialCommand(0x11f36, 0x42, 0x11f39 + 10, 0x3c - 10, STR_SPAN(" Conversation in Cafe 17"));
+        patcher.ReplacePartialCommand(0x11f36, 0x42, 0x11f39 + 10, 0x3c - 10, STR_SPAN(" Conversation in Caf\xc3\xa9 17"));
         patcher.ReplacePartialCommand(0x11f78, 0x42, 0x11f7b + 10, 0x3c - 10, STR_SPAN(" Battle at Memorial Park"));
         patcher.ReplacePartialCommand(0x11fba, 0x42, 0x11fbd + 10, 0x3c - 10, STR_SPAN(" After battle, meeting with Airi and Takeuchi"));
         patcher.ReplacePartialCommand(0x11ffc, 0x42, 0x11fff + 10, 0x3c - 10, STR_SPAN(" Enter the pillar?"));
@@ -854,7 +854,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // EV_Jump_12_00
         patcher.ReplacePartialCommand(0x15071, 0x42, 0x15074 + 10, 0x3c - 10, STR_SPAN(" Brick Alley at night"));
-        patcher.ReplacePartialCommand(0x150b3, 0x42, 0x150b6 + 10, 0x3c - 10, STR_SPAN(" Cafe 17 after-hours"));
+        patcher.ReplacePartialCommand(0x150b3, 0x42, 0x150b6 + 10, 0x3c - 10, STR_SPAN(" Caf\xc3\xa9 17 after-hours"));
         patcher.ReplacePartialCommand(0x150f5, 0x42, 0x150f8 + 10, 0x3c - 10, STR_SPAN(" Outside school"));
         patcher.ReplacePartialCommand(0x15137, 0x42, 0x1513a + 10, 0x3c - 10, STR_SPAN(" Asuka leaving school"));
         patcher.ReplacePartialCommand(0x15179, 0x42, 0x1517c + 10, 0x3c - 10, STR_SPAN(" Outside Nanahoshi Mall"));
@@ -864,9 +864,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x15281, 0x42, 0x15284 + 10, 0x3c - 10, STR_SPAN(" Boss fight"));
         patcher.ReplacePartialCommand(0x152c3, 0x42, 0x152c6 + 10, 0x3c - 10, STR_SPAN(" After boss fight"));
         patcher.ReplacePartialCommand(0x15305, 0x42, 0x15308 + 10, 0x3c - 10, STR_SPAN(" Back outside"));
-        patcher.ReplacePartialCommand(0x15347, 0x42, 0x1534a + 10, 0x3c - 10, STR_SPAN(" Asuka arrives at Cafe 17"));
+        patcher.ReplacePartialCommand(0x15347, 0x42, 0x1534a + 10, 0x3c - 10, STR_SPAN(" Asuka arrives at Caf\xc3\xa9 17"));
         patcher.ReplacePartialCommand(0x15389, 0x42, 0x1538c + 10, 0x3c - 10, STR_SPAN(" Surprise birthday party"));
-        patcher.ReplacePartialCommand(0x153cb, 0x42, 0x153ce + 10, 0x3c - 10, STR_SPAN(" Outside Cafe 17"));
+        patcher.ReplacePartialCommand(0x153cb, 0x42, 0x153ce + 10, 0x3c - 10, STR_SPAN(" Outside Caf\xc3\xa9 17"));
 
         // EV_Jump_13_00
         patcher.ReplacePartialCommand(0x15645, 0x42, 0x15648 + 10, 0x3c - 10, STR_SPAN(" Yuuki wakes up at desk"));
@@ -1277,7 +1277,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         } while (false)
         AFTER_STORY_SUBEVENT(0x1fd1a, 0x55, 0x1fd1d, 0x4f, " Rion and Haruna in XRC clubroom");
         AFTER_STORY_SUBEVENT(0x1fd6f, 0x55, 0x1fd72, 0x4f, " Reika, Wakaba, and Akira in karate dojo");
-        AFTER_STORY_SUBEVENT(0x1fdc4, 0x55, 0x1fdc7, 0x4f, " Meeting Asuka and Shiori in Cafe 17");
+        AFTER_STORY_SUBEVENT(0x1fdc4, 0x55, 0x1fdc7, 0x4f, " Meeting Asuka and Shiori in Caf\xc3\xa9 17");
         AFTER_STORY_SUBEVENT(0x1fe19, 0x55, 0x1fe1c, 0x4f, " First time at Sunshine Road");
         AFTER_STORY_SUBEVENT(0x1fe6e, 0x55, 0x1fe71, 0x4f, " Encounter with Mikuriya");
         AFTER_STORY_SUBEVENT(0x1fec3, 0x58, 0x1fec6, 0x52, " Crystals in Station Square");

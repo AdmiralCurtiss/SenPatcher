@@ -1,19 +1,20 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen2/tbl.h"
 #include "util/hash/sha1.h"
 
 #include "text_dat_us_t_item_tbl_t_magic_tbl.h"
 
-namespace SenLib::Sen2::FileFixes::text_dat_us_t_notecook_tbl {
-std::string_view GetDescription() {
-    return "Adjust formatting in cooking descriptions.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_notecook[] =
+    "Adjust formatting in cooking descriptions.";
 }
 
+namespace SenLib::Sen2::FileFixes::text_dat_us_t_notecook_tbl {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -8,12 +8,12 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::m8209 {
-std::string_view GetDescription() {
-    // reunite with Rion/Mitsuki
-    return "Text fixes in Lethe Pillar (midpoint).";
+extern "C" {
+// reunite with Rion/Mitsuki
+__declspec(dllexport) char SenPatcherFix_1_m8209[] = "Text fixes in Lethe Pillar (midpoint).";
 }
 
+namespace SenLib::TX::FileFixesSw::m8209 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

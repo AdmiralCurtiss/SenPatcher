@@ -7,11 +7,12 @@
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
-namespace SenLib::Sen3::FileFixes::c0420_dat {
-std::string_view GetDescription() {
-    return "Terminology fixes in Crossbell (Fisherman's Guild).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_a0420[] =
+    "Terminology fixes in Crossbell (Fisherman's Guild).";
 }
 
+namespace SenLib::Sen3::FileFixes::c0420_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

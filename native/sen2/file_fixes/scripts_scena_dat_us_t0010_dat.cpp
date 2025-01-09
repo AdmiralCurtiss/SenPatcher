@@ -1,17 +1,17 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t0010_dat {
-std::string_view GetDescription() {
-    return "Fix extra word in Thors (bottom floor).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t0010[] = "Fix extra word in Thors (bottom floor).";
 }
 
+namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t0010_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

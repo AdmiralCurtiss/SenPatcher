@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::tk_gorou {
-std::string_view GetDescription() {
-    return "Text fixes in conversations with Gorou.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_ztk_gorou[] = "Text fixes in conversations with Gorou.";
 }
 
+namespace SenLib::TX::FileFixesSw::tk_gorou {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

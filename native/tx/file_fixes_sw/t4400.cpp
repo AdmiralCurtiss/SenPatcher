@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t4400 {
-std::string_view GetDescription() {
-    return "Text fixes in Cradle Art Gallery.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t4400[] = "Text fixes in Cradle Art Gallery.";
 }
 
+namespace SenLib::TX::FileFixesSw::t4400 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

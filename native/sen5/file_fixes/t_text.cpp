@@ -8,11 +8,11 @@
 #include "sen5/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen5::FileFixes::t_text {
-std::string_view GetDescription() {
-    return "Fix a few system messages.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_text[] = "Fix a few system messages.";
 }
 
+namespace SenLib::Sen5::FileFixes::t_text {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

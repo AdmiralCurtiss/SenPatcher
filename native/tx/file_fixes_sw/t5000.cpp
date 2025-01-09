@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t5000 {
-std::string_view GetDescription() {
-    return "Text fixes outside Nanahoshi Mall.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t5000[] = "Text fixes outside Nanahoshi Mall.";
 }
 
+namespace SenLib::TX::FileFixesSw::t5000 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

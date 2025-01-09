@@ -2,21 +2,22 @@
 #include <unordered_map>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen1/tbl.h"
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
 #include "text_dat_us_t_item_tbl_t_magic_tbl.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_item_jp[] =
+    "Series consistency fixes in Japanese item descriptions.";
+}
+
 namespace SenLib::Sen1::FileFixes::text_dat_t_item_tbl {
 using namespace HyoutaUtils::TextUtils;
-
-std::string_view GetDescription() {
-    return "Series consistency fixes in JP item descriptions.";
-}
 
 static size_t CountCodepoints(std::string_view sv, size_t codepoints) {
     size_t counter = 0;

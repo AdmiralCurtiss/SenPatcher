@@ -1,17 +1,17 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen1::FileFixes::scripts_scena_dat_us_a0006_dat {
-std::string_view GetDescription() {
-    return "Fix formatting issues in debug map.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_a0006[] = "Fix formatting issues in debug map.";
 }
 
+namespace SenLib::Sen1::FileFixes::scripts_scena_dat_us_a0006_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

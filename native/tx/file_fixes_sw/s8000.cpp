@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::s8000 {
-std::string_view GetDescription() {
-    return "Text fixes in NDF base.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_s8000[] = "Text fixes in NDF base.";
 }
 
+namespace SenLib::TX::FileFixesSw::s8000 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

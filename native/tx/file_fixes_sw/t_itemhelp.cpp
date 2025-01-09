@@ -9,11 +9,12 @@
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t_itemhelp {
-std::string_view GetDescription() {
-    return "Text fixes in generated item descriptions.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_itemhelp[] =
+    "Text fixes in generated item descriptions.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_itemhelp {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -9,11 +9,11 @@
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t_notechar {
-std::string_view GetDescription() {
-    return "Text fixes in friend notes.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_notechar[] = "Text fixes in friend notes.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_notechar {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

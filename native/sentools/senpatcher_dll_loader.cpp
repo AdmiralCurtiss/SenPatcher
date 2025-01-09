@@ -118,6 +118,19 @@ SenPatcherDllIdentificationResult IdentifySenPatcherDll(std::string_view path) {
                 return result;
             }
             result.Version = std::string(*value);
+        } else if (nameLookup.Name.starts_with("SenPatcherFix_")) {
+            auto value = get_string_value(nameLookup);
+            if (!value) {
+                // not a valid string exported, not a senpatcher dll
+                result.Type = SenPatcherDllIdentificationType::NotASenPatcherDll;
+                return result;
+            }
+            if (!result.FileFixInfo.has_value()) {
+                result.FileFixInfo = std::string(*value);
+            } else {
+                result.FileFixInfo->push_back('\n');
+                result.FileFixInfo->append(*value);
+            }
         }
     }
     if (sengame == -1 && (isDSOUND || isDINPUT8)) {

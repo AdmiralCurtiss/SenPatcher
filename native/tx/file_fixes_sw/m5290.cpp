@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::m5290 {
-std::string_view GetDescription() {
-    return "Text fixes in Birdcage Corridor (boss room).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m5290[] = "Text fixes in Birdcage Corridor (boss room).";
 }
 
+namespace SenLib::TX::FileFixesSw::m5290 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

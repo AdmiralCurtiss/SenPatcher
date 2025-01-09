@@ -2,22 +2,22 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen3::FileFixes::alchr022_dat {
-std::string_view GetDescription() {
-    return "Fix Rufus' Sword name";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_2_alchr022[] = "Fix Rufus' Sword name";
 }
 
+namespace SenLib::Sen3::FileFixes::alchr022_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
-    auto file =
-        getCheckedFile("data/scripts/battle/dat_en/alchr022.dat",
-                       2341,
-                       HyoutaUtils::Hash::SHA1FromHexString("2c6088c4f1e8847e49f5f5f48b410fe2aec3ef54"));
+    auto file = getCheckedFile(
+        "data/scripts/battle/dat_en/alchr022.dat",
+        2341,
+        HyoutaUtils::Hash::SHA1FromHexString("2c6088c4f1e8847e49f5f5f48b410fe2aec3ef54"));
     if (!file) {
         return false;
     }

@@ -1,12 +1,18 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
-#include "sen/decompress_helper.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "p3a/util.h"
+#include "sen/decompress_helper.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
+
+extern "C" {
+// we don't need to display this separately, the ps4 103 fix suffices
+//__declspec(dllexport) char SenPatcherFix_9_voice2[] =
+// "Fix incorrect voice clips for Rean's Ogre S-Crafts.";
+}
 
 namespace {
 static constexpr char PatchData27[] = {
@@ -20,10 +26,6 @@ static constexpr size_t PatchLength28 = sizeof(PatchData28);
 } // namespace
 
 namespace SenLib::Sen3::FileFixes::voice_opus_v00s2728 {
-std::string_view GetDescription() {
-    return "Fix incorrect voice clips for Rean's Ogre S-Crafts.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

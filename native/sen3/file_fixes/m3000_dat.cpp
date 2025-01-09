@@ -1,17 +1,18 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
-namespace SenLib::Sen3::FileFixes::m3000_dat {
-std::string_view GetDescription() {
-    return "Terminology fixes in Juno Naval Fortress (Sub 1).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m3000[] =
+    "Terminology fixes in Juno Naval Fortress (Sub 1).";
 }
 
+namespace SenLib::Sen3::FileFixes::m3000_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

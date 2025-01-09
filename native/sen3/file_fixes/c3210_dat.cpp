@@ -8,11 +8,11 @@
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
-namespace SenLib::Sen3::FileFixes::c3210_dat {
-std::string_view GetDescription() {
-    return "Terminology fixes in Heimdallr (Racecourse).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_c3210[] = "Terminology fixes in Heimdallr (Racecourse).";
 }
 
+namespace SenLib::Sen3::FileFixes::c3210_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

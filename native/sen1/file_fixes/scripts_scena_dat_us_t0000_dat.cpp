@@ -10,11 +10,12 @@
 #include "util/memwrite.h"
 #include "util/stream.h"
 
-namespace SenLib::Sen1::FileFixes::scripts_scena_dat_us_t0000_dat {
-std::string_view GetDescription() {
-    return "Fix formatting issues on Thors campus grounds.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t0000[] =
+    "Fix formatting issues on Thors campus grounds.";
 }
 
+namespace SenLib::Sen1::FileFixes::scripts_scena_dat_us_t0000_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -8,11 +8,12 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::m5801 {
-std::string_view GetDescription() {
-    return "Text fixes in Ruins of Poisonous Filth (boss room).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m5801[] =
+    "Text fixes in Ruins of Poisonous Filth (boss room).";
 }
 
+namespace SenLib::TX::FileFixesSw::m5801 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

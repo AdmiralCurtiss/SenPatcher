@@ -10,7 +10,6 @@
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen1::FileFixes::##name {                                 \
-        std::string_view GetDescription();                                      \
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }

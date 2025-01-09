@@ -10,13 +10,13 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t3100[] = "Text fixes in Kuguraya.";
+}
+
 #define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
 
 namespace SenLib::TX::FileFixesSw::t3100 {
-std::string_view GetDescription() {
-    return "Text fixes in Kuguraya.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

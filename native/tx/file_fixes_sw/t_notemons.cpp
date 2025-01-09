@@ -11,11 +11,11 @@
 
 #include "dungeon_names.h"
 
-namespace SenLib::TX::FileFixesSw::t_notemons {
-std::string_view GetDescription() {
-    return "Text fixes in enemy list.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_notemons[] = "Text fixes in enemy list.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_notemons {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

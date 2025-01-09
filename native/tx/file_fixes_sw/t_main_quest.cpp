@@ -13,6 +13,11 @@
 #include "util/text.h"
 #include "util/vector.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_main[] = "Text fixes in shop info and story synopsis.";
+__declspec(dllexport) char SenPatcherFix_0_quest[] = "Text fixes in quest log.";
+}
+
 static std::string ReformatStoryLine(std::string_view line, size_t questAuthorPrefixCount) {
     std::string_view l = line;
     std::string r;
@@ -84,10 +89,6 @@ static std::string ReformatStoryLine(std::string_view line, size_t questAuthorPr
 }
 
 namespace SenLib::TX::FileFixesSw::t_main {
-std::string_view GetDescription() {
-    return "Text fixes in shop info and story synopsis.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
@@ -287,10 +288,6 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 } // namespace SenLib::TX::FileFixesSw::t_main
 
 namespace SenLib::TX::FileFixesSw::t_quest {
-std::string_view GetDescription() {
-    return "Text fixes in quest log.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

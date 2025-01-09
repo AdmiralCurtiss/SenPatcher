@@ -9,13 +9,13 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m9800[] = "Text fixes in Boundary of Blood.";
+}
+
 #define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
 
 namespace SenLib::TX::FileFixesSw::m9800 {
-std::string_view GetDescription() {
-    return "Text fixes in Boundary of Blood.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

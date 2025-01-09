@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::m9090 {
-std::string_view GetDescription() {
-    return "Text fixes in Sanctuary of Eternity.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m9090[] = "Text fixes in Sanctuary of Eternity.";
 }
 
+namespace SenLib::TX::FileFixesSw::m9090 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

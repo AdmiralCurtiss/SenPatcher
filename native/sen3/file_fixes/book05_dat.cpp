@@ -1,18 +1,18 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/book_table.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 #include "util/stream.h"
 
-namespace SenLib::Sen3::FileFixes::book05_dat {
-std::string_view GetDescription() {
-    return "Fix typos in Imperial Chronicle.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_4_book05[] = "Fix typos in Imperial Chronicle.";
 }
 
+namespace SenLib::Sen3::FileFixes::book05_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::s1000 {
-std::string_view GetDescription() {
-    return "Text fixes in Kokonoe Shrine (outside).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_s1000[] = "Text fixes in Kokonoe Shrine (outside).";
 }
 
+namespace SenLib::TX::FileFixesSw::s1000 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

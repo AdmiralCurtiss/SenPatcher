@@ -1,18 +1,19 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen4/tbl.h"
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
-namespace SenLib::Sen4::FileFixes::t_item {
-std::string_view GetDescription() {
-    return "Fix incorrect item descriptions and inconsistent formatting.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_item[] =
+    "Fix incorrect item descriptions and inconsistent formatting.";
 }
 
+namespace SenLib::Sen4::FileFixes::t_item {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     using namespace HyoutaUtils::TextUtils;

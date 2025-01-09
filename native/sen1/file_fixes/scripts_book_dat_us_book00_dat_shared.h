@@ -44,7 +44,7 @@ static size_t GetWhitespaceLengthFromEnd(std::string_view s) {
     return 0;
 }
 
-std::string RemoveEndOfStringWhitespace(std::string s) {
+static std::string RemoveEndOfStringWhitespace(std::string s) {
     while (true) {
         size_t wslen = GetWhitespaceLengthFromEnd(s);
         if (wslen == 0) {

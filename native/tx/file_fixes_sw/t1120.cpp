@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t1120 {
-std::string_view GetDescription() {
-    return "Text fixes in school 2F.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t1120[] = "Text fixes in school 2F.";
 }
 
+namespace SenLib::TX::FileFixesSw::t1120 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

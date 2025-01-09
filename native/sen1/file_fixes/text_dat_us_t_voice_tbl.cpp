@@ -1,13 +1,17 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
-#include "util/bps.h"
-#include "sen/decompress_helper.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/decompress_helper.h"
+#include "sen/file_getter.h"
 #include "sen1/tbl.h"
+#include "util/bps.h"
 #include "util/hash/sha1.h"
+
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_voice[] = "Add missing lipsync for the extra PC voices.";
+}
 
 namespace {
 static constexpr char PatchData3[] = {
@@ -21,10 +25,6 @@ static constexpr size_t PatchLength4 = sizeof(PatchData4);
 } // namespace
 
 namespace SenLib::Sen1::FileFixes::text_dat_us_t_voice_tbl {
-std::string_view GetDescription() {
-    return "Add missing lipsync for the extra PC voices.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
@@ -78,13 +78,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         std::vector<char> vctiming4;
         {
             HyoutaUtils::Stream::DuplicatableByteArrayStream vctiming(file_timing->Data.data(),
-                                                         file_timing->Data.size());
+                                                                      file_timing->Data.size());
             auto p3d = DecompressFromBuffer(PatchData3, PatchLength3);
             HyoutaUtils::Stream::DuplicatableByteArrayStream patch3(p3d.data(), p3d.size());
             HyoutaUtils::Stream::DuplicatableByteArrayStream patch4(PatchData4, PatchLength4);
             std::vector<char> vctiming3;
             HyoutaUtils::Bps::ApplyPatchToStream(vctiming, patch3, vctiming3);
-            HyoutaUtils::Stream::DuplicatableByteArrayStream tmp(vctiming3.data(), vctiming3.size());
+            HyoutaUtils::Stream::DuplicatableByteArrayStream tmp(vctiming3.data(),
+                                                                 vctiming3.size());
             HyoutaUtils::Bps::ApplyPatchToStream(tmp, patch4, vctiming4);
         }
 

@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::s7200 {
-std::string_view GetDescription() {
-    return "Text fixes in hot springs shrine path.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_s7200[] = "Text fixes in hot springs shrine path.";
 }
 
+namespace SenLib::TX::FileFixesSw::s7200 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

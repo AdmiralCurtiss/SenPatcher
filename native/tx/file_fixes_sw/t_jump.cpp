@@ -11,11 +11,11 @@
 
 #include "dungeon_names.h"
 
-namespace SenLib::TX::FileFixesSw::t_jump {
-std::string_view GetDescription() {
-    return "Text fixes in navigation menu.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_jump[] = "Text fixes in navigation menu.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_jump {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

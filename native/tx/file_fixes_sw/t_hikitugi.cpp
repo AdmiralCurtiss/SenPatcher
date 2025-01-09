@@ -9,11 +9,11 @@
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t_hikitugi {
-std::string_view GetDescription() {
-    return "Text fixes in New Game+ transfer options.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_hikitugi[] = "Text fixes in New Game+ transfer options.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_hikitugi {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

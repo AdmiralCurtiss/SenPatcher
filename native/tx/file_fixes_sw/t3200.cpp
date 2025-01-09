@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t3200 {
-std::string_view GetDescription() {
-    return "Text fixes in Yanagi Sports.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t3200[] = "Text fixes in Yanagi Sports.";
 }
 
+namespace SenLib::TX::FileFixesSw::t3200 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

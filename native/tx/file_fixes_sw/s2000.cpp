@@ -9,13 +9,13 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_s2000[] = "Text fixes in Memorial Park.";
+}
+
 #define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
 
 namespace SenLib::TX::FileFixesSw::s2000 {
-std::string_view GetDescription() {
-    return "Text fixes in Memorial Park.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

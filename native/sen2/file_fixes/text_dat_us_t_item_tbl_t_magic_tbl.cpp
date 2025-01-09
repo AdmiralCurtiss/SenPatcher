@@ -1,14 +1,21 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen2/tbl.h"
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
 #include "text_dat_us_t_item_tbl_t_magic_tbl.h"
+
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_item[] =
+    "Fix minor formatting errors in item descriptions.";
+__declspec(dllexport) char SenPatcherFix_0_magic[] = "Fix typo in Emma's S-Craft.";
+__declspec(dllexport) char SenPatcherFix_0_item2[] = "Sync arts and quartz descriptions.";
+}
 
 namespace SenLib::Sen2::FileFixes::text_dat_us_t_item_tbl_t_magic_tbl {
 std::string FixHpEpCpSpacing(std::string desc, size_t start) {
@@ -446,11 +453,6 @@ static void SyncMagicDescriptions(Tbl& itemTbl, Tbl& magicTbl) {
     SyncDescription(itemTbl, 710, magicTbl, 59, true);  // Fortuna R
     SyncDescription(itemTbl, 726, magicTbl, 65, true);  // Claiomh Solarion
     SyncDescription(itemTbl, 739, magicTbl, 65, true);  // Claiomh Solarion R
-}
-
-std::string_view GetDescription() {
-    return "Fix minor formatting errors in item descriptions, fix typo in Emma's S-Craft, and sync "
-           "art and quartz descriptions.";
 }
 
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,

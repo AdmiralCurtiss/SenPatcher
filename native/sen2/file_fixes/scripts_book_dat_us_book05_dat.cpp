@@ -9,11 +9,12 @@
 #include "util/stream.h"
 #include "util/text.h"
 
-namespace SenLib::Sen2::FileFixes::scripts_book_dat_us_book05_dat {
-std::string_view GetDescription() {
-    return "Fix several consistency issues between encoded and decoded Black Records.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_2_book05[] =
+    "Fix several consistency issues between encoded and decoded Black Records.";
 }
 
+namespace SenLib::Sen2::FileFixes::scripts_book_dat_us_book05_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

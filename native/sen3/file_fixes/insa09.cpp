@@ -1,10 +1,16 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "util/bps.h"
 #include "sen/file_getter.h"
+#include "util/bps.h"
 #include "util/hash/sha1.h"
 #include "util/stream.h"
+
+extern "C" {
+//__declspec(dllexport) char SenPatcherFix_9_insa09[] =
+//    "Fix duplicate Chapter 3 map travel sequence.";
+__declspec(dllexport) char SenPatcherFix_9_insa[] = "Fix errors in train travel sequences.";
+}
 
 namespace {
 static constexpr char PatchData[] = {
@@ -14,10 +20,6 @@ static constexpr size_t PatchLength = sizeof(PatchData);
 } // namespace
 
 namespace SenLib::Sen3::FileFixes::insa09 {
-std::string_view GetDescription() {
-    return "Fix duplicate Chapter 3 map travel sequence.";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vector<char>& result) {
     try {
         auto file = getCheckedFile(

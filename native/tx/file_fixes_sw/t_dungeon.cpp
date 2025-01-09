@@ -11,11 +11,11 @@
 
 #include "dungeon_names.h"
 
-namespace SenLib::TX::FileFixesSw::t_dungeon {
-std::string_view GetDescription() {
-    return "Text fixes in dungeon names.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_dungeon[] = "Text fixes in dungeon names.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_dungeon {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

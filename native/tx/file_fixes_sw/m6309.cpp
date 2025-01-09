@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::m6309 {
-std::string_view GetDescription() {
-    return "Text fixes in Rion awakening cutscene.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m6309[] = "Text fixes in Rion awakening cutscene.";
 }
 
+namespace SenLib::TX::FileFixesSw::m6309 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

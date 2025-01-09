@@ -1,18 +1,19 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 #include "util/memread.h"
 
-namespace SenLib::Sen2::FileFixes::scripts_talk_dat_us_tk_monica_dat {
-std::string_view GetDescription() {
-    return "Fix reference to incorrect character in dialogue with Monica.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_ztk_monica[] =
+    "Fix reference to incorrect character in dialogue with Monica.";
 }
 
+namespace SenLib::Sen2::FileFixes::scripts_talk_dat_us_tk_monica_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

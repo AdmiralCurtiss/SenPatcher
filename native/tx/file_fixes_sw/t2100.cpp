@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t2100 {
-std::string_view GetDescription() {
-    return "Text fixes in Star Camera.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t2100[] = "Text fixes in Star Camera.";
 }
 
+namespace SenLib::TX::FileFixesSw::t2100 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -25,6 +25,7 @@ enum class SenPatcherDllIdentificationType {
 struct SenPatcherDllIdentificationResult {
     SenPatcherDllIdentificationType Type = SenPatcherDllIdentificationType::UnspecifiedError;
     std::optional<std::string> Version;
+    std::optional<std::string> FileFixInfo;
 };
 
 SenPatcherDllIdentificationResult IdentifySenPatcherDll(std::string_view path);

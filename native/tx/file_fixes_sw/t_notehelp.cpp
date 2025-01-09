@@ -11,11 +11,12 @@
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t_notehelp {
-std::string_view GetDescription() {
-    return "Sync help entries with what the PC version expects.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_notehelp[] =
+    "Sync help entries with what the PC version expects.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_notehelp {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

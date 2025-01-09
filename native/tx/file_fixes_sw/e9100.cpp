@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::e9100 {
-std::string_view GetDescription() {
-    return "Text fixes in Xanadu (Asuka affinity event).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_e9100[] = "Text fixes in Xanadu (Asuka affinity event).";
 }
 
+namespace SenLib::TX::FileFixesSw::e9100 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

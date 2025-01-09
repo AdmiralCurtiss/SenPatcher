@@ -11,11 +11,11 @@
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t_dlc {
-std::string_view GetDescription() {
-    return "Reinject PC-only DLC table entries.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_dlc[] = "Reinject PC-only DLC table entries.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_dlc {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

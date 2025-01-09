@@ -9,11 +9,11 @@
 #include "util/stream.h"
 #include "util/text.h"
 
-namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book02_dat {
-std::string_view GetDescription() {
-    return "Minor text fixes in Red Moon Rose.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_2_book02[] = "Minor text fixes in Red Moon Rose.";
 }
 
+namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book02_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

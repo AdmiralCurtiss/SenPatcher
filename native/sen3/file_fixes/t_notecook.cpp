@@ -3,19 +3,19 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen3/file_fixes.h"
 #include "sen3/tbl.h"
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
-namespace SenLib::Sen3::FileFixes::t_notecook {
-std::string_view GetDescription() {
-    return "Fix incorrect recipe descriptions.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_notecook[] = "Fix incorrect recipe descriptions.";
 }
 
+namespace SenLib::Sen3::FileFixes::t_notecook {
 static std::optional<ItemData> FindItem(uint16_t itemIdx, const Tbl& tbl) {
     // not very efficient but it's not called often enough for this to matter...
     for (size_t i = 0; i < tbl.Entries.size(); ++i) {

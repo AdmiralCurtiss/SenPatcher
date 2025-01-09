@@ -8,11 +8,12 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::m5319 {
-std::string_view GetDescription() {
-    return "Text fixes in Witch's Briar Castle - Midpoint 2.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m5319[] =
+    "Text fixes in Witch's Briar Castle - Midpoint 2.";
 }
 
+namespace SenLib::TX::FileFixesSw::m5319 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

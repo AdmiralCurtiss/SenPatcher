@@ -1,15 +1,16 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen3::FileFixes:: {
-std::string_view GetDescription() {
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_[] =
 }
 
+namespace SenLib::Sen3::FileFixes::{
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

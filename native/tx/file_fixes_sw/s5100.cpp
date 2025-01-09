@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::s5100 {
-std::string_view GetDescription() {
-    return "Text fixes in abandoned factory.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_s5100[] = "Text fixes in abandoned factory.";
 }
 
+namespace SenLib::TX::FileFixesSw::s5100 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

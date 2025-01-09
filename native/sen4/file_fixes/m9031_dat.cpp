@@ -1,16 +1,16 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen4::FileFixes::m9031_dat {
-std::string_view GetDescription() {
-    return "Newline fix in final dungeon.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m9031[] = "Newline fix in final dungeon.";
 }
 
+namespace SenLib::Sen4::FileFixes::m9031_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

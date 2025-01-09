@@ -10,7 +10,6 @@
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen4::FileFixes::##name {                                 \
-        std::string_view GetDescription();                                      \
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
@@ -22,7 +21,6 @@ DECLARE_STANDARD_FIX(t_mstqrt)
 DECLARE_STANDARD_FIX(t3600_dat)
 
 namespace SenLib::Sen4::FileFixes::t_text {
-std::string_view GetDescription();
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result,
               bool allowSwitchToNightmare);

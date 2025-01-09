@@ -9,11 +9,11 @@
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t_active {
-std::string_view GetDescription() {
-    return "Text fixes in active voices and voicemails.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_active[] = "Text fixes in active voices and voicemails.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_active {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -10,11 +10,11 @@
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
-namespace SenLib::TX::FileFixesSw::t_magic {
-std::string_view GetDescription() {
-    return "Text fixes in skill descriptions.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_magic[] = "Text fixes in skill descriptions.";
 }
 
+namespace SenLib::TX::FileFixesSw::t_magic {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

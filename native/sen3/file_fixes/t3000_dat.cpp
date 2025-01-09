@@ -1,17 +1,18 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
-namespace SenLib::Sen3::FileFixes::t3000_dat {
-std::string_view GetDescription() {
-    return "Aurelia name fixes in Ordis (Business District).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t3000[] =
+    "Aurelia name fixes in Ordis (Business District).";
 }
 
+namespace SenLib::Sen3::FileFixes::t3000_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -11,11 +11,11 @@
 #include "util/stream.h"
 #include "util/text.h"
 
-namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book01_dat {
-std::string_view GetDescription() {
-    return "Minor text fixes in Carnelia.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_2_book01[] = "Minor text fixes in Carnelia.";
 }
 
+namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book01_dat {
 static std::string RemoveLineStartingWith(std::string_view text, std::string_view s) {
     size_t idx = text.find(s);
     size_t endidx = text.find("\\n", idx);

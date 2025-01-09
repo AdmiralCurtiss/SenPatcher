@@ -7,11 +7,12 @@
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
-namespace SenLib::Sen3::FileFixes::r0210_dat {
-std::string_view GetDescription() {
-    return "Terminology fixes in North Sutherland Highway 2.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_r0210[] =
+    "Terminology fixes in North Sutherland Highway 2.";
 }
 
+namespace SenLib::Sen3::FileFixes::r0210_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

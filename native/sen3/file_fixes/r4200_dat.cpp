@@ -8,11 +8,11 @@
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
-namespace SenLib::Sen3::FileFixes::r4200_dat {
-std::string_view GetDescription() {
-    return "Terminology fixes in South Ostia Highway.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_r4200[] = "Terminology fixes in South Ostia Highway.";
 }
 
+namespace SenLib::Sen3::FileFixes::r4200_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

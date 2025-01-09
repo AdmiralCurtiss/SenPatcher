@@ -2,14 +2,21 @@
 #include <unordered_map>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen1/tbl.h"
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
 #include "text_dat_us_t_item_tbl_t_magic_tbl.h"
+
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_item[] =
+    "Series consistency fixes in English item descriptions.";
+__declspec(dllexport) char SenPatcherFix_0_magic[] =
+    "Series consistency fixes in English magic descriptions.";
+}
 
 namespace SenLib::Sen1::FileFixes::text_dat_us_t_item_tbl_t_magic_tbl {
 std::string FixHpEpCpSpacing(std::string desc, size_t start) {
@@ -738,10 +745,6 @@ static void SyncItemMagicTbl(Tbl& item_tbl, Tbl& magic_tbl) {
     SyncDescription(item_tbl, 710, magic_tbl, 55, true);  // Fortuna R
     SyncDescription(item_tbl, 726, magic_tbl, 61, true);  // Claiomh Solarion
     SyncDescription(item_tbl, 738, magic_tbl, 61, true);  // Claiomh Solarion R
-}
-
-std::string_view GetDescription() {
-    return "Series consistency fixes in EN item and magic descriptions.";
 }
 
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,

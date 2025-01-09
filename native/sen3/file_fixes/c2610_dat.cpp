@@ -8,11 +8,12 @@
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
-namespace SenLib::Sen3::FileFixes::c2610_dat {
-std::string_view GetDescription() {
-    return "Terminology fixes in Heimdallr (Foresta Tavern & Inn).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_c2610[] =
+    "Terminology fixes in Heimdallr (Foresta Tavern & Inn).";
 }
 
+namespace SenLib::Sen3::FileFixes::c2610_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

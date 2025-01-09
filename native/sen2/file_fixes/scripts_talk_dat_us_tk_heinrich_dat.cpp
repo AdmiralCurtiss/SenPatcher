@@ -7,11 +7,12 @@
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen2::FileFixes::scripts_talk_dat_us_tk_heinrich_dat {
-std::string_view GetDescription() {
-    return "Fix missing period in conversation with Vice Principal Heinrich.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_ztk_heinrich[] =
+    "Fix missing period in conversation with Vice Principal Heinrich.";
 }
 
+namespace SenLib::Sen2::FileFixes::scripts_talk_dat_us_tk_heinrich_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -1,19 +1,21 @@
 ﻿#include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "p3a/util.h"
+#include "sen/file_getter.h"
 #include "sen3/file_fixes.h"
 #include "sen3/tbl.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen3::FileFixes::t_vctiming_us {
-std::string_view GetDescription() {
-    return "Update lipsync to match changed voice lines.";
+extern "C" {
+// the blurb for the ps4 1.03 voices suffices for this
+//__declspec(dllexport) char SenPatcherFix_0_t_vctiming[] =
+//    "Update lipsync to match changed voice lines.";
 }
 
+namespace SenLib::Sen3::FileFixes::t_vctiming_us {
 static void CreateEntryCopy(Tbl& tbl, size_t source, size_t target, uint16_t newIndex) {
     const auto& e = tbl.Entries[source];
     VoiceTimingData vd(

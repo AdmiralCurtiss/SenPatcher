@@ -24,7 +24,6 @@
 
 #define DECLARE_STANDARD_FIXSW(name)                                            \
     namespace SenLib::TX::FileFixesSw::##name {                                 \
-        std::string_view GetDescription();                                      \
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }

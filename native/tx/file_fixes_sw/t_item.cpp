@@ -10,6 +10,10 @@
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_item[] = "Text fixes in item names and descriptions.";
+}
+
 namespace SenLib::TX::FileFixesSw::t_item {
 static std::string AdjustNewlinesForQuartz(std::string desc) {
     size_t idx = 0;
@@ -23,10 +27,6 @@ static std::string AdjustNewlinesForQuartz(std::string desc) {
         idx = nidx + 1;
     }
     return s;
-}
-
-std::string_view GetDescription() {
-    return "Text fixes in item names and descriptions.";
 }
 
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,

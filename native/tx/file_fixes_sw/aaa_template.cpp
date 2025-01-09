@@ -8,10 +8,10 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw:: {
-std::string_view GetDescription() {
+extern "C" {
 }
 
+namespace SenLib::TX::FileFixesSw:: {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

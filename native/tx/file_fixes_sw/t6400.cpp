@@ -8,11 +8,11 @@
 #include "tx/file_fixes_sw.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::TX::FileFixesSw::t6400 {
-std::string_view GetDescription() {
-    return "Text fixes in Gemini.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t6400[] = "Text fixes in Gemini.";
 }
 
+namespace SenLib::TX::FileFixesSw::t6400 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

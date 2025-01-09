@@ -10,11 +10,12 @@
 
 #include "dungeon_names.h"
 
-namespace SenLib::TX::FileFixesSw::m8331 {
-std::string_view GetDescription() {
-    return "Text fixes in " DUNGEON_NAME_m8330 " (miniboss room).";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_m8331[] = "Text fixes in " DUNGEON_NAME_m8330
+                                                     " (miniboss room).";
 }
 
+namespace SenLib::TX::FileFixesSw::m8331 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

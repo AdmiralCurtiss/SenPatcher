@@ -10,7 +10,6 @@
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen3::FileFixes::##name {                                 \
-        std::string_view GetDescription();                                      \
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
@@ -95,22 +94,18 @@ DECLARE_STANDARD_FIX(voice_opus_v00e0441)
 DECLARE_STANDARD_FIX(voice_opus_v00s2728)
 
 namespace SenLib::Sen3::FileFixes::t_text {
-std::string_view GetDescription();
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result,
               bool allowSwitchToNightmare);
 } // namespace SenLib::Sen3::FileFixes::t_text
 
 namespace SenLib::Sen3::FileFixes::insa05 {
-std::string_view GetDescription();
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vector<char>& result);
 } // namespace SenLib::Sen3::FileFixes::insa05
 namespace SenLib::Sen3::FileFixes::insa08 {
-std::string_view GetDescription();
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vector<char>& result);
 } // namespace SenLib::Sen3::FileFixes::insa08
 namespace SenLib::Sen3::FileFixes::insa09 {
-std::string_view GetDescription();
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, std::vector<char>& result);
 } // namespace SenLib::Sen3::FileFixes::insa09
 

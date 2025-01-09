@@ -7,11 +7,11 @@
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t3740_dat {
-std::string_view GetDescription() {
-    return "Typo fixes in Roer IoT.";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_1_t3740[] = "Typo fixes in Roer IoT.";
 }
 
+namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t3740_dat {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

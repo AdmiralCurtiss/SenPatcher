@@ -2,11 +2,16 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
+#include "sen/file_getter.h"
 #include "sen2/tbl.h"
 #include "util/hash/sha1.h"
+
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_0_voice[] =
+    "Adjust voice file to ID mappings (required for some voice fixes).";
+}
 
 namespace {
 struct VoiceReplaceInfo {
@@ -17,10 +22,6 @@ struct VoiceReplaceInfo {
 } // namespace
 
 namespace SenLib::Sen2::FileFixes::text_dat_us_t_voice_tbl {
-std::string_view GetDescription() {
-    return "Adjust voice file to ID mappings (required for some voice fixes).";
-}
-
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {

@@ -1,17 +1,17 @@
 #include <string_view>
 #include <vector>
 
-#include "sen/file_getter.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "p3a/util.h"
+#include "sen/file_getter.h"
 #include "util/hash/sha1.h"
 
-namespace SenLib::Sen1::FileFixes::se_wav_ed8m2123_wav {
-std::string_view GetDescription() {
-    return "Fix incorrect filename of ed8m2123.wav";
+extern "C" {
+__declspec(dllexport) char SenPatcherFix_9_se_m2131[] = "Fix incorrect filename of ed8m2123.wav";
 }
 
+namespace SenLib::Sen1::FileFixes::se_wav_ed8m2123_wav {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
