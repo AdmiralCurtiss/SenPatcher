@@ -123,6 +123,7 @@ static int InternalMain(int argc, char** argvUtf8) {
             DWORD tmp;
             if (GetConsoleProcessList(&tmp, 1) == 1) {
 #ifdef SENTOOLS_WITH_IMGUI
+                FreeConsole(); // close the console window
                 return SenTools::RunGui(argc, argvUtf8);
 #else
                 PrintUsage();
