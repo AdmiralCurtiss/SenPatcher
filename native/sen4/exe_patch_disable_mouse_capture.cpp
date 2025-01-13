@@ -13,10 +13,30 @@ void PatchDisableMouseCapture(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* captureMouseCursorPos = GetCodeAddressJpEn(version, textRegion, 0x14030aacf, 0x14030d58f);
-    char* cameraMouseFuncPos1 = GetCodeAddressJpEn(version, textRegion, 0x1400b1e78, 0x1400b1e98);
-    char* cameraMouseFuncPos2 = GetCodeAddressJpEn(version, textRegion, 0x1400b2034, 0x1400b2054);
-    char* processMouseFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1400b2cd1, 0x1400b2cf1);
+    char* captureMouseCursorPos = GetCodeAddressJpEn(version,
+                                                     textRegion,
+                                                     Addresses{.Jp121 = 0x14030ab6f,
+                                                               .En121 = 0x14030d62f,
+                                                               .Jp122 = 0x14030aacf,
+                                                               .En122 = 0x14030d58f});
+    char* cameraMouseFuncPos1 = GetCodeAddressJpEn(version,
+                                                   textRegion,
+                                                   Addresses{.Jp121 = 0x1400b1e78,
+                                                             .En121 = 0x1400b1e98,
+                                                             .Jp122 = 0x1400b1e78,
+                                                             .En122 = 0x1400b1e98});
+    char* cameraMouseFuncPos2 = GetCodeAddressJpEn(version,
+                                                   textRegion,
+                                                   Addresses{.Jp121 = 0x1400b2034,
+                                                             .En121 = 0x1400b2054,
+                                                             .Jp122 = 0x1400b2034,
+                                                             .En122 = 0x1400b2054});
+    char* processMouseFuncPos = GetCodeAddressJpEn(version,
+                                                   textRegion,
+                                                   Addresses{.Jp121 = 0x1400b2cd1,
+                                                             .En121 = 0x1400b2cf1,
+                                                             .Jp122 = 0x1400b2cd1,
+                                                             .En122 = 0x1400b2cf1});
 
     // change functions that capture the mouse cursor to not do that
     {

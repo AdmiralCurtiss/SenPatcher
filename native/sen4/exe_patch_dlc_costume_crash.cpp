@@ -15,9 +15,24 @@ void PatchDlcCostumeCrash(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
 
-    char* const injectAddress = GetCodeAddressJpEn(version, textRegion, 0x140203c6d, 0x140205ee0);
-    char* const scratchAddress = GetCodeAddressJpEn(version, textRegion, 0x140203fa4, 0x140205fb2);
-    char* const skipAddress = GetCodeAddressJpEn(version, textRegion, 0x140203cbb, 0x140205f2e);
+    char* const injectAddress = GetCodeAddressJpEn(version,
+                                                   textRegion,
+                                                   Addresses{.Jp121 = 0x140203d0d,
+                                                             .En121 = 0x140205f80,
+                                                             .Jp122 = 0x140203c6d,
+                                                             .En122 = 0x140205ee0});
+    char* const scratchAddress = GetCodeAddressJpEn(version,
+                                                    textRegion,
+                                                    Addresses{.Jp121 = 0x140204044,
+                                                              .En121 = 0x140206052,
+                                                              .Jp122 = 0x140203fa4,
+                                                              .En122 = 0x140205fb2});
+    char* const skipAddress = GetCodeAddressJpEn(version,
+                                                 textRegion,
+                                                 Addresses{.Jp121 = 0x140203d5b,
+                                                           .En121 = 0x140205fce,
+                                                           .Jp122 = 0x140203cbb,
+                                                           .En122 = 0x140205f2e});
 
     char* tmp = execData.Codespace;
     const auto injectResult = InjectJumpIntoCode2Step<7, 12, PaddingInstruction::Nop>(

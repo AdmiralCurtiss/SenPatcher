@@ -16,11 +16,30 @@ void PatchFixPcConfirmCancelWhenSwapped(PatchExecData& execData) {
     using namespace SenPatcher::x64;
 
     // inject right after the 'id' value is read and stored from the XML
-    char* injectpos = GetCodeAddressJpEn(version, textRegion, 0x1400e914e, 0x1400eb20e);
-    char* isSwitchButtonFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1405fa710, 0x1405fcc90);
-    char* isDynamicPromptsFuncPos =
-        GetCodeAddressJpEn(version, textRegion, 0x1405fa770, 0x1405fccf0);
-    char* getPcSettingsFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1405fa5d0, 0x1405fcb50);
+    char* injectpos = GetCodeAddressJpEn(version,
+                                         textRegion,
+                                         Addresses{.Jp121 = 0x1400e914e,
+                                                   .En121 = 0x1400eb20e,
+                                                   .Jp122 = 0x1400e914e,
+                                                   .En122 = 0x1400eb20e});
+    char* isSwitchButtonFuncPos = GetCodeAddressJpEn(version,
+                                                     textRegion,
+                                                     Addresses{.Jp121 = 0x1405fa7b0,
+                                                               .En121 = 0x1405fcd30,
+                                                               .Jp122 = 0x1405fa710,
+                                                               .En122 = 0x1405fcc90});
+    char* isDynamicPromptsFuncPos = GetCodeAddressJpEn(version,
+                                                       textRegion,
+                                                       Addresses{.Jp121 = 0x1405fa810,
+                                                                 .En121 = 0x1405fcd90,
+                                                                 .Jp122 = 0x1405fa770,
+                                                                 .En122 = 0x1405fccf0});
+    char* getPcSettingsFuncPos = GetCodeAddressJpEn(version,
+                                                    textRegion,
+                                                    Addresses{.Jp121 = 0x1405fa670,
+                                                              .En121 = 0x1405fcbf0,
+                                                              .Jp122 = 0x1405fa5d0,
+                                                              .En122 = 0x1405fcb50});
 
     {
         // our chosen injection location has some relative addresses, so untangle those

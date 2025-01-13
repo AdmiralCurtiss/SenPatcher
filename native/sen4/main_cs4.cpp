@@ -124,11 +124,24 @@ static std::optional<GameVersion> FindImageBase(HyoutaUtils::Logger& logger, voi
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
                 if (crc == 0x300c7e9f) {
-                    logger.Log("Appears to be the EN version.\n");
+                    logger.Log("Appears to be the version English 1.2.2.\n");
                     *code = info.BaseAddress;
-                    return GameVersion::English;
+                    return GameVersion::En122;
                 }
-            } else if (info.RegionSize == 0x86f000 && info.Protect == PAGE_EXECUTE_READ) {
+            }
+            if (info.RegionSize == 0x872000 && info.Protect == PAGE_EXECUTE_READ) {
+                crc_t crc = crc_init();
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xae7a0, 0x3d);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x844780, 0x21);
+                crc = crc_finalize(crc);
+                logger.Log("Checksum is ").LogHex(crc).Log(".\n");
+                if (crc == 0x300c7e9f) {
+                    logger.Log("Appears to be version English 1.2.1.\n");
+                    *code = info.BaseAddress;
+                    return GameVersion::En121;
+                }
+            }
+            if (info.RegionSize == 0x86f000 && info.Protect == PAGE_EXECUTE_READ) {
                 crc_t crc = crc_init();
                 crc = crc_update(
                     crc, static_cast<char*>(info.BaseAddress) + (0x1400af780 - 0x140001000), 0x3d);
@@ -137,9 +150,21 @@ static std::optional<GameVersion> FindImageBase(HyoutaUtils::Logger& logger, voi
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
                 if (crc == 0x300c7e9f) {
-                    logger.Log("Appears to be the JP version.\n");
+                    logger.Log("Appears to be the Japanese version 1.2.2.\n");
                     *code = info.BaseAddress;
-                    return GameVersion::Japanese;
+                    return GameVersion::Jp122;
+                }
+            }
+            if (info.RegionSize == 0x86f000 && info.Protect == PAGE_EXECUTE_READ) {
+                crc_t crc = crc_init();
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0xae780, 0x3d);
+                crc = crc_update(crc, static_cast<char*>(info.BaseAddress) + 0x842120, 0x21);
+                crc = crc_finalize(crc);
+                logger.Log("Checksum is ").LogHex(crc).Log(".\n");
+                if (crc == 0x300c7e9f) {
+                    logger.Log("Appears to be the Japanese version 1.2.1.\n");
+                    *code = info.BaseAddress;
+                    return GameVersion::Jp121;
                 }
             }
 
@@ -480,6 +505,8 @@ static int64_t __fastcall FSoundOpenForwarder(FSoundFile* soundFile,
 }
 
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
+    using namespace SenLib::Sen4;
+
     void* codeBase = nullptr;
     const auto maybeVersion = FindImageBase(logger, &codeBase);
     if (!maybeVersion || !codeBase) {
@@ -489,14 +516,20 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     }
 
     const GameVersion version = *maybeVersion;
-    s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(static_cast<char*>(codeBase)
-                                                       + (version == GameVersion::Japanese
-                                                              ? (0x14052ec60 - 0x140001000)
-                                                              : (0x1405311e0 - 0x140001000)));
-    s_TrackedFree = reinterpret_cast<PTrackedFree>(static_cast<char*>(codeBase)
-                                                   + (version == GameVersion::Japanese
-                                                          ? (0x14052ec40 - 0x140001000)
-                                                          : (0x1405311c0 - 0x140001000)));
+    s_TrackedMalloc =
+        reinterpret_cast<PTrackedMalloc>(GetCodeAddressJpEn(version,
+                                                            static_cast<char*>(codeBase),
+                                                            Addresses{.Jp121 = 0x14052ed00,
+                                                                      .En121 = 0x140531280,
+                                                                      .Jp122 = 0x14052ec60,
+                                                                      .En122 = 0x1405311e0}));
+    s_TrackedFree =
+        reinterpret_cast<PTrackedFree>(GetCodeAddressJpEn(version,
+                                                          static_cast<char*>(codeBase),
+                                                          Addresses{.Jp121 = 0x14052ece0,
+                                                                    .En121 = 0x140531260,
+                                                                    .Jp122 = 0x14052ec40,
+                                                                    .En122 = 0x1405311c0}));
 
     // allocate extra page for code
     const size_t newPageLength = 0x1000;
@@ -618,7 +651,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 baseDirUtf8,
                 assetFixes,
                 "CS4Mod",
-                version == GameVersion::Japanese,
+                IsGameVersionJp(version),
                 [](const HyoutaUtils::Ini::IniFile& ini) { return; });
 
     SenLib::Sen4::PatchExecData patchExecData;

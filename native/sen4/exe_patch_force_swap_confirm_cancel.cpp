@@ -13,7 +13,12 @@ void PatchForceSwapConfirmCancel(PatchExecData& execData, bool swapOX) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* isSwitchButtonFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1405fa710, 0x1405fcc90);
+    char* isSwitchButtonFuncPos = GetCodeAddressJpEn(version,
+                                                     textRegion,
+                                                     Addresses{.Jp121 = 0x1405fa7b0,
+                                                               .En121 = 0x1405fcd30,
+                                                               .Jp122 = 0x1405fa710,
+                                                               .En122 = 0x1405fcc90});
 
     // replace function that usually checks for (mapping == Switch) with (SwapOX && mapping != PC)
     {

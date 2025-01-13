@@ -14,7 +14,13 @@ void PatchIncreaseDlcCount(PatchExecData& execData, uint32_t newLimit) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* dlcLimitAddress = GetCodeAddressJpEn(version, textRegion, 0x1403c424a, 0x1403c655a) + 2;
+    char* dlcLimitAddress = GetCodeAddressJpEn(version,
+                                               textRegion,
+                                               Addresses{.Jp121 = 0x1403c42ea,
+                                                         .En121 = 0x1403c65fa,
+                                                         .Jp122 = 0x1403c424a,
+                                                         .En122 = 0x1403c655a})
+                            + 2;
 
     uint32_t oldLimit;
     std::memcpy(&oldLimit, dlcLimitAddress, 4);

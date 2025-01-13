@@ -13,12 +13,27 @@ void AllowSwitchToNightmare(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* setMaxDifficultyIndexPos =
-        GetCodeAddressJpEn(version, textRegion, 0x140486077, 0x1404885a7) + 1;
-    char* switchFromNightmareWarning1 =
-        GetCodeAddressJpEn(version, textRegion, 0x14020ffd6, 0x140212286) + 1;
-    char* switchFromNightmareWarning2 =
-        GetCodeAddressJpEn(version, textRegion, 0x1403d57a2, 0x1403d7a22) + 1;
+    char* setMaxDifficultyIndexPos = GetCodeAddressJpEn(version,
+                                                        textRegion,
+                                                        Addresses{.Jp121 = 0x140486117,
+                                                                  .En121 = 0x140488647,
+                                                                  .Jp122 = 0x140486077,
+                                                                  .En122 = 0x1404885a7})
+                                     + 1;
+    char* switchFromNightmareWarning1 = GetCodeAddressJpEn(version,
+                                                           textRegion,
+                                                           Addresses{.Jp121 = 0x140210076,
+                                                                     .En121 = 0x140212326,
+                                                                     .Jp122 = 0x14020ffd6,
+                                                                     .En122 = 0x140212286})
+                                        + 1;
+    char* switchFromNightmareWarning2 = GetCodeAddressJpEn(version,
+                                                           textRegion,
+                                                           Addresses{.Jp121 = 0x1403d5842,
+                                                                     .En121 = 0x1403d7ac2,
+                                                                     .Jp122 = 0x1403d57a2,
+                                                                     .En122 = 0x1403d7a22})
+                                        + 1;
 
     // allow nightmare to be selected when difficulty is currently not nightmare
     {
