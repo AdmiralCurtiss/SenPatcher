@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 
 namespace HyoutaUtils {
@@ -11,9 +12,15 @@ struct LoadedModsData;
 
 namespace SenLib::Sen3 {
 enum class GameVersion {
-    Japanese,
-    English,
+    Jp106,
+    En106,
+    Jp107,
+    En107,
 };
+
+inline bool IsGameVersionJp(GameVersion version) {
+    return version == GameVersion::Jp106 || version == GameVersion::Jp107;
+}
 
 struct PatchExecData {
     HyoutaUtils::Logger* Logger;
@@ -23,13 +30,24 @@ struct PatchExecData {
     char* CodespaceEnd;
 };
 
-inline char* GetCodeAddressJpEn(GameVersion version,
-                                char* textRegion,
-                                uint64_t addressJp,
-                                uint64_t addressEn) {
-    return textRegion
-           + (version == GameVersion::Japanese ? (addressJp - 0x140001000u)
-                                               : (addressEn - 0x140001000u));
+struct Addresses {
+    uint64_t Jp106 = 0;
+    uint64_t En106 = 0;
+    uint64_t Jp107 = 0;
+    uint64_t En107 = 0;
+};
+
+inline char* GetCodeAddressJpEn(GameVersion version, char* textRegion, Addresses addresses) {
+    uint64_t addr = 0;
+    switch (version) {
+        case GameVersion::Jp106: addr = addresses.Jp106; break;
+        case GameVersion::En106: addr = addresses.En106; break;
+        case GameVersion::Jp107: addr = addresses.Jp107; break;
+        case GameVersion::En107: addr = addresses.En107; break;
+        default: break;
+    }
+    assert(addr != 0);
+    return textRegion + (addr - 0x140001000u);
 }
 
 void DeglobalizeMutexes(PatchExecData& execData);

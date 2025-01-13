@@ -13,16 +13,36 @@ void PatchDisablePauseOnFocusLoss(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* silenceAudioIfUnfocusedPos1 =
-        GetCodeAddressJpEn(version, textRegion, 0x1400f943b, 0x1400f9abb);
-    char* silenceAudioIfUnfocusedPos2 =
-        GetCodeAddressJpEn(version, textRegion, 0x1400f9474, 0x1400f9af4);
-    char* runMainGameLoopIfUnfocusedPos =
-        GetCodeAddressJpEn(version, textRegion, 0x1400f7024, 0x1400f76a4);
-    char* skipMouseButtonsIfUnfocusedPos1 =
-        GetCodeAddressJpEn(version, textRegion, 0x14012dfd2, 0x140131552);
-    char* skipMouseButtonsIfUnfocusedPos2 =
-        GetCodeAddressJpEn(version, textRegion, 0x141d43e00, 0x141d59fa0);
+    char* silenceAudioIfUnfocusedPos1 = GetCodeAddressJpEn(version,
+                                                           textRegion,
+                                                           Addresses{.Jp106 = 0x1400f943b,
+                                                                     .En106 = 0x1400f9abb,
+                                                                     .Jp107 = 0x1400f943b,
+                                                                     .En107 = 0x1400f9abb});
+    char* silenceAudioIfUnfocusedPos2 = GetCodeAddressJpEn(version,
+                                                           textRegion,
+                                                           Addresses{.Jp106 = 0x1400f9474,
+                                                                     .En106 = 0x1400f9af4,
+                                                                     .Jp107 = 0x1400f9474,
+                                                                     .En107 = 0x1400f9af4});
+    char* runMainGameLoopIfUnfocusedPos = GetCodeAddressJpEn(version,
+                                                             textRegion,
+                                                             Addresses{.Jp106 = 0x1400f7024,
+                                                                       .En106 = 0x1400f76a4,
+                                                                       .Jp107 = 0x1400f7024,
+                                                                       .En107 = 0x1400f76a4});
+    char* skipMouseButtonsIfUnfocusedPos1 = GetCodeAddressJpEn(version,
+                                                               textRegion,
+                                                               Addresses{.Jp106 = 0x14012dfd2,
+                                                                         .En106 = 0x140131552,
+                                                                         .Jp107 = 0x14012dfd2,
+                                                                         .En107 = 0x140131552});
+    char* skipMouseButtonsIfUnfocusedPos2 = GetCodeAddressJpEn(version,
+                                                               textRegion,
+                                                               Addresses{.Jp106 = 0x141d43de0,
+                                                                         .En106 = 0x141d59f80,
+                                                                         .Jp107 = 0x141d43e00,
+                                                                         .En107 = 0x141d59fa0});
 
     // don't silence audio output when unfocused
     size_t distance =

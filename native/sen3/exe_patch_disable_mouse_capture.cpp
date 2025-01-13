@@ -13,13 +13,36 @@ void PatchDisableMouseCapture(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* captureMouseCursorPos1 =
-        GetCodeAddressJpEn(version, textRegion, 0x140320d38, 0x14032a248);
-    char* captureMouseCursorPos2 =
-        GetCodeAddressJpEn(version, textRegion, 0x140320f05, 0x14032a415);
-    char* cameraMouseFuncPos1 = GetCodeAddressJpEn(version, textRegion, 0x1400f7be8, 0x1400f8268);
-    char* cameraMouseFuncPos2 = GetCodeAddressJpEn(version, textRegion, 0x1400f7d61, 0x1400f83e1);
-    char* processMouseFuncPos = GetCodeAddressJpEn(version, textRegion, 0x1400f88bd, 0x1400f8f3d);
+    char* captureMouseCursorPos1 = GetCodeAddressJpEn(version,
+                                                      textRegion,
+                                                      Addresses{.Jp106 = 0x140320db8,
+                                                                .En106 = 0x14032a2c8,
+                                                                .Jp107 = 0x140320d38,
+                                                                .En107 = 0x14032a248});
+    char* captureMouseCursorPos2 = GetCodeAddressJpEn(version,
+                                                      textRegion,
+                                                      Addresses{.Jp106 = 0x140320f85,
+                                                                .En106 = 0x14032a495,
+                                                                .Jp107 = 0x140320f05,
+                                                                .En107 = 0x14032a415});
+    char* cameraMouseFuncPos1 = GetCodeAddressJpEn(version,
+                                                   textRegion,
+                                                   Addresses{.Jp106 = 0x1400f7be8,
+                                                             .En106 = 0x1400f8268,
+                                                             .Jp107 = 0x1400f7be8,
+                                                             .En107 = 0x1400f8268});
+    char* cameraMouseFuncPos2 = GetCodeAddressJpEn(version,
+                                                   textRegion,
+                                                   Addresses{.Jp106 = 0x1400f7d61,
+                                                             .En106 = 0x1400f83e1,
+                                                             .Jp107 = 0x1400f7d61,
+                                                             .En107 = 0x1400f83e1});
+    char* processMouseFuncPos = GetCodeAddressJpEn(version,
+                                                   textRegion,
+                                                   Addresses{.Jp106 = 0x1400f88bd,
+                                                             .En106 = 0x1400f8f3d,
+                                                             .Jp107 = 0x1400f88bd,
+                                                             .En107 = 0x1400f8f3d});
 
     // change functions that capture the mouse cursor to not do that
     {

@@ -15,7 +15,7 @@ void SwapBrokenMasterQuartzValuesForDisplay(PatchExecData& execData) {
     char* codespace = execData.Codespace;
 
     using namespace SenPatcher::x64;
-    if (version != GameVersion::English) {
+    if (IsGameVersionJp(version)) {
         return; // bug only exists in the english version
     }
 
@@ -36,11 +36,14 @@ void SwapBrokenMasterQuartzValuesForDisplay(PatchExecData& execData) {
     // stack from rsp+31h to rsp+37h looks unused, so stash our sentinel check flag in there...
     // rsp+34h looks good
 
-    char* initSentinelCheckPos = GetCodeAddressJpEn(version, textRegion, 0, 0x14027fcc7);
+    char* initSentinelCheckPos = GetCodeAddressJpEn(
+        version, textRegion, Addresses{.En106 = 0x14027fd47, .En107 = 0x14027fcc7});
     constexpr size_t initSentinelCheckLen = 13;
-    char* checkSentinelPos = GetCodeAddressJpEn(version, textRegion, 0, 0x1402800db);
+    char* checkSentinelPos = GetCodeAddressJpEn(
+        version, textRegion, Addresses{.En106 = 0x14028015b, .En107 = 0x1402800db});
     constexpr size_t checkSentinelLen = 13;
-    char* fixParametersPos = GetCodeAddressJpEn(version, textRegion, 0, 0x14028018e);
+    char* fixParametersPos = GetCodeAddressJpEn(
+        version, textRegion, Addresses{.En106 = 0x14028020e, .En107 = 0x14028018e});
     constexpr size_t fixParametersLen = 12;
 
     // first initialize sentinel check flag on stack near start of function

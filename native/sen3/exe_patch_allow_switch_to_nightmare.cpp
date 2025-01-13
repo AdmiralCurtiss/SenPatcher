@@ -13,10 +13,20 @@ void AllowSwitchToNightmare(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* setMaxDifficultyIndexPos =
-        GetCodeAddressJpEn(version, textRegion, 0x14042a5e7, 0x1404362c7) + 1;
-    char* switchFromNightmareWarning =
-        GetCodeAddressJpEn(version, textRegion, 0x140236098, 0x14023c5dd) + 1;
+    char* setMaxDifficultyIndexPos = GetCodeAddressJpEn(version,
+                                                        textRegion,
+                                                        Addresses{.Jp106 = 0x14042a667,
+                                                                  .En106 = 0x140436347,
+                                                                  .Jp107 = 0x14042a5e7,
+                                                                  .En107 = 0x1404362c7})
+                                     + 1;
+    char* switchFromNightmareWarning = GetCodeAddressJpEn(version,
+                                                          textRegion,
+                                                          Addresses{.Jp106 = 0x140236118,
+                                                                    .En106 = 0x14023c65d,
+                                                                    .Jp107 = 0x140236098,
+                                                                    .En107 = 0x14023c5dd})
+                                       + 1;
 
     // allow nightmare to be selected when difficulty is currently not nightmare
     {

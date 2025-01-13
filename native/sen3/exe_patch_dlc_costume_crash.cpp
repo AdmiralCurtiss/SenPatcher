@@ -16,9 +16,24 @@ void PatchDlcCostumeCrash(PatchExecData& execData) {
     using namespace SenPatcher::x64;
 
     // TODO? There's a second block of code that's practically identical, should we patch this too?
-    char* const injectAddress = GetCodeAddressJpEn(version, textRegion, 0x14022adbb, 0x1402310e6);
-    char* const scratchAddress = GetCodeAddressJpEn(version, textRegion, 0x14022bce4, 0x140232064);
-    char* const skipAddress = GetCodeAddressJpEn(version, textRegion, 0x14022ae0c, 0x140231137);
+    char* const injectAddress = GetCodeAddressJpEn(version,
+                                                   textRegion,
+                                                   Addresses{.Jp106 = 0x14022ae3b,
+                                                             .En106 = 0x140231166,
+                                                             .Jp107 = 0x14022adbb,
+                                                             .En107 = 0x1402310e6});
+    char* const scratchAddress = GetCodeAddressJpEn(version,
+                                                    textRegion,
+                                                    Addresses{.Jp106 = 0x14022bd64,
+                                                              .En106 = 0x1402320e4,
+                                                              .Jp107 = 0x14022bce4,
+                                                              .En107 = 0x140232064});
+    char* const skipAddress = GetCodeAddressJpEn(version,
+                                                 textRegion,
+                                                 Addresses{.Jp106 = 0x14022ae8c,
+                                                           .En106 = 0x1402311b7,
+                                                           .Jp107 = 0x14022ae0c,
+                                                           .En107 = 0x140231137});
 
     char* tmp = execData.Codespace;
     const auto injectResult = InjectJumpIntoCode2Step<7, 12, PaddingInstruction::Nop>(

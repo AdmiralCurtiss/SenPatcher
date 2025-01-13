@@ -13,7 +13,12 @@ void DisableCrashReporter(PatchExecData& execData) {
     GameVersion version = execData.Version;
 
     using namespace SenPatcher::x64;
-    char* call = GetCodeAddressJpEn(version, textRegion, 0x1400572cb, 0x1400572cb);
+    char* call = GetCodeAddressJpEn(version,
+                                    textRegion,
+                                    Addresses{.Jp106 = 0x1400572cb,
+                                              .En106 = 0x1400572cb,
+                                              .Jp107 = 0x1400572cb,
+                                              .En107 = 0x1400572cb});
 
     {
         char* tmp = call;

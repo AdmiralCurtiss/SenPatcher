@@ -16,19 +16,41 @@ void PatchFixControllerMappings(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
     using JC = JumpCondition;
-    const bool jp = version == GameVersion::Japanese;
+    const bool jp = IsGameVersionJp(version);
 
-    char* addressStructMemAlloc =
-        GetCodeAddressJpEn(version, textRegion, 0x14012dd89, 0x140131309) + 2;
-    char* addressInjectPos = GetCodeAddressJpEn(version, textRegion, 0x14012d88c, 0x140130e0e);
-    char* addressMapLookupCode = GetCodeAddressJpEn(version, textRegion, 0x14012e086, 0x140131622);
+    char* addressStructMemAlloc = GetCodeAddressJpEn(version,
+                                                     textRegion,
+                                                     Addresses{.Jp106 = 0x14012dd89,
+                                                               .En106 = 0x140131309,
+                                                               .Jp107 = 0x14012dd89,
+                                                               .En107 = 0x140131309})
+                                  + 2;
+    char* addressInjectPos = GetCodeAddressJpEn(version,
+                                                textRegion,
+                                                Addresses{.Jp106 = 0x14012d88c,
+                                                          .En106 = 0x140130e0e,
+                                                          .Jp107 = 0x14012d88c,
+                                                          .En107 = 0x140130e0e});
+    char* addressMapLookupCode = GetCodeAddressJpEn(version,
+                                                    textRegion,
+                                                    Addresses{.Jp106 = 0x14012e086,
+                                                              .En106 = 0x140131622,
+                                                              .Jp107 = 0x14012e086,
+                                                              .En107 = 0x140131622});
     size_t lengthMapLookupCodeForDelete = static_cast<size_t>(jp ? 0x45 : 0x3f);
-    char* addressMapLookupSuccessForDelete =
-        GetCodeAddressJpEn(version, textRegion, 0x14012e0d8, 0x14013166e);
+    char* addressMapLookupSuccessForDelete = GetCodeAddressJpEn(version,
+                                                                textRegion,
+                                                                Addresses{.Jp106 = 0x14012e0d8,
+                                                                          .En106 = 0x14013166e,
+                                                                          .Jp107 = 0x14012e0d8,
+                                                                          .En107 = 0x14013166e});
     size_t lengthMapLookupSuccessForDelete = static_cast<size_t>(jp ? 4 : 3);
 
     // only in JP build
-    char* jpSwapActions45 = jp ? GetCodeAddressJpEn(version, textRegion, 0x14012d785, 0) : nullptr;
+    char* jpSwapActions45 =
+        jp ? GetCodeAddressJpEn(
+            version, textRegion, Addresses{.Jp106 = 0x14012d785, .Jp107 = 0x14012d785})
+           : nullptr;
     static constexpr size_t jpSwapActions45Len = 13;
 
     assert(addressMapLookupCode < addressMapLookupSuccessForDelete);
