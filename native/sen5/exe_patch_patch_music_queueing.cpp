@@ -15,7 +15,8 @@ void PatchMusicQueueing(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
 
-    char* const bgmPlayingCheckInjectAddress = GetCodeAddressEn(version, textRegion, 0x140342ddc);
+    char* const bgmPlayingCheckInjectAddress = GetCodeAddressEn(
+        version, textRegion, Addresses{.En114 = 0x1403438cc, .En115 = 0x140342ddc});
 
     // Exact same fix as CS3, see that for details.
     //

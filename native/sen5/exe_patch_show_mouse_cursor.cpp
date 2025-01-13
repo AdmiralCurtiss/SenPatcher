@@ -15,10 +15,16 @@ void PatchShowMouseCursor(PatchExecData& execData) {
     char* codespace = execData.Codespace;
 
     using namespace SenPatcher::x64;
-    char* showCursorPos1 = GetCodeAddressEn(version, textRegion, 0x1408301c6);
-    char* showCursorPos1Scratch = GetCodeAddressEn(version, textRegion, 0x14082ff62);
-    // char* showCursorPos2 = GetCodeAddressEn(version, textRegion, 0x14087894b); // never called?
-    // char* showCursorPos3 = GetCodeAddressEn(version, textRegion, 0x140878929); // never called?
+    char* showCursorPos1 = GetCodeAddressEn(
+        version, textRegion, Addresses{.En114 = 0x140838c46, .En115 = 0x1408301c6});
+    char* showCursorPos1Scratch = GetCodeAddressEn(
+        version, textRegion, Addresses{.En114 = 0x1408389e2, .En115 = 0x14082ff62});
+
+    // these two seem to be never called?
+    // char* showCursorPos2 = GetCodeAddressEn(
+    //     version, textRegion, Addresses{.En114 = 0x14088135b, .En115 = 0x14087894b});
+    // char* showCursorPos3 = GetCodeAddressEn(
+    //     version, textRegion, Addresses{.En114 = 0x140881339, .En115 = 0x140878929});
 
     // only allow call to SetCursor() if the parameter is not null
     {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 
 namespace HyoutaUtils {
@@ -11,7 +12,8 @@ struct LoadedModsData;
 
 namespace SenLib::Sen5 {
 enum class GameVersion {
-    English,
+    En114,
+    En115,
 };
 
 struct PatchExecData {
@@ -22,9 +24,20 @@ struct PatchExecData {
     char* CodespaceEnd;
 };
 
-inline char*
-    GetCodeAddressEn([[maybe_unused]] GameVersion version, char* textRegion, uint64_t addressEn) {
-    return textRegion + (addressEn - 0x140001000u);
+struct Addresses {
+    uint64_t En114 = 0;
+    uint64_t En115 = 0;
+};
+
+inline char* GetCodeAddressEn(GameVersion version, char* textRegion, Addresses addresses) {
+    uint64_t addr = 0;
+    switch (version) {
+        case GameVersion::En114: addr = addresses.En114; break;
+        case GameVersion::En115: addr = addresses.En115; break;
+        default: break;
+    }
+    assert(addr != 0);
+    return textRegion + (addr - 0x140001000u);
 }
 
 void AddSenPatcherVersionToTitle(PatchExecData& execData,

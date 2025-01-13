@@ -123,9 +123,23 @@ static std::optional<GameVersion> FindImageBase(HyoutaUtils::Logger& logger, voi
                 crc = crc_finalize(crc);
                 logger.Log("Checksum is ").LogHex(crc).Log(".\n");
                 if (crc == 0x054e1c1d) {
-                    logger.Log("Appears to be the EN version.\n");
+                    logger.Log("Appears to be English version 1.1.5.\n");
                     *code = info.BaseAddress;
-                    return GameVersion::English;
+                    return GameVersion::En115;
+                }
+            }
+            if (info.RegionSize == 0xbed000 && info.Protect == PAGE_EXECUTE_READ) {
+                crc_t crc = crc_init();
+                crc = crc_update(
+                    crc, static_cast<char*>(info.BaseAddress) + (0x1400886e8 - 0x140001000), 0x5a);
+                crc = crc_update(
+                    crc, static_cast<char*>(info.BaseAddress) + (0x140b7d5b0 - 0x140001000), 0x92);
+                crc = crc_finalize(crc);
+                logger.Log("Checksum is ").LogHex(crc).Log(".\n");
+                if (crc == 0x054e1c1d) {
+                    logger.Log("Appears to be English version 1.1.4.\n");
+                    *code = info.BaseAddress;
+                    return GameVersion::En114;
                 }
             }
 
@@ -470,6 +484,8 @@ static int64_t __fastcall FSoundOpenForwarder(FSoundFile* soundFile,
 }
 
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
+    using namespace SenLib::Sen5;
+
     void* codeBase = nullptr;
     const auto maybeVersion = FindImageBase(logger, &codeBase);
     if (!maybeVersion || !codeBase) {
@@ -480,9 +496,13 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     const GameVersion version = *maybeVersion;
     s_TrackedMalloc = reinterpret_cast<PTrackedMalloc>(
-        SenLib::Sen5::GetCodeAddressEn(version, static_cast<char*>(codeBase), 0x14071fa70));
+        SenLib::Sen5::GetCodeAddressEn(version,
+                                       static_cast<char*>(codeBase),
+                                       Addresses{.En114 = 0x1407277e0, .En115 = 0x14071fa70}));
     s_TrackedFree = reinterpret_cast<PTrackedFree>(
-        SenLib::Sen5::GetCodeAddressEn(version, static_cast<char*>(codeBase), 0x14006b660));
+        SenLib::Sen5::GetCodeAddressEn(version,
+                                       static_cast<char*>(codeBase),
+                                       Addresses{.En114 = 0x14006b560, .En115 = 0x14006b660}));
 
     // allocate extra page for code
     const size_t newPageLength = 0x1000;
