@@ -2,7 +2,9 @@
 
 #include <cassert>
 #include <filesystem>
+#include <format>
 #include <memory>
+#include <string>
 #include <string_view>
 
 #include "lz4/lz4.h"
@@ -16,6 +18,7 @@
 #include "p3a/structs.h"
 
 #include "util/file.h"
+#include "util/result.h"
 #include "util/scope.h"
 #include "util/text.h"
 
@@ -48,33 +51,34 @@ struct ZSTD_DCtx_Deleter {
 using ZSTD_DCtx_UniquePtr = std::unique_ptr<ZSTD_DCtx, ZSTD_DCtx_Deleter>;
 } // namespace
 
-bool UnpackP3A(const std::filesystem::path& archivePath,
-               const std::filesystem::path& extractPath,
-               std::string_view pathFilter,
-               bool generateJson,
-               bool noDecompression) {
+HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view archivePath,
+                                                            std::string_view extractPath,
+                                                            std::string_view pathFilter,
+                                                            bool generateJson,
+                                                            bool noDecompression) {
     rapidjson::StringBuffer jsonbuffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> json(jsonbuffer);
     json.StartObject();
 
     HyoutaUtils::IO::File f(archivePath, HyoutaUtils::IO::OpenMode::Read);
     if (!f.IsOpen()) {
-        return false;
+        return std::format("Could not open P3A archive at '{}'.", archivePath);
     }
 
+    std::filesystem::path extractFsPath = HyoutaUtils::IO::FilesystemPathFromUtf8(extractPath);
     std::error_code ec;
-    std::filesystem::create_directories(extractPath, ec);
+    std::filesystem::create_directories(extractFsPath, ec);
     if (ec) {
-        return false;
+        return std::format("Could not create output directory at '{}'.", extractPath);
     }
 
     P3AHeader header;
     if (f.Read(&header, sizeof(P3AHeader)) != sizeof(P3AHeader)) {
-        return false;
+        return std::format("Could not read P3A header of archive at '{}'.", archivePath);
     }
     const auto headerHash = XXH64(&header, sizeof(P3AHeader) - 8, 0);
     if (headerHash != header.Hash) {
-        return false;
+        return std::format("P3A header hash error in archive at '{}'.", archivePath);
     }
 
     P3AExtendedHeader extHeader{};
@@ -84,16 +88,18 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
         static_assert(P3AExtendedHeaderSize1200 == sizeof(P3AExtendedHeader));
 
         if (f.Read(&extHeader, P3AExtendedHeaderSize1200) != P3AExtendedHeaderSize1200) {
-            return false;
+            return std::format("Could not read P3A extended header of archive at '{}'.",
+                               archivePath);
         }
         if (extHeader.Size < P3AExtendedHeaderSize1200) {
-            return false;
+            return std::format("Invalid P3A extended header size in archive at '{}'.", archivePath);
         }
         if (extHeader.Size > P3AExtendedHeaderSize1200) {
             // skip remaining extended header, we don't know what it contains
             if (!f.SetPosition(extHeader.Size - P3AExtendedHeaderSize1200,
                                HyoutaUtils::IO::SetPositionMode::Current)) {
-                return false;
+                return std::format("Could skip past P3A extended header in archive at '{}'.",
+                                   archivePath);
             }
         }
         // TODO: check hash
@@ -112,29 +118,31 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
 
     auto fileinfos = std::make_unique_for_overwrite<P3AFileInfo[]>(header.FileCount);
     if (!fileinfos) {
-        return false;
+        return std::string("Could not allocate memory for P3A file infos.");
     }
     if (extHeader.FileInfoSize == sizeof(P3AFileInfo)) {
         // can read efficiently
         const size_t fileinfoTotalSize = sizeof(P3AFileInfo) * header.FileCount;
         if (f.Read(fileinfos.get(), fileinfoTotalSize) != fileinfoTotalSize) {
-            return false;
+            return std::format("Could read P3A file infos from archive at '{}'.", archivePath);
         }
     } else {
         if (extHeader.FileInfoSize < P3AFileInfoSize1100) {
             // P3AFileInfoSize1100 is the minimum size, this can't be valid
-            return false;
+            return std::format("Invalid P3A file info size in archive at '{}'.", archivePath);
         }
 
         if (extHeader.FileInfoSize > sizeof(P3AFileInfo)) {
             // read one at a time, then skip difference
             for (size_t i = 0; i < header.FileCount; ++i) {
                 if (f.Read(&fileinfos[i], sizeof(P3AFileInfo)) != sizeof(P3AFileInfo)) {
-                    return false;
+                    return std::format("Could read P3A file infos from archive at '{}'.",
+                                       archivePath);
                 }
                 if (!f.SetPosition(extHeader.FileInfoSize - sizeof(P3AFileInfo),
                                    HyoutaUtils::IO::SetPositionMode::Current)) {
-                    return false;
+                    return std::format("Could read P3A file infos from archive at '{}'.",
+                                       archivePath);
                 }
             }
         } else {
@@ -142,7 +150,8 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             std::memset(fileinfos.get(), 0, sizeof(P3AFileInfo) * header.FileCount);
             for (size_t i = 0; i < header.FileCount; ++i) {
                 if (f.Read(&fileinfos[i], extHeader.FileInfoSize) != extHeader.FileInfoSize) {
-                    return false;
+                    return std::format("Could read P3A file infos from archive at '{}'.",
+                                       archivePath);
                 }
             }
         }
@@ -152,27 +161,25 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
     if (header.Flags & P3AHeaderFlag_HasZstdDict) {
         P3ADictHeader dictHeader;
         if (f.Read(&dictHeader, sizeof(P3ADictHeader)) != sizeof(P3ADictHeader)) {
-            return false;
+            return std::format("Could not read ZSTD dictionary header from archive at '{}'.",
+                               archivePath);
         }
         auto dict = std::make_unique_for_overwrite<uint8_t[]>(dictHeader.Length);
         if (!dict) {
-            return false;
+            return std::string("Could not allocate memory for ZSTD dictionary.");
         }
         if (f.Read(dict.get(), dictHeader.Length) != dictHeader.Length) {
-            return false;
+            return std::format("Could not read ZSTD dictionary from archive at '{}'.", archivePath);
         }
         ddict = ZSTD_DDict_UniquePtr(ZSTD_createDDict(dict.get(), dictHeader.Length));
         if (!ddict) {
-            return false;
+            return std::format("Invalid ZSTD dictionary in archive at '{}'.", archivePath);
         }
 
-        HyoutaUtils::IO::File f2(extractPath / L"__zstd_dictionary.bin",
-                                 HyoutaUtils::IO::OpenMode::Write);
-        if (!f2.IsOpen()) {
-            return false;
-        }
-        if (f2.Write(dict.get(), dictHeader.Length) != dictHeader.Length) {
-            return false;
+        std::string dictPath = HyoutaUtils::IO::FilesystemPathToUtf8(
+            extractFsPath / HyoutaUtils::IO::FilesystemPathFromUtf8("__zstd_dictionary.bin"));
+        if (!HyoutaUtils::IO::WriteFileAtomic(dictPath, dict.get(), dictHeader.Length)) {
+            return std::format("Could not write ZSTD dictionary to '{}'.", dictPath);
         }
 
         json.Key("ZStdDictionaryPath");
@@ -190,10 +197,12 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             continue;
         }
 
-        std::filesystem::path relativePath(
-            std::u8string_view((const char8_t*)filename.data(), filename.size()));
+        std::filesystem::path relativePath = HyoutaUtils::IO::FilesystemPathFromUtf8(filename);
         if (relativePath.is_absolute()) {
-            return false; // there's probably a better way to handle this case...
+            return std::format(
+                "Refusing to extract file with absolute path '{}' from P3A archive at '{}'.",
+                filename,
+                archivePath);
         }
 
         json.StartObject();
@@ -206,15 +215,20 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             json.String((const char*)relPathStr.data(), relPathStr.size());
         }
 
-        std::filesystem::path fullPath = extractPath / relativePath;
-        std::filesystem::create_directories(fullPath.parent_path(), ec);
+        std::filesystem::path fullPath = extractFsPath / relativePath;
+        std::filesystem::path parentPath = fullPath.parent_path();
+        std::filesystem::create_directories(parentPath, ec);
         if (ec) {
-            return false;
+            return std::format("Could not create output directory at '{}'.",
+                               HyoutaUtils::IO::FilesystemPathToUtf8(parentPath));
         }
-        HyoutaUtils::IO::File f2(fullPath, HyoutaUtils::IO::OpenMode::Write);
-        if (!f2.IsOpen()) {
-            return false;
+
+        std::string fullPathStr = HyoutaUtils::IO::FilesystemPathToUtf8(fullPath);
+        HyoutaUtils::IO::File f2;
+        if (!f2.OpenWithTempFilename(fullPathStr, HyoutaUtils::IO::OpenMode::Write)) {
+            return std::format("Could not open temp output file for '{}'.", fullPathStr);
         }
+        auto outfileScope = HyoutaUtils::MakeDisposableScopeGuard([&]() { f2.Delete(); });
 
         bool uncompressed = false;
         json.Key("Compression");
@@ -224,29 +238,41 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             json.String("zStd");
         } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD_DICT) {
             json.String("zStdDict");
-        } else {
+        } else if (fileinfo.CompressionType == P3ACompressionType::None) {
             json.String("none");
             uncompressed = true;
+        } else {
+            return std::format("Unknown compression type for file '{}' in P3A archive at '{}'.",
+                               filename,
+                               archivePath);
         }
 
         if (uncompressed || noDecompression) {
             if (uncompressed) {
                 if (fileinfo.CompressedSize != fileinfo.UncompressedSize) {
-                    return false;
+                    return std::format(
+                        "Filesize mismatch for uncompressed file '{}' in P3A archive at '{}'.",
+                        filename,
+                        archivePath);
                 }
                 if (hasUncompressedHash && fileinfo.CompressedHash != fileinfo.UncompressedHash) {
-                    return false;
+                    return std::format(
+                        "Hash mismatch for uncompressed file '{}' in P3A archive at '{}'.",
+                        filename,
+                        archivePath);
                 }
             }
 
             uint64_t filedataSize = fileinfo.CompressedSize;
             if (!f.SetPosition(fileinfo.Offset)) {
-                return false;
+                return std::format("Failed to seek to data for file '{}' in P3A archive at '{}'.",
+                                   filename,
+                                   archivePath);
             }
 
             XXH64_state_t* hashState = XXH64_createState();
             if (hashState == nullptr) {
-                return false;
+                return std::string("Failed to allocate memory for XXH64 state.");
             }
             auto hashStateGuard =
                 HyoutaUtils::MakeScopeGuard([&hashState] { XXH64_freeState(hashState); });
@@ -258,89 +284,136 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
             while (rest > 0) {
                 size_t blockSize = (rest > bufferSize) ? bufferSize : static_cast<size_t>(rest);
                 if (f.Read(buffer.data(), blockSize) != blockSize) {
-                    return false;
+                    return std::format("Failed to read data for file '{}' in P3A archive at '{}'.",
+                                       filename,
+                                       archivePath);
                 }
                 XXH64_update(hashState, buffer.data(), blockSize);
                 if (f2.Write(buffer.data(), blockSize) != blockSize) {
-                    return false;
+                    return std::format(
+                        "Failed to write data to file '{}' extracting from P3A archive at '{}'.",
+                        fullPathStr,
+                        archivePath);
                 }
                 rest -= blockSize;
             }
             if (fileinfo.CompressedHash != XXH64_digest(hashState)) {
-                return false;
+                return std::format(
+                    "Data hash error for file '{}' in P3A archive at '{}'.", filename, archivePath);
             }
         } else {
             auto filedata = std::make_unique_for_overwrite<char[]>(fileinfo.CompressedSize);
             uint64_t filedataSize = fileinfo.CompressedSize;
             if (!filedata) {
-                return false;
+                return std::format(
+                    "Failed to allocate memory for compressed data for file '{}' in P3A archive at "
+                    "'{}'.",
+                    filename,
+                    archivePath);
             }
             if (!f.SetPosition(fileinfo.Offset)) {
-                return false;
+                return std::format("Failed to seek to data for file '{}' in P3A archive at '{}'.",
+                                   filename,
+                                   archivePath);
             }
             if (f.Read(filedata.get(), fileinfo.CompressedSize) != fileinfo.CompressedSize) {
-                return false;
+                return std::format("Failed to read data for file '{}' in P3A archive at '{}'.",
+                                   filename,
+                                   archivePath);
             }
 
             if (fileinfo.CompressedHash != XXH64(filedata.get(), fileinfo.CompressedSize, 0)) {
-                return false;
+                return std::format(
+                    "Compressed data hash error for file '{}' in P3A archive at '{}'.",
+                    filename,
+                    archivePath);
             }
 
             if (fileinfo.CompressionType == P3ACompressionType::LZ4) {
                 if (!noDecompression) {
                     auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
                     if (!decomp) {
-                        return false;
+                        return std::format(
+                            "Failed to allocate memory for uncompressed data for file '{}' in P3A "
+                            "archive at "
+                            "'{}'.",
+                            filename,
+                            archivePath);
                     }
                     if (LZ4_decompress_safe(filedata.get(),
                                             decomp.get(),
                                             fileinfo.CompressedSize,
                                             fileinfo.UncompressedSize)
                         != fileinfo.UncompressedSize) {
-                        return false;
+                        return std::format("Failed to decompress file '{}' in P3A archive at '{}'.",
+                                           filename,
+                                           archivePath);
                     }
                     decomp.swap(filedata);
                     filedataSize = fileinfo.UncompressedSize;
 
                     if (hasUncompressedHash
                         && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
-                        return false;
+                        return std::format(
+                            "Uncompressed data hash error for file '{}' in P3A archive at '{}'.",
+                            filename,
+                            archivePath);
                     }
                 }
             } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD) {
                 if (!noDecompression) {
                     auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
                     if (!decomp) {
-                        return false;
+                        return std::format(
+                            "Failed to allocate memory for uncompressed data for file '{}' in P3A "
+                            "archive at "
+                            "'{}'.",
+                            filename,
+                            archivePath);
                     }
                     if (ZSTD_decompress(decomp.get(),
                                         fileinfo.UncompressedSize,
                                         filedata.get(),
                                         fileinfo.CompressedSize)
                         != fileinfo.UncompressedSize) {
-                        return false;
+                        return std::format("Failed to decompress file '{}' in P3A archive at '{}'.",
+                                           filename,
+                                           archivePath);
                     }
                     decomp.swap(filedata);
                     filedataSize = fileinfo.UncompressedSize;
 
                     if (hasUncompressedHash
                         && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
-                        return false;
+                        return std::format(
+                            "Uncompressed data hash error for file '{}' in P3A archive at '{}'.",
+                            filename,
+                            archivePath);
                     }
                 }
             } else if (fileinfo.CompressionType == P3ACompressionType::ZSTD_DICT) {
                 if (!noDecompression) {
                     if (!ddict) {
-                        return false;
+                        return std::format(
+                            "File '{}' in P3A archive at '{}' claims ZSTD dictionary compression, "
+                            "but no dictionary provided.",
+                            filename,
+                            archivePath);
                     }
 
                     auto decomp = std::make_unique_for_overwrite<char[]>(fileinfo.UncompressedSize);
                     if (!decomp) {
-                        return false;
+                        return std::format(
+                            "Failed to allocate memory for uncompressed data for file '{}' in P3A "
+                            "archive at "
+                            "'{}'.",
+                            filename,
+                            archivePath);
                     }
                     ZSTD_DCtx_UniquePtr dctx = ZSTD_DCtx_UniquePtr(ZSTD_createDCtx());
                     if (!dctx) {
-                        return false;
+                        return std::string(
+                            "Could not allocate memory for ZSTD dictionary decompression context.");
                     }
                     if (ZSTD_decompress_usingDDict(dctx.get(),
                                                    decomp.get(),
@@ -349,7 +422,9 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
                                                    fileinfo.CompressedSize,
                                                    ddict.get())
                         != fileinfo.UncompressedSize) {
-                        return false;
+                        return std::format("Failed to decompress file '{}' in P3A archive at '{}'.",
+                                           filename,
+                                           archivePath);
                     }
 
                     decomp.swap(filedata);
@@ -357,17 +432,24 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
 
                     if (hasUncompressedHash
                         && fileinfo.UncompressedHash != XXH64(filedata.get(), filedataSize, 0)) {
-                        return false;
+                        return std::format(
+                            "Uncompressed data hash error for file '{}' in P3A archive at '{}'.",
+                            filename,
+                            archivePath);
                     }
                 }
             } else {
                 assert(0); // should never come here
-                return false;
+                return std::string("Internal error.");
             }
 
             if (f2.Write(filedata.get(), filedataSize) != filedataSize) {
-                return false;
+                return std::format("Could not write to temp output file for '{}'.", fullPathStr);
             }
+            if (!f2.Rename(fullPath)) {
+                return std::format("Could not rename temp output file to '{}'.", fullPathStr);
+            }
+            outfileScope.Dispose();
         }
 
         if (noDecompression) {
@@ -388,18 +470,15 @@ bool UnpackP3A(const std::filesystem::path& archivePath,
     json.EndObject();
 
     if (generateJson) {
-        HyoutaUtils::IO::File f2(extractPath / L"__p3a.json", HyoutaUtils::IO::OpenMode::Write);
-        if (!f2.IsOpen()) {
-            return false;
-        }
-
+        std::string jsonPath = HyoutaUtils::IO::FilesystemPathToUtf8(
+            extractFsPath / HyoutaUtils::IO::FilesystemPathFromUtf8("__p3a.json"));
         const char* jsonstring = jsonbuffer.GetString();
         const size_t jsonstringsize = jsonbuffer.GetSize();
-        if (f2.Write(jsonstring, jsonstringsize) != jsonstringsize) {
-            return false;
+        if (!HyoutaUtils::IO::WriteFileAtomic(jsonPath, jsonstring, jsonstringsize)) {
+            return std::format("Could not write json output file at '{}'.", jsonPath);
         }
     }
 
-    return true;
+    return UnpackP3AResult::Success;
 }
 } // namespace SenPatcher

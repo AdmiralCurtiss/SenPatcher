@@ -65,12 +65,12 @@ int P3A_Extract_Function(int argc, char** argv) {
         pathFilter = "*";
     }
 
-    if (!SenPatcher::UnpackP3A(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
-                               HyoutaUtils::IO::FilesystemPathFromUtf8(target),
-                               pathFilter,
-                               options["json"].flag(),
-                               options["no-decompress"].flag())) {
-        printf("Unpacking failed.\n");
+    const bool generateJson = options["json"].flag();
+    const bool noDecompress = options["no-decompress"].flag();
+
+    auto result = SenPatcher::UnpackP3A(source, target, pathFilter, generateJson, noDecompress);
+    if (result.IsError()) {
+        printf("Unpacking failed: %s\n", result.GetErrorValue().c_str());
         return -1;
     }
     return 0;
