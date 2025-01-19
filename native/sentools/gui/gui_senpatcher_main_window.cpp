@@ -16,6 +16,7 @@
 #include "gui_senpatcher_cs1_system_data_window.h"
 #include "gui_senpatcher_cs2_system_data_window.h"
 #include "gui_senpatcher_decompress_type1_window.h"
+#include "gui_senpatcher_extract_p3a_window.h"
 #include "gui_senpatcher_extract_pka_window.h"
 #include "gui_senpatcher_extract_pkg_window.h"
 #include "gui_senpatcher_fix_checksum_window.h"
@@ -152,6 +153,10 @@ bool SenPatcherMainWindow::HasPendingWindowRequest() const {
 void SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Toolbox")) {
+            if (ImGui::MenuItem("Extract P3A...")) {
+                state.Windows.emplace_back(
+                    std::make_unique<GUI::SenPatcherExtractP3AWindow>(state));
+            }
             if (ImGui::MenuItem("Extract PKG...")) {
                 state.Windows.emplace_back(
                     std::make_unique<GUI::SenPatcherExtractPkgWindow>(state));

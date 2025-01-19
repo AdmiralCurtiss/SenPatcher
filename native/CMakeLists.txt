@@ -360,6 +360,8 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_senpatcher_compress_type1_window.h
 			sentools/gui/gui_senpatcher_decompress_type1_window.cpp
 			sentools/gui/gui_senpatcher_decompress_type1_window.h
+			sentools/gui/gui_senpatcher_extract_p3a_window.cpp
+			sentools/gui/gui_senpatcher_extract_p3a_window.h
 			sentools/gui/gui_senpatcher_extract_pka_window.cpp
 			sentools/gui/gui_senpatcher_extract_pka_window.h
 			sentools/gui/gui_senpatcher_extract_pkg_window.cpp
