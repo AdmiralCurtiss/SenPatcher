@@ -446,11 +446,12 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
             if (f2.Write(filedata.get(), filedataSize) != filedataSize) {
                 return std::format("Could not write to temp output file for '{}'.", fullPathStr);
             }
-            if (!f2.Rename(fullPath)) {
-                return std::format("Could not rename temp output file to '{}'.", fullPathStr);
-            }
-            outfileScope.Dispose();
         }
+
+        if (!f2.Rename(fullPath)) {
+            return std::format("Could not rename temp output file to '{}'.", fullPathStr);
+        }
+        outfileScope.Dispose();
 
         if (noDecompression) {
             json.Key("Precompressed");
