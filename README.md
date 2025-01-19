@@ -28,7 +28,7 @@ Prerequisites
 - If you have installed a version of SenPatcher before v1.0, please restore your game before continuing.
   - The `SenPatcherGui.exe` provided in the release binary package should offer to automatically restore the game for you when you open the relevant game.
   - Alternatively, verify the game files in Steam or GoG Galaxy. It will detect and redownload any patched files and replace them with unpatched ones.
-- Make sure your game is updated to a supported version (CS1 v1.6, CS2 v1.4.1 or v1.4.2, CS3 v1.07, CS4 v1.2.2, Reverie v1.1.5, TX v1.08). Other versions of the games will not work.
+- Make sure your game is updated to a supported version (CS1 v1.6, CS2 v1.4.1 or v1.4.2, CS3 v1.06 or v1.07, CS4 v1.2.1 or v1.2.2, Reverie v1.1.4 or v1.1.5, TX v1.08). Other versions of the games will not work.
 
 
 Windows (using the GUI)
@@ -151,7 +151,7 @@ Feature Set for Trails of Cold Steel III
 * Option to force XInput for controllers (this supposedly fixes newer Xbox controllers)
 * Option to keep the game running while in background.
 
-Note: Compatible with version 1.07 of the game only.
+Note: Compatible with versions 1.06 and 1.07 of the game only.
 
 Feature Set for Trails of Cold Steel IV
 =======================================
@@ -163,7 +163,7 @@ Feature Set for Trails of Cold Steel IV
 * Option to keep the game running while in background.
 * Option to force the controller button Confirm/Cancel layout to English/Xbox or Japanese/Nintendo style.
 
-Note: Compatible with version 1.2.2 of the game only.
+Note: Compatible with versions 1.2.1 and 1.2.2 of the game only.
 
 Feature Set for Trails into Reverie
 ===================================
@@ -173,7 +173,7 @@ Feature Set for Trails into Reverie
 * Option to disable the mouse being captured by the game and its movement being used for the game camera.
 * Option to remove the 30 FPS limit when the game is in the background.
 
-Note: Compatible with version 1.1.5 of the game only.
+Note: Compatible with versions 1.1.4 and 1.1.5 of the game only.
 
 Feature Set for Tokyo Xanadu eX+
 ================================
