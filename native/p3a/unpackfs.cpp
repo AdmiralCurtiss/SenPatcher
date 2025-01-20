@@ -56,6 +56,12 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
                                                             std::string_view pathFilter,
                                                             bool generateJson,
                                                             bool noDecompression) {
+    XXH64_state_t* hashState = XXH64_createState();
+    if (hashState == nullptr) {
+        return std::string("Failed to allocate memory for XXH64 state.");
+    }
+    auto hashStateGuard = HyoutaUtils::MakeScopeGuard([&hashState] { XXH64_freeState(hashState); });
+
     rapidjson::StringBuffer jsonbuffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> json(jsonbuffer);
     json.StartObject();
@@ -86,6 +92,8 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
     if (header.Version >= 1200) {
         // if this changes this code needs to be updated
         static_assert(P3AExtendedHeaderSize1200 == sizeof(P3AExtendedHeader));
+        static_assert(offsetof(P3AExtendedHeader, Size) == 8);
+        XXH64_reset(hashState, 0);
 
         if (f.Read(&extHeader, P3AExtendedHeaderSize1200) != P3AExtendedHeaderSize1200) {
             return std::format("Could not read P3A extended header of archive at '{}'.",
@@ -94,15 +102,24 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
         if (extHeader.Size < P3AExtendedHeaderSize1200) {
             return std::format("Invalid P3A extended header size in archive at '{}'.", archivePath);
         }
+        XXH64_update(hashState, &extHeader.Size, P3AExtendedHeaderSize1200 - 8);
         if (extHeader.Size > P3AExtendedHeaderSize1200) {
-            // skip remaining extended header, we don't know what it contains
-            if (!f.SetPosition(extHeader.Size - P3AExtendedHeaderSize1200,
-                               HyoutaUtils::IO::SetPositionMode::Current)) {
-                return std::format("Could skip past P3A extended header in archive at '{}'.",
-                                   archivePath);
+            static constexpr size_t bufferSize = 4096;
+            std::array<char, bufferSize> buffer;
+            uint64_t rest = extHeader.Size - P3AExtendedHeaderSize1200;
+            while (rest > 0) {
+                size_t blockSize = (rest > bufferSize) ? bufferSize : static_cast<size_t>(rest);
+                if (f.Read(buffer.data(), blockSize) != blockSize) {
+                    return std::format("Could not read P3A extended header of archive at '{}'.",
+                                       archivePath);
+                }
+                XXH64_update(hashState, buffer.data(), blockSize);
+                rest -= blockSize;
             }
         }
-        // TODO: check hash
+        if (extHeader.Hash != XXH64_digest(hashState)) {
+            return std::format("P3A extended header hash error in archive at '{}'.", archivePath);
+        }
 
         hasUncompressedHash = true;
     } else {
@@ -124,7 +141,7 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
         // can read efficiently
         const size_t fileinfoTotalSize = sizeof(P3AFileInfo) * header.FileCount;
         if (f.Read(fileinfos.get(), fileinfoTotalSize) != fileinfoTotalSize) {
-            return std::format("Could read P3A file infos from archive at '{}'.", archivePath);
+            return std::format("Could not read P3A file infos from archive at '{}'.", archivePath);
         }
     } else {
         if (extHeader.FileInfoSize < P3AFileInfoSize1100) {
@@ -270,12 +287,6 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
                                    archivePath);
             }
 
-            XXH64_state_t* hashState = XXH64_createState();
-            if (hashState == nullptr) {
-                return std::string("Failed to allocate memory for XXH64 state.");
-            }
-            auto hashStateGuard =
-                HyoutaUtils::MakeScopeGuard([&hashState] { XXH64_freeState(hashState); });
             XXH64_reset(hashState, 0);
 
             static constexpr size_t bufferSize = 4096;
