@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "util/file.h"
+#include "util/scope.h"
 
 #include "lz4/lz4.h"
 
@@ -95,8 +96,17 @@ bool P3A::Load(HyoutaUtils::IO::File& f) {
     P3AExtendedHeader extHeader{};
     bool hasUncompressedHash = false;
     if (header.Version >= 1200) {
+        XXH64_state_t* hashState = XXH64_createState();
+        if (hashState == nullptr) {
+            return false;
+        }
+        auto hashStateGuard =
+            HyoutaUtils::MakeScopeGuard([&hashState] { XXH64_freeState(hashState); });
+        XXH64_reset(hashState, 0);
+
         // if this changes this code needs to be updated
         static_assert(P3AExtendedHeaderSize1200 == sizeof(P3AExtendedHeader));
+        static_assert(offsetof(P3AExtendedHeader, Size) == 8);
 
         if (f.Read(&extHeader, P3AExtendedHeaderSize1200) != P3AExtendedHeaderSize1200) {
             return false;
@@ -104,14 +114,24 @@ bool P3A::Load(HyoutaUtils::IO::File& f) {
         if (extHeader.Size < P3AExtendedHeaderSize1200) {
             return false;
         }
+        XXH64_update(hashState, &extHeader.Size, P3AExtendedHeaderSize1200 - 8);
         if (extHeader.Size > P3AExtendedHeaderSize1200) {
             // skip remaining extended header, we don't know what it contains
-            if (!f.SetPosition(extHeader.Size - P3AExtendedHeaderSize1200,
-                               HyoutaUtils::IO::SetPositionMode::Current)) {
-                return false;
+            static constexpr size_t bufferSize = 1024;
+            std::array<char, bufferSize> buffer;
+            uint32_t rest = extHeader.Size - P3AExtendedHeaderSize1200;
+            while (rest > 0) {
+                size_t blockSize = (rest > bufferSize) ? bufferSize : static_cast<size_t>(rest);
+                if (f.Read(buffer.data(), blockSize) != blockSize) {
+                    return false;
+                }
+                XXH64_update(hashState, buffer.data(), blockSize);
+                rest -= blockSize;
             }
         }
-        // TODO: check hash
+        if (extHeader.Hash != XXH64_digest(hashState)) {
+            return false;
+        }
 
         hasUncompressedHash = true;
     } else {
