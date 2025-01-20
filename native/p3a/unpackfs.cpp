@@ -106,7 +106,7 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
         if (extHeader.Size > P3AExtendedHeaderSize1200) {
             static constexpr size_t bufferSize = 4096;
             std::array<char, bufferSize> buffer;
-            uint64_t rest = extHeader.Size - P3AExtendedHeaderSize1200;
+            uint32_t rest = extHeader.Size - P3AExtendedHeaderSize1200;
             while (rest > 0) {
                 size_t blockSize = (rest > bufferSize) ? bufferSize : static_cast<size_t>(rest);
                 if (f.Read(buffer.data(), blockSize) != blockSize) {
@@ -153,12 +153,12 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
             // read one at a time, then skip difference
             for (size_t i = 0; i < header.FileCount; ++i) {
                 if (f.Read(&fileinfos[i], sizeof(P3AFileInfo)) != sizeof(P3AFileInfo)) {
-                    return std::format("Could read P3A file infos from archive at '{}'.",
+                    return std::format("Could not read P3A file infos from archive at '{}'.",
                                        archivePath);
                 }
                 if (!f.SetPosition(extHeader.FileInfoSize - sizeof(P3AFileInfo),
                                    HyoutaUtils::IO::SetPositionMode::Current)) {
-                    return std::format("Could read P3A file infos from archive at '{}'.",
+                    return std::format("Could not read P3A file infos from archive at '{}'.",
                                        archivePath);
                 }
             }
@@ -167,7 +167,7 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
             std::memset(fileinfos.get(), 0, sizeof(P3AFileInfo) * header.FileCount);
             for (size_t i = 0; i < header.FileCount; ++i) {
                 if (f.Read(&fileinfos[i], extHeader.FileInfoSize) != extHeader.FileInfoSize) {
-                    return std::format("Could read P3A file infos from archive at '{}'.",
+                    return std::format("Could not read P3A file infos from archive at '{}'.",
                                        archivePath);
                 }
             }
@@ -416,8 +416,7 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
                     if (!decomp) {
                         return std::format(
                             "Failed to allocate memory for uncompressed data for file '{}' in P3A "
-                            "archive at "
-                            "'{}'.",
+                            "archive at '{}'.",
                             filename,
                             archivePath);
                     }
