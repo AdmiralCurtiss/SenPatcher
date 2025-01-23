@@ -29,10 +29,18 @@ namespace SenLib::Sen3::FileFixes::voice_opus_v00s2728 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
-        result.emplace_back(SenLib::DecompressFromBuffer(PatchData27, PatchLength27),
+        auto d27 = SenLib::DecompressFromBuffer(PatchData27, PatchLength27);
+        if (!d27) {
+            return false;
+        }
+        auto d28 = SenLib::DecompressFromBuffer(PatchData28, PatchLength28);
+        if (!d28) {
+            return false;
+        }
+        result.emplace_back(std::move(*d27),
                             SenPatcher::InitializeP3AFilename("data/voice_us/opus/v00_s0027.opus"),
                             SenPatcher::P3ACompressionType::None);
-        result.emplace_back(SenLib::DecompressFromBuffer(PatchData28, PatchLength28),
+        result.emplace_back(std::move(*d28),
                             SenPatcher::InitializeP3AFilename("data/voice_us/opus/v00_s0028.opus"),
                             SenPatcher::P3ACompressionType::None);
         return true;

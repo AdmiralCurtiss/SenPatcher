@@ -48,11 +48,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // maybe the PS4 ones are better?
         std::vector<char> vctiming3;
         {
-            std::vector<char> vctiming4 = DecompressFromBuffer(PatchData4, PatchLength4);
+            auto vctiming4 = DecompressFromBuffer(PatchData4, PatchLength4);
+            if (!vctiming4) {
+                return false;
+            }
             auto p3d = DecompressFromBuffer(PatchData3, PatchLength3);
-            HyoutaUtils::Stream::DuplicatableByteArrayStream tmp(vctiming4.data(),
-                                                                 vctiming4.size());
-            HyoutaUtils::Stream::DuplicatableByteArrayStream patch3(p3d.data(), p3d.size());
+            if (!p3d) {
+                return false;
+            }
+            HyoutaUtils::Stream::DuplicatableByteArrayStream tmp(vctiming4->data(),
+                                                                 vctiming4->size());
+            HyoutaUtils::Stream::DuplicatableByteArrayStream patch3(p3d->data(), p3d->size());
             HyoutaUtils::Bps::ApplyPatchToStream(tmp, patch3, vctiming3);
         }
 

@@ -30,6 +30,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         if (!file) {
             return false;
         }
+        auto patchdata = SenLib::DecompressFromBuffer(PatchData, PatchLength);
+        if (!patchdata) {
+            return false;
+        }
 
         auto& bin = file->Data;
 
@@ -38,9 +42,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // on-disc PS4 script instead of the 1.02 patch like all the other files. So to save us some
         // pain we'll just patch it directly.
 
-        std::vector<char> patchdata = SenLib::DecompressFromBuffer(PatchData, PatchLength);
         HyoutaUtils::Stream::DuplicatableByteArrayStream source(bin.data(), bin.size());
-        HyoutaUtils::Stream::DuplicatableByteArrayStream patch(patchdata.data(), patchdata.size());
+        HyoutaUtils::Stream::DuplicatableByteArrayStream patch(patchdata->data(),
+                                                               patchdata->size());
         std::vector<char> target;
         HyoutaUtils::Bps::ApplyPatchToStream(source, patch, target);
 

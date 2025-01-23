@@ -18,23 +18,27 @@ static constexpr size_t NotoSansJpFontLength = sizeof(NotoSansJpFontData);
 
 namespace SenTools {
 void LoadFonts(ImGuiIO& io, GuiState& state) {
-    static std::vector<char> cuprum =
+    static std::optional<std::vector<char>> cuprum =
         SenLib::DecompressFromBuffer(CuprumFontData, CuprumFontLength);
-    static std::vector<char> noto =
+    static std::optional<std::vector<char>> noto =
         SenLib::DecompressFromBuffer(NotoSansJpFontData, NotoSansJpFontLength);
 
     ImFontConfig config;
     config.FontDataOwnedByAtlas = false;
-    io.Fonts->AddFontFromMemoryTTF(cuprum.data(),
-                                   static_cast<int>(cuprum.size()),
-                                   18.0f,
-                                   &config,
-                                   io.Fonts->GetGlyphRangesDefault());
-    config.MergeMode = true;
-    io.Fonts->AddFontFromMemoryTTF(noto.data(),
-                                   static_cast<int>(noto.size()),
-                                   20.0f,
-                                   &config,
-                                   io.Fonts->GetGlyphRangesJapanese());
+    if (cuprum) {
+        io.Fonts->AddFontFromMemoryTTF(cuprum->data(),
+                                       static_cast<int>(cuprum->size()),
+                                       18.0f,
+                                       &config,
+                                       io.Fonts->GetGlyphRangesDefault());
+        config.MergeMode = true;
+    }
+    if (noto) {
+        io.Fonts->AddFontFromMemoryTTF(noto->data(),
+                                       static_cast<int>(noto->size()),
+                                       20.0f,
+                                       &config,
+                                       io.Fonts->GetGlyphRangesJapanese());
+    }
 }
 } // namespace SenTools

@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include <cstring>
+#include <optional>
 #include <vector>
 
-#include "util/hash/crc32.h"
 #include "lzma2301/LzmaDec.h"
+#include "util/hash/crc32.h"
 
 namespace SenLib {
 static uint16_t GetUInt16(const char* b) {
@@ -41,14 +42,14 @@ static uint32_t CalculateCRC32(const char* data, size_t length) {
     return crc32;
 }
 
-std::vector<char> DecompressFromBuffer(const char* buffer, size_t bufferLength) {
+std::optional<std::vector<char>> DecompressFromBuffer(const char* buffer, size_t bufferLength) {
     if (bufferLength <= 18) {
-        throw "invalid data stream";
+        return std::nullopt; // not enough bytes for header
     }
 
     const int filter = buffer[0];
     if (filter < 0 || filter > 3) {
-        throw "unimplemented filter";
+        return std::nullopt; // unimplemented filter
     }
 
     const uint32_t crc = GetUInt32(&buffer[1]);
@@ -74,12 +75,12 @@ std::vector<char> DecompressFromBuffer(const char* buffer, size_t bufferLength) 
                    &alloc)
             != SZ_OK
         || len != uncompressedLength) {
-        throw "decompression error";
+        return std::nullopt; // decompression error
     }
 
     if (filter == 1) {
         if ((outbuffer.size() % 2) != 0) {
-            throw "invalid data stream";
+            return std::nullopt; // invalid data stream
         }
 
         uint16_t last = 0;
@@ -91,7 +92,7 @@ std::vector<char> DecompressFromBuffer(const char* buffer, size_t bufferLength) 
         }
     } else if (filter == 2) {
         if ((outbuffer.size() % 4) != 0) {
-            throw "invalid data stream";
+            return std::nullopt; // invalid data stream
         }
 
         uint32_t last = 0;
@@ -103,7 +104,7 @@ std::vector<char> DecompressFromBuffer(const char* buffer, size_t bufferLength) 
         }
     } else if (filter == 3) {
         if ((outbuffer.size() % 4) != 0 || outbuffer.size() < 0x30) {
-            throw "invalid data stream";
+            return std::nullopt; // invalid data stream
         }
 
         std::vector<char> defiltered;
@@ -130,7 +131,7 @@ std::vector<char> DecompressFromBuffer(const char* buffer, size_t bufferLength) 
     }
 
     if (CalculateCRC32(outbuffer.data(), outbuffer.size()) != crc) {
-        throw "decompression error";
+        return std::nullopt; // decompression error
     }
     return outbuffer;
 }

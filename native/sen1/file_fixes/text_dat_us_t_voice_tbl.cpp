@@ -80,7 +80,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             HyoutaUtils::Stream::DuplicatableByteArrayStream vctiming(file_timing->Data.data(),
                                                                       file_timing->Data.size());
             auto p3d = DecompressFromBuffer(PatchData3, PatchLength3);
-            HyoutaUtils::Stream::DuplicatableByteArrayStream patch3(p3d.data(), p3d.size());
+            if (!p3d) {
+                return false;
+            }
+            HyoutaUtils::Stream::DuplicatableByteArrayStream patch3(p3d->data(), p3d->size());
             HyoutaUtils::Stream::DuplicatableByteArrayStream patch4(PatchData4, PatchLength4);
             std::vector<char> vctiming3;
             HyoutaUtils::Bps::ApplyPatchToStream(vctiming, patch3, vctiming3);

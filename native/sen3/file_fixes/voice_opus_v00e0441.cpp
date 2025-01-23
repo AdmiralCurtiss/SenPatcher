@@ -25,7 +25,11 @@ namespace SenLib::Sen3::FileFixes::voice_opus_v00e0441 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
-        result.emplace_back(SenLib::DecompressFromBuffer(PatchData, PatchLength),
+        auto d = SenLib::DecompressFromBuffer(PatchData, PatchLength);
+        if (!d) {
+            return false;
+        }
+        result.emplace_back(std::move(*d),
                             SenPatcher::InitializeP3AFilename("data/voice_us/opus/v00_e0441.opus"),
                             SenPatcher::P3ACompressionType::None);
         return true;
