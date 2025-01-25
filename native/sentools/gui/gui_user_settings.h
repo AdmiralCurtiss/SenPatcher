@@ -25,4 +25,11 @@ bool WriteUserSettingsToIni(const GuiUserSettings& settings, HyoutaUtils::Ini::I
 
 void LoadUserSettingsFromCSharpUserConfig(GuiUserSettings& settings,
                                           std::string_view guiSettingsFolder);
+
+std::string GetDefaultPathCS1(const GuiUserSettings& settings);
+std::string GetDefaultPathCS2(const GuiUserSettings& settings);
+std::string GetDefaultPathCS3(const GuiUserSettings& settings);
+std::string GetDefaultPathCS4(const GuiUserSettings& settings);
+std::string GetDefaultPathReverie(const GuiUserSettings& settings);
+std::string GetDefaultPathTX(const GuiUserSettings& settings);
 } // namespace SenTools

@@ -27,6 +27,7 @@
 #include "gui_senpatcher_patch_reverie_window.h"
 #include "gui_senpatcher_patch_tx_window.h"
 #include "gui_state.h"
+#include "gui_user_settings.h"
 #include "sen1/system_data.h"
 #include "sen2/system_data.h"
 #include "senpatcher_version.h"
@@ -200,7 +201,8 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         filters.push_back(FileFilter{"CS1 game directory root", "Sen1Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
-                          "", // TODO: GamePaths.GetDefaultPathCS1()
+                          SenTools::GetDefaultPathCS1(state.GuiSettings),
+                          "Sen1Launcher.exe",
                           std::move(filters),
                           "exe",
                           false,
@@ -270,7 +272,8 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         filters.push_back(FileFilter{"CS2 game directory root", "Sen2Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
-                          "", // TODO: GamePaths.GetDefaultPathCS2()
+                          SenTools::GetDefaultPathCS2(state.GuiSettings),
+                          "Sen2Launcher.exe",
                           std::move(filters),
                           "exe",
                           false,
@@ -340,7 +343,8 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         filters.push_back(FileFilter{"CS3 game directory root", "Sen3Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
-                          "", // TODO: GamePaths.GetDefaultPathCS3()
+                          SenTools::GetDefaultPathCS3(state.GuiSettings),
+                          "Sen3Launcher.exe",
                           std::move(filters),
                           "exe",
                           false,
@@ -373,7 +377,8 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         filters.push_back(FileFilter{"CS4 game directory root", "Sen4Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
-                          "", // TODO: GamePaths.GetDefaultPathCS4()
+                          SenTools::GetDefaultPathCS4(state.GuiSettings),
+                          "Sen4Launcher.exe",
                           std::move(filters),
                           "exe",
                           false,
@@ -405,8 +410,13 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         filters.reserve(2);
         filters.push_back(FileFilter{"Reverie game directory", "hnk.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
+        std::string reverieDir = SenTools::GetDefaultPathReverie(state.GuiSettings);
+        if (!reverieDir.empty()) {
+            reverieDir += "/bin/Win64";
+        }
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
-                          "", // TODO: GamePaths.GetDefaultPathReverie()
+                          reverieDir,
+                          "hnk.exe",
                           std::move(filters),
                           "exe",
                           false,
@@ -439,7 +449,8 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         filters.push_back(FileFilter{"TX game directory root", "TokyoXanadu.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
-                          "", // TODO: GamePaths.GetDefaultPathTX()
+                          SenTools::GetDefaultPathTX(state.GuiSettings),
+                          "TokyoXanadu.exe",
                           std::move(filters),
                           "exe",
                           false,
@@ -622,6 +633,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             if (WorkThread && WorkThread->IsDone.load()) {
                 WorkThread->Thread->join();
                 if (WorkThread->Success.load()) {
+                    state.GuiSettings.Sen1Path = WorkThread->PathToOpen;
                     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS1Window>(
                         state,
                         std::move(WorkThread->PathToOpen),
@@ -727,6 +739,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             if (WorkThread && WorkThread->IsDone.load()) {
                 WorkThread->Thread->join();
                 if (WorkThread->Success.load()) {
+                    state.GuiSettings.Sen2Path = WorkThread->PathToOpen;
                     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS2Window>(
                         state,
                         std::move(WorkThread->PathToOpen),
@@ -829,6 +842,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             if (WorkThread && WorkThread->IsDone.load()) {
                 WorkThread->Thread->join();
                 if (WorkThread->Success.load()) {
+                    state.GuiSettings.Sen3Path = WorkThread->PathToOpen;
                     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS3Window>(
                         state,
                         std::move(WorkThread->PathToOpen),
@@ -917,6 +931,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             if (WorkThread && WorkThread->IsDone.load()) {
                 WorkThread->Thread->join();
                 if (WorkThread->Success.load()) {
+                    state.GuiSettings.Sen4Path = WorkThread->PathToOpen;
                     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchCS4Window>(
                         state,
                         std::move(WorkThread->PathToOpen),
@@ -998,6 +1013,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             if (WorkThread && WorkThread->IsDone.load()) {
                 WorkThread->Thread->join();
                 if (WorkThread->Success.load()) {
+                    state.GuiSettings.Sen5Path = WorkThread->PathToOpen;
                     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchReverieWindow>(
                         state,
                         std::move(WorkThread->PathToOpen),
@@ -1073,6 +1089,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
             if (WorkThread && WorkThread->IsDone.load()) {
                 WorkThread->Thread->join();
                 if (WorkThread->Success.load()) {
+                    state.GuiSettings.TXPath = WorkThread->PathToOpen;
                     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherPatchTXWindow>(
                         state,
                         std::move(WorkThread->PathToOpen),

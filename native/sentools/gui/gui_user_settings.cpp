@@ -1,7 +1,9 @@
 #include "gui_user_settings.h"
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -223,5 +225,130 @@ void LoadUserSettingsFromCSharpUserConfig(GuiUserSettings& settings,
             }
         }
     }
+}
+
+static std::string FindExistingPath(std::string_view configuredPath,
+                                    std::span<const std::string_view> otherGamesConfiguredPaths,
+                                    std::span<const std::string_view> foldersToCheck,
+                                    std::string_view filenameToCheck) {
+    // first check the configured path itself
+    if (configuredPath != "") {
+        std::string filePath(configuredPath);
+        filePath.push_back('/');
+        filePath.append(filenameToCheck);
+        if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+            filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+            return filePath;
+        }
+    }
+
+    // then check if we can use a different configured path to find the target one
+    for (std::string_view p : otherGamesConfiguredPaths) {
+        if (p != "") {
+            auto pp = HyoutaUtils::IO::SplitPath(p).Directory;
+            if (pp != "") {
+                for (std::string_view f : foldersToCheck) {
+                    std::string filePath(pp);
+                    filePath.push_back('/');
+                    filePath.append(f);
+                    filePath.push_back('/');
+                    filePath.append(filenameToCheck);
+                    if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                        filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+                        return filePath;
+                    }
+                }
+            }
+        }
+    }
+
+    return "";
+}
+
+std::string GetDefaultPathCS1(const GuiUserSettings& settings) {
+    std::array<std::string_view, 5> otherPaths{{
+        settings.Sen2Path,
+        settings.Sen3Path,
+        settings.Sen4Path,
+        settings.Sen5Path,
+        settings.TXPath,
+    }};
+    static constexpr std::array<std::string_view, 2> possibleFolders{{
+        "Trails of Cold Steel",
+        "The Legend of Heroes - Trails of Cold Steel",
+    }};
+    return FindExistingPath(settings.Sen1Path, otherPaths, possibleFolders, "Sen1Launcher.exe");
+}
+
+std::string GetDefaultPathCS2(const GuiUserSettings& settings) {
+    std::array<std::string_view, 5> otherPaths{{
+        settings.Sen1Path,
+        settings.Sen3Path,
+        settings.Sen4Path,
+        settings.Sen5Path,
+        settings.TXPath,
+    }};
+    static constexpr std::array<std::string_view, 2> possibleFolders{{
+        "Trails of Cold Steel II",
+        "The Legend of Heroes Trails of Cold Steel II",
+    }};
+    return FindExistingPath(settings.Sen2Path, otherPaths, possibleFolders, "Sen2Launcher.exe");
+}
+
+std::string GetDefaultPathCS3(const GuiUserSettings& settings) {
+    std::array<std::string_view, 5> otherPaths{{
+        settings.Sen1Path,
+        settings.Sen2Path,
+        settings.Sen4Path,
+        settings.Sen5Path,
+        settings.TXPath,
+    }};
+    static constexpr std::array<std::string_view, 2> possibleFolders{{
+        "The Legend of Heroes Trails of Cold Steel III",
+        "ToCS3",
+    }};
+    return FindExistingPath(settings.Sen3Path, otherPaths, possibleFolders, "Sen3Launcher.exe");
+}
+
+std::string GetDefaultPathCS4(const GuiUserSettings& settings) {
+    std::array<std::string_view, 5> otherPaths{{
+        settings.Sen1Path,
+        settings.Sen2Path,
+        settings.Sen3Path,
+        settings.Sen5Path,
+        settings.TXPath,
+    }};
+    static constexpr std::array<std::string_view, 1> possibleFolders{{
+        "The Legend of Heroes Trails of Cold Steel IV",
+    }};
+    return FindExistingPath(settings.Sen4Path, otherPaths, possibleFolders, "Sen4Launcher.exe");
+}
+
+std::string GetDefaultPathReverie(const GuiUserSettings& settings) {
+    std::array<std::string_view, 5> otherPaths{{
+        settings.Sen1Path,
+        settings.Sen2Path,
+        settings.Sen3Path,
+        settings.Sen4Path,
+        settings.TXPath,
+    }};
+    static constexpr std::array<std::string_view, 1> possibleFolders{{
+        "The Legend of Heroes Trails into Reverie",
+    }};
+    return FindExistingPath(settings.Sen5Path, otherPaths, possibleFolders, "bin/Win64/hnk.exe");
+}
+
+std::string GetDefaultPathTX(const GuiUserSettings& settings) {
+    std::array<std::string_view, 5> otherPaths{{
+        settings.Sen1Path,
+        settings.Sen2Path,
+        settings.Sen3Path,
+        settings.Sen4Path,
+        settings.Sen5Path,
+    }};
+    static constexpr std::array<std::string_view, 1> possibleFolders{{
+        "Tokyo Xanadu eX+",
+    }};
+    return FindExistingPath(settings.TXPath, otherPaths, possibleFolders, "TokyoXanadu.exe");
 }
 } // namespace SenTools
