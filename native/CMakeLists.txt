@@ -386,6 +386,8 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_senpatcher_patch_window_utils.h
 			sentools/gui/gui_state.cpp
 			sentools/gui/gui_state.h
+			sentools/gui/gui_user_settings.cpp
+			sentools/gui/gui_user_settings.h
 			sentools/gui/gui_window.cpp
 			sentools/gui/gui_window.h
 			sentools/gui/main_gui.cpp

@@ -7,6 +7,8 @@
 #include <vector>
 
 namespace HyoutaUtils::Ini {
+struct IniFile;
+
 namespace Writer {
 struct Value {
     std::string Name;
@@ -55,6 +57,8 @@ struct IniWriter {
 
     void AddEndOfFileComment(std::string_view comment);
     void SetEndOfFileComment(std::string_view comment);
+
+    void AddExistingIni(const IniFile& ini);
 
     std::string GenerateIniText() const;
 };

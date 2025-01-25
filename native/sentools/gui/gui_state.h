@@ -5,6 +5,8 @@
 
 #include "imgui.h"
 
+#include "gui_user_settings.h"
+
 namespace SenTools::GUI {
 struct Window;
 }
@@ -17,11 +19,10 @@ struct GuiState {
     // Counter for global index for each Window pushed into the Windows.
     size_t WindowIndexCounter = 0;
 
-    bool show_demo_window = true;
-    bool show_another_window = false;
+    // User settings, like recently used paths.
+    SenTools::GuiUserSettings GuiSettings;
+
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    float f = 0.0f;
-    int counter = 0;
 
     ~GuiState();
 };

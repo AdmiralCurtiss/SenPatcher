@@ -12,41 +12,6 @@ bool WriteGameSettingsIni(const std::function<void(HyoutaUtils::Ini::IniWriter& 
                           const std::string& gameIniPath,
                           std::string_view defaultIniString) {
     HyoutaUtils::Ini::IniWriter writer;
-    const auto strip_comment = [](std::string_view comment) -> std::string {
-        std::string stripped;
-        std::string_view rest = comment;
-        while (!rest.empty()) {
-            const size_t nextLineSeparator = rest.find_first_of("\r\n");
-            std::string_view line = rest.substr(0, nextLineSeparator);
-            rest = nextLineSeparator != std::string_view::npos ? rest.substr(nextLineSeparator + 1)
-                                                               : std::string_view();
-            if (line.starts_with(';')) {
-                line = line.substr(1);
-            }
-            if (!line.empty()) {
-                if (!stripped.empty()) {
-                    stripped.push_back('\n');
-                }
-                stripped.append(line);
-            }
-        }
-        return stripped;
-    };
-    const auto add_to_writer = [&](HyoutaUtils::Ini::IniFile& ini) {
-        for (const auto& entry : ini.GetValues()) {
-            std::string comment = strip_comment(entry.Comment);
-            if (entry.Key.empty()) {
-                if (entry.Section.empty()) {
-                    writer.SetEndOfFileComment(comment);
-                } else {
-                    writer.MakeOrGetSection(entry.Section).SetComment(comment);
-                }
-            } else {
-                writer.MakeOrGetSection(entry.Section)
-                    .Insert(entry.Key, entry.Value, comment, true, false);
-            }
-        }
-    };
 
     // load both user ini and the current defaults and combine them
     {
@@ -54,7 +19,7 @@ bool WriteGameSettingsIni(const std::function<void(HyoutaUtils::Ini::IniWriter& 
         if (!defaultIni.ParseExternalMemory(defaultIniString.data(), defaultIniString.size())) {
             return false;
         }
-        add_to_writer(defaultIni);
+        writer.AddExistingIni(defaultIni);
     }
 
     // failing to parse the user ini is okay, in that case we just overwrite it
@@ -64,7 +29,7 @@ bool WriteGameSettingsIni(const std::function<void(HyoutaUtils::Ini::IniWriter& 
         if (f.IsOpen()) {
             userIni.ParseFile(f);
         }
-        add_to_writer(userIni);
+        writer.AddExistingIni(userIni);
     }
 
     if (callback) {

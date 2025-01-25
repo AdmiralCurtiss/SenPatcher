@@ -6,6 +6,8 @@
 #include <string_view>
 #include <vector>
 
+#include "ini.h"
+
 namespace {
 static void AddCommentLine(std::string& existingComment, std::string_view newComment) {
     if (!newComment.empty()) {
@@ -126,6 +128,43 @@ void IniWriter::AddEndOfFileComment(std::string_view comment) {
 
 void IniWriter::SetEndOfFileComment(std::string_view comment) {
     EndOfFileComment = std::string(comment);
+}
+
+void IniWriter::AddExistingIni(const IniFile& ini) {
+    const auto strip_comment = [](std::string_view comment) -> std::string {
+        std::string stripped;
+        std::string_view rest = comment;
+        while (!rest.empty()) {
+            const size_t nextLineSeparator = rest.find_first_of("\r\n");
+            std::string_view line = rest.substr(0, nextLineSeparator);
+            rest = nextLineSeparator != std::string_view::npos ? rest.substr(nextLineSeparator + 1)
+                                                               : std::string_view();
+            if (line.starts_with(';')) {
+                line = line.substr(1);
+            }
+            if (!line.empty()) {
+                if (!stripped.empty()) {
+                    stripped.push_back('\n');
+                }
+                stripped.append(line);
+            }
+        }
+        return stripped;
+    };
+
+    for (const auto& entry : ini.GetValues()) {
+        std::string comment = strip_comment(entry.Comment);
+        if (entry.Key.empty()) {
+            if (entry.Section.empty()) {
+                this->SetEndOfFileComment(comment);
+            } else {
+                this->MakeOrGetSection(entry.Section).SetComment(comment);
+            }
+        } else {
+            this->MakeOrGetSection(entry.Section)
+                .Insert(entry.Key, entry.Value, comment, true, false);
+        }
+    }
 }
 
 std::string IniWriter::GenerateIniText() const {
