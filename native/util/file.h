@@ -2,11 +2,9 @@
 
 #include <cstdint>
 #include <optional>
-#include <string_view>
-
-#ifndef BUILD_FOR_WINDOWS
 #include <string>
-#endif
+#include <string_view>
+#include <vector>
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 #include <filesystem>
@@ -114,4 +112,10 @@ bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noe
 // Try to get the directory the currently running executable is in.
 // This is NOT the same as the current working directory!
 std::optional<std::string> GetCurrentExecutableDirectory() noexcept;
+
+#ifdef BUILD_FOR_WINDOWS
+// Gets the logical drives on this computer; that is, stuff like "C:\" and "D:\".
+// This concept only exists on Windows, so no Linux implementation is provided.
+std::vector<std::string> GetLogicalDrives() noexcept;
+#endif
 } // namespace HyoutaUtils::IO

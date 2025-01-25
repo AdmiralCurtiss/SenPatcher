@@ -985,4 +985,46 @@ std::optional<std::string> GetCurrentExecutableDirectory() noexcept {
     return std::nullopt;
 #endif
 }
+
+#ifdef BUILD_FOR_WINDOWS
+std::vector<std::string> GetLogicalDrives() noexcept {
+    std::vector<std::string> result;
+    DWORD bufferSize = GetLogicalDriveStringsW(0, nullptr);
+    if (bufferSize == 0) {
+        return result;
+    }
+    std::array<wchar_t, 1024> stackBuffer;
+    std::unique_ptr<wchar_t[]> heapBuffer;
+    wchar_t* buffer;
+    if (bufferSize <= stackBuffer.size()) {
+        buffer = stackBuffer.data();
+        bufferSize = static_cast<DWORD>(stackBuffer.size());
+    } else {
+        heapBuffer = std::make_unique_for_overwrite<wchar_t[]>(bufferSize);
+        buffer = heapBuffer.get();
+        if (!buffer) {
+            assert(0);
+            return result;
+        }
+    }
+    const DWORD bufferSize2 = GetLogicalDriveStringsW(bufferSize, buffer);
+    if (bufferSize2 > bufferSize) {
+        // can this happen?
+        return result;
+    }
+
+    DWORD pos = 0;
+    for (DWORD i = 0; i < bufferSize2; ++i) {
+        if (buffer[i] == L'\0') {
+            auto utf8 = HyoutaUtils::TextUtils::WStringToUtf8(&buffer[pos], i - pos);
+            if (utf8 && !utf8->empty()) {
+                result.emplace_back(std::move(*utf8));
+            }
+            pos = i + 1;
+        }
+    }
+
+    return result;
+}
+#endif
 } // namespace HyoutaUtils::IO
