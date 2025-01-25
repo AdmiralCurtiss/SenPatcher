@@ -231,9 +231,11 @@ static std::string FindExistingPath(std::string_view configuredPath,
                                     std::span<const std::string_view> otherGamesConfiguredPaths,
                                     std::span<const std::string_view> foldersToCheck,
                                     std::string_view filenameToCheck) {
+    std::string filePath;
+
     // first check the configured path itself
     if (configuredPath != "") {
-        std::string filePath(configuredPath);
+        filePath.assign(configuredPath);
         filePath.push_back('/');
         filePath.append(filenameToCheck);
         if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
@@ -248,7 +250,7 @@ static std::string FindExistingPath(std::string_view configuredPath,
             auto pp = HyoutaUtils::IO::SplitPath(p).Directory;
             if (pp != "") {
                 for (std::string_view f : foldersToCheck) {
-                    std::string filePath(pp);
+                    filePath.assign(pp);
                     filePath.push_back('/');
                     filePath.append(f);
                     filePath.push_back('/');
@@ -261,6 +263,65 @@ static std::string FindExistingPath(std::string_view configuredPath,
             }
         }
     }
+
+#ifdef BUILD_FOR_WINDOWS
+    // didn't find anything, check for plausible default paths
+    for (const auto& drive : HyoutaUtils::IO::GetLogicalDrives()) {
+        for (std::string_view f : foldersToCheck) {
+            filePath.assign(drive);
+            if (!(drive.ends_with('/') || drive.ends_with('\\'))) {
+                filePath.push_back('/');
+            }
+            filePath.append("Program Files (x86)/Steam/steamapps/common/");
+            filePath.append(f);
+            filePath.push_back('/');
+            filePath.append(filenameToCheck);
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+                return filePath;
+            }
+
+            filePath.assign(drive);
+            if (!(drive.ends_with('/') || drive.ends_with('\\'))) {
+                filePath.push_back('/');
+            }
+            filePath.append("SteamLibrary/steamapps/common/");
+            filePath.append(f);
+            filePath.push_back('/');
+            filePath.append(filenameToCheck);
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+                return filePath;
+            }
+
+            filePath.assign(drive);
+            if (!(drive.ends_with('/') || drive.ends_with('\\'))) {
+                filePath.push_back('/');
+            }
+            filePath.append("Program Files (x86)/GOG Galaxy/Games/");
+            filePath.append(f);
+            filePath.push_back('/');
+            filePath.append(filenameToCheck);
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+                return filePath;
+            }
+
+            filePath.assign(drive);
+            if (!(drive.ends_with('/') || drive.ends_with('\\'))) {
+                filePath.push_back('/');
+            }
+            filePath.append("GOG Games/");
+            filePath.append(f);
+            filePath.push_back('/');
+            filePath.append(filenameToCheck);
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+                return filePath;
+            }
+        }
+    }
+#endif
 
     return "";
 }
