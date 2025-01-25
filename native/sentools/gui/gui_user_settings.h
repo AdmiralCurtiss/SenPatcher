@@ -22,4 +22,7 @@ bool LoadUserSettingsFromIni(GuiUserSettings& settings, std::string_view path);
 bool LoadUserSettingsFromIni(GuiUserSettings& settings, const HyoutaUtils::Ini::IniFile& ini);
 bool WriteUserSettingsToIni(const GuiUserSettings& settings, std::string_view path);
 bool WriteUserSettingsToIni(const GuiUserSettings& settings, HyoutaUtils::Ini::IniWriter& ini);
+
+void LoadUserSettingsFromCSharpUserConfig(GuiUserSettings& settings,
+                                          std::string_view guiSettingsFolder);
 } // namespace SenTools

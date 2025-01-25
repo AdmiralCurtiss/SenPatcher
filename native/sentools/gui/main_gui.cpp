@@ -46,7 +46,9 @@ int RunGui(int argc, char** argvUtf8) {
     if (guiSettingsFolder) {
         userIniPath = *guiSettingsFolder;
         userIniPath.append("/gui.ini");
-        SenTools::LoadUserSettingsFromIni(state.GuiSettings, userIniPath);
+        if (!SenTools::LoadUserSettingsFromIni(state.GuiSettings, userIniPath)) {
+            SenTools::LoadUserSettingsFromCSharpUserConfig(state.GuiSettings, *guiSettingsFolder);
+        }
     }
     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherMainWindow>());
     const std::string_view windowTitle("SenPatcher " SENPATCHER_VERSION);
