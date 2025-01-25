@@ -98,12 +98,12 @@ bool IniFile::ParseExternalMemory(const char* buffer, size_t bufferLength) {
         }
 
         std::string_view key = Trim(line.substr(0, equalsSign));
-        std::string_view value = Trim(line.substr(equalsSign + 1));
-        if (key.empty() || value.empty()) {
+        if (key.empty()) {
             // this is not valid either
             return false;
         }
 
+        std::string_view value = Trim(line.substr(equalsSign + 1));
         values.emplace_back(IniKeyValueView{
             .Section = currentSection, .Key = key, .Value = value, .Comment = currentComment});
         currentComment = std::string_view();
