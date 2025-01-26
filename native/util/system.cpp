@@ -1,6 +1,8 @@
 #include "system.h"
 
 #include <array>
+#include <cstring>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -11,6 +13,8 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+#else
+#include <stdlib.h>
 #endif
 
 namespace HyoutaUtils::Sys {
@@ -62,6 +66,48 @@ std::optional<std::string> GetCurrentExecutableDirectory() noexcept {
 #else
     // TODO: Is there a reliable way to do this on Linux?
     return std::nullopt;
+#endif
+}
+
+std::optional<std::string> GetEnvironmentVar(const char* key) noexcept {
+    if (!key) {
+        return std::nullopt;
+    }
+
+#ifdef BUILD_FOR_WINDOWS
+    auto wkey = HyoutaUtils::TextUtils::Utf8ToWString(key, strlen(key));
+    if (!wkey) {
+        return std::nullopt;
+    }
+    DWORD bufferSize = GetEnvironmentVariableW(wkey->c_str(), nullptr, 0);
+    if (bufferSize == 0) {
+        return std::nullopt;
+    }
+    std::array<wchar_t, 1024> stackBuffer;
+    std::unique_ptr<wchar_t[]> heapBuffer;
+    wchar_t* buffer;
+    if (bufferSize <= stackBuffer.size()) {
+        buffer = stackBuffer.data();
+        bufferSize = static_cast<DWORD>(stackBuffer.size());
+    } else {
+        buffer = new (std::nothrow) wchar_t[bufferSize];
+        if (!buffer) {
+            return std::nullopt;
+        }
+        heapBuffer.reset(buffer);
+    }
+    const DWORD bufferSize2 = GetEnvironmentVariableW(wkey->c_str(), buffer, bufferSize);
+    if (bufferSize2 > bufferSize) {
+        // can this happen?
+        return std::nullopt;
+    }
+    return HyoutaUtils::TextUtils::WStringToUtf8(buffer, bufferSize2);
+#else
+    auto* v = getenv(key);
+    if (!v) {
+        return std::nullopt;
+    }
+    return std::string(v);
 #endif
 }
 } // namespace HyoutaUtils::Sys
