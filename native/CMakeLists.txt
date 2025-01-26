@@ -269,6 +269,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/scope.h
 		util/stream.cpp
 		util/stream.h
+		util/system.cpp
+		util/system.h
 		util/text.cpp
 		util/text.h
 		util/vector.cpp
@@ -736,6 +738,8 @@ set(SOURCES_BASE_FIXES
 	util/result.h
 	util/stream.cpp
 	util/stream.h
+	util/system.cpp
+	util/system.h
 	util/text.cpp
 	util/text.h
 	util/vector.cpp

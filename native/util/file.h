@@ -109,10 +109,6 @@ SplitPathData SplitPath(std::string_view path);
 // On failure, the file at 'path' will not have been touched, retaining its previous data.
 bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noexcept;
 
-// Try to get the directory the currently running executable is in.
-// This is NOT the same as the current working directory!
-std::optional<std::string> GetCurrentExecutableDirectory() noexcept;
-
 #ifdef BUILD_FOR_WINDOWS
 // Gets the logical drives on this computer; that is, stuff like "C:\" and "D:\".
 // This concept only exists on Windows, so no Linux implementation is provided.

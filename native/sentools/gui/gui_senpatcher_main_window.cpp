@@ -37,6 +37,7 @@
 #include "util/file.h"
 #include "util/hash/sha1.h"
 #include "util/scope.h"
+#include "util/system.h"
 
 namespace SenTools::GUI {
 static void TextUnformatted(std::string_view sv) {
@@ -565,7 +566,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     auto doneGuard =
                         HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
                     try {
-                        auto currentExeDir = HyoutaUtils::IO::GetCurrentExecutableDirectory();
+                        auto currentExeDir = HyoutaUtils::Sys::GetCurrentExecutableDirectory();
                         if (!currentExeDir) {
                             // fall back to the current working directory
                             currentExeDir.emplace(".");
@@ -669,7 +670,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     auto doneGuard =
                         HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
                     try {
-                        auto currentExeDir = HyoutaUtils::IO::GetCurrentExecutableDirectory();
+                        auto currentExeDir = HyoutaUtils::Sys::GetCurrentExecutableDirectory();
                         if (!currentExeDir) {
                             // fall back to the current working directory
                             currentExeDir.emplace(".");
@@ -775,7 +776,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     auto doneGuard =
                         HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
                     try {
-                        auto currentExeDir = HyoutaUtils::IO::GetCurrentExecutableDirectory();
+                        auto currentExeDir = HyoutaUtils::Sys::GetCurrentExecutableDirectory();
                         if (!currentExeDir) {
                             // fall back to the current working directory
                             currentExeDir.emplace(".");
@@ -864,7 +865,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     auto doneGuard =
                         HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
                     try {
-                        auto currentExeDir = HyoutaUtils::IO::GetCurrentExecutableDirectory();
+                        auto currentExeDir = HyoutaUtils::Sys::GetCurrentExecutableDirectory();
                         if (!currentExeDir) {
                             // fall back to the current working directory
                             currentExeDir.emplace(".");
@@ -953,7 +954,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     auto doneGuard =
                         HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
                     try {
-                        auto currentExeDir = HyoutaUtils::IO::GetCurrentExecutableDirectory();
+                        auto currentExeDir = HyoutaUtils::Sys::GetCurrentExecutableDirectory();
                         if (!currentExeDir) {
                             // fall back to the current working directory
                             currentExeDir.emplace(".");
@@ -1035,7 +1036,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     auto doneGuard =
                         HyoutaUtils::MakeScopeGuard([&]() { threadState->IsDone.store(true); });
                     try {
-                        auto currentExeDir = HyoutaUtils::IO::GetCurrentExecutableDirectory();
+                        auto currentExeDir = HyoutaUtils::Sys::GetCurrentExecutableDirectory();
                         if (!currentExeDir) {
                             // fall back to the current working directory
                             currentExeDir.emplace(".");
