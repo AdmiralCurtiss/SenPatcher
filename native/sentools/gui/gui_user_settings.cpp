@@ -11,6 +11,7 @@
 #include "util/file.h"
 #include "util/ini.h"
 #include "util/ini_writer.h"
+#include "util/system.h"
 
 namespace SenTools {
 bool LoadUserSettingsFromIni(GuiUserSettings& settings, std::string_view path) {
@@ -322,6 +323,83 @@ static std::string FindExistingPath(std::string_view configuredPath,
         }
     }
 #endif
+
+    // in windows builds do the following block only under wine/proton, in linux builds do always
+    std::string_view rootprefix;
+#ifdef BUILD_FOR_WINDOWS
+    rootprefix = "Z:";
+    auto wineprefix = HyoutaUtils::Sys::GetEnvironmentVar("WINEPREFIX");
+    if (wineprefix && !wineprefix->empty())
+#endif
+    {
+        auto username = HyoutaUtils::Sys::GetEnvironmentVar("USER");
+        if (!username) {
+            username.emplace("deck"); // assume steam deck if we have nothing better
+        }
+        for (std::string_view f : foldersToCheck) {
+            filePath.assign(rootprefix);
+            filePath.append("/home/");
+            filePath.append(*username);
+            filePath.append("/.local/share/Steam/steamapps/common/");
+            filePath.append(f);
+            filePath.push_back('/');
+            filePath.append(filenameToCheck);
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+                return filePath;
+            }
+
+            filePath.assign(rootprefix);
+            filePath.append("/home/");
+            filePath.append(*username);
+            filePath.append("/.steam/root/steamapps/common/");
+            filePath.append(f);
+            filePath.push_back('/');
+            filePath.append(filenameToCheck);
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+                return filePath;
+            }
+        }
+
+        // check for mounted external drives, eg. SD card on steam deck
+        static constexpr std::array<std::string_view, 3> mountroots{{
+            "/run/media",
+            "/media",
+            "/mnt",
+        }};
+        for (std::string_view mountroot : mountroots) {
+            std::error_code ec{};
+            std::filesystem::directory_iterator iterator(
+                HyoutaUtils::IO::FilesystemPathFromUtf8(std::string(rootprefix)
+                                                        + std::string(mountroot)),
+                ec);
+            if (!ec) {
+                for (auto const& entry : iterator) {
+                    if (entry.is_directory()) {
+                        for (std::string_view f : foldersToCheck) {
+                            filePath.assign(HyoutaUtils::IO::FilesystemPathToUtf8(entry.path()));
+#ifdef BUILD_FOR_WINDOWS
+                            if (!(filePath.ends_with('/') || filePath.ends_with('\\'))) {
+#else
+                            if (!filePath.ends_with('/')) {
+#endif
+                                filePath.push_back('/');
+                            }
+                            filePath.append("steamapps/common/");
+                            filePath.append(f);
+                            filePath.push_back('/');
+                            filePath.append(filenameToCheck);
+                            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                                filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
+                                return filePath;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     return "";
 }
