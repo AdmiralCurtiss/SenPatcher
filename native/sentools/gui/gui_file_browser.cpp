@@ -16,6 +16,7 @@
 #include "gui_state.h"
 #include "util/file.h"
 #include "util/scope.h"
+#include "util/system.h"
 #include "util/text.h"
 
 #ifdef BUILD_FOR_WINDOWS
@@ -100,7 +101,11 @@ void FileBrowser::Reset(FileBrowserMode mode,
     PImpl->SelectionStorage.Clear();
     PImpl->PromptForOverwrite = promptForOverwrite;
     PImpl->Multiselect = multiselect;
-    PImpl->UseNativeDialogIfAvailable = true;
+
+    // Don't use the native dialog if we're in a context where we want a controller-navigable UI.
+    PImpl->UseNativeDialogIfAvailable =
+        !(HyoutaUtils::Sys::GetEnvironmentVar("SteamTenfoot") == "1"
+          || HyoutaUtils::Sys::GetEnvironmentVar("SteamDeck") == "1");
 }
 
 FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view title) {
