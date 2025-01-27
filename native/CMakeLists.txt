@@ -199,6 +199,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/cli_tool.h
 		sentools/common_paths.cpp
 		sentools/common_paths.h
+		sentools/cs2_14.cpp
+		sentools/cs2_14.h
 		sentools/hyouta_archive.cpp
 		sentools/hyouta_archive.h
 		sentools/main_sentools.cpp
@@ -482,6 +484,21 @@ if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0011.bin" "embed_sen3_v72_e0011.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0012.bin" "embed_sen3_v72_e0012.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v93_e0300.bin" "embed_sen3_v93_e0300.h")
+endif()
+if (SENPATCHER_BUILD_TOOLS)
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82j142.bin" "embed_sen2_ed82j142.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82u142j.bin" "embed_sen2_ed82u142j.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_data.bin" "embed_sen2_ed82_j140_to_j142_data.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_header.bin" "embed_sen2_ed82_j140_to_j142_header.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_rdata.bin" "embed_sen2_ed82_j140_to_j142_rdata.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_rsrc.bin" "embed_sen2_ed82_j140_to_j142_rsrc.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j140_to_j142_text.bin" "embed_sen2_ed82_j140_to_j142_text.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_data.bin" "embed_sen2_ed82_j142_to_u142_data.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_header.bin" "embed_sen2_ed82_j142_to_u142_header.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_rsrc.bin" "embed_sen2_ed82_j142_to_u142_rsrc.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_j142_to_u142_text.bin" "embed_sen2_ed82_j142_to_u142_text.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82_u140j142_to_u142_rdata.bin" "embed_sen2_ed82_u140j142_to_u142_rdata.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/t1001_dat_to_tbl.bin" "embed_sen2_t1001_dat_to_tbl.h")
 endif()
 if (SENPATCHER_BUILD_TOOLS AND SENPATCHER_WITH_IMGUI)
 	senpatcher_generate_embeddable_file("../fonts/Cuprum/Cuprum-Regular.ttf.bin" "cuprum.h")

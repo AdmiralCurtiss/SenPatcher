@@ -32,6 +32,7 @@
 #include "sen2/system_data.h"
 #include "senpatcher_version.h"
 #include "sentools/common_paths.h"
+#include "sentools/cs2_14.h"
 #include "sentools/old_senpatcher_unpatch.h"
 #include "sentools/senpatcher_dll_loader.h"
 #include "util/file.h"
@@ -723,7 +724,18 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
 
                         // TODO: Check/fix filename encoding issues.
 
-                        // TODO: Check for Humble v1.4 and handle.
+                        if (!SenTools::TryPatchCs2Version14(path, [&]() -> bool {
+                                return threadState->ShowYesNoQuestion(
+                                           "This appears to be version 1.4 of Trails of Cold Steel "
+                                           "II.\nSenPatcher does not support this version "
+                                           "directly, but it can update the game to version 1.4.2, "
+                                           "which is supported.\n\nWould you like to perform this "
+                                           "update?")
+                                       == SenPatcherMainWindow::WorkThreadState::
+                                           UserInputReplyType::Yes;
+                            })) {
+                            return;
+                        }
 
                         threadState->DoUnpatchWithUserConfirmation(path, 2);
 
