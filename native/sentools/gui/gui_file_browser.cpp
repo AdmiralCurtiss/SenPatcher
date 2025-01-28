@@ -29,7 +29,8 @@
 namespace SenTools::GUI {
 namespace {
 enum class FileEntryType : int {
-    GoUpDirectory = -1,
+    GoUpDirectory = -2,
+    Drive = -1, // Windows only
     Directory = 0,
     File = 1,
 };
@@ -106,6 +107,14 @@ void FileBrowser::Reset(FileBrowserMode mode,
     PImpl->UseNativeDialogIfAvailable =
         !(HyoutaUtils::Sys::GetEnvironmentVar("SteamTenfoot") == "1"
           || HyoutaUtils::Sys::GetEnvironmentVar("SteamDeck") == "1");
+}
+
+static bool IsRoot(const std::filesystem::path& p) {
+#ifdef BUILD_FOR_WINDOWS
+    return p.empty();
+#else
+    return p == u8"/";
+#endif
 }
 
 FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view title) {
@@ -336,7 +345,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
 
     if (!PImpl->CurrentDirectory) {
 #ifdef BUILD_FOR_WINDOWS
-        PImpl->CurrentDirectory.emplace(u8"C:\\");
+        PImpl->CurrentDirectory.emplace(); // we treat an empty path as the root above the drives
 #else
         PImpl->CurrentDirectory.emplace(u8"/");
 #endif
@@ -347,27 +356,42 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
         PImpl->SelectionStorage.Clear();
         PImpl->FilesInCurrentDirectory.emplace();
 
-        if (PImpl->CurrentDirectory->has_parent_path()) {
+        const bool isRoot = IsRoot(*PImpl->CurrentDirectory);
+        if (!isRoot) {
             auto& upDir = PImpl->FilesInCurrentDirectory->emplace_back();
             upDir.Filename = "..";
             upDir.Filesize = 0;
             upDir.Type = FileEntryType::GoUpDirectory;
         }
 
-        std::error_code ec;
-        std::filesystem::directory_iterator iterator(*PImpl->CurrentDirectory, ec);
-        if (ec) {
-            // not sure what we do here?
-            return FileBrowserResult::Canceled;
+#ifdef BUILD_FOR_WINDOWS
+        if (isRoot) {
+            // On Windows we need to special-case the root and list the drives.
+            for (const std::string& drive : HyoutaUtils::IO::GetLogicalDrives()) {
+                auto& e = PImpl->FilesInCurrentDirectory->emplace_back();
+                e.Filename = drive;
+                e.Type = FileEntryType::Drive;
+                e.Filesize = static_cast<uint64_t>(0);
+            }
+        } else {
+#endif
+            std::error_code ec;
+            std::filesystem::directory_iterator iterator(*PImpl->CurrentDirectory, ec);
+            if (ec) {
+                // not sure what we do here?
+                return FileBrowserResult::Canceled;
+            }
+            for (auto const& entry : iterator) {
+                auto& e = PImpl->FilesInCurrentDirectory->emplace_back();
+                e.Filename = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path().filename());
+                e.Type = entry.is_directory(ec) ? FileEntryType::Directory : FileEntryType::File;
+                e.Filesize = (e.Type == FileEntryType::File)
+                                 ? static_cast<uint64_t>(entry.file_size(ec))
+                                 : static_cast<uint64_t>(0);
+            }
+#ifdef BUILD_FOR_WINDOWS
         }
-        for (auto const& entry : iterator) {
-            auto& e = PImpl->FilesInCurrentDirectory->emplace_back();
-            e.Filename = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path().filename());
-            e.Type = entry.is_directory(ec) ? FileEntryType::Directory : FileEntryType::File;
-            e.Filesize = (e.Type == FileEntryType::File)
-                             ? static_cast<uint64_t>(entry.file_size(ec))
-                             : static_cast<uint64_t>(0);
-        }
+#endif
 
         std::stable_sort(PImpl->FilesInCurrentDirectory->begin(),
                          PImpl->FilesInCurrentDirectory->end(),
@@ -448,6 +472,8 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                 std::string_view type;
                 if (entry.Type == FileEntryType::Directory) {
                     type = "Directory";
+                } else if (entry.Type == FileEntryType::Drive) {
+                    type = "Drive";
                 } else if (entry.Type == FileEntryType::File) {
                     type = "File";
                 }
@@ -479,32 +505,44 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
     }
 
     if (button_clicked) {
-        auto path = HyoutaUtils::IO::FilesystemPathFromUtf8(PImpl->Filename);
-        if (path.is_relative()) {
-            path = (*PImpl->CurrentDirectory / path);
-        }
-        std::error_code ec{};
-        path = std::filesystem::weakly_canonical(path, ec);
-        if (ec) {
-            // not sure what we do here?
-            return FileBrowserResult::Canceled;
-        }
-        if (std::filesystem::is_directory(path, ec)) {
-            // enter this directory
-            PImpl->CurrentDirectory = std::move(path);
+#ifdef BUILD_FOR_WINDOWS
+        // if we're in the top of a drive and want to go up, we need to go up to the drive selection
+        if (PImpl->Filename == ".."
+            && *PImpl->CurrentDirectory == PImpl->CurrentDirectory->root_path()) {
+            PImpl->CurrentDirectory.emplace();
             PImpl->FilesInCurrentDirectory.reset();
             PImpl->Filename.clear();
         } else {
+#endif
+            auto path = HyoutaUtils::IO::FilesystemPathFromUtf8(PImpl->Filename);
+            if (path.is_relative()) {
+                path = (*PImpl->CurrentDirectory / path);
+            }
+            std::error_code ec{};
+            path = std::filesystem::weakly_canonical(path, ec);
             if (ec) {
                 // not sure what we do here?
                 return FileBrowserResult::Canceled;
             }
+            if (std::filesystem::is_directory(path, ec)) {
+                // enter this directory
+                PImpl->CurrentDirectory = std::move(path);
+                PImpl->FilesInCurrentDirectory.reset();
+                PImpl->Filename.clear();
+            } else {
+                if (ec) {
+                    // not sure what we do here?
+                    return FileBrowserResult::Canceled;
+                }
 
-            // treat this as the result
-            PImpl->SelectedPaths.clear();
-            PImpl->SelectedPaths.push_back(HyoutaUtils::IO::FilesystemPathToUtf8(path));
-            return FileBrowserResult::FileSelected;
+                // treat this as the result
+                PImpl->SelectedPaths.clear();
+                PImpl->SelectedPaths.push_back(HyoutaUtils::IO::FilesystemPathToUtf8(path));
+                return FileBrowserResult::FileSelected;
+            }
+#ifdef BUILD_FOR_WINDOWS
         }
+#endif
     }
 
     if (double_clicked) {
@@ -521,7 +559,16 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                     const auto& entry = *entryIt;
                     if (entry.Type == FileEntryType::GoUpDirectory) {
                         // go up once
-                        PImpl->CurrentDirectory = PImpl->CurrentDirectory->parent_path();
+#ifdef BUILD_FOR_WINDOWS
+                        // if we're in the top of a drive, we need to go up to the drive selection
+                        if (*PImpl->CurrentDirectory == PImpl->CurrentDirectory->root_path()) {
+                            PImpl->CurrentDirectory.emplace();
+                        } else {
+#endif
+                            PImpl->CurrentDirectory = PImpl->CurrentDirectory->parent_path();
+#ifdef BUILD_FOR_WINDOWS
+                        }
+#endif
                         PImpl->FilesInCurrentDirectory.reset();
                         PImpl->Filename.clear();
                     } else if (entry.Type == FileEntryType::Directory) {
@@ -532,7 +579,13 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                                                  entry.Filename.size());
                         PImpl->FilesInCurrentDirectory.reset();
                         PImpl->Filename.clear();
-                    } else {
+                    } else if (entry.Type == FileEntryType::Drive) {
+                        // enter drive
+                        PImpl->CurrentDirectory = std::u8string_view(
+                            (const char8_t*)entry.Filename.data(), entry.Filename.size());
+                        PImpl->FilesInCurrentDirectory.reset();
+                        PImpl->Filename.clear();
+                    } else if (entry.Type == FileEntryType::File) {
                         // selected a file
                         // TODO: ask for overwrite confirmation in save case
                         PImpl->SelectedPaths.clear();
