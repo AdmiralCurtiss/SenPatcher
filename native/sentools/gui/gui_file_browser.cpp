@@ -52,6 +52,7 @@ struct FileBrowser::Impl {
     bool PromptForOverwrite;
     bool Multiselect;
     bool UseNativeDialogIfAvailable;
+    bool LastDirectoryChangeByKeyboardOrController;
 
     std::optional<std::vector<FileEntry>> FilesInCurrentDirectory;
     ImGuiSelectionBasicStorage SelectionStorage;
@@ -107,6 +108,8 @@ void FileBrowser::Reset(FileBrowserMode mode,
     PImpl->UseNativeDialogIfAvailable =
         !(HyoutaUtils::Sys::GetEnvironmentVar("SteamTenfoot") == "1"
           || HyoutaUtils::Sys::GetEnvironmentVar("SteamDeck") == "1");
+
+    PImpl->LastDirectoryChangeByKeyboardOrController = false;
 }
 
 static bool IsRoot(const std::filesystem::path& p) {
@@ -407,9 +410,20 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
         for (size_t i = 0; i < PImpl->FilesInCurrentDirectory->size(); ++i) {
             (*PImpl->FilesInCurrentDirectory)[i].Id = static_cast<int>(i);
         }
+
+        if (PImpl->FilesInCurrentDirectory->size() > 0) {
+            PImpl->SelectionStorage.SetItemSelected((ImGuiID)0, true);
+
+            if (PImpl->LastDirectoryChangeByKeyboardOrController) {
+                PImpl->Filename = (*PImpl->FilesInCurrentDirectory)[0].Filename;
+            }
+        }
+
+        PImpl->LastDirectoryChangeByKeyboardOrController = false;
     }
 
     bool double_clicked = false;
+    bool enter_pressed = false;
     const float items_height = ImGui::GetTextLineHeightWithSpacing();
     ImGui::SetNextWindowContentSize(
         ImVec2(0.0f, PImpl->FilesInCurrentDirectory->size() * items_height));
@@ -459,13 +473,21 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                 ImGui::SetNextItemSelectionUserData(n);
                 if (ImGui::Selectable(entry.Filename.c_str(),
                                       item_is_selected,
-                                      ImGuiSelectableFlags_SpanAllColumns)) {
+                                      ImGuiSelectableFlags_SpanAllColumns
+                                          | ImGuiSelectableFlags_AllowDoubleClick)) {
                     PImpl->Filename = entry.Filename;
-                }
 
-                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                    PImpl->Filename = entry.Filename;
-                    double_clicked = true;
+                    // double-click on item
+                    if (ImGui::IsItemHovered()
+                        && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                        double_clicked = true;
+                    }
+
+                    // keyboard enter or controller confirm (is there a better way to do this?)
+                    if (ImGui::IsItemFocused() && ImGui::IsItemActivated()
+                        && !ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                        enter_pressed = true;
+                    }
                 }
 
                 ImGui::TableNextColumn();
@@ -545,7 +567,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
 #endif
     }
 
-    if (double_clicked) {
+    if (double_clicked || enter_pressed) {
         void* it = nullptr;
         ImGuiID id;
         while (PImpl->SelectionStorage.GetNextSelectedItem(&it, &id)) {
@@ -571,6 +593,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
 #endif
                         PImpl->FilesInCurrentDirectory.reset();
                         PImpl->Filename.clear();
+                        PImpl->LastDirectoryChangeByKeyboardOrController = enter_pressed;
                     } else if (entry.Type == FileEntryType::Directory) {
                         // go down once
                         PImpl->CurrentDirectory =
@@ -579,12 +602,14 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                                                  entry.Filename.size());
                         PImpl->FilesInCurrentDirectory.reset();
                         PImpl->Filename.clear();
+                        PImpl->LastDirectoryChangeByKeyboardOrController = enter_pressed;
                     } else if (entry.Type == FileEntryType::Drive) {
                         // enter drive
                         PImpl->CurrentDirectory = std::u8string_view(
                             (const char8_t*)entry.Filename.data(), entry.Filename.size());
                         PImpl->FilesInCurrentDirectory.reset();
                         PImpl->Filename.clear();
+                        PImpl->LastDirectoryChangeByKeyboardOrController = enter_pressed;
                     } else if (entry.Type == FileEntryType::File) {
                         // selected a file
                         // TODO: ask for overwrite confirmation in save case
