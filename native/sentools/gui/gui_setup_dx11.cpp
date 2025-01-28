@@ -21,6 +21,7 @@ static ID3D11Device* g_pd3dDevice = nullptr;
 static ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
 static IDXGISwapChain* g_pSwapChain = nullptr;
 static bool g_SwapChainOccluded = false;
+static bool g_WindowMoved = false;
 static UINT g_ResizeWidth = 0, g_ResizeHeight = 0;
 static ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
 
@@ -83,17 +84,14 @@ int SenTools::RunGuiDX11(
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    // ImGui::StyleColorsLight();
-
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
-    loadFontsCallback(io, state);
+    g_WindowMoved = true; // init the DPI and style stuff
 
     // Main loop
+    state.CurrentDpi = -1.0f;
     bool done = false;
     while (!done) {
         // Poll and handle messages (inputs, window resize, etc.)
@@ -122,6 +120,36 @@ int SenTools::RunGuiDX11(
             g_pSwapChain->ResizeBuffers(0, g_ResizeWidth, g_ResizeHeight, DXGI_FORMAT_UNKNOWN, 0);
             g_ResizeWidth = g_ResizeHeight = 0;
             CreateRenderTarget();
+            g_WindowMoved = true;
+        }
+
+        // Moved window may imply DPI change, handle that
+        if (g_WindowMoved) {
+            float oldDpi = state.CurrentDpi;
+            float newDpi;
+            const UINT dpi = GetDpiForWindow(hwnd);
+            if (dpi == 0) {
+                // error, assume unchanged
+                newDpi = oldDpi;
+            } else {
+                newDpi = static_cast<float>(dpi) / USER_DEFAULT_SCREEN_DPI;
+            }
+            if (newDpi <= 0.0f) {
+                // something broken, set to a sane default
+                newDpi = 1.0f;
+            }
+            if (oldDpi != newDpi) {
+                ImGui_ImplDX11_InvalidateDeviceObjects();
+
+                state.CurrentDpi = newDpi;
+                auto& style = ImGui::GetStyle();
+                style = ImGuiStyle();
+                ImGui::StyleColorsDark(&style);
+                if (newDpi != 1.0f) {
+                    style.ScaleAllSizes(newDpi);
+                }
+                loadFontsCallback(io, state);
+            }
         }
 
         // Start the Dear ImGui frame
@@ -268,6 +296,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         return true;
 
     switch (msg) {
+        case WM_MOVE: g_WindowMoved = true; break;
         case WM_SIZE:
             if (wParam == SIZE_MINIMIZED)
                 return 0;
