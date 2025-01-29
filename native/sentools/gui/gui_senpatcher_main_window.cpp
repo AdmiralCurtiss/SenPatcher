@@ -35,21 +35,13 @@
 #include "sentools/cs2_14.h"
 #include "sentools/old_senpatcher_unpatch.h"
 #include "sentools/senpatcher_dll_loader.h"
+#include "sentools_imgui_utils.h"
 #include "util/file.h"
 #include "util/hash/sha1.h"
 #include "util/scope.h"
 #include "util/system.h"
 
 namespace SenTools::GUI {
-static void TextUnformatted(std::string_view sv) {
-    ImGui::TextUnformatted(sv.data(), sv.data() + sv.size());
-}
-static void TextUnformattedRightAlign(std::string_view sv) {
-    float width = ImGui::CalcTextSize(sv.data(), sv.data() + sv.size()).x;
-    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (ImGui::GetCursorPosX() + width));
-    ImGui::TextUnformatted(sv.data(), sv.data() + sv.size());
-}
-
 struct SenPatcherMainWindow::WorkThreadState {
     std::atomic_bool CancelAll = false;
     std::atomic_bool IsDone = false;
@@ -185,7 +177,7 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         ImGui::EndMenuBar();
     }
 
-    TextUnformattedRightAlign("SenPatcher " SENPATCHER_VERSION);
+    ImGuiUtils::TextUnformattedRightAlign("SenPatcher " SENPATCHER_VERSION);
 
     ImGui::Spacing();
 
@@ -196,7 +188,7 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         disabledScope.Dispose();
     }
 
-    TextUnformatted("Trails of Cold Steel: (XSEED PC release version 1.6)");
+    ImGuiUtils::TextUnformatted("Trails of Cold Steel: (XSEED PC release version 1.6)");
     if (ImGui::Button("Patch game##1", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -267,7 +259,8 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGui::Spacing();
 
-    TextUnformatted("Trails of Cold Steel II: (XSEED PC release version 1.4, 1.4.1, or 1.4.2)");
+    ImGuiUtils::TextUnformatted(
+        "Trails of Cold Steel II: (XSEED PC release version 1.4, 1.4.1, or 1.4.2)");
     if (ImGui::Button("Patch game##2", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -338,7 +331,7 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGui::Spacing();
 
-    TextUnformatted("Trails of Cold Steel III: (NISA PC release version 1.07)");
+    ImGuiUtils::TextUnformatted("Trails of Cold Steel III: (NISA PC release version 1.07)");
     if (ImGui::Button("Patch game##3", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -372,7 +365,7 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGui::Spacing();
 
-    TextUnformatted("Trails of Cold Steel IV: (NISA PC release version 1.2.2)");
+    ImGuiUtils::TextUnformatted("Trails of Cold Steel IV: (NISA PC release version 1.2.2)");
     if (ImGui::Button("Patch game##4", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -406,7 +399,7 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGui::Spacing();
 
-    TextUnformatted("Trails into Reverie: (NISA PC release version 1.1.5)");
+    ImGuiUtils::TextUnformatted("Trails into Reverie: (NISA PC release version 1.1.5)");
     if (ImGui::Button("Patch game##5", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -444,7 +437,7 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGui::Spacing();
 
-    TextUnformatted("Tokyo Xanadu eX+: (Aksys PC release version 1.08)");
+    ImGuiUtils::TextUnformatted("Tokyo Xanadu eX+: (Aksys PC release version 1.08)");
     if (ImGui::Button("Patch game##X", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -491,9 +484,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                 if (ImGui::BeginPopupModal(
                         "Error", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
                     ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
-                    ImGui::TextUnformatted(WorkThread->UserInputRequestMessage.data(),
-                                           WorkThread->UserInputRequestMessage.data()
-                                               + WorkThread->UserInputRequestMessage.size());
+                    ImGuiUtils::TextUnformatted(WorkThread->UserInputRequestMessage);
                     ImGui::PopTextWrapPos();
                     if (ImGui::Button("OK", ImVec2(-1.0f, 0.0f))) {
                         ImGui::CloseCurrentPopup();
@@ -519,9 +510,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                 if (ImGui::BeginPopupModal(
                         "Question", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
                     ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
-                    ImGui::TextUnformatted(WorkThread->UserInputRequestMessage.data(),
-                                           WorkThread->UserInputRequestMessage.data()
-                                               + WorkThread->UserInputRequestMessage.size());
+                    ImGuiUtils::TextUnformatted(WorkThread->UserInputRequestMessage);
                     ImGui::PopTextWrapPos();
                     if (ImGui::Button("Yes", ImVec2(-1.0f, 0.0f))) {
                         WorkThread->UserInputReply =

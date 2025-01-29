@@ -396,6 +396,7 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_window.h
 			sentools/gui/main_gui.cpp
 			sentools/gui/main_gui.h
+			sentools/gui/sentools_imgui_utils.h
 
 			imgui/imgui.cpp
 			imgui/imgui_demo.cpp
