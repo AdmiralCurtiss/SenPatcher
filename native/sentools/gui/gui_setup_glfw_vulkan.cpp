@@ -481,10 +481,6 @@ int SenTools::RunGuiGlfwVulkan(
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    // ImGui::StyleColorsLight();
-
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(window, true);
     ImGui_ImplVulkan_InitInfo init_info = {};
@@ -504,7 +500,7 @@ int SenTools::RunGuiGlfwVulkan(
     init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
 
-    loadFontsCallback(io, state);
+    state.CurrentDpi = -1.0f; // init the DPI and style stuff
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -541,6 +537,26 @@ int SenTools::RunGuiGlfwVulkan(
         if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
             ImGui_ImplGlfw_Sleep(10);
             continue;
+        }
+        float newDpiX = 0.0f;
+        float newDpiY = 0.0f;
+        glfwGetWindowContentScale(window, &newDpiX, &newDpiY);
+        float newDpi = std::max(newDpiX, newDpiY);
+        if (newDpi <= 0.0f) {
+            // something broken, set to a sane default
+            newDpi = 1.0f;
+        }
+        if (newDpi != state.CurrentDpi) {
+            ImGui_ImplVulkan_DestroyFontsTexture();
+
+            state.CurrentDpi = newDpi;
+            auto& style = ImGui::GetStyle();
+            style = ImGuiStyle();
+            ImGui::StyleColorsDark(&style);
+            if (newDpi != 1.0f) {
+                style.ScaleAllSizes(newDpi);
+            }
+            loadFontsCallback(io, state);
         }
 
         // Start the Dear ImGui frame
