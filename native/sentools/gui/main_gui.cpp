@@ -21,7 +21,7 @@
 #endif
 
 namespace SenTools {
-static void RenderFrame(ImGuiIO& io, GuiState& state) {
+static bool RenderFrame(ImGuiIO& io, GuiState& state) {
     size_t windowCount = state.Windows.size();
     for (size_t i = 0; i < windowCount;) {
         GUI::Window* window = state.Windows[i].get();
@@ -35,7 +35,9 @@ static void RenderFrame(ImGuiIO& io, GuiState& state) {
         ImGui::PopID();
     }
 
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
+
+    return windowCount > 0;
 }
 
 int RunGui(int argc, char** argvUtf8) {

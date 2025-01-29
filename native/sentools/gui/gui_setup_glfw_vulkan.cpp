@@ -442,7 +442,7 @@ int SenTools::RunGuiGlfwVulkan(
     GuiState& state,
     const char* windowTitle,
     const std::function<void(ImGuiIO& io, GuiState& state)>& loadFontsCallback,
-    const std::function<void(ImGuiIO& io, GuiState& state)>& renderFrameCallback) {
+    const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback) {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
@@ -564,7 +564,9 @@ int SenTools::RunGuiGlfwVulkan(
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        renderFrameCallback(io, state);
+        if (!renderFrameCallback(io, state)) {
+            break;
+        }
 
         // Rendering
         ImGui::Render();

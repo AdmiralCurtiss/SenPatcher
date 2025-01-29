@@ -14,4 +14,12 @@ inline void TextUnformattedRightAlign(std::string_view sv) {
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - width);
     ImGui::TextUnformatted(sv.data(), sv.data() + sv.size());
 }
+
+inline bool ButtonRightAlign(const char* label) {
+    float textWidth = ImGui::CalcTextSize(label, nullptr, true).x;
+    float framePadding = ImGui::GetStyle().FramePadding.x * 2.0f;
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x
+                         - (textWidth + framePadding));
+    return ImGui::Button(label);
+}
 } // namespace ImGuiUtils

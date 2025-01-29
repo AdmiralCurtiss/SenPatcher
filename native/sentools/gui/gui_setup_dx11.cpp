@@ -37,7 +37,7 @@ int SenTools::RunGuiDX11(
     GuiState& state,
     const wchar_t* windowTitle,
     const std::function<void(ImGuiIO& io, GuiState& state)>& loadFontsCallback,
-    const std::function<void(ImGuiIO& io, GuiState& state)>& renderFrameCallback) {
+    const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback) {
     // Create application window
     ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = {sizeof(wc),
@@ -157,7 +157,9 @@ int SenTools::RunGuiDX11(
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        renderFrameCallback(io, state);
+        if (!renderFrameCallback(io, state)) {
+            break;
+        }
 
         // Rendering
         ImGui::Render();

@@ -130,22 +130,26 @@ SenPatcherMainWindow::SenPatcherMainWindow() = default;
 SenPatcherMainWindow::~SenPatcherMainWindow() = default;
 
 bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
-    bool visible = ImGui::Begin("SenPatcher", nullptr, ImGuiWindowFlags_MenuBar);
+    bool open = true;
+    bool visible = ImGui::Begin("SenPatcher", &open, ImGuiWindowFlags_MenuBar);
     const auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
     if (visible) {
-        RenderContents(state);
+        open = RenderContents(state) && open;
     }
     if (HasPendingWindowRequest()) {
         HandlePendingWindowRequest(state);
     }
-    return true;
+    if (HasPendingWindowRequest()) {
+        return true; // never close while something is still pending
+    }
+    return open;
 }
 
 bool SenPatcherMainWindow::HasPendingWindowRequest() const {
     return PendingWindowRequest != PendingWindowType::None;
 }
 
-void SenPatcherMainWindow::RenderContents(GuiState& state) {
+bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Toolbox")) {
             if (ImGui::MenuItem("Extract P3A...")) {
@@ -468,6 +472,12 @@ void SenPatcherMainWindow::RenderContents(GuiState& state) {
         }
         ImGui::EndPopup();
     }
+
+    if (ImGuiUtils::ButtonRightAlign("Close")) {
+        return false;
+    }
+
+    return true;
 }
 
 void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {

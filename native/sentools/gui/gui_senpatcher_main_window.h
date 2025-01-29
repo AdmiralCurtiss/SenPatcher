@@ -18,7 +18,7 @@ struct SenPatcherMainWindow : public SenTools::GUI::Window {
     bool RenderFrame(GuiState& state);
 
 private:
-    void RenderContents(GuiState& state);
+    bool RenderContents(GuiState& state);
     void HandlePendingWindowRequest(GuiState& state);
     bool HasPendingWindowRequest() const;
 
