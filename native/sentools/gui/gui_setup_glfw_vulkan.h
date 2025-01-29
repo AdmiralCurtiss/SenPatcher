@@ -10,5 +10,7 @@ struct GuiState;
 int RunGuiGlfwVulkan(GuiState& state,
                      const char* windowTitle,
                      const std::function<void(ImGuiIO& io, GuiState& state)>& loadFontsCallback,
-                     const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback);
+                     const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback,
+                     const std::function<void(ImGuiIO& io, GuiState& state)>& loadIniCallback,
+                     const std::function<void(ImGuiIO& io, GuiState& state)>& saveIniCallback);
 } // namespace SenTools

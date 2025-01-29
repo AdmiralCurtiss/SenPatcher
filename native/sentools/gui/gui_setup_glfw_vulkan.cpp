@@ -442,7 +442,9 @@ int SenTools::RunGuiGlfwVulkan(
     GuiState& state,
     const char* windowTitle,
     const std::function<void(ImGuiIO& io, GuiState& state)>& loadFontsCallback,
-    const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback) {
+    const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback,
+    const std::function<void(ImGuiIO& io, GuiState& state)>& loadIniCallback,
+    const std::function<void(ImGuiIO& io, GuiState& state)>& saveIniCallback) {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
@@ -480,6 +482,9 @@ int SenTools::RunGuiGlfwVulkan(
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.IniFilename = nullptr;                             // we manually handle the ini
+
+    loadIniCallback(io, state);
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(window, true);
@@ -568,6 +573,11 @@ int SenTools::RunGuiGlfwVulkan(
             break;
         }
 
+        if (io.WantSaveIniSettings) {
+            saveIniCallback(io, state);
+            io.WantSaveIniSettings = false;
+        }
+
         // Rendering
         ImGui::Render();
         ImDrawData* draw_data = ImGui::GetDrawData();
@@ -582,6 +592,8 @@ int SenTools::RunGuiGlfwVulkan(
             FramePresent(wd);
         }
     }
+
+    saveIniCallback(io, state);
 
     // Cleanup
     err = vkDeviceWaitIdle(g_Device);

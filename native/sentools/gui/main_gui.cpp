@@ -45,20 +45,65 @@ int RunGui(int argc, char** argvUtf8) {
     std::optional<std::string> guiSettingsFolder =
         CommonPaths::GetLocalSenPatcherGuiSettingsFolder();
     std::string userIniPath;
+    std::string imguiIniPath;
     if (guiSettingsFolder) {
+        HyoutaUtils::IO::CreateDirectory(std::string_view(*guiSettingsFolder));
         userIniPath = *guiSettingsFolder;
         userIniPath.append("/gui.ini");
+        imguiIniPath = *guiSettingsFolder;
+        imguiIniPath.append("/imgui.ini");
         if (!SenTools::LoadUserSettingsFromIni(state.GuiSettings, userIniPath)) {
             SenTools::LoadUserSettingsFromCSharpUserConfig(state.GuiSettings, *guiSettingsFolder);
         }
     }
     state.Windows.emplace_back(std::make_unique<GUI::SenPatcherMainWindow>());
+
+    const auto load_imgui_ini = [&](ImGuiIO& io, GuiState& state) -> void {
+        if (!guiSettingsFolder) {
+            return;
+        }
+        HyoutaUtils::IO::File f(std::string_view(imguiIniPath), HyoutaUtils::IO::OpenMode::Read);
+        if (!f.IsOpen()) {
+            return;
+        }
+        auto length = f.GetLength();
+        if (!length || *length == 0 || *length > (10 * 1024 * 1024)) {
+            return;
+        }
+        const size_t bufferSize = static_cast<size_t>(*length);
+        std::unique_ptr<char[]> buffer(new (std::nothrow) char[bufferSize]);
+        if (!buffer) {
+            return;
+        }
+        if (f.Read(buffer.get(), bufferSize) != bufferSize) {
+            return;
+        }
+        ImGui::LoadIniSettingsFromMemory(buffer.get(), bufferSize);
+    };
+    const auto save_imgui_ini = [&](ImGuiIO& io, GuiState& state) -> void {
+        if (!guiSettingsFolder) {
+            return;
+        }
+        size_t length = 0;
+        const char* buffer = ImGui::SaveIniSettingsToMemory(&length);
+        if (!buffer) {
+            return;
+        }
+        HyoutaUtils::IO::WriteFileAtomic(std::string_view(imguiIniPath), buffer, length);
+    };
+
     const std::string_view windowTitle("SenPatcher " SENPATCHER_VERSION);
 #ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(windowTitle.data(), windowTitle.size());
-    int rv = RunGuiDX11(state, wstr ? wstr->c_str() : L"SenPatcher", LoadFonts, RenderFrame);
+    int rv = RunGuiDX11(state,
+                        wstr ? wstr->c_str() : L"SenPatcher",
+                        LoadFonts,
+                        RenderFrame,
+                        load_imgui_ini,
+                        save_imgui_ini);
 #else
-    int rv = RunGuiGlfwVulkan(state, windowTitle.data(), LoadFonts, RenderFrame);
+    int rv = RunGuiGlfwVulkan(
+        state, windowTitle.data(), LoadFonts, RenderFrame, load_imgui_ini, save_imgui_ini);
 #endif
     if (guiSettingsFolder) {
         HyoutaUtils::IO::CreateDirectory(std::string_view(*guiSettingsFolder));

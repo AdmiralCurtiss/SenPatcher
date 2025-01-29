@@ -37,7 +37,9 @@ int SenTools::RunGuiDX11(
     GuiState& state,
     const wchar_t* windowTitle,
     const std::function<void(ImGuiIO& io, GuiState& state)>& loadFontsCallback,
-    const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback) {
+    const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback,
+    const std::function<void(ImGuiIO& io, GuiState& state)>& loadIniCallback,
+    const std::function<void(ImGuiIO& io, GuiState& state)>& saveIniCallback) {
     // Create application window
     ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = {sizeof(wc),
@@ -83,6 +85,9 @@ int SenTools::RunGuiDX11(
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.IniFilename = nullptr;                             // we manually handle the ini
+
+    loadIniCallback(io, state);
 
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd);
@@ -161,6 +166,11 @@ int SenTools::RunGuiDX11(
             break;
         }
 
+        if (io.WantSaveIniSettings) {
+            saveIniCallback(io, state);
+            io.WantSaveIniSettings = false;
+        }
+
         // Rendering
         ImGui::Render();
         const float clear_color_with_alpha[4] = {state.clear_color.x * state.clear_color.w,
@@ -176,6 +186,8 @@ int SenTools::RunGuiDX11(
         // HRESULT hr = g_pSwapChain->Present(0, 0); // Present without vsync
         g_SwapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
     }
+
+    saveIniCallback(io, state);
 
     // Cleanup
     ImGui_ImplDX11_Shutdown();
