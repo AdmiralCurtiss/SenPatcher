@@ -128,6 +128,7 @@ bool SenPatcherCS2SystemDataWindow::RenderFrame(GuiState& state) {
                 const bool valid = (mapping < IM_ARRAYSIZE(MAPPINGS));
                 const int m = static_cast<int>(mapping);
                 std::string defaultLabel = std::string(MAPPINGS[defaultMapping]) + " (default)";
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 if (ImGui::BeginCombo(
                         comboLabel,
                         valid ? (m == defaultMapping ? defaultLabel.c_str() : MAPPINGS[m])
