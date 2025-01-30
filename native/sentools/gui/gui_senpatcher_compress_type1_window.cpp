@@ -9,6 +9,7 @@
 
 #include "gui_state.h"
 #include "sentools/type1_compress/type1_compress.h"
+#include "sentools_imgui_utils.h"
 #include "util/result.h"
 #include "util/scope.h"
 #include "util/text.h"
@@ -157,7 +158,7 @@ bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
             ImGui::EndTable();
         }
 
-        if (ImGui::Button("Compress", ImVec2(-1.0f, 0.0f)) && !WorkThread) {
+        if (ImGuiUtils::ButtonFullWidth("Compress") && !WorkThread) {
             StatusMessage = "Compressing...";
             WorkThread = std::make_unique<SenPatcherCompressType1Window::WorkThreadState>(
                 std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),

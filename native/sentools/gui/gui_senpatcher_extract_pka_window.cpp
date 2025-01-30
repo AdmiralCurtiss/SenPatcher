@@ -9,6 +9,7 @@
 
 #include "gui_state.h"
 #include "sentools/pka_extract/pka_extract.h"
+#include "sentools_imgui_utils.h"
 #include "util/scope.h"
 #include "util/text.h"
 
@@ -158,7 +159,7 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
             ImGui::EndTable();
         }
 
-        if (ImGui::Button("Extract", ImVec2(-1.0f, 0.0f)) && !ExtractionThread) {
+        if (ImGuiUtils::ButtonFullWidth("Extract") && !ExtractionThread) {
             StatusMessage = "Extracting...";
             ExtractionThread = std::make_unique<SenPatcherExtractPkaWindow::ExtractionThreadState>(
                 std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),

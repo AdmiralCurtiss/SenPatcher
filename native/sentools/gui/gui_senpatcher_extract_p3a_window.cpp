@@ -9,6 +9,7 @@
 
 #include "gui_state.h"
 #include "p3a/unpackfs.h"
+#include "sentools_imgui_utils.h"
 #include "util/scope.h"
 #include "util/text.h"
 
@@ -165,7 +166,7 @@ bool SenPatcherExtractP3AWindow::RenderFrame(GuiState& state) {
             ImGui::EndTable();
         }
 
-        if (ImGui::Button("Extract", ImVec2(-1.0f, 0.0f)) && !ExtractionThread) {
+        if (ImGuiUtils::ButtonFullWidth("Extract") && !ExtractionThread) {
             StatusMessage = "Extracting...";
             ExtractionThread = std::make_unique<SenPatcherExtractP3AWindow::ExtractionThreadState>(
                 std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),

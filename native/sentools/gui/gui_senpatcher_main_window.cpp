@@ -193,7 +193,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     }
 
     ImGuiUtils::TextUnformatted("Trails of Cold Steel: (XSEED PC release version 1.6)");
-    if (ImGui::Button("Patch game##1", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
+    if (ImGuiUtils::ButtonFullWidth("Patch game##1") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS1 game directory root", "Sen1Launcher.exe"});
@@ -224,8 +224,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
         ImGui::EndPopup();
     }
 
-    if (ImGui::Button("Edit System Save Data##1", ImVec2(-1.0f, 0.0f))
-        && !HasPendingWindowRequest()) {
+    if (ImGuiUtils::ButtonFullWidth("Edit System Save Data##1") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS1 System Data file", "save511.dat"});
@@ -265,7 +264,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGuiUtils::TextUnformatted(
         "Trails of Cold Steel II: (XSEED PC release version 1.4, 1.4.1, or 1.4.2)");
-    if (ImGui::Button("Patch game##2", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
+    if (ImGuiUtils::ButtonFullWidth("Patch game##2") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS2 game directory root", "Sen2Launcher.exe"});
@@ -296,8 +295,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
         ImGui::EndPopup();
     }
 
-    if (ImGui::Button("Edit System Save Data##2", ImVec2(-1.0f, 0.0f))
-        && !HasPendingWindowRequest()) {
+    if (ImGuiUtils::ButtonFullWidth("Edit System Save Data##2") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS2 System Data file", "save255.dat"});
@@ -336,7 +334,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     ImGui::Spacing();
 
     ImGuiUtils::TextUnformatted("Trails of Cold Steel III: (NISA PC release version 1.07)");
-    if (ImGui::Button("Patch game##3", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
+    if (ImGuiUtils::ButtonFullWidth("Patch game##3") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS3 game directory root", "Sen3Launcher.exe"});
@@ -370,7 +368,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     ImGui::Spacing();
 
     ImGuiUtils::TextUnformatted("Trails of Cold Steel IV: (NISA PC release version 1.2.2)");
-    if (ImGui::Button("Patch game##4", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
+    if (ImGuiUtils::ButtonFullWidth("Patch game##4") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"CS4 game directory root", "Sen4Launcher.exe"});
@@ -404,7 +402,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     ImGui::Spacing();
 
     ImGuiUtils::TextUnformatted("Trails into Reverie: (NISA PC release version 1.1.5)");
-    if (ImGui::Button("Patch game##5", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
+    if (ImGuiUtils::ButtonFullWidth("Patch game##5") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"Reverie game directory", "hnk.exe"});
@@ -442,7 +440,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     ImGui::Spacing();
 
     ImGuiUtils::TextUnformatted("Tokyo Xanadu eX+: (Aksys PC release version 1.08)");
-    if (ImGui::Button("Patch game##X", ImVec2(-1.0f, 0.0f)) && !HasPendingWindowRequest()) {
+    if (ImGuiUtils::ButtonFullWidth("Patch game##X") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
         filters.push_back(FileFilter{"TX game directory root", "TokyoXanadu.exe"});
@@ -496,7 +494,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
                     ImGuiUtils::TextUnformatted(WorkThread->UserInputRequestMessage);
                     ImGui::PopTextWrapPos();
-                    if (ImGui::Button("OK", ImVec2(-1.0f, 0.0f))) {
+                    if (ImGuiUtils::ButtonFullWidth("OK")) {
                         ImGui::CloseCurrentPopup();
                         modal_open = false;
                     }
@@ -522,13 +520,13 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                     ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
                     ImGuiUtils::TextUnformatted(WorkThread->UserInputRequestMessage);
                     ImGui::PopTextWrapPos();
-                    if (ImGui::Button("Yes", ImVec2(-1.0f, 0.0f))) {
+                    if (ImGuiUtils::ButtonFullWidth("Yes")) {
                         WorkThread->UserInputReply =
                             SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes;
                         ImGui::CloseCurrentPopup();
                         modal_open = false;
                     }
-                    if (ImGui::Button("No", ImVec2(-1.0f, 0.0f))) {
+                    if (ImGuiUtils::ButtonFullWidth("No")) {
                         WorkThread->UserInputReply =
                             SenPatcherMainWindow::WorkThreadState::UserInputReplyType::No;
                         ImGui::CloseCurrentPopup();

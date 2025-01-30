@@ -9,6 +9,7 @@
 
 #include "gui_state.h"
 #include "sentools/pkg_extract/pkg_extract.h"
+#include "sentools_imgui_utils.h"
 #include "util/scope.h"
 #include "util/text.h"
 
@@ -165,7 +166,7 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
             ImGui::EndTable();
         }
 
-        if (ImGui::Button("Extract", ImVec2(-1.0f, 0.0f)) && !ExtractionThread) {
+        if (ImGuiUtils::ButtonFullWidth("Extract") && !ExtractionThread) {
             StatusMessage = "Extracting...";
             ExtractionThread = std::make_unique<SenPatcherExtractPkgWindow::ExtractionThreadState>(
                 std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),

@@ -9,6 +9,7 @@
 
 #include "gui_state.h"
 #include "sentools/type1_decompress/type1_decompress.h"
+#include "sentools_imgui_utils.h"
 #include "util/result.h"
 #include "util/scope.h"
 #include "util/text.h"
@@ -157,7 +158,7 @@ bool SenPatcherDecompressType1Window::RenderFrame(GuiState& state) {
             ImGui::EndTable();
         }
 
-        if (ImGui::Button("Decompress", ImVec2(-1.0f, 0.0f)) && !WorkThread) {
+        if (ImGuiUtils::ButtonFullWidth("Decompress") && !WorkThread) {
             StatusMessage = "Decompressing...";
             WorkThread = std::make_unique<SenPatcherDecompressType1Window::WorkThreadState>(
                 std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),

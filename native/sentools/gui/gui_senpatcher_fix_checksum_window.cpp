@@ -10,6 +10,7 @@
 #include "gui_state.h"
 #include "sentools/common_paths.h"
 #include "sentools/save_checksum_fix/save_checksum_fix.h"
+#include "sentools_imgui_utils.h"
 #include "util/result.h"
 #include "util/scope.h"
 #include "util/text.h"
@@ -171,7 +172,7 @@ bool SenPatcherFixChecksumWindow::RenderFrame(GuiState& state) {
             ImGui::EndTable();
         }
 
-        if (ImGui::Button("Fix Checksum", ImVec2(-1.0f, 0.0f)) && !WorkThread) {
+        if (ImGuiUtils::ButtonFullWidth("Fix Checksum") && !WorkThread) {
             StatusMessage = "Fixing...";
             WorkThread = std::make_unique<SenPatcherFixChecksumWindow::WorkThreadState>(
                 std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),

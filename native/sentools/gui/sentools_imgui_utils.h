@@ -15,6 +15,10 @@ inline void TextUnformattedRightAlign(std::string_view sv) {
     ImGui::TextUnformatted(sv.data(), sv.data() + sv.size());
 }
 
+inline bool ButtonFullWidth(const char* label) {
+    return ImGui::Button(label, ImVec2(ImGui::GetContentRegionAvail().x, 0.0f));
+}
+
 inline bool ButtonRightAlign(const char* label) {
     float textWidth = ImGui::CalcTextSize(label, nullptr, true).x;
     float framePadding = ImGui::GetStyle().FramePadding.x * 2.0f;
