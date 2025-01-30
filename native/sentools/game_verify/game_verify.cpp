@@ -308,6 +308,38 @@ static bool VerifyDlcFromRoot(const uint32_t possibleVersions,
     return true;
 }
 
+static void ListExtraFiles(const std::filesystem::path& parentPath,
+                           VerificationStorage* verificationStorage,
+                           VerifiedEntry* verificationEntry) {
+    std::error_code ec;
+    std::filesystem::directory_iterator it(parentPath, ec);
+    if (ec) {
+        printf("Error while iterating %s\n",
+               HyoutaUtils::IO::FilesystemPathToUtf8(parentPath).c_str());
+        return;
+    }
+    while (it != std::filesystem::directory_iterator()) {
+        VerifiedEntry* entry =
+            GetVerifiedEntry(HyoutaUtils::IO::FilesystemPathToUtf8(it->path().filename()),
+                             verificationStorage,
+                             verificationEntry);
+        if (!entry) {
+            printf("Not part of the game files: %s\n",
+                   HyoutaUtils::IO::FilesystemPathToUtf8(it->path()).c_str());
+        }
+        if (it->is_directory()) {
+            ListExtraFiles(it->path(), verificationStorage, entry);
+        }
+
+        it.increment(ec);
+        if (ec) {
+            printf("Error while iterating %s\n",
+                   HyoutaUtils::IO::FilesystemPathToUtf8(parentPath).c_str());
+            return;
+        }
+    }
+}
+
 static bool VerifyGame(const HyoutaUtils::DirTree::Tree& dirtree,
                        const char* gameName,
                        const std::filesystem::path& gamePath) {
@@ -330,6 +362,8 @@ static bool VerifyGame(const HyoutaUtils::DirTree::Tree& dirtree,
             printf("DLC %s is not installed.\n", dirtree.DlcNames[i]);
         }
     }
+
+    ListExtraFiles(gamePath, &verificationStorage, &verificationStorage.Root);
 
     return true;
 }
