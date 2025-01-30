@@ -12,6 +12,7 @@
 #include "gui_senpatcher_patch_window_utils.h"
 #include "gui_state.h"
 #include "sentools/senpatcher_dll_loader.h"
+#include "sentools_imgui_utils.h"
 #include "util/file.h"
 #include "util/ini.h"
 #include "util/ini_writer.h"
@@ -215,7 +216,8 @@ bool SenPatcherPatchCS1Window::RenderFrame(GuiState& state) {
         ImGui::Text("SenPatcher version to be installed: %s",
                     PatchDllInfo.Version.has_value() ? PatchDllInfo.Version->c_str() : "Unknown");
 
-        if (ImGui::Button("Remove Patches / Restore Original", ImVec2(-1.0f, 30.0f))
+        if (ImGuiUtils::ButtonFullWidth("Remove Patches / Restore Original",
+                                        30.0f * state.CurrentDpi)
             && !WorkThread) {
             StatusMessage = "Unpatching...";
             WorkThread = std::make_unique<SenPatcherPatchCS1Window::WorkThreadState>(
@@ -284,7 +286,7 @@ bool SenPatcherPatchCS1Window::RenderFrame(GuiState& state) {
             "more convenient button using eg. Steam's button remapping feature. Some buttons may "
             "be inaccessible when using Mouse/Keyboard controls.");
 
-        if (ImGui::Button("Patch!", ImVec2(-1.0f, 40.0f)) && !WorkThread) {
+        if (ImGuiUtils::ButtonFullWidth("Patch!", 40.0f * state.CurrentDpi) && !WorkThread) {
             StatusMessage = "Patching...";
             WorkThread = std::make_unique<SenPatcherPatchCS1Window::WorkThreadState>(
                 GameSettings, GamePath, PatchDllPath, false);

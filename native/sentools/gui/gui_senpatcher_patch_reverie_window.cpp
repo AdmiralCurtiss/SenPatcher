@@ -11,6 +11,7 @@
 #include "gui_senpatcher_patch_window_utils.h"
 #include "gui_state.h"
 #include "sentools/senpatcher_dll_loader.h"
+#include "sentools_imgui_utils.h"
 #include "util/file.h"
 #include "util/ini.h"
 #include "util/ini_writer.h"
@@ -169,7 +170,8 @@ bool SenPatcherPatchReverieWindow::RenderFrame(GuiState& state) {
         ImGui::Text("SenPatcher version to be installed: %s",
                     PatchDllInfo.Version.has_value() ? PatchDllInfo.Version->c_str() : "Unknown");
 
-        if (ImGui::Button("Remove Patches / Restore Original", ImVec2(-1.0f, 30.0f))
+        if (ImGuiUtils::ButtonFullWidth("Remove Patches / Restore Original",
+                                        30.0f * state.CurrentDpi)
             && !WorkThread) {
             StatusMessage = "Unpatching...";
             WorkThread = std::make_unique<SenPatcherPatchReverieWindow::WorkThreadState>(
@@ -200,7 +202,7 @@ bool SenPatcherPatchReverieWindow::RenderFrame(GuiState& state) {
         ImGui::Checkbox("Remove 30 FPS limit when in Background",
                         &GameSettings.CheckBoxDisableFpsLimitOnFocusLoss);
 
-        if (ImGui::Button("Patch!", ImVec2(-1.0f, 40.0f)) && !WorkThread) {
+        if (ImGuiUtils::ButtonFullWidth("Patch!", 40.0f * state.CurrentDpi) && !WorkThread) {
             StatusMessage = "Patching...";
             WorkThread = std::make_unique<SenPatcherPatchReverieWindow::WorkThreadState>(
                 GameSettings, GamePath, PatchDllPath, false);

@@ -10,6 +10,7 @@
 
 #include "gui_state.h"
 #include "sen1/system_data.h"
+#include "sentools_imgui_utils.h"
 #include "util/file.h"
 #include "util/result.h"
 #include "util/scope.h"
@@ -155,7 +156,7 @@ bool SenPatcherCS1SystemDataWindow::RenderFrame(GuiState& state) {
             ImGui::EndTable();
         }
 
-        if (ImGui::Button("Save", ImVec2(-1.0f, 40.0f)) && !WorkThread) {
+        if (ImGuiUtils::ButtonFullWidth("Save", 40.0f * state.CurrentDpi) && !WorkThread) {
             StatusMessage = "Writing...";
             WorkThread =
                 std::make_unique<SenPatcherCS1SystemDataWindow::WorkThreadState>(FilePath, Data);
