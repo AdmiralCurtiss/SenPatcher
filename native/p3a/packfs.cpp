@@ -72,44 +72,49 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
     if (ec) {
         return false;
     }
-    for (auto const& entry : iterator) {
-        if (entry.is_directory()) {
+    while (iterator != std::filesystem::directory_iterator()) {
+        auto& entryPath = iterator->path();
+        if (iterator->is_directory()) {
             if (!CollectEntries(fileinfos,
                                 rootDir,
-                                entry.path(),
+                                entryPath,
                                 ec,
                                 desiredCompressionType,
                                 allowUppercaseInFilenames)) {
                 return false;
             }
             continue;
-        }
-
-        const auto relativePath = std::filesystem::relative(entry.path(), rootDir, ec);
-        if (relativePath.empty()) {
-            return false;
-        }
-        const auto filename = relativePath.u8string();
-        const size_t filenameLength = filename.size();
-        if (filenameLength > 0x100) {
-            // maximum length of p3a filename
-            return false;
-        }
-
-        std::array<char, 0x100> fn{};
-        for (size_t i = 0; i < filenameLength; ++i) {
-            const char c = static_cast<char>(filename[i]);
-            if (c == '\0') {
-                // mid-filename nulls are not supported, would truncate the rest of the name
+        } else {
+            const auto relativePath = std::filesystem::relative(entryPath, rootDir, ec);
+            if (relativePath.empty()) {
                 return false;
             }
-            fn[i] = c;
-        }
+            const auto filename = relativePath.u8string();
+            const size_t filenameLength = filename.size();
+            if (filenameLength > 0x100) {
+                // maximum length of p3a filename
+                return false;
+            }
 
-        auto& entryPath = entry.path();
-        fileinfos.emplace_back(entryPath,
-                               NormalizeP3AFilename(fn, allowUppercaseInFilenames),
-                               DetermineCompressionTypeForFile(entryPath, desiredCompressionType));
+            std::array<char, 0x100> fn{};
+            for (size_t i = 0; i < filenameLength; ++i) {
+                const char c = static_cast<char>(filename[i]);
+                if (c == '\0') {
+                    // mid-filename nulls are not supported, would truncate the rest of the name
+                    return false;
+                }
+                fn[i] = c;
+            }
+
+            fileinfos.emplace_back(
+                entryPath,
+                NormalizeP3AFilename(fn, allowUppercaseInFilenames),
+                DetermineCompressionTypeForFile(entryPath, desiredCompressionType));
+        }
+        iterator.increment(ec);
+        if (ec) {
+            return false;
+        }
     }
     return true;
 }

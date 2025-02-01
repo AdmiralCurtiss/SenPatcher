@@ -104,15 +104,19 @@ void LoadUserSettingsFromCSharpUserConfig(GuiUserSettings& settings,
         if (ec) {
             return;
         }
-        for (auto const& entry : iterator) {
-            if (entry.is_directory()) {
-                auto userConfigPath = entry.path() / relativeUserConfigPath;
+        while (iterator != std::filesystem::directory_iterator()) {
+            if (iterator->is_directory()) {
+                auto userConfigPath = iterator->path() / relativeUserConfigPath;
                 auto timestamp = std::filesystem::last_write_time(userConfigPath, ec);
                 if (!ec) {
                     possibleUserConfigPaths.emplace_back(
                         P{.Path = HyoutaUtils::IO::FilesystemPathToUtf8(userConfigPath),
                           .Timestamp = timestamp});
                 }
+            }
+            iterator.increment(ec);
+            if (ec) {
+                return;
             }
         }
     }
@@ -375,10 +379,11 @@ static std::string FindExistingPath(std::string_view configuredPath,
                                                         + std::string(mountroot)),
                 ec);
             if (!ec) {
-                for (auto const& entry : iterator) {
-                    if (entry.is_directory()) {
+                while (iterator != std::filesystem::directory_iterator()) {
+                    if (iterator->is_directory()) {
                         for (std::string_view f : foldersToCheck) {
-                            filePath.assign(HyoutaUtils::IO::FilesystemPathToUtf8(entry.path()));
+                            filePath.assign(
+                                HyoutaUtils::IO::FilesystemPathToUtf8(iterator->path()));
 #ifdef BUILD_FOR_WINDOWS
                             if (!(filePath.ends_with('/') || filePath.ends_with('\\'))) {
 #else
@@ -395,6 +400,10 @@ static std::string FindExistingPath(std::string_view configuredPath,
                                 return filePath;
                             }
                         }
+                    }
+                    iterator.increment(ec);
+                    if (ec) {
+                        break;
                     }
                 }
             }

@@ -437,9 +437,13 @@ bool UnpatchGame(std::string_view gamepath, int sengame) {
         std::filesystem::directory_iterator iterator(
             HyoutaUtils::IO::FilesystemPathFromUtf8(std::string_view(senpatcher_bkp_path)), ec);
         if (!ec) {
-            for (auto const& entry : iterator) {
-                std::string path = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path());
+            while (iterator != std::filesystem::directory_iterator()) {
+                std::string path = HyoutaUtils::IO::FilesystemPathToUtf8(iterator->path());
                 CheckFile(existingFiles, unpatchFiles, path);
+                iterator.increment(ec);
+                if (ec) {
+                    break;
+                }
             }
         }
     }

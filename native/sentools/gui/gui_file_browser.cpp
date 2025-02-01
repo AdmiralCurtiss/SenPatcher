@@ -379,18 +379,23 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
         } else {
 #endif
             std::error_code ec;
-            std::filesystem::directory_iterator iterator(*PImpl->CurrentDirectory, ec);
+            std::filesystem::directory_iterator it(*PImpl->CurrentDirectory, ec);
             if (ec) {
                 // not sure what we do here?
                 return FileBrowserResult::Canceled;
             }
-            for (auto const& entry : iterator) {
+            while (it != std::filesystem::directory_iterator()) {
                 auto& e = PImpl->FilesInCurrentDirectory->emplace_back();
-                e.Filename = HyoutaUtils::IO::FilesystemPathToUtf8(entry.path().filename());
-                e.Type = entry.is_directory(ec) ? FileEntryType::Directory : FileEntryType::File;
+                e.Filename = HyoutaUtils::IO::FilesystemPathToUtf8(it->path().filename());
+                e.Type = it->is_directory(ec) ? FileEntryType::Directory : FileEntryType::File;
                 e.Filesize = (e.Type == FileEntryType::File)
-                                 ? static_cast<uint64_t>(entry.file_size(ec))
+                                 ? static_cast<uint64_t>(it->file_size(ec))
                                  : static_cast<uint64_t>(0);
+                it.increment(ec);
+                if (ec) {
+                    // not sure what we do here?
+                    return FileBrowserResult::Canceled;
+                }
             }
 #ifdef BUILD_FOR_WINDOWS
         }

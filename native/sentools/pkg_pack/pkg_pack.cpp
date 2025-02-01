@@ -78,59 +78,62 @@ int PKG_Pack_Function(int argc, char** argv) {
         std::error_code ec;
         std::filesystem::directory_iterator iterator(rootDir, ec);
         if (ec) {
-            return false;
+            return -1;
         }
-        for (auto const& entry : iterator) {
-            if (entry.is_directory()) {
-                continue;
-            }
-
-            const auto relativePath = std::filesystem::relative(entry.path(), rootDir, ec);
-            if (relativePath.empty()) {
-                printf("Error while collecting files.\n");
-                return -1;
-            }
-            const auto filename = relativePath.u8string();
-            const char8_t* filenameC = filename.c_str();
-
-            std::array<char, 0x40> fn{};
-            for (size_t i = 0; i < fn.size(); ++i) {
-                const char c = static_cast<char>(filenameC[i]);
-                if (c == '\0') {
-                    break;
+        while (iterator != std::filesystem::directory_iterator()) {
+            if (!iterator->is_directory()) {
+                const auto relativePath = std::filesystem::relative(iterator->path(), rootDir, ec);
+                if (relativePath.empty()) {
+                    printf("Error while collecting files.\n");
+                    return -1;
                 }
-                fn[i] = c;
-            }
-            auto& fi = fileinfos.emplace_back(SenLib::PkgFile{.Filename = fn});
-            auto& fd = filedatas.emplace_back();
+                const auto filename = relativePath.u8string();
+                const char8_t* filenameC = filename.c_str();
 
-            HyoutaUtils::IO::File infile(entry.path(), HyoutaUtils::IO::OpenMode::Read);
-            if (!infile.IsOpen()) {
-                printf("Failed opening file.\n");
-                return -1;
-            }
-            const auto uncompressedLength = infile.GetLength();
-            if (!uncompressedLength) {
-                printf("Failed getting size of file.\n");
-                return -1;
-            }
-            if (*uncompressedLength > UINT32_MAX) {
-                printf("File too big to put into pkg.\n");
-                return -1;
-            }
-            auto uncompressedData = std::make_unique_for_overwrite<char[]>(*uncompressedLength);
-            if (infile.Read(uncompressedData.get(), *uncompressedLength) != *uncompressedLength) {
-                printf("Failed to read file.\n");
-                return -1;
-            }
+                std::array<char, 0x40> fn{};
+                for (size_t i = 0; i < fn.size(); ++i) {
+                    const char c = static_cast<char>(filenameC[i]);
+                    if (c == '\0') {
+                        break;
+                    }
+                    fn[i] = c;
+                }
+                auto& fi = fileinfos.emplace_back(SenLib::PkgFile{.Filename = fn});
+                auto& fd = filedatas.emplace_back();
 
-            if (!SenLib::CompressPkgFile(fd,
-                                         fi,
-                                         uncompressedData.get(),
-                                         static_cast<uint32_t>(*uncompressedLength),
-                                         flags,
-                                         HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-                printf("Failed adding file to pkg.\n");
+                HyoutaUtils::IO::File infile(iterator->path(), HyoutaUtils::IO::OpenMode::Read);
+                if (!infile.IsOpen()) {
+                    printf("Failed opening file.\n");
+                    return -1;
+                }
+                const auto uncompressedLength = infile.GetLength();
+                if (!uncompressedLength) {
+                    printf("Failed getting size of file.\n");
+                    return -1;
+                }
+                if (*uncompressedLength > UINT32_MAX) {
+                    printf("File too big to put into pkg.\n");
+                    return -1;
+                }
+                auto uncompressedData = std::make_unique_for_overwrite<char[]>(*uncompressedLength);
+                if (infile.Read(uncompressedData.get(), *uncompressedLength)
+                    != *uncompressedLength) {
+                    printf("Failed to read file.\n");
+                    return -1;
+                }
+
+                if (!SenLib::CompressPkgFile(fd,
+                                             fi,
+                                             uncompressedData.get(),
+                                             static_cast<uint32_t>(*uncompressedLength),
+                                             flags,
+                                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+                    printf("Failed adding file to pkg.\n");
+                    return -1;
+                }
+            }
+            iterator.increment(ec);
+            if (ec) {
                 return -1;
             }
         }

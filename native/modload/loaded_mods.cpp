@@ -260,28 +260,30 @@ static std::vector<std::string> CollectModPaths(HyoutaUtils::Logger& logger,
     }
 
     bool modified = false;
-    for (auto const& entry : iterator) {
-        if (entry.is_directory()) {
-            continue;
-        }
-
-        auto& path = entry.path();
-        auto& string = path.native();
-        if (string.size() >= 4 && string[string.size() - 4] == L'.'
-            && (string[string.size() - 3] == L'P' || string[string.size() - 3] == L'p')
-            && string[string.size() - 2] == L'3'
-            && (string[string.size() - 1] == L'A' || string[string.size() - 1] == L'a')) {
-            auto filenamepath = path.filename();
+    while (iterator != std::filesystem::directory_iterator()) {
+        if (iterator->is_directory()) {
+            auto& path = iterator->path();
+            auto& string = path.native();
+            if (string.size() >= 4 && string[string.size() - 4] == L'.'
+                && (string[string.size() - 3] == L'P' || string[string.size() - 3] == L'p')
+                && string[string.size() - 2] == L'3'
+                && (string[string.size() - 1] == L'A' || string[string.size() - 1] == L'a')) {
+                auto filenamepath = path.filename();
 #ifdef BUILD_FOR_WINDOWS
-            auto filename = HyoutaUtils::TextUtils::WStringToUtf8(filenamepath.native().data(),
-                                                                  filenamepath.native().size());
+                auto filename = HyoutaUtils::TextUtils::WStringToUtf8(filenamepath.native().data(),
+                                                                      filenamepath.native().size());
 #else
-            std::optional<std::string> filename = filenamepath.native();
+                std::optional<std::string> filename = filenamepath.native();
 #endif
-            if (filename && !ContainsPath(paths, *filename)) {
-                paths.emplace_back(std::move(*filename));
-                modified = true;
+                if (filename && !ContainsPath(paths, *filename)) {
+                    paths.emplace_back(std::move(*filename));
+                    modified = true;
+                }
             }
+        }
+        iterator.increment(ec);
+        if (ec) {
+            return paths;
         }
     }
 

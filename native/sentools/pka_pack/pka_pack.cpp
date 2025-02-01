@@ -1022,10 +1022,14 @@ int PKA_Pack_Function(int argc, char** argv) {
             std::error_code ec;
             std::filesystem::directory_iterator iterator(rootDir, ec);
             if (ec) {
-                return false;
+                return -1;
             }
-            for (const std::filesystem::directory_entry& entry : iterator) {
-                if (!InitPkgPackArchive(pkgPackFiles, rootDir, entry)) {
+            while (iterator != std::filesystem::directory_iterator()) {
+                if (!InitPkgPackArchive(pkgPackFiles, rootDir, *iterator)) {
+                    return -1;
+                }
+                iterator.increment(ec);
+                if (ec) {
                     return -1;
                 }
             }
