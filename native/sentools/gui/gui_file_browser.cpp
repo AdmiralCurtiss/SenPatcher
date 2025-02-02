@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -14,6 +15,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 
 #include "gui_state.h"
+#include "sentools_imgui_utils.h"
 #include "util/file.h"
 #include "util/scope.h"
 #include "util/system.h"
@@ -28,6 +30,8 @@
 
 namespace SenTools::GUI {
 namespace {
+static constexpr size_t INVALID_INDEX = std::numeric_limits<size_t>::max();
+
 enum class FileEntryType : int {
     GoUpDirectory = -2,
     Drive = -1, // Windows only
@@ -48,7 +52,9 @@ struct FileBrowser::Impl {
     std::optional<std::filesystem::path> CurrentDirectory;
     std::string Filename;
     std::vector<FileFilter> Filters;
+    std::string CurrentFilter;
     std::string DefaultExtension;
+    size_t CurrentFilterIndex;
     bool PromptForOverwrite;
     bool Multiselect;
     bool UseNativeDialogIfAvailable;
@@ -98,6 +104,12 @@ void FileBrowser::Reset(FileBrowserMode mode,
     }
     PImpl->Filename = std::string(suggestedFilename);
     PImpl->Filters = std::move(filter);
+    if (!PImpl->Filters.empty()) {
+        PImpl->CurrentFilter = PImpl->Filters[0].Filter;
+        PImpl->CurrentFilterIndex = 0;
+    } else {
+        PImpl->CurrentFilterIndex = INVALID_INDEX;
+    }
     PImpl->DefaultExtension = std::string(defaultExtension);
     PImpl->FilesInCurrentDirectory.reset();
     PImpl->SelectionStorage.Clear();
@@ -385,12 +397,22 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                 return FileBrowserResult::Canceled;
             }
             while (it != std::filesystem::directory_iterator()) {
-                auto& e = PImpl->FilesInCurrentDirectory->emplace_back();
-                e.Filename = HyoutaUtils::IO::FilesystemPathToUtf8(it->path().filename());
-                e.Type = it->is_directory(ec) ? FileEntryType::Directory : FileEntryType::File;
-                e.Filesize = (e.Type == FileEntryType::File)
-                                 ? static_cast<uint64_t>(it->file_size(ec))
-                                 : static_cast<uint64_t>(0);
+                const bool isDirectory = it->is_directory(ec);
+                if (ec) {
+                    // not sure what we do here?
+                    return FileBrowserResult::Canceled;
+                }
+                std::string filename = HyoutaUtils::IO::FilesystemPathToUtf8(it->path().filename());
+                if (isDirectory || PImpl->CurrentFilter.empty()
+                    || HyoutaUtils::TextUtils::CaseInsensitiveGlobMatches(filename,
+                                                                          PImpl->CurrentFilter)) {
+                    auto& e = PImpl->FilesInCurrentDirectory->emplace_back();
+                    e.Filename = std::move(filename);
+                    e.Type = isDirectory ? FileEntryType::Directory : FileEntryType::File;
+                    e.Filesize = (e.Type == FileEntryType::File)
+                                     ? static_cast<uint64_t>(it->file_size(ec))
+                                     : static_cast<uint64_t>(0);
+                }
                 it.increment(ec);
                 if (ec) {
                     // not sure what we do here?
@@ -433,7 +455,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
     ImGui::SetNextWindowContentSize(
         ImVec2(0.0f, PImpl->FilesInCurrentDirectory->size() * items_height));
     if (ImGui::BeginChild("##Basket",
-                          ImVec2(-FLT_MIN, -(ImGui::GetFontSize() * 3.5f)),
+                          ImVec2(-FLT_MIN, -(ImGui::GetFontSize() * 4.5f)),
                           ImGuiChildFlags_FrameStyle)) {
         ImGuiMultiSelectIO* ms_io =
             ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_ClearOnEscape
@@ -522,12 +544,58 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
     }
     ImGui::EndChild();
 
+    static constexpr std::string_view filenameLabel = "File name";
+    static constexpr std::string_view filetypeLabel = "File type";
+    const float filenameLabelWidth =
+        ImGui::CalcTextSize(filenameLabel.data(), filenameLabel.data() + filenameLabel.size()).x;
+    const float filetypeLabelWidth =
+        ImGui::CalcTextSize(filetypeLabel.data(), filetypeLabel.data() + filetypeLabel.size()).x;
+    const float labelWidth =
+        std::max(filenameLabelWidth, filetypeLabelWidth) + ImGui::GetStyle().ItemSpacing.x;
 
-    ImGui::InputText("Filename", &PImpl->Filename, ImGuiInputTextFlags_ElideLeft);
-    bool button_clicked =
-        ImGui::Button(PImpl->Mode == FileBrowserMode::OpenExistingFile ? "Open" : "Save");
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - labelWidth);
+    ImGui::InputText("##Filename", &PImpl->Filename, ImGuiInputTextFlags_ElideLeft);
     ImGui::SameLine();
-    if (ImGui::Button("Cancel")) {
+    ImGuiUtils::TextUnformatted(filenameLabel);
+
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - labelWidth);
+    if (ImGui::BeginCombo("##Filter",
+                          PImpl->CurrentFilterIndex < PImpl->Filters.size()
+                              ? PImpl->Filters[PImpl->CurrentFilterIndex].Name.c_str()
+                              : PImpl->CurrentFilter.c_str(),
+                          ImGuiComboFlags_HeightRegular)) {
+        for (size_t n = 0; n < PImpl->Filters.size(); ++n) {
+            const bool is_selected = (PImpl->CurrentFilterIndex == n);
+            if (ImGui::Selectable(PImpl->Filters[n].Name.c_str(), is_selected)) {
+                PImpl->CurrentFilter = PImpl->Filters[n].Filter;
+                PImpl->CurrentFilterIndex = n;
+                PImpl->FilesInCurrentDirectory.reset();
+            }
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::SameLine();
+    ImGuiUtils::TextUnformatted(filetypeLabel);
+
+    static constexpr char openLabel[] = "Open";
+    static constexpr char saveLabel[] = "Save";
+    static constexpr char cancelLabel[] = "Cancel";
+    const char* confirmLabel =
+        PImpl->Mode == FileBrowserMode::OpenExistingFile ? openLabel : saveLabel;
+    float confirmTextWidth = ImGui::CalcTextSize(confirmLabel, nullptr, true).x;
+    float cancelTextWidth = ImGui::CalcTextSize(cancelLabel, nullptr, true).x;
+    float framePadding = ImGui::GetStyle().FramePadding.x * 2.0f;
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x
+                         - (confirmTextWidth + cancelTextWidth + framePadding * 2.0f
+                            + ImGui::GetStyle().ItemSpacing.x + labelWidth));
+
+    bool button_clicked = ImGui::Button(confirmLabel);
+    ImGui::SetItemDefaultFocus();
+    ImGui::SameLine();
+    if (ImGui::Button(cancelLabel)) {
         return FileBrowserResult::Canceled;
     }
 
