@@ -129,7 +129,7 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
             if (ImGui::Button("Browse...##BrowseOutput")) {
                 std::vector<FileFilter> filters;
                 filters.reserve(1);
-                filters.push_back(FileFilter{"Target Directory", "new directory name"});
+                filters.push_back(FileFilter{"Target Directory (new directory name)", ""});
                 OutputFileBrowser.Reset(FileBrowserMode::SaveNewFile,
                                         HyoutaUtils::TextUtils::StripToNull(OutputPath),
                                         std::move(filters),
