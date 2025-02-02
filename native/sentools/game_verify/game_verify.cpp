@@ -111,11 +111,20 @@ static VerifiedEntry* GetVerifiedEntry(std::string_view filename,
     return nullptr;
 }
 
+enum class VerifyMode {
+    Full,            // verifies everything
+    ExecutablesOnly, // only verifies executables
+    IdentifyDirtree, // only checks whether executables exist, for figuring out which known dirtree
+                     // could possibly match the given directory
+};
+
 enum class VerifyFileStateEnum {
     NotChecked,
+    FileExists,
     LengthRead,
     HashCalculated,
 
+    FileDoesNotExist,
     FileOpeningFailed,
     LengthReadingFailed,
     HashCalculationFailed,
@@ -129,9 +138,19 @@ struct VerifyFileState {
 static bool VerifyFile(VerifyFileState& state,
                        const HyoutaUtils::DirTree::Tree& dirtree,
                        const HyoutaUtils::DirTree::Entry& entry,
-                       const std::filesystem::path& path) {
+                       const std::filesystem::path& path,
+                       bool onlyCheckForExistence) {
+    if (onlyCheckForExistence) {
+        if (state.State == VerifyFileStateEnum::NotChecked) {
+            state.State = HyoutaUtils::IO::FileExists(path) ? VerifyFileStateEnum::FileExists
+                                                            : VerifyFileStateEnum::FileDoesNotExist;
+        }
+        return state.State == VerifyFileStateEnum::FileExists;
+    }
+
     switch (state.State) {
-        case VerifyFileStateEnum::NotChecked: {
+        case VerifyFileStateEnum::NotChecked:
+        case VerifyFileStateEnum::FileExists: {
             state.File.Open(path, HyoutaUtils::IO::OpenMode::Read);
             if (!state.File.IsOpen()) {
                 // printf("Could not open file.\n");
@@ -209,6 +228,7 @@ static void VerifyGameFiles(uint32_t& possibleVersions,
                             size_t firstDirTreeIndex,
                             size_t numberOfEntries,
                             const std::filesystem::path& parentPath,
+                            VerifyMode verifyMode,
                             VerificationStorage* verificationStorage,
                             VerifiedEntry* verificationEntry) {
     VerifyDirectoryState verifyDirectoryState;
@@ -228,6 +248,19 @@ static void VerifyGameFiles(uint32_t& possibleVersions,
 
         std::string_view filename(dirtree.StringTable + entry.GetFilenameOffset(),
                                   entry.GetFilenameLength());
+        if (verifyMode != VerifyMode::Full) {
+            // is this an executable or directory that could contain an executable?
+            const bool relevant =
+                (entry.IsDirectory()
+                     ? (filename == "bin" || filename == "Win32" || filename == "Win64"
+                        || filename == "x64")
+                     : (HyoutaUtils::TextUtils::CaseInsensitiveGlobMatches(filename, "*.exe")
+                        || HyoutaUtils::TextUtils::CaseInsensitiveGlobMatches(filename, "*.dll")));
+            if (!relevant) {
+                continue;
+            }
+        }
+
         if (!currentPath) {
             currentPath =
                 parentPath / std::u8string_view((const char8_t*)filename.data(), filename.size());
@@ -250,6 +283,7 @@ static void VerifyGameFiles(uint32_t& possibleVersions,
                                     dir.Begin + firstChildIndex,
                                     dir.End - dir.Begin,
                                     *currentPath,
+                                    verifyMode,
                                     verificationStorage,
                                     childVerificationEntry);
                 }
@@ -262,7 +296,11 @@ static void VerifyGameFiles(uint32_t& possibleVersions,
                 // printf("Possible versions -> %u\n", possibleVersions);
             }
         } else {
-            if (VerifyFile(verifyFileState, dirtree, entry, *currentPath)) {
+            if (VerifyFile(verifyFileState,
+                           dirtree,
+                           entry,
+                           *currentPath,
+                           verifyMode == VerifyMode::IdentifyDirtree)) {
                 // printf("File %.*s verifies.\n", static_cast<int>(filename.size()),
                 //        filename.data());
                 AddOrGetVerifiedEntry(
@@ -280,6 +318,7 @@ static void VerifyGameFiles(uint32_t& possibleVersions,
 
 static uint32_t VerifyGameFilesFromRoot(const HyoutaUtils::DirTree::Tree& dirtree,
                                         const std::filesystem::path& gamePath,
+                                        VerifyMode verifyMode,
                                         VerificationStorage* verificationStorage) {
     uint32_t possibleVersions = ((1u << dirtree.NumberOfVersions) - 1);
     VerifiedEntry* verifiedEntry = verificationStorage ? &verificationStorage->Root : nullptr;
@@ -293,6 +332,7 @@ static uint32_t VerifyGameFilesFromRoot(const HyoutaUtils::DirTree::Tree& dirtre
                             dir.Begin + firstChildIndex,
                             dir.End - dir.Begin,
                             gamePath,
+                            verifyMode,
                             verificationStorage,
                             verifiedEntry);
         }
@@ -365,7 +405,7 @@ static bool VerifyDlc(const uint32_t possibleVersions,
                 }
             }
         } else {
-            if (VerifyFile(verifyFileState, dirtree, entry, *currentPath)) {
+            if (VerifyFile(verifyFileState, dirtree, entry, *currentPath, false)) {
                 // printf("DLC File %.*s verifies.\n", static_cast<int>(filename.size()),
                 //        filename.data());
                 AddOrGetVerifiedEntry(
@@ -443,7 +483,8 @@ static bool VerifyGame(const HyoutaUtils::DirTree::Tree& dirtree,
                        const char* gameName,
                        const std::filesystem::path& gamePath) {
     VerificationStorage verificationStorage;
-    uint32_t possibleVersions = VerifyGameFilesFromRoot(dirtree, gamePath, &verificationStorage);
+    uint32_t possibleVersions =
+        VerifyGameFilesFromRoot(dirtree, gamePath, VerifyMode::Full, &verificationStorage);
     if (possibleVersions == 0) {
         return false;
     }
@@ -467,6 +508,13 @@ static bool VerifyGame(const HyoutaUtils::DirTree::Tree& dirtree,
     return true;
 }
 
+static bool IdentifyGame(const HyoutaUtils::DirTree::Tree& dirtree,
+                         const std::filesystem::path& gamePath) {
+    uint32_t possibleVersions =
+        VerifyGameFilesFromRoot(dirtree, gamePath, VerifyMode::IdentifyDirtree, nullptr);
+    return (possibleVersions != 0);
+}
+
 int Game_Verify_Function(int argc, char** argv) {
     optparse::OptionParser parser;
     parser.description(Game_Verify_ShortDescription);
@@ -481,16 +529,71 @@ int Game_Verify_Function(int argc, char** argv) {
     }
     const auto gamepath = HyoutaUtils::IO::FilesystemPathFromUtf8(args[0]);
 
-    bool found = false;
-    found = found || VerifyGame(SenLib::Sen1::GetDirTree(), "Trails of Cold Steel", gamepath);
-    found = found || VerifyGame(SenLib::Sen2::GetDirTree(), "Trails of Cold Steel II", gamepath);
-    found = found || VerifyGame(SenLib::Sen3::GetDirTree(), "Trails of Cold Steel III", gamepath);
-    found = found || VerifyGame(SenLib::Sen4::GetDirTree(), "Trails of Cold Steel IV", gamepath);
-    found = found || VerifyGame(SenLib::Sen5::GetDirTree(), "Trails into Reverie", gamepath);
-    found = found || VerifyGame(SenLib::TX::GetDirTree(), "Tokyo Xanadu eX+", gamepath);
+    const bool couldBeCS1 = IdentifyGame(SenLib::Sen1::GetDirTree(), gamepath);
+    const bool couldBeCS2 = IdentifyGame(SenLib::Sen2::GetDirTree(), gamepath);
+    const bool couldBeCS3 = IdentifyGame(SenLib::Sen3::GetDirTree(), gamepath);
+    const bool couldBeCS4 = IdentifyGame(SenLib::Sen4::GetDirTree(), gamepath);
+    const bool couldBeRev = IdentifyGame(SenLib::Sen5::GetDirTree(), gamepath);
+    const bool couldBeTX = IdentifyGame(SenLib::TX::GetDirTree(), gamepath);
 
+    static constexpr char gameNameCS1[] = "Trails of Cold Steel";
+    static constexpr char gameNameCS2[] = "Trails of Cold Steel II";
+    static constexpr char gameNameCS3[] = "Trails of Cold Steel III";
+    static constexpr char gameNameCS4[] = "Trails of Cold Steel IV";
+    static constexpr char gameNameRev[] = "Trails into Reverie";
+    static constexpr char gameNameTX[] = "Tokyo Xanadu eX+";
+
+    size_t couldBeCount = 0;
+    if (couldBeCS1) {
+        printf("Looks like %s...\n", gameNameCS1);
+        ++couldBeCount;
+    }
+    if (couldBeCS2) {
+        printf("Looks like %s...\n", gameNameCS2);
+        ++couldBeCount;
+    }
+    if (couldBeCS3) {
+        printf("Looks like %s...\n", gameNameCS3);
+        ++couldBeCount;
+    }
+    if (couldBeCS4) {
+        printf("Looks like %s...\n", gameNameCS4);
+        ++couldBeCount;
+    }
+    if (couldBeRev) {
+        printf("Looks like %s...\n", gameNameRev);
+        ++couldBeCount;
+    }
+    if (couldBeTX) {
+        printf("Looks like %s...\n", gameNameTX);
+        ++couldBeCount;
+    }
+    if (couldBeCount == 0) {
+        printf("Does not appear to be any known game.\n");
+        return -1;
+    }
+    if (couldBeCount > 1) {
+        printf("Ambiguous files, could be multiple games.\n");
+        return -1;
+    }
+
+
+    bool found = false;
+    if (couldBeCS1) {
+        found = VerifyGame(SenLib::Sen1::GetDirTree(), gameNameCS1, gamepath);
+    } else if (couldBeCS2) {
+        found = VerifyGame(SenLib::Sen2::GetDirTree(), gameNameCS2, gamepath);
+    } else if (couldBeCS3) {
+        found = VerifyGame(SenLib::Sen3::GetDirTree(), gameNameCS3, gamepath);
+    } else if (couldBeCS4) {
+        found = VerifyGame(SenLib::Sen4::GetDirTree(), gameNameCS4, gamepath);
+    } else if (couldBeRev) {
+        found = VerifyGame(SenLib::Sen5::GetDirTree(), gameNameRev, gamepath);
+    } else if (couldBeTX) {
+        found = VerifyGame(SenLib::TX::GetDirTree(), gameNameTX, gamepath);
+    }
     if (!found) {
-        printf("No known game or game version matches.\n");
+        printf("Game did not verify, likely corrupted.\n");
     }
 
     return 0;
