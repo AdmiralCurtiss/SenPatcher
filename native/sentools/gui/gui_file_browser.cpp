@@ -609,31 +609,46 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
             PImpl->Filename.clear();
         } else {
 #endif
+            bool isValidPath = false;
             auto path = HyoutaUtils::IO::FilesystemPathFromUtf8(PImpl->Filename);
             if (path.is_relative()) {
                 path = (*PImpl->CurrentDirectory / path);
             }
             std::error_code ec{};
             path = std::filesystem::weakly_canonical(path, ec);
-            if (ec) {
-                // not sure what we do here?
-                return FileBrowserResult::Canceled;
-            }
-            if (std::filesystem::is_directory(path, ec)) {
-                // enter this directory
-                PImpl->CurrentDirectory = std::move(path);
-                PImpl->FilesInCurrentDirectory.reset();
-                PImpl->Filename.clear();
-            } else {
-                if (ec) {
-                    // not sure what we do here?
-                    return FileBrowserResult::Canceled;
+            if (!ec) {
+                const auto fileStatus = std::filesystem::status(path, ec);
+                if (!ec
+                    && (PImpl->Mode == FileBrowserMode::SaveNewFile
+                        || fileStatus.type() != std::filesystem::file_type::not_found)) {
+                    isValidPath = true;
+                    if (fileStatus.type() == std::filesystem::file_type::directory) {
+                        // enter this directory
+                        PImpl->CurrentDirectory = std::move(path);
+                        PImpl->FilesInCurrentDirectory.reset();
+                        PImpl->Filename.clear();
+                    } else {
+                        // treat this as the result
+                        PImpl->SelectedPaths.clear();
+                        PImpl->SelectedPaths.push_back(HyoutaUtils::IO::FilesystemPathToUtf8(path));
+                        if (PImpl->Mode == FileBrowserMode::SaveNewFile
+                            && fileStatus.type() != std::filesystem::file_type::not_found) {
+                            // when saving and the file exists, ask if overwriting is okay
+                            ImGui::OpenPopup("Overwrite?");
+                        } else {
+                            return FileBrowserResult::FileSelected;
+                        }
+                    }
                 }
+            }
 
-                // treat this as the result
-                PImpl->SelectedPaths.clear();
-                PImpl->SelectedPaths.push_back(HyoutaUtils::IO::FilesystemPathToUtf8(path));
-                return FileBrowserResult::FileSelected;
+            if (!isValidPath) {
+                // if the user entered something like "*.txt", set the filter to that
+                if (PImpl->Filename.find('*') != std::string::npos) {
+                    PImpl->CurrentFilter = PImpl->Filename;
+                    PImpl->CurrentFilterIndex = INVALID_INDEX;
+                    PImpl->FilesInCurrentDirectory.reset();
+                }
             }
 #ifdef BUILD_FOR_WINDOWS
         }
@@ -685,17 +700,47 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
                         PImpl->LastDirectoryChangeByKeyboardOrController = enter_pressed;
                     } else if (entry.Type == FileEntryType::File) {
                         // selected a file
-                        // TODO: ask for overwrite confirmation in save case
                         PImpl->SelectedPaths.clear();
                         PImpl->SelectedPaths.push_back(HyoutaUtils::IO::FilesystemPathToUtf8(
                             (*PImpl->CurrentDirectory)
                             / std::u8string_view((const char8_t*)entry.Filename.data(),
                                                  entry.Filename.size())));
-                        return FileBrowserResult::FileSelected;
+                        if (PImpl->Mode == FileBrowserMode::SaveNewFile) {
+                            // when saving and the file exists, ask if overwriting is okay
+                            ImGui::OpenPopup("Overwrite?");
+                        } else {
+                            return FileBrowserResult::FileSelected;
+                        }
                     }
                 }
             }
         }
+    }
+
+    bool modal_open = true;
+    bool shouldOverwrite = false;
+    if (ImGui::BeginPopupModal("Overwrite?", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
+        if (!PImpl->SelectedPaths.empty()) {
+            if (PImpl->SelectedPaths.size() == 1) {
+                ImGui::Text("Overwrite %s?", PImpl->SelectedPaths[0].c_str());
+            } else {
+                ImGui::Text("Overwrite the selected files?");
+            }
+            if (ImGuiUtils::ButtonFullWidth("Overwrite")) {
+                ImGui::CloseCurrentPopup();
+                shouldOverwrite = true;
+            }
+            ImGui::SetItemDefaultFocus();
+            if (ImGuiUtils::ButtonFullWidth("Cancel")) {
+                ImGui::CloseCurrentPopup();
+            }
+        } else {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if (shouldOverwrite) {
+        return FileBrowserResult::FileSelected;
     }
 
     return FileBrowserResult::None;
