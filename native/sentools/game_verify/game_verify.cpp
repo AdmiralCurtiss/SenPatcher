@@ -302,72 +302,83 @@ static uint32_t VerifyGameFilesFromRoot(const HyoutaUtils::DirTree::Tree& dirtre
 
 static bool VerifyDlc(const uint32_t possibleVersions,
                       const HyoutaUtils::DirTree::Tree& dirtree,
-                      size_t dirTreeIndex,
+                      size_t firstDirTreeIndex,
+                      size_t numberOfEntries,
                       const std::filesystem::path& parentPath,
                       const size_t dlcIndex,
                       VerificationStorage* verificationStorage,
                       VerifiedEntry* verificationEntry) {
-    // check files only if they're in the current DLC
-    // check folders if they're in the base game or in the current DLC
-    const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[dirTreeIndex];
-    if (!(entry.GetDlcIndex() == dlcIndex || (entry.IsDirectory() && entry.GetDlcIndex() == 0))) {
-        return true;
-    }
-    if ((possibleVersions & entry.GetGameVersionBits()) == 0) {
-        // no overlap between possible game versions and the game versions this entry is in
-        return true;
-    }
+    VerifyDirectoryState verifyDirectoryState;
+    VerifyFileState verifyFileState;
+    std::optional<std::filesystem::path> currentPath;
+    for (size_t i = 0; i < numberOfEntries; ++i) {
+        const size_t dirTreeIndex = firstDirTreeIndex + i;
 
-    std::string_view filename(dirtree.StringTable + entry.GetFilenameOffset(),
-                              entry.GetFilenameLength());
-    std::filesystem::path currentPath =
-        parentPath / std::u8string_view((const char8_t*)filename.data(), filename.size());
-    if (entry.IsDirectory()) {
-        VerifiedEntry* childVerificationEntry;
-        if (entry.GetDlcIndex() == dlcIndex) {
-            // this folder is exclusive to this DLC, need to verify it exists
-            const bool dirExists = HyoutaUtils::IO::DirectoryExists(currentPath);
-            if (!dirExists) {
-                return false;
-            }
-            childVerificationEntry = AddOrGetVerifiedEntry(
-                dirTreeIndex, filename, verificationStorage, verificationEntry);
-        } else {
-            childVerificationEntry =
-                GetVerifiedEntry(filename, verificationStorage, verificationEntry);
+        // check files only if they're in the current DLC
+        // check folders if they're in the base game or in the current DLC
+        const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[dirTreeIndex];
+        if (!(entry.GetDlcIndex() == dlcIndex
+              || (entry.IsDirectory() && entry.GetDlcIndex() == 0))) {
+            continue;
+        }
+        if ((possibleVersions & entry.GetGameVersionBits()) == 0) {
+            // no overlap between possible game versions and the game versions this entry is in
+            continue;
         }
 
-        // then descend and check the children
-        // printf("DLC descending into %.*s.\n", static_cast<int>(filename.size()),
-        //        filename.data());
-        const size_t childCount = entry.GetDirectoryNumberOfEntries();
-        const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
-        for (size_t i = 0; i < childCount; ++i) {
-            if (!VerifyDlc(possibleVersions,
-                           dirtree,
-                           firstChildIndex + i,
-                           currentPath,
-                           dlcIndex,
-                           verificationStorage,
-                           childVerificationEntry)) {
+        std::string_view filename(dirtree.StringTable + entry.GetFilenameOffset(),
+                                  entry.GetFilenameLength());
+        if (!currentPath) {
+            currentPath =
+                parentPath / std::u8string_view((const char8_t*)filename.data(), filename.size());
+        }
+        if (entry.IsDirectory()) {
+            VerifiedEntry* childVerificationEntry;
+            if (entry.GetDlcIndex() == dlcIndex) {
+                // this folder is exclusive to this DLC, need to verify it exists
+                const bool dirExists = VerifyDirectory(verifyDirectoryState, *currentPath);
+                if (!dirExists) {
+                    return false;
+                }
+                childVerificationEntry = AddOrGetVerifiedEntry(
+                    dirTreeIndex, filename, verificationStorage, verificationEntry);
+            } else {
+                childVerificationEntry =
+                    GetVerifiedEntry(filename, verificationStorage, verificationEntry);
+            }
+
+            // then descend and check the children
+            // printf("DLC descending into %.*s.\n", static_cast<int>(filename.size()),
+            //        filename.data());
+            HyoutaUtils::DirTree::DirectoryIterationState dir;
+            const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+            while (HyoutaUtils::DirTree::GetNextEntries(dir, dirtree, entry)) {
+                if (!VerifyDlc(possibleVersions,
+                               dirtree,
+                               dir.Begin + firstChildIndex,
+                               dir.End - dir.Begin,
+                               *currentPath,
+                               dlcIndex,
+                               verificationStorage,
+                               childVerificationEntry)) {
+                    return false;
+                }
+            }
+        } else {
+            if (VerifyFile(verifyFileState, dirtree, entry, *currentPath)) {
+                // printf("DLC File %.*s verifies.\n", static_cast<int>(filename.size()),
+                //        filename.data());
+                AddOrGetVerifiedEntry(
+                    dirTreeIndex, filename, verificationStorage, verificationEntry);
+            } else {
+                // printf("DLC File %.*s does not verify.\n",
+                //        static_cast<int>(filename.size()),
+                //        filename.data());
                 return false;
             }
         }
-        return true;
-    } else {
-        VerifyFileState verifyFileState;
-        if (VerifyFile(verifyFileState, dirtree, entry, currentPath)) {
-            // printf("DLC File %.*s verifies.\n", static_cast<int>(filename.size()),
-            //        filename.data());
-            AddOrGetVerifiedEntry(dirTreeIndex, filename, verificationStorage, verificationEntry);
-            return true;
-        } else {
-            // printf("DLC File %.*s does not verify.\n",
-            //        static_cast<int>(filename.size()),
-            //        filename.data());
-            return false;
-        }
     }
+    return true;
 }
 
 static bool VerifyDlcFromRoot(const uint32_t possibleVersions,
@@ -378,12 +389,13 @@ static bool VerifyDlcFromRoot(const uint32_t possibleVersions,
     VerifiedEntry* verifiedEntry = verificationStorage ? &verificationStorage->Root : nullptr;
     if (dirtree.NumberOfEntries > 0) {
         const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[0];
-        const size_t childCount = entry.GetDirectoryNumberOfEntries();
+        HyoutaUtils::DirTree::DirectoryIterationState dir;
         const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
-        for (size_t i = 0; i < childCount; ++i) {
+        while (HyoutaUtils::DirTree::GetNextEntries(dir, dirtree, entry)) {
             if (!VerifyDlc(possibleVersions,
                            dirtree,
-                           firstChildIndex + i,
+                           dir.Begin + firstChildIndex,
+                           dir.End - dir.Begin,
                            gamePath,
                            dlcIndex,
                            verificationStorage,
