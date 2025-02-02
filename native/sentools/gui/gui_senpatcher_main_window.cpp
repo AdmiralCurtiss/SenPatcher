@@ -12,6 +12,12 @@
 
 #include "imgui.h"
 
+#include "dirtree/dirtree_cs1.h"
+#include "dirtree/dirtree_cs2.h"
+#include "dirtree/dirtree_cs3.h"
+#include "dirtree/dirtree_cs4.h"
+#include "dirtree/dirtree_reverie.h"
+#include "dirtree/dirtree_tx.h"
 #include "gui_senpatcher_compress_type1_window.h"
 #include "gui_senpatcher_cs1_system_data_window.h"
 #include "gui_senpatcher_cs2_system_data_window.h"
@@ -33,6 +39,7 @@
 #include "senpatcher_version.h"
 #include "sentools/common_paths.h"
 #include "sentools/cs2_14.h"
+#include "sentools/game_verify/game_verify.h"
 #include "sentools/old_senpatcher_unpatch.h"
 #include "sentools/senpatcher_dll_loader.h"
 #include "sentools_imgui_utils.h"
@@ -333,7 +340,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGui::Spacing();
 
-    ImGuiUtils::TextUnformatted("Trails of Cold Steel III: (NISA PC release version 1.07)");
+    ImGuiUtils::TextUnformatted("Trails of Cold Steel III: (NISA PC release version 1.06 or 1.07)");
     if (ImGuiUtils::ButtonFullWidth("Patch game##3") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -367,7 +374,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGui::Spacing();
 
-    ImGuiUtils::TextUnformatted("Trails of Cold Steel IV: (NISA PC release version 1.2.2)");
+    ImGuiUtils::TextUnformatted(
+        "Trails of Cold Steel IV: (NISA PC release version 1.2.1 or 1.2.2)");
     if (ImGuiUtils::ButtonFullWidth("Patch game##4") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -401,7 +409,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
 
     ImGui::Spacing();
 
-    ImGuiUtils::TextUnformatted("Trails into Reverie: (NISA PC release version 1.1.5)");
+    ImGuiUtils::TextUnformatted("Trails into Reverie: (NISA PC release version 1.1.4 or 1.1.5)");
     if (ImGuiUtils::ButtonFullWidth("Patch game##5") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
@@ -589,35 +597,41 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                             return;
                         }
 
-                        HyoutaUtils::IO::File f(std::string_view(selectedPath),
-                                                HyoutaUtils::IO::OpenMode::Read);
-                        if (!f.IsOpen()) {
-                            threadState->ShowError("Could not open selected file.");
-                            return;
-                        }
-                        const auto size = f.GetLength();
-                        if (!size) {
-                            threadState->ShowError("Could not access selected file.");
-                            return;
-                        }
-                        if (!(*size == 549888
-                              || HyoutaUtils::Hash::CalculateSHA1FromFile(f)
-                                     != HyoutaUtils::Hash::SHA1FromHexString(
-                                         "8dde2b39f128179a0beb3301cfd56a98c0f98a55"))) {
+                        bool alreadyAsked = false;
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+                        if (SenTools::GameVerify::VerifyGame(
+                                SenLib::Sen1::GetDirTree(),
+                                path,
+                                GameVerify::VerifyMode::IdentifyDirtree,
+                                nullptr)
+                            == 0) {
                             if (threadState->ShowYesNoQuestion(
-                                    "Selected file does not appear to be Sen1Launcher.exe of "
-                                    "version 1.6. Correct patching behavior cannot be guaranteed. "
-                                    "Proceed anyway?")
+                                    "The selected directory not appear to be CS1. Correct patching "
+                                    "behavior cannot be guaranteed. Proceed anyway?")
                                 != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
                                 return;
                             }
+                            alreadyAsked = true;
                         }
-
-                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
 
                         // TODO: Check/fix filename encoding issues.
 
                         threadState->DoUnpatchWithUserConfirmation(path, 1);
+
+                        uint32_t possibleVersions = SenTools::GameVerify::VerifyGame(
+                            SenLib::Sen1::GetDirTree(),
+                            path,
+                            GameVerify::VerifyMode::ExecutablesOnly,
+                            nullptr);
+                        if (!alreadyAsked && !(possibleVersions == (1 << 7))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "The selected directory not appear to be a clean copy of CS1 "
+                                    "XSEED PC version 1.6. Correct patching behavior cannot be "
+                                    "guaranteed. Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
 
                         threadState->PathToOpen = std::move(path);
                         threadState->PatchDllPath = std::move(patchDllPath);
@@ -693,31 +707,22 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                             return;
                         }
 
-                        HyoutaUtils::IO::File f(std::string_view(selectedPath),
-                                                HyoutaUtils::IO::OpenMode::Read);
-                        if (!f.IsOpen()) {
-                            threadState->ShowError("Could not open selected file.");
-                            return;
-                        }
-                        const auto size = f.GetLength();
-                        if (!size) {
-                            threadState->ShowError("Could not access selected file.");
-                            return;
-                        }
-                        if (!(*size == 572928
-                              || HyoutaUtils::Hash::CalculateSHA1FromFile(f)
-                                     != HyoutaUtils::Hash::SHA1FromHexString(
-                                         "81024410cc1fd1b462c600e0378714bd7704b202"))) {
+                        bool alreadyAsked = false;
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+                        if (SenTools::GameVerify::VerifyGame(
+                                SenLib::Sen2::GetDirTree(),
+                                path,
+                                GameVerify::VerifyMode::IdentifyDirtree,
+                                nullptr)
+                            == 0) {
                             if (threadState->ShowYesNoQuestion(
-                                    "Selected file does not appear to be Sen2Launcher.exe of "
-                                    "version 1.4/1.4.1/1.4.2. Correct patching behavior cannot be "
-                                    "guaranteed. Proceed anyway?")
+                                    "The selected directory not appear to be CS2. Correct patching "
+                                    "behavior cannot be guaranteed. Proceed anyway?")
                                 != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
                                 return;
                             }
+                            alreadyAsked = true;
                         }
-
-                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
 
                         // TODO: Check/fix filename encoding issues.
 
@@ -735,6 +740,22 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                         }
 
                         threadState->DoUnpatchWithUserConfirmation(path, 2);
+
+                        uint32_t possibleVersions = SenTools::GameVerify::VerifyGame(
+                            SenLib::Sen2::GetDirTree(),
+                            path,
+                            GameVerify::VerifyMode::ExecutablesOnly,
+                            nullptr);
+                        if (!alreadyAsked
+                            && !(possibleVersions == (1 << 6) || possibleVersions == (1 << 7))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "The selected directory not appear to be a clean copy of CS2 "
+                                    "XSEED PC version 1.4.1 or 1.4.2. Correct patching behavior "
+                                    "cannot be guaranteed. Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
 
                         threadState->PathToOpen = std::move(path);
                         threadState->PatchDllPath = std::move(patchDllPath);
@@ -811,33 +832,40 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                             return;
                         }
 
-                        HyoutaUtils::IO::File f(std::string_view(selectedPath),
-                                                HyoutaUtils::IO::OpenMode::Read);
-                        if (!f.IsOpen()) {
-                            threadState->ShowError("Could not open selected file.");
-                            return;
-                        }
-                        const auto size = f.GetLength();
-                        if (!size) {
-                            threadState->ShowError("Could not access selected file.");
-                            return;
-                        }
-                        if (!(*size == 569856
-                              || HyoutaUtils::Hash::CalculateSHA1FromFile(f)
-                                     != HyoutaUtils::Hash::SHA1FromHexString(
-                                         "21de3b088a5ddad7ed1fdb8e40061497c248ca65"))) {
+                        bool alreadyAsked = false;
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+                        if (SenTools::GameVerify::VerifyGame(
+                                SenLib::Sen3::GetDirTree(),
+                                path,
+                                GameVerify::VerifyMode::IdentifyDirtree,
+                                nullptr)
+                            == 0) {
                             if (threadState->ShowYesNoQuestion(
-                                    "Selected file does not appear to be Sen3Launcher.exe of "
-                                    "version 1.07. Correct patching behavior cannot be guaranteed. "
-                                    "Proceed anyway?")
+                                    "The selected directory not appear to be CS3. Correct patching "
+                                    "behavior cannot be guaranteed. Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                            alreadyAsked = true;
+                        }
+
+                        threadState->DoUnpatchWithUserConfirmation(path, 3);
+
+                        uint32_t possibleVersions = SenTools::GameVerify::VerifyGame(
+                            SenLib::Sen3::GetDirTree(),
+                            path,
+                            GameVerify::VerifyMode::ExecutablesOnly,
+                            nullptr);
+                        if (!alreadyAsked
+                            && !(possibleVersions == (1 << 3) || possibleVersions == (1 << 4))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "The selected directory not appear to be a clean copy of CS3 "
+                                    "NISA PC version 1.06 or 1.07. Correct patching behavior "
+                                    "cannot be guaranteed. Proceed anyway?")
                                 != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
                                 return;
                             }
                         }
-
-                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
-
-                        threadState->DoUnpatchWithUserConfirmation(path, 3);
 
                         threadState->PathToOpen = std::move(path);
                         threadState->PatchDllPath = std::move(patchDllPath);
@@ -900,33 +928,40 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                             return;
                         }
 
-                        HyoutaUtils::IO::File f(std::string_view(selectedPath),
-                                                HyoutaUtils::IO::OpenMode::Read);
-                        if (!f.IsOpen()) {
-                            threadState->ShowError("Could not open selected file.");
-                            return;
-                        }
-                        const auto size = f.GetLength();
-                        if (!size) {
-                            threadState->ShowError("Could not access selected file.");
-                            return;
-                        }
-                        if (!(*size == 605184
-                              || HyoutaUtils::Hash::CalculateSHA1FromFile(f)
-                                     != HyoutaUtils::Hash::SHA1FromHexString(
-                                         "5f480136aa4c3b53add422bf75b63350fa58d202"))) {
+                        bool alreadyAsked = false;
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+                        if (SenTools::GameVerify::VerifyGame(
+                                SenLib::Sen4::GetDirTree(),
+                                path,
+                                GameVerify::VerifyMode::IdentifyDirtree,
+                                nullptr)
+                            == 0) {
                             if (threadState->ShowYesNoQuestion(
-                                    "Selected file does not appear to be Sen4Launcher.exe of "
-                                    "version 1.2.2. Correct patching behavior cannot be "
-                                    "guaranteed. Proceed anyway?")
+                                    "The selected directory not appear to be CS4. Correct patching "
+                                    "behavior cannot be guaranteed. Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                            alreadyAsked = true;
+                        }
+
+                        threadState->DoUnpatchWithUserConfirmation(path, 4);
+
+                        uint32_t possibleVersions = SenTools::GameVerify::VerifyGame(
+                            SenLib::Sen4::GetDirTree(),
+                            path,
+                            GameVerify::VerifyMode::ExecutablesOnly,
+                            nullptr);
+                        if (!alreadyAsked
+                            && !(possibleVersions == (1 << 4) || possibleVersions == (1 << 5))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "The selected directory not appear to be a clean copy of CS4 "
+                                    "NISA PC version 1.2.1 or 1.2.2. Correct patching behavior "
+                                    "cannot be guaranteed. Proceed anyway?")
                                 != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
                                 return;
                             }
                         }
-
-                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
-
-                        threadState->DoUnpatchWithUserConfirmation(path, 4);
 
                         threadState->PathToOpen = std::move(path);
                         threadState->PatchDllPath = std::move(patchDllPath);
@@ -989,26 +1024,26 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                             return;
                         }
 
-                        auto size = HyoutaUtils::IO::GetFilesize(std::string_view(selectedPath));
-                        if (!size) {
-                            threadState->ShowError("Could not access selected file.");
-                            return;
-                        }
-                        if (!(*size == 15807384)) {
-                            if (threadState->ShowYesNoQuestion(
-                                    "Selected file does not appear to be hnk.exe of version 1.1.5. "
-                                    "Correct patching behavior cannot be guaranteed. Proceed "
-                                    "anyway?")
-                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
-                                return;
-                            }
-                        }
-
                         std::string path(HyoutaUtils::IO::SplitPath(
                                              HyoutaUtils::IO::SplitPath(
                                                  HyoutaUtils::IO::SplitPath(selectedPath).Directory)
                                                  .Directory)
                                              .Directory);
+
+                        uint32_t possibleVersions = SenTools::GameVerify::VerifyGame(
+                            SenLib::Sen5::GetDirTree(),
+                            path,
+                            GameVerify::VerifyMode::ExecutablesOnly,
+                            nullptr);
+                        if (!(possibleVersions == (1 << 7) || possibleVersions == (1 << 8))) {
+                            if (threadState->ShowYesNoQuestion(
+                                    "The selected directory not appear to be a clean copy of "
+                                    "Reverie NISA PC version 1.1.4 or 1.1.5. Correct patching "
+                                    "behavior cannot be guaranteed. Proceed anyway?")
+                                != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
+                                return;
+                            }
+                        }
 
                         threadState->PathToOpen = std::move(path);
                         threadState->PatchDllPath = std::move(patchDllPath);
@@ -1069,22 +1104,22 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                             return;
                         }
 
-                        auto size = HyoutaUtils::IO::GetFilesize(std::string_view(selectedPath));
-                        if (!size) {
-                            threadState->ShowError("Could not access selected file.");
-                            return;
-                        }
-                        if (!(*size == 7373456 || *size == 7232000 || *size == 7225344)) {
+                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
+                        uint32_t possibleVersions = SenTools::GameVerify::VerifyGame(
+                            SenLib::TX::GetDirTree(),
+                            path,
+                            GameVerify::VerifyMode::ExecutablesOnly,
+                            nullptr);
+                        if (!(possibleVersions == (1 << 3) || possibleVersions == (1 << 4))) {
                             if (threadState->ShowYesNoQuestion(
-                                    "Selected file does not appear to be TokyoXanadu.exe of "
-                                    "version 1.08. Correct patching behavior cannot be guaranteed. "
-                                    "Proceed anyway?")
+                                    "The selected directory not appear to be a clean copy of "
+                                    "Tokyo Xanadu Aksys PC version 1.08 (Steam or GOG build). "
+                                    "Correct patching behavior cannot be guaranteed. Proceed "
+                                    "anyway?")
                                 != SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes) {
                                 return;
                             }
                         }
-
-                        std::string path(HyoutaUtils::IO::SplitPath(selectedPath).Directory);
 
                         threadState->PathToOpen = std::move(path);
                         threadState->PatchDllPath = std::move(patchDllPath);
