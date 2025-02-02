@@ -1,4 +1,4 @@
-#include "game_verify_main.h"
+#include "game_verify.h"
 
 #include <cstdint>
 #include <filesystem>
@@ -18,57 +18,12 @@
 #include "dirtree/dirtree_tx.h"
 #include "dirtree/entry.h"
 #include "dirtree/tree.h"
+#include "game_verify_main.h"
 #include "util/file.h"
 #include "util/hash/sha1.h"
 #include "util/text.h"
 
-namespace SenTools {
-static constexpr size_t INVALID_INDEX = std::numeric_limits<size_t>::max();
-struct VerifiedEntry {
-    // Index into the dirtree.
-    size_t DirTreeIndex = 0;
-
-    // For files, this is set to INVALID_INDEX.
-    // For directories, this is initially set to INVALID_INDEX.
-    // Once this directory has verified children, it is set to the index into the
-    // VerificationStorage.Directories that stores the children for this entry.
-    size_t VerifiedChildrenIndex = INVALID_INDEX;
-};
-struct CaseInsensitiveHash {
-    size_t operator()(const std::string_view& sv) const {
-        size_t hash = 31;
-        for (size_t i = 0; i < sv.size(); ++i) {
-            char c = (sv[i] >= 'A' && sv[i] <= 'Z') ? (sv[i] + ('a' - 'A')) : sv[i];
-            hash = (hash * 7) + static_cast<uint8_t>(c);
-        }
-        return hash;
-    }
-};
-struct CaseInsensitiveEquals {
-    bool operator()(const std::string_view& lhs, const std::string_view& rhs) const {
-        if (lhs.size() != rhs.size()) {
-            return false;
-        }
-        for (size_t i = 0; i < lhs.size(); ++i) {
-            const char cl = (lhs[i] >= 'A' && lhs[i] <= 'Z') ? (lhs[i] + ('a' - 'A')) : lhs[i];
-            const char cr = (rhs[i] >= 'A' && rhs[i] <= 'Z') ? (rhs[i] + ('a' - 'A')) : rhs[i];
-            if (cl != cr) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
-struct VerificationDirectory {
-    // key == filename
-    std::unordered_map<std::string_view, VerifiedEntry, CaseInsensitiveHash, CaseInsensitiveEquals>
-        Entries;
-};
-struct VerificationStorage {
-    VerifiedEntry Root;
-    std::vector<std::unique_ptr<VerificationDirectory>> Directories;
-};
-
+namespace SenTools::GameVerify {
 static size_t AddOrGetVerificationDirectoryIndex(VerificationStorage* verificationStorage,
                                                  VerifiedEntry* verificationEntry) {
     if (verificationEntry->VerifiedChildrenIndex == INVALID_INDEX) {
@@ -110,13 +65,6 @@ static VerifiedEntry* GetVerifiedEntry(std::string_view filename,
     }
     return nullptr;
 }
-
-enum class VerifyMode {
-    Full,            // verifies everything
-    ExecutablesOnly, // only verifies executables
-    IdentifyDirtree, // only checks whether executables exist, for figuring out which known dirtree
-                     // could possibly match the given directory
-};
 
 enum class VerifyFileStateEnum {
     NotChecked,
@@ -340,14 +288,14 @@ static uint32_t VerifyGameFilesFromRoot(const HyoutaUtils::DirTree::Tree& dirtre
     return possibleVersions;
 }
 
-static bool VerifyDlc(const uint32_t possibleVersions,
-                      const HyoutaUtils::DirTree::Tree& dirtree,
-                      size_t firstDirTreeIndex,
-                      size_t numberOfEntries,
-                      const std::filesystem::path& parentPath,
-                      const size_t dlcIndex,
-                      VerificationStorage* verificationStorage,
-                      VerifiedEntry* verificationEntry) {
+static bool VerifyDlcFiles(const uint32_t possibleVersions,
+                           const HyoutaUtils::DirTree::Tree& dirtree,
+                           size_t firstDirTreeIndex,
+                           size_t numberOfEntries,
+                           const std::filesystem::path& parentPath,
+                           const size_t dlcIndex,
+                           VerificationStorage* verificationStorage,
+                           VerifiedEntry* verificationEntry) {
     VerifyDirectoryState verifyDirectoryState;
     VerifyFileState verifyFileState;
     std::optional<std::filesystem::path> currentPath;
@@ -393,14 +341,14 @@ static bool VerifyDlc(const uint32_t possibleVersions,
             HyoutaUtils::DirTree::DirectoryIterationState dir;
             const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
             while (HyoutaUtils::DirTree::GetNextEntries(dir, dirtree, entry)) {
-                if (!VerifyDlc(possibleVersions,
-                               dirtree,
-                               dir.Begin + firstChildIndex,
-                               dir.End - dir.Begin,
-                               *currentPath,
-                               dlcIndex,
-                               verificationStorage,
-                               childVerificationEntry)) {
+                if (!VerifyDlcFiles(possibleVersions,
+                                    dirtree,
+                                    dir.Begin + firstChildIndex,
+                                    dir.End - dir.Begin,
+                                    *currentPath,
+                                    dlcIndex,
+                                    verificationStorage,
+                                    childVerificationEntry)) {
                     return false;
                 }
             }
@@ -432,14 +380,14 @@ static bool VerifyDlcFromRoot(const uint32_t possibleVersions,
         HyoutaUtils::DirTree::DirectoryIterationState dir;
         const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
         while (HyoutaUtils::DirTree::GetNextEntries(dir, dirtree, entry)) {
-            if (!VerifyDlc(possibleVersions,
-                           dirtree,
-                           dir.Begin + firstChildIndex,
-                           dir.End - dir.Begin,
-                           gamePath,
-                           dlcIndex,
-                           verificationStorage,
-                           verifiedEntry)) {
+            if (!VerifyDlcFiles(possibleVersions,
+                                dirtree,
+                                dir.Begin + firstChildIndex,
+                                dir.End - dir.Begin,
+                                gamePath,
+                                dlcIndex,
+                                verificationStorage,
+                                verifiedEntry)) {
                 return false;
             }
         }
@@ -515,7 +463,33 @@ static bool IdentifyGame(const HyoutaUtils::DirTree::Tree& dirtree,
     return (possibleVersions != 0);
 }
 
+uint32_t VerifyGame(const HyoutaUtils::DirTree::Tree& dirtree,
+                    std::string_view gamePath,
+                    VerifyMode verifyMode,
+                    VerificationStorage* verificationStorage) {
+    return VerifyGameFilesFromRoot(dirtree,
+                                   HyoutaUtils::IO::FilesystemPathFromUtf8(gamePath),
+                                   verifyMode,
+                                   verificationStorage);
+}
+
+bool VerifyDlc(const uint32_t possibleVersions,
+               const size_t dlcIndex,
+               const HyoutaUtils::DirTree::Tree& dirtree,
+               std::string_view gamePath,
+               VerificationStorage* verificationStorage) {
+    return VerifyDlcFromRoot(possibleVersions,
+                             dlcIndex,
+                             dirtree,
+                             HyoutaUtils::IO::FilesystemPathFromUtf8(gamePath),
+                             verificationStorage);
+}
+} // namespace SenTools::GameVerify
+
+namespace SenTools {
 int Game_Verify_Function(int argc, char** argv) {
+    using namespace SenTools::GameVerify;
+
     optparse::OptionParser parser;
     parser.description(Game_Verify_ShortDescription);
     parser.usage("sentools " Game_Verify_Name " [options] directory");

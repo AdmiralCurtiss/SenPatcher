@@ -217,6 +217,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/dirtree_create/dirtree_create.cpp
 		sentools/dirtree_create/dirtree_create_main.h
 		sentools/game_verify/game_verify.cpp
+		sentools/game_verify/game_verify.h
 		sentools/game_verify/game_verify_main.h
 		sentools/p3a_extract/p3a_extract.cpp
 		sentools/p3a_extract/p3a_extract_main.h
