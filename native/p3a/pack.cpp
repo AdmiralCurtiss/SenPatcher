@@ -925,24 +925,9 @@ struct SizeWithIndex {
 };
 
 struct BlockState {
-    size_t Begin;
-    size_t End;
+    size_t Begin = 0;
+    size_t End = 0;
 };
-bool GetFirstBlock(BlockState& state, const SizeWithIndex* sizes, size_t count) {
-    if (count == 0) {
-        return false;
-    }
-
-    state.Begin = 0;
-    for (size_t i = 1; i < count; ++i) {
-        if (sizes[0].Filesize != sizes[i].Filesize) {
-            state.End = i;
-            return true;
-        }
-    }
-    state.End = count;
-    return true;
-}
 bool GetNextBlock(BlockState& state, const SizeWithIndex* sizes, size_t count) {
     const size_t last = state.End;
     if (last == count) {
@@ -985,31 +970,29 @@ bool DeduplicateP3APackFiles(P3APackData& packData) {
                      });
 
     BlockState block;
-    if (GetFirstBlock(block, sizes.get(), files.size())) {
-        do {
-            const size_t begin = block.Begin;
-            const size_t end = block.End;
-            for (size_t i = begin; i < end; ++i) {
-                auto& fi = files[sizes[i].Index];
-                if (fi.IsSameAsIndex().has_value()) {
+    while (GetNextBlock(block, sizes.get(), files.size())) {
+        const size_t begin = block.Begin;
+        const size_t end = block.End;
+        for (size_t i = begin; i < end; ++i) {
+            auto& fi = files[sizes[i].Index];
+            if (fi.IsSameAsIndex().has_value()) {
+                continue;
+            }
+            for (size_t j = begin; j < i; ++j) {
+                auto& fj = files[sizes[j].Index];
+                if (fj.IsSameAsIndex().has_value()) {
                     continue;
                 }
-                for (size_t j = begin; j < i; ++j) {
-                    auto& fj = files[sizes[j].Index];
-                    if (fj.IsSameAsIndex().has_value()) {
-                        continue;
-                    }
-                    auto dup = IsDuplicate(fi, fj);
-                    if (dup == IdentStatus::FailedToDetermine) {
-                        return false;
-                    }
-                    if (dup == IdentStatus::IsSame) {
-                        fi.SetSameAsIndex(sizes[j].Index);
-                        break;
-                    }
+                auto dup = IsDuplicate(fi, fj);
+                if (dup == IdentStatus::FailedToDetermine) {
+                    return false;
+                }
+                if (dup == IdentStatus::IsSame) {
+                    fi.SetSameAsIndex(sizes[j].Index);
+                    break;
                 }
             }
-        } while (GetNextBlock(block, sizes.get(), files.size()));
+        }
     }
     return true;
 }
