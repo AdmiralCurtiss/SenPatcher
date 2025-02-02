@@ -66,14 +66,14 @@ struct VerificationDirectory {
 };
 struct VerificationStorage {
     VerifiedEntry Root;
-    std::vector<VerificationDirectory> Directories;
+    std::vector<std::unique_ptr<VerificationDirectory>> Directories;
 };
 
 static size_t AddOrGetVerificationDirectoryIndex(VerificationStorage* verificationStorage,
                                                  VerifiedEntry* verificationEntry) {
     if (verificationEntry->VerifiedChildrenIndex == INVALID_INDEX) {
         verificationEntry->VerifiedChildrenIndex = verificationStorage->Directories.size();
-        verificationStorage->Directories.emplace_back();
+        verificationStorage->Directories.emplace_back(std::make_unique<VerificationDirectory>());
     }
     return verificationEntry->VerifiedChildrenIndex;
 }
@@ -88,7 +88,7 @@ static VerifiedEntry* AddOrGetVerifiedEntry(size_t dirTreeIndex,
             AddOrGetVerificationDirectoryIndex(verificationStorage, verificationEntry);
         childVerificationEntry =
             &(verificationStorage->Directories[verificationDirectoryIndex]
-                  .Entries.try_emplace(filename, VerifiedEntry{.DirTreeIndex = dirTreeIndex})
+                  ->Entries.try_emplace(filename, VerifiedEntry{.DirTreeIndex = dirTreeIndex})
                   .first->second);
     }
     return childVerificationEntry;
@@ -102,7 +102,7 @@ static VerifiedEntry* GetVerifiedEntry(std::string_view filename,
         if (verificationDirectoryIndex == INVALID_INDEX) {
             return nullptr;
         }
-        auto& entries = verificationStorage->Directories[verificationDirectoryIndex].Entries;
+        auto& entries = verificationStorage->Directories[verificationDirectoryIndex]->Entries;
         auto it = entries.find(filename);
         if (it != entries.end()) {
             return &it->second;
