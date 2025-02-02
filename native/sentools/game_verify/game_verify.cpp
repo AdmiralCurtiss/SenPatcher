@@ -113,42 +113,76 @@ static VerifiedEntry* GetVerifiedEntry(std::string_view filename,
 
 enum class VerifyFileStateEnum {
     NotChecked,
-    FileNotOpenable,
-    FileNotReadable,
+    LengthRead,
     HashCalculated,
+
+    FileOpeningFailed,
+    LengthReadingFailed,
+    HashCalculationFailed,
 };
 struct VerifyFileState {
     VerifyFileStateEnum State = VerifyFileStateEnum::NotChecked;
+    HyoutaUtils::IO::File File;
+    uint64_t Length;
     HyoutaUtils::Hash::SHA1 Hash;
 };
 static bool VerifyFile(VerifyFileState& state,
                        const HyoutaUtils::DirTree::Tree& dirtree,
                        const HyoutaUtils::DirTree::Entry& entry,
                        const std::filesystem::path& path) {
-    if (state.State == VerifyFileStateEnum::NotChecked) {
-        HyoutaUtils::IO::File file(path, HyoutaUtils::IO::OpenMode::Read);
-        if (!file.IsOpen()) {
-            // printf("Could not open file.\n");
-            state.State = VerifyFileStateEnum::FileNotOpenable;
+    switch (state.State) {
+        case VerifyFileStateEnum::NotChecked: {
+            state.File.Open(path, HyoutaUtils::IO::OpenMode::Read);
+            if (!state.File.IsOpen()) {
+                // printf("Could not open file.\n");
+                state.State = VerifyFileStateEnum::FileOpeningFailed;
+                state.File.Close();
+                return false;
+            }
+            auto length = state.File.GetLength();
+            if (!length) {
+                state.State = VerifyFileStateEnum::LengthReadingFailed;
+                state.File.Close();
+                return false;
+            }
+            state.Length = *length;
+            state.State = VerifyFileStateEnum::LengthRead;
+            [[fallthrough]];
+        }
+        case VerifyFileStateEnum::LengthRead: {
+            if (state.Length != entry.GetFileSize()) {
+                return false;
+            }
+            auto hash = HyoutaUtils::Hash::CalculateSHA1FromFile(state.File);
+            if (!hash) {
+                // printf("Hash calculation error.\n");
+                state.State = VerifyFileStateEnum::HashCalculationFailed;
+                state.File.Close();
+                return false;
+            }
+            state.Hash = *hash;
+            state.State = VerifyFileStateEnum::HashCalculated;
+            state.File.Close();
+            if (state.Hash != dirtree.HashTable[entry.GetFileHashIndex()]) {
+                // printf("Hash mismatch.\n");
+                return false;
+            }
+            return true;
+        }
+        case VerifyFileStateEnum::HashCalculated: {
+            if (state.Length != entry.GetFileSize()) {
+                return false;
+            }
+            if (state.Hash != dirtree.HashTable[entry.GetFileHashIndex()]) {
+                // printf("Hash mismatch.\n");
+                return false;
+            }
+            return true;
+        }
+        default: {
             return false;
         }
-        auto hash = HyoutaUtils::Hash::CalculateSHA1FromFile(file);
-        if (!hash) {
-            // printf("Hash calculation error.\n");
-            state.State = VerifyFileStateEnum::FileNotReadable;
-            return false;
-        }
-        state.Hash = *hash;
-        state.State = VerifyFileStateEnum::HashCalculated;
     }
-    if (state.State != VerifyFileStateEnum::HashCalculated) {
-        return false;
-    }
-    if (state.Hash != dirtree.HashTable[entry.GetFileHashIndex()]) {
-        // printf("Hash mismatch.\n");
-        return false;
-    }
-    return true;
 }
 
 enum class VerifyDirectoryStateEnum {
