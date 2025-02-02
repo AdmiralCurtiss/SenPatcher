@@ -414,7 +414,7 @@ static void ListExtraFiles(const std::filesystem::path& parentPath,
             printf("Not part of the game files: %s\n",
                    HyoutaUtils::IO::FilesystemPathToUtf8(it->path()).c_str());
         }
-        if (it->is_directory()) {
+        if (entry && it->is_directory()) {
             ListExtraFiles(it->path(), verificationStorage, entry);
         }
 
