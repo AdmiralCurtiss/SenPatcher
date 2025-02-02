@@ -618,7 +618,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
             path = std::filesystem::weakly_canonical(path, ec);
             if (!ec) {
                 const auto fileStatus = std::filesystem::status(path, ec);
-                if (!ec
+                if (fileStatus.type() != std::filesystem::file_type::none
                     && (PImpl->Mode == FileBrowserMode::SaveNewFile
                         || fileStatus.type() != std::filesystem::file_type::not_found)) {
                     isValidPath = true;
