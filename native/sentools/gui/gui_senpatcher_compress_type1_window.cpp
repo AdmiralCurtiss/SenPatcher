@@ -58,7 +58,7 @@ bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
     bool visible = ImGui::Begin(WindowID.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
     if (!visible) {
-        return open;
+        return open || WorkThread;
     }
 
     {
@@ -164,25 +164,43 @@ bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
                 std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),
                 std::string(HyoutaUtils::TextUtils::StripToNull(OutputPath)));
         }
+    }
 
-        if (WorkThread && WorkThread->IsDone.load()) {
-            WorkThread->Thread.join();
-            if (WorkThread->Result.IsError()) {
-                StatusMessage = ("Compression failed: " + WorkThread->Result.GetErrorValue());
-            } else {
-                StatusMessage = "Compression successful.";
-            }
-            WorkThread.reset();
+    if (WorkThread && WorkThread->IsDone.load()) {
+        WorkThread->Thread.join();
+        if (WorkThread->Result.IsError()) {
+            StatusMessage = ("Compression failed: " + WorkThread->Result.GetErrorValue());
+        } else {
+            StatusMessage = "Compression successful.";
         }
+        WorkThread.reset();
+    }
 
-        if (!StatusMessage.empty()) {
-            ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
-            ImGui::TextUnformatted(StatusMessage.data(),
-                                   StatusMessage.data() + StatusMessage.size());
-            ImGui::PopTextWrapPos();
+    static constexpr char closeLabel[] = "Close";
+    float closeTextWidth = ImGui::CalcTextSize(closeLabel, nullptr, true).x;
+    float closeButtonWidth = closeTextWidth + (ImGui::GetStyle().FramePadding.x * 2.0f);
+    if (!StatusMessage.empty()) {
+        float wrap = ImGui::GetContentRegionAvail().x - closeButtonWidth;
+        ImGui::PushTextWrapPos(wrap <= FLT_MIN ? FLT_MIN : wrap);
+        ImGui::TextUnformatted(StatusMessage.data(), StatusMessage.data() + StatusMessage.size());
+        ImGui::PopTextWrapPos();
+        ImGui::SameLine();
+    }
+
+    {
+        auto scope = HyoutaUtils::MakeDisposableScopeGuard([&]() { ImGui::EndDisabled(); });
+        if (WorkThread) {
+            ImGui::BeginDisabled();
+        } else {
+            scope.Dispose();
+        }
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x
+                             - closeButtonWidth);
+        if (ImGui::Button(closeLabel)) {
+            open = false;
         }
     }
 
-    return open;
+    return open || WorkThread;
 }
 } // namespace SenTools::GUI
