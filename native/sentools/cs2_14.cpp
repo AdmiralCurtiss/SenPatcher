@@ -177,10 +177,10 @@ static std::optional<std::vector<char>>
     }
 }
 
-bool TryPatchCs2Version14(std::string_view path,
-                          const std::function<bool()>& confirmationCallback) {
+TryPatchCs2Version14Result TryPatchCs2Version14(std::string_view path,
+                                                const std::function<bool()>& confirmationCallback) {
     if (path.empty()) {
-        return true;
+        return TryPatchCs2Version14Result::IsNotV14;
     }
 
     std::string basepath(path);
@@ -247,7 +247,7 @@ bool TryPatchCs2Version14(std::string_view path,
         && on_disk_t1001_jp.Id == OnDiskFileId::Second
         && on_disk_t1001_asm.Id == OnDiskFileId::First) {
         // this is already CS2 1.4.2, nothing else to do here
-        return true;
+        return TryPatchCs2Version14Result::IsNotV14;
     }
     auto on_disk_exe_us_tmp =
         ReadKnownFileToBuffer(path_exe_us_tmp, us14hash, us14size, us142hash, us142size);
@@ -336,20 +336,20 @@ bool TryPatchCs2Version14(std::string_view path,
         const bool have_t1001_jp = (t1001_jp_14 || t1001_jp_142);
         if (!(have_exe_us && have_exe_jp && have_t1001_us && have_t1001_jp)) {
             // not enough information. this is probably neither v1.4 nor 1.4.2
-            return true;
+            return TryPatchCs2Version14Result::IsNotV14;
         }
 
         // ask user if they want to patch
         if (!confirmationCallback()) {
             // declined patch
-            return false;
+            return TryPatchCs2Version14Result::UpdateDeclined;
         }
 
         // generate exe_jp_142 if we don't have it yet
         if (!exe_jp_142) {
             const auto jp140exe = ParseSectionSplitExe(*exe_jp_14);
             if (!jp140exe) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
 
             auto jp142header = ApplyPatch(jp140exe->header,
@@ -357,35 +357,35 @@ bool TryPatchCs2Version14(std::string_view path,
                                                                 PatchLength_j140_to_j142_header),
                                           false);
             if (!jp142header) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             auto jp142text = ApplyPatch(
                 jp140exe->text,
                 std::span<const char>(PatchData_j140_to_j142_text, PatchLength_j140_to_j142_text),
                 true);
             if (!jp142text) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             auto jp142rdata = ApplyPatch(
                 jp140exe->rdata,
                 std::span<const char>(PatchData_j140_to_j142_rdata, PatchLength_j140_to_j142_rdata),
                 true);
             if (!jp142rdata) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             auto jp142data = ApplyPatch(
                 jp140exe->data,
                 std::span<const char>(PatchData_j140_to_j142_data, PatchLength_j140_to_j142_data),
                 true);
             if (!jp142data) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             auto jp142rsrc = ApplyPatch(
                 jp140exe->rsrc,
                 std::span<const char>(PatchData_j140_to_j142_rsrc, PatchLength_j140_to_j142_rsrc),
                 true);
             if (!jp142rsrc) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             std::vector<char> jp142;
             jp142.reserve(jp142header->size() + jp142text->size() + jp142rdata->size()
@@ -397,7 +397,7 @@ bool TryPatchCs2Version14(std::string_view path,
             jp142.insert(jp142.end(), jp142rsrc->begin(), jp142rsrc->end());
             if (HyoutaUtils::Hash::CalculateSHA1(jp142.data(), jp142.size()) != jp142hash) {
                 // patch did not apply correctly, this is practically impossible
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             exe_jp_142 = std::move(jp142);
         }
@@ -406,11 +406,11 @@ bool TryPatchCs2Version14(std::string_view path,
         if (!exe_us_142) {
             const auto us140exe = ParseSectionSplitExe(*exe_us_14);
             if (!us140exe) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             const auto jp142exe = ParseSectionSplitExe(*exe_jp_142);
             if (!jp142exe) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
 
             auto us142header = ApplyPatch(jp142exe->header,
@@ -418,14 +418,14 @@ bool TryPatchCs2Version14(std::string_view path,
                                                                 PatchLength_j142_to_u142_header),
                                           true);
             if (!us142header) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             auto us142text = ApplyPatch(
                 jp142exe->text,
                 std::span<const char>(PatchData_j142_to_u142_text, PatchLength_j142_to_u142_text),
                 true);
             if (!us142text) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             std::vector<char> rdatatmp;
             rdatatmp.reserve(us140exe->rdata.size() + jp142exe->rdata.size());
@@ -436,21 +436,21 @@ bool TryPatchCs2Version14(std::string_view path,
                                                                PatchLength_u140j142_to_u142_rdata),
                                          true);
             if (!us142rdata) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             auto us142data = ApplyPatch(
                 jp142exe->data,
                 std::span<const char>(PatchData_j142_to_u142_data, PatchLength_j142_to_u142_data),
                 true);
             if (!us142data) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             auto us142rsrc = ApplyPatch(
                 jp142exe->rsrc,
                 std::span<const char>(PatchData_j142_to_u142_rsrc, PatchLength_j142_to_u142_rsrc),
                 false);
             if (!us142rsrc) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
 
             std::vector<char> us142;
@@ -463,7 +463,7 @@ bool TryPatchCs2Version14(std::string_view path,
             us142.insert(us142.end(), us142rsrc->begin(), us142rsrc->end());
             if (HyoutaUtils::Hash::CalculateSHA1(us142.data(), us142.size()) != us142hash) {
                 // patch did not apply correctly, this is practically impossible
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             exe_us_142 = std::move(us142);
         }
@@ -475,12 +475,12 @@ bool TryPatchCs2Version14(std::string_view path,
                 std::span<const char>(PatchData_t1001_j14_to_j142, PatchLength_t1001_j14_to_j142),
                 false);
             if (!t1001_jp_142) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             if (HyoutaUtils::Hash::CalculateSHA1(t1001_jp_142->data(), t1001_jp_142->size())
                 != t1001jp142hash) {
                 // patch did not apply correctly, this is practically impossible
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
         }
 
@@ -491,12 +491,12 @@ bool TryPatchCs2Version14(std::string_view path,
                 std::span<const char>(PatchData_t1001_u14_to_u142, PatchLength_t1001_u14_to_u142),
                 false);
             if (!t1001_us_142) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             if (HyoutaUtils::Hash::CalculateSHA1(t1001_us_142->data(), t1001_us_142->size())
                 != t1001us142hash) {
                 // patch did not apply correctly, this is practically impossible
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
         }
 
@@ -507,12 +507,12 @@ bool TryPatchCs2Version14(std::string_view path,
                 std::span<const char>(PatchData_t1001_dat_to_tbl, PatchLength_t1001_dat_to_tbl),
                 true);
             if (!t1001_asm_142) {
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
             if (HyoutaUtils::Hash::CalculateSHA1(t1001_asm_142->data(), t1001_asm_142->size())
                 != t1001asm142hash) {
                 // patch did not apply correctly, this is practically impossible
-                return false;
+                return TryPatchCs2Version14Result::PatchingFailed;
             }
         }
     }
@@ -526,7 +526,7 @@ bool TryPatchCs2Version14(std::string_view path,
             newfile_exe_jp.Open(std::string_view(path_exe_jp_tmp),
                                 HyoutaUtils::IO::OpenMode::Write);
             if (!newfile_exe_jp.IsOpen()) {
-                return false;
+                return TryPatchCs2Version14Result::WritingNewFilesFailed;
             }
         }
         HyoutaUtils::IO::File newfile_exe_us;
@@ -534,7 +534,7 @@ bool TryPatchCs2Version14(std::string_view path,
             newfile_exe_us.Open(std::string_view(path_exe_us_tmp),
                                 HyoutaUtils::IO::OpenMode::Write);
             if (!newfile_exe_us.IsOpen()) {
-                return false;
+                return TryPatchCs2Version14Result::WritingNewFilesFailed;
             }
         }
         HyoutaUtils::IO::File newfile_t1001_jp;
@@ -542,7 +542,7 @@ bool TryPatchCs2Version14(std::string_view path,
             newfile_t1001_jp.Open(std::string_view(path_t1001_jp_tmp),
                                   HyoutaUtils::IO::OpenMode::Write);
             if (!newfile_t1001_jp.IsOpen()) {
-                return false;
+                return TryPatchCs2Version14Result::WritingNewFilesFailed;
             }
         }
         HyoutaUtils::IO::File newfile_t1001_us;
@@ -550,7 +550,7 @@ bool TryPatchCs2Version14(std::string_view path,
             newfile_t1001_us.Open(std::string_view(path_t1001_us_tmp),
                                   HyoutaUtils::IO::OpenMode::Write);
             if (!newfile_t1001_us.IsOpen()) {
-                return false;
+                return TryPatchCs2Version14Result::WritingNewFilesFailed;
             }
         }
         HyoutaUtils::IO::File newfile_asm_file;
@@ -558,51 +558,51 @@ bool TryPatchCs2Version14(std::string_view path,
             newfile_asm_file.Open(std::string_view(path_asm_file_tmp),
                                   HyoutaUtils::IO::OpenMode::Write);
             if (!newfile_asm_file.IsOpen()) {
-                return false;
+                return TryPatchCs2Version14Result::WritingNewFilesFailed;
             }
         }
 
         if (newfile_exe_jp.IsOpen()
             && newfile_exe_jp.Write(exe_jp_142->data(), exe_jp_142->size()) != exe_jp_142->size()) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_exe_us.IsOpen()
             && newfile_exe_us.Write(exe_us_142->data(), exe_us_142->size()) != exe_us_142->size()) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_t1001_jp.IsOpen()
             && newfile_t1001_jp.Write(t1001_jp_142->data(), t1001_jp_142->size())
                    != t1001_jp_142->size()) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_t1001_us.IsOpen()
             && newfile_t1001_us.Write(t1001_us_142->data(), t1001_us_142->size())
                    != t1001_us_142->size()) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_asm_file.IsOpen()
             && newfile_asm_file.Write(t1001_asm_142->data(), t1001_asm_142->size())
                    != t1001_asm_142->size()) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
 
-        if (newfile_exe_us.IsOpen() && !newfile_exe_us.Rename(std::string_view(path_exe_us))) {
-            return false;
-        }
         if (newfile_exe_jp.IsOpen() && !newfile_exe_jp.Rename(std::string_view(path_exe_jp))) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
+        }
+        if (newfile_exe_us.IsOpen() && !newfile_exe_us.Rename(std::string_view(path_exe_us))) {
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_t1001_jp.IsOpen()
             && !newfile_t1001_jp.Rename(std::string_view(path_t1001_jp))) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_t1001_us.IsOpen()
             && !newfile_t1001_us.Rename(std::string_view(path_t1001_us))) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_asm_file.IsOpen()
             && !newfile_asm_file.Rename(std::string_view(path_asm_file))) {
-            return false;
+            return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
     }
 
@@ -613,6 +613,6 @@ bool TryPatchCs2Version14(std::string_view path,
     HyoutaUtils::IO::DeleteFile(path_t1001_us_tmp);
     HyoutaUtils::IO::DeleteFile(path_asm_file_tmp);
 
-    return true;
+    return TryPatchCs2Version14Result::UpdateSucceeded;
 }
 } // namespace SenTools

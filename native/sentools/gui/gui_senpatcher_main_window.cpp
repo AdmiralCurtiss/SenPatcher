@@ -726,16 +726,29 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
 
                         // TODO: Check/fix filename encoding issues.
 
-                        if (!SenTools::TryPatchCs2Version14(path, [&]() -> bool {
-                                return threadState->ShowYesNoQuestion(
-                                           "This appears to be version 1.4 of Trails of Cold Steel "
-                                           "II.\nSenPatcher does not support this version "
-                                           "directly, but it can update the game to version 1.4.2, "
-                                           "which is supported.\n\nWould you like to perform this "
-                                           "update?")
-                                       == SenPatcherMainWindow::WorkThreadState::
-                                           UserInputReplyType::Yes;
-                            })) {
+                        auto updateResult = SenTools::TryPatchCs2Version14(path, [&]() -> bool {
+                            return threadState->ShowYesNoQuestion(
+                                       "This appears to be version 1.4 of Trails of Cold Steel "
+                                       "II.\nSenPatcher does not support this version "
+                                       "directly, but it can update the game to version 1.4.2, "
+                                       "which is supported.\n\nWould you like to perform this "
+                                       "update?")
+                                   == SenPatcherMainWindow::WorkThreadState::UserInputReplyType::
+                                       Yes;
+                        });
+                        if (updateResult == TryPatchCs2Version14Result::UpdateDeclined) {
+                            return;
+                        }
+                        if (updateResult == TryPatchCs2Version14Result::WritingNewFilesFailed) {
+                            threadState->ShowError(
+                                "Patching failed. This shouldn't happen, either the game files or "
+                                "SenPatcher itself is corrupted.");
+                            return;
+                        }
+                        if (updateResult == TryPatchCs2Version14Result::WritingNewFilesFailed) {
+                            threadState->ShowError(
+                                "Writing the updated files failed.\n\nPlease ensure nothing is "
+                                "preventing writes to the game files and try again.");
                             return;
                         }
 
