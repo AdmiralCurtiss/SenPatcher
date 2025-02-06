@@ -322,8 +322,6 @@ static bool GenerateRawDirTreeLine(const TreeNode& node,
                                    std::vector<size_t>& stringOffsets,
                                    std::vector<HyoutaUtils::Hash::SHA1>& hashTable,
                                    std::string& source) {
-    std::array<char, 64> buffer{};
-
     size_t filenameOffset = InsertFilename(node.Name, stringTable, stringOffsets);
     size_t filenameLength = node.Name.size();
     if (!(filenameOffset < (1u << 24))) {
@@ -446,6 +444,97 @@ static bool GenerateRawDirTreeSource(const TreeNode& node,
     return true;
 }
 
+static bool GenerateBytesDirTreeLine(const TreeNode& node,
+                                     std::string& stringTable,
+                                     std::vector<size_t>& stringOffsets,
+                                     std::vector<HyoutaUtils::Hash::SHA1>& hashTable,
+                                     std::string& source) {
+    const auto push_u32 = [&](uint32_t value) -> void {
+        for (size_t i = 0; i < 4; ++i) {
+            source.push_back(0);
+        }
+        std::memcpy(&source[source.size() - 4], &value, 4);
+    };
+    const auto push_u64 = [&](uint64_t value) -> void {
+        for (size_t i = 0; i < 8; ++i) {
+            source.push_back(0);
+        }
+        std::memcpy(&source[source.size() - 8], &value, 8);
+    };
+
+    size_t filenameOffset = InsertFilename(node.Name, stringTable, stringOffsets);
+    size_t filenameLength = node.Name.size();
+    if (!(filenameOffset < (1u << 24))) {
+        return false;
+    }
+    if (!(filenameLength < (1u << 8))) {
+        return false;
+    }
+
+    size_t filenameValue = (filenameOffset << 8) | filenameLength;
+    push_u32(static_cast<uint32_t>(filenameValue));
+
+    size_t gameVersionBits = node.GameVersionBits;
+    size_t dlcIndex = node.DlcIndex;
+    if (!(gameVersionBits < (1u << 20))) {
+        return false;
+    }
+    if (!(dlcIndex < (1u << 11))) {
+        return false;
+    }
+    size_t metadataValue =
+        (dlcIndex << 20) | gameVersionBits | (node.IsDirectory ? 0x8000'0000u : 0u);
+    push_u32(static_cast<uint32_t>(metadataValue));
+
+    if (node.IsDirectory) {
+        if (node.ChildFirstIndex > 0xffff'ffffu) {
+            return false;
+        }
+        if (node.Children.size() > 0xffff'ffffu) {
+            return false;
+        }
+
+        size_t firstIndex = node.ChildFirstIndex;
+        size_t childCount = node.Children.size();
+        push_u32(static_cast<uint32_t>(firstIndex));
+        push_u32(static_cast<uint32_t>(childCount));
+    } else {
+        size_t hashIndex = InsertHash(node.Hash, hashTable);
+        uint64_t filesize = node.Filesize;
+        if (!(filesize < (1ull << 44))) {
+            return false;
+        }
+        if (!(hashIndex < (1u << 20))) {
+            return false;
+        }
+
+        uint64_t hashAndSize = (filesize << 20) | hashIndex;
+        push_u64(hashAndSize);
+    }
+
+    return true;
+}
+
+static bool GenerateBytesDirTreeSource(const TreeNode& node,
+                                       std::string& stringTable,
+                                       std::vector<size_t>& stringOffsets,
+                                       std::vector<HyoutaUtils::Hash::SHA1>& hashTable,
+                                       std::string& source) {
+    if (node.IsDirectory) {
+        for (const auto& child : node.Children) {
+            if (!GenerateBytesDirTreeLine(child, stringTable, stringOffsets, hashTable, source)) {
+                return false;
+            }
+        }
+        for (const auto& child : node.Children) {
+            if (!GenerateBytesDirTreeSource(child, stringTable, stringOffsets, hashTable, source)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 static void SortChildrenRecursive(TreeNode& node) {
     if (node.IsDirectory) {
         node.ChildLookup.clear();
@@ -526,11 +615,16 @@ struct Arg {
     size_t GameVersionBits;
     size_t DlcIndex;
 };
+enum class GenerateType {
+    Structs,
+    Raw,
+    Bytes,
+};
 struct ProgramArgs {
     std::vector<Arg> Input;
     std::string InternalInput;
     std::string Output;
-    bool GenerateRaw = false;
+    GenerateType Type = GenerateType::Structs;
 };
 } // namespace
 
@@ -602,12 +696,14 @@ static std::optional<ProgramArgs> ParseArgs(std::string_view jsonPath) {
         return std::nullopt;
     }
     auto outputType = ReadString(root, "OutputType");
-    args.GenerateRaw = true;
+    args.Type = GenerateType::Structs;
     if (outputType) {
         if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(*outputType, "structs")) {
-            args.GenerateRaw = false;
+            args.Type = GenerateType::Structs;
         } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(*outputType, "raw")) {
-            args.GenerateRaw = true;
+            args.Type = GenerateType::Raw;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(*outputType, "bytes")) {
+            args.Type = GenerateType::Bytes;
         } else {
             return std::nullopt;
         }
@@ -809,8 +905,8 @@ int DirTree_Create_Function(int argc, char** argv) {
         // reinterpret_cast that to the correct data types, technical UB be damned.
 
         std::string source;
-        source.append("#pragma once\n\n");
-        if (programArgs->GenerateRaw) {
+        if (programArgs->Type == GenerateType::Raw) {
+            source.append("#pragma once\n\n");
             source.append("#ifdef D\n");
             source.append("#undef D\n");
             source.append("#endif\n");
@@ -870,7 +966,8 @@ int DirTree_Create_Function(int argc, char** argv) {
             source.append("static constexpr size_t s_max_dlc_index = ");
             source.append(std::to_string(maxDlcIndex));
             source.append(";\n");
-        } else {
+        } else if (programArgs->Type == GenerateType::Structs) {
+            source.append("#pragma once\n\n");
             source.append("#include <array>\n\n");
             source.append("#include \"dirtree/entry.h\"\n");
             source.append("#include \"util/hash/sha1.h\"\n\n");
@@ -917,6 +1014,36 @@ int DirTree_Create_Function(int argc, char** argv) {
             source.append("static constexpr size_t s_max_dlc_index = ");
             source.append(std::to_string(maxDlcIndex));
             source.append(";\n");
+        } else if (programArgs->Type == GenerateType::Bytes) {
+            const auto push_u32 = [&](uint32_t value) -> void {
+                for (size_t i = 0; i < 4; ++i) {
+                    source.push_back(0);
+                }
+                std::memcpy(&source[source.size() - 4], &value, 4);
+            };
+            push_u32(static_cast<uint32_t>(count));
+            push_u32(static_cast<uint32_t>(hashTable.size()));
+            push_u32(static_cast<uint32_t>(stringTable.size()));
+            push_u32(static_cast<uint32_t>(maxDlcIndex));
+            if (!GenerateBytesDirTreeLine(root, stringTable, stringOffsets, hashTable, source)) {
+                printf("Dir tree generation failed.\n");
+                return -1;
+            }
+            if (!GenerateBytesDirTreeSource(root, stringTable, stringOffsets, hashTable, source)) {
+                printf("Dir tree generation failed.\n");
+                return -1;
+            }
+            for (size_t i = 0; i < hashTable.size(); ++i) {
+                for (size_t j = 0; j < 20; ++j) {
+                    source.push_back(hashTable[i].Hash[j]);
+                }
+            }
+            for (size_t i = 0; i < stringTable.size(); ++i) {
+                source.push_back(stringTable[i]);
+            }
+        } else {
+            printf("Invalid output format\n", outputFilename.c_str());
+            return -1;
         }
 
         HyoutaUtils::IO::File outfile(std::string_view(outputFilename),
