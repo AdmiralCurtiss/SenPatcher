@@ -455,7 +455,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
     ImGui::SetNextWindowContentSize(
         ImVec2(0.0f, PImpl->FilesInCurrentDirectory->size() * items_height));
     if (ImGui::BeginChild("##Basket",
-                          ImVec2(-FLT_MIN, -(ImGui::GetFontSize() * 4.5f)),
+                          ImVec2(-FLT_MIN, -(ImGui::GetFontSize() * 4.7f)),
                           ImGuiChildFlags_FrameStyle)) {
         ImGuiMultiSelectIO* ms_io =
             ImGui::BeginMultiSelect(ImGuiMultiSelectFlags_ClearOnEscape
@@ -550,15 +550,20 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
         ImGui::CalcTextSize(filenameLabel.data(), filenameLabel.data() + filenameLabel.size()).x;
     const float filetypeLabelWidth =
         ImGui::CalcTextSize(filetypeLabel.data(), filetypeLabel.data() + filetypeLabel.size()).x;
-    const float labelWidth =
-        std::max(filenameLabelWidth, filetypeLabelWidth) + ImGui::GetStyle().ItemSpacing.x;
+    const float labelWidth = std::max(filenameLabelWidth, filetypeLabelWidth);
 
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - labelWidth);
-    ImGui::InputText("##Filename", &PImpl->Filename, ImGuiInputTextFlags_ElideLeft);
-    ImGui::SameLine();
+    ImGui::AlignTextToFramePadding();
     ImGuiUtils::TextUnformatted(filenameLabel);
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (labelWidth - filenameLabelWidth));
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    ImGui::InputText("##Filename", &PImpl->Filename, ImGuiInputTextFlags_ElideLeft);
 
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - labelWidth);
+    ImGui::AlignTextToFramePadding();
+    ImGuiUtils::TextUnformatted(filetypeLabel);
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (labelWidth - filetypeLabelWidth));
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::BeginCombo("##Filter",
                           PImpl->CurrentFilterIndex < PImpl->Filters.size()
                               ? PImpl->Filters[PImpl->CurrentFilterIndex].Name.c_str()
@@ -577,8 +582,6 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
         }
         ImGui::EndCombo();
     }
-    ImGui::SameLine();
-    ImGuiUtils::TextUnformatted(filetypeLabel);
 
     static constexpr char openLabel[] = "Open";
     static constexpr char saveLabel[] = "Save";
@@ -590,7 +593,7 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
     float framePadding = ImGui::GetStyle().FramePadding.x * 2.0f;
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x
                          - (confirmTextWidth + cancelTextWidth + framePadding * 2.0f
-                            + ImGui::GetStyle().ItemSpacing.x + labelWidth));
+                            + ImGui::GetStyle().ItemSpacing.x));
 
     bool button_clicked = ImGui::Button(confirmLabel);
     ImGui::SetItemDefaultFocus();
