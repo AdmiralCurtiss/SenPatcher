@@ -8,6 +8,7 @@
 
 #include "imgui.h"
 
+#include "gui_senpatcher_asset_fix_window.h"
 #include "gui_senpatcher_patch_window_utils.h"
 #include "gui_state.h"
 #include "sentools/senpatcher_dll_loader.h"
@@ -193,21 +194,11 @@ bool SenPatcherPatchCS2Window::RenderFrame(GuiState& state) {
                 GameSettings, GamePath, PatchDllPath, true);
         }
 
-        ImGui::Checkbox("Apply fixes for known script/asset errors",
+        ImGui::Checkbox("Apply fixes and improvements to game assets",
                         &GameSettings.CheckBoxAssetPatches);
         if (PatchDllInfo.FileFixInfo.has_value()) {
             ImGui::SameLine();
-            if (ImGui::Button("Show asset fix details (may contain spoilers)")) {
-                ImGui::OpenPopup("Asset fix details");
-            }
-            bool modal_open = true;
-            if (ImGui::BeginPopupModal(
-                    "Asset fix details", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
-                ImGui::TextUnformatted(PatchDllInfo.FileFixInfo->data(),
-                                       PatchDllInfo.FileFixInfo->data()
-                                           + PatchDllInfo.FileFixInfo->size());
-                ImGui::EndPopup();
-            }
+            SenTools::GUI::HandleAssetFixDetailButton(state, *PatchDllInfo.FileFixInfo);
         }
         ImGui::Checkbox("Remove animation skip in Turbo mode",
                         &GameSettings.CheckBoxBattleAutoSkip);

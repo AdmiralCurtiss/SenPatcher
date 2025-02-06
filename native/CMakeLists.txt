@@ -357,6 +357,8 @@ if (SENPATCHER_BUILD_TOOLS)
 			sentools/gui/gui_file_browser.h
 			sentools/gui/gui_fonts.cpp
 			sentools/gui/gui_fonts.h
+			sentools/gui/gui_senpatcher_asset_fix_window.cpp
+			sentools/gui/gui_senpatcher_asset_fix_window.h
 			sentools/gui/gui_senpatcher_cs1_system_data_window.cpp
 			sentools/gui/gui_senpatcher_cs1_system_data_window.h
 			sentools/gui/gui_senpatcher_cs2_system_data_window.cpp
