@@ -121,6 +121,7 @@ bool SenPatcherCS1SystemDataWindow::RenderFrame(GuiState& state) {
                                           int defaultMapping,
                                           bool allowTurnCharacter) -> void {
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
                 ImGui::TextUnformatted(buttonName.data(), buttonName.data() + buttonName.size());
                 ImGui::TableNextColumn();
                 const bool valid = (mapping < IM_ARRAYSIZE(MAPPINGS));

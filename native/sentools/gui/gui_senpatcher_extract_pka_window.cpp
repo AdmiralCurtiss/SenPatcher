@@ -75,6 +75,7 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("PKA path:");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(-FLT_MIN);
@@ -120,6 +121,7 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
             }
 
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Output path:");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(-FLT_MIN);

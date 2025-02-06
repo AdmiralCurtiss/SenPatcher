@@ -77,6 +77,7 @@ bool SenPatcherExtractP3AWindow::RenderFrame(GuiState& state) {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("P3A path:");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(-FLT_MIN);
@@ -122,6 +123,7 @@ bool SenPatcherExtractP3AWindow::RenderFrame(GuiState& state) {
             }
 
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Output path:");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(-FLT_MIN);

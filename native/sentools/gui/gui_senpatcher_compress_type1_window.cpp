@@ -76,6 +76,7 @@ bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Input path:");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(-FLT_MIN);
@@ -120,6 +121,7 @@ bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
             }
 
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Output path:");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(-FLT_MIN);
