@@ -23,7 +23,7 @@ struct SenPatcherCS2SystemDataWindow : public SenTools::GUI::Window {
     bool RenderFrame(GuiState& state) override;
 
 private:
-    static constexpr char WindowTitle[] = "Edit Trails of Cold Steel System Data";
+    static constexpr char WindowTitle[] = "Edit Trails of Cold Steel II System Data";
     // size is: actual title (including null) + "##W" + index converted to hex
     std::array<char, sizeof(WindowTitle) + 3 + sizeof(size_t) * 2> WindowID{};
 
