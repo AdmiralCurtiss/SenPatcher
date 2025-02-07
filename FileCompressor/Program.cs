@@ -28,6 +28,8 @@ namespace FileCompressor {
 			Prefilter filter = Prefilter.None;
 			Exhaustion exhaustion = Exhaustion.Standard;
 			bool decompress = false;
+			int mindict = -1;
+			int maxdict = -1;
 
 			for (int i = 0; i < args.Length; ++i) {
 				if (args[i] == "--filter") {
@@ -36,6 +38,12 @@ namespace FileCompressor {
 				} else if (args[i] == "--exhaustion") {
 					++i;
 					exhaustion = (Exhaustion)Enum.Parse(typeof(Exhaustion), args[i], true);
+				} else if (args[i] == "--mindict") {
+					++i;
+					mindict = int.Parse(args[i]);
+				} else if (args[i] == "--maxdict") {
+					++i;
+					maxdict = int.Parse(args[i]);
 				} else if (args[i] == "--decompress") {
 					decompress = true;
 				} else {
@@ -54,6 +62,8 @@ namespace FileCompressor {
 				foreach (object e in Enum.GetValues(typeof(Exhaustion))) {
 					Console.WriteLine("      " + e.ToString());
 				}
+				Console.WriteLine("  --mindict integer");
+				Console.WriteLine("  --maxdict integer");
 				Console.WriteLine("  --decompress");
 			}
 
@@ -70,7 +80,14 @@ namespace FileCompressor {
 			}
 
 			foreach (string infile in infiles) {
-				string outfile = infile + "_" + filter.ToString() + "_" + exhaustion.ToString() + ".bin";
+				string outfile = infile + "_" + filter.ToString() + "_" + exhaustion.ToString();
+				if (mindict >= 0) {
+					outfile = outfile + "_mind" + mindict.ToString();
+				}
+				if (maxdict >= 0) {
+					outfile = outfile + "_maxd" + maxdict.ToString();
+				}
+				outfile = outfile + ".bin";
 				Console.WriteLine("Generating: " + outfile);
 
 				Stream ms;
@@ -79,7 +96,7 @@ namespace FileCompressor {
 					fs.Close();
 				}
 
-				using (var compressed = Compress(ms, filter, exhaustion)) {
+				using (var compressed = Compress(ms, filter, exhaustion, mindict, maxdict)) {
 					using (FileStream os = new FileStream(outfile, FileMode.Create)) {
 						compressed.Position = 0;
 						StreamUtils.CopyStream(compressed, os);
@@ -88,7 +105,7 @@ namespace FileCompressor {
 			}
 		}
 
-		public static Stream Compress(Stream instream, Prefilter filter, Exhaustion exhaustion) {
+		public static Stream Compress(Stream instream, Prefilter filter, Exhaustion exhaustion, int mindict, int maxdict) {
 			MemoryStream outstream = new MemoryStream((int)instream.Length);
 			uint crc = CRC.CalculateDigest(instream.CopyToByteArray(), 0, (uint)instream.Length);
 
@@ -99,7 +116,7 @@ namespace FileCompressor {
 
 				outstream.WriteUInt8(0); // filter ID
 				outstream.WriteUInt32(crc, EndianUtils.Endianness.LittleEndian);
-				CompressInternalLzmaSemiOptimized(memorystream, outstream, exhaustion);
+				CompressInternalLzmaSemiOptimized(memorystream, outstream, exhaustion, mindict, maxdict);
 				return outstream;
 			}
 
@@ -122,7 +139,7 @@ namespace FileCompressor {
 				outstream.WriteUInt8(1); // filter ID
 				outstream.WriteUInt32(crc, EndianUtils.Endianness.LittleEndian);
 				filteredstream.Position = 0;
-				CompressInternalLzmaSemiOptimized(filteredstream, outstream, exhaustion);
+				CompressInternalLzmaSemiOptimized(filteredstream, outstream, exhaustion, mindict, maxdict);
 				return outstream;
 			}
 
@@ -145,7 +162,7 @@ namespace FileCompressor {
 				outstream.WriteUInt8(2); // filter ID
 				outstream.WriteUInt32(crc, EndianUtils.Endianness.LittleEndian);
 				filteredstream.Position = 0;
-				CompressInternalLzmaSemiOptimized(filteredstream, outstream, exhaustion);
+				CompressInternalLzmaSemiOptimized(filteredstream, outstream, exhaustion, mindict, maxdict);
 				return outstream;
 			}
 
@@ -179,14 +196,14 @@ namespace FileCompressor {
 				outstream.WriteUInt8(3); // filter ID
 				outstream.WriteUInt32(crc, EndianUtils.Endianness.LittleEndian);
 				filteredstream.Position = 0;
-				CompressInternalLzmaSemiOptimized(filteredstream, outstream, exhaustion);
+				CompressInternalLzmaSemiOptimized(filteredstream, outstream, exhaustion, mindict, maxdict);
 				return outstream;
 			}
 
 			throw new Exception("unexpected filter");
 		}
 
-		public static void CompressInternalLzmaSemiOptimized(Stream instream, Stream outstream, Exhaustion exhaustion) {
+		public static void CompressInternalLzmaSemiOptimized(Stream instream, Stream outstream, Exhaustion exhaustion, int mindict, int maxdict) {
 			int[] dictionary;
 			int[] posStateBits;
 			int[] litContextBits;
@@ -195,7 +212,9 @@ namespace FileCompressor {
 
 			{
 				List<int> dicts = new List<int>();
-				for (int i = 0; i < 30; ++i) {
+				int min = (mindict >= 0 ? mindict : 0);
+				int max = (maxdict >= 0 ? maxdict : 30);
+				for (int i = min; i <= max; ++i) {
 					int dictsize = 1 << i;
 					dicts.Add(i);
 					if (dictsize >= instream.Length) {
