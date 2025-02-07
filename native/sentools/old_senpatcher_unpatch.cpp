@@ -513,13 +513,9 @@ bool UnpatchGame(std::string_view gamepath, int sengame) {
             continue;
         }
 
-        HyoutaUtils::IO::File fs(std::string_view(gamefilepath), HyoutaUtils::IO::OpenMode::Write);
-        if (!fs.IsOpen()) {
-            unpatchedAll = false;
-            continue;
-        }
-        if (fs.Write(existingFile->Data.get(), existingFile->DataLength)
-            != existingFile->DataLength) {
+        if (!HyoutaUtils::IO::WriteFileAtomic(std::string_view(gamefilepath),
+                                              existingFile->Data.get(),
+                                              existingFile->DataLength)) {
             unpatchedAll = false;
             continue;
         }
