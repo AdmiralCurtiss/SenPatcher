@@ -1,11 +1,13 @@
 #include "decompress_helper.h"
 
+#include <bit>
 #include <cstdint>
 #include <cstring>
 #include <optional>
 #include <vector>
 
 #include "lzma2301/LzmaDec.h"
+#include "util/align.h"
 #include "util/hash/crc32.h"
 
 namespace SenLib {
@@ -134,5 +136,35 @@ std::optional<std::vector<char>> DecompressFromBuffer(const char* buffer, size_t
         return std::nullopt; // decompression error
     }
     return outbuffer;
+}
+
+std::optional<DecompressHelperAlignedBuffer>
+    AlignedDecompressFromBuffer(const char* buffer, size_t length, size_t alignment) {
+    auto decompressed = DecompressFromBuffer(buffer, length);
+    if (!decompressed) {
+        return std::nullopt;
+    }
+
+    DecompressHelperAlignedBuffer rv;
+    rv.UnalignedData = std::move(*decompressed);
+    rv.AlignedData = rv.UnalignedData.data();
+    rv.Length = rv.UnalignedData.size();
+
+    const size_t unalignedDataPos = std::bit_cast<size_t>(rv.AlignedData);
+    const size_t alignedDataPos = HyoutaUtils::AlignUp(unalignedDataPos, alignment);
+    if (unalignedDataPos != alignedDataPos) {
+        // not aligned correctly, increase buffer and shift data
+        rv.UnalignedData.resize(rv.UnalignedData.size() + alignment);
+
+        const size_t newUnalignedDataPos = std::bit_cast<size_t>(rv.UnalignedData.data());
+        const size_t newAlignedDataPos = HyoutaUtils::AlignUp(newUnalignedDataPos, alignment);
+        const size_t diff = newAlignedDataPos - newUnalignedDataPos;
+        rv.AlignedData = rv.UnalignedData.data() + diff;
+        if (diff != 0) {
+            std::memmove(rv.AlignedData, rv.UnalignedData.data(), rv.Length);
+        }
+    }
+
+    return rv;
 }
 } // namespace SenLib

@@ -208,3 +208,16 @@ If there are multiple copies of a single file across multiple mods, only the hig
   - The `order.txt` in there can be used to change which mods have priority over which other mods, closer to the top of the list has higher priority.
   - If there is a p3a archive in the `mods` directory that is not in `order.txt`, SenPatcher will update `order.txt` automatically to include it below any previously existing mods but above its own asset fixes.
 - Base game files (lowest priority)
+
+
+
+Build Instructions
+==================
+
+To build SenPatcher from source, just invoke cmake on native/CMakeLists.txt and follow the typical CMake build flow.
+
+If you're using Visual Studio 2022, you can use the built-in CMake support by using the "Open a local folder" option and pointing it at the 'native' folder.
+
+Do *not* use the SenPatcher.sln in the repository root. That will only build the remnants of the old C# GUI, which is almost definitely not what you want.
+
+The distributed release binaries compress some contents for a smaller executable filesize. This is not necessary, and in fact if you're building this yourself I would recommend against doing this, but for completeness, instructions are provided in native/dirtree/generated/compression-instructions.md

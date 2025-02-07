@@ -38,6 +38,17 @@ function(senpatcher_generate_embeddable_file SOURCE_PATH TARGET_NAME)
 	endif()
 endfunction()
 
+function(senpatcher_generate_embeddable_file_if_exists SOURCE_PATH TARGET_NAME OUT_VARIABLE)
+	get_filename_component(TMP_SENPATCHER_FILEPATH "${SOURCE_PATH}" ABSOLUTE)
+	if (EXISTS "${TMP_SENPATCHER_FILEPATH}")
+		senpatcher_generate_embeddable_file("${SOURCE_PATH}" "${TARGET_NAME}")
+		set(${OUT_VARIABLE} TRUE PARENT_SCOPE)
+	else()
+		set(${OUT_VARIABLE} FALSE PARENT_SCOPE)
+	endif()
+endfunction()
+
+
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/senpatcher_embeds")
 if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h")
 	file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/senpatcher_embeds/senpatcher_version.h")
@@ -307,6 +318,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		sen2/system_data.h
 
 		dirtree/entry.h
+		dirtree/init_dirtree_from_buffer.cpp
+		dirtree/init_dirtree_from_buffer.h
 		dirtree/tree.h
 
 		dirtree/dirtree_cs1.cpp
@@ -345,6 +358,32 @@ if (SENPATCHER_BUILD_TOOLS)
 	if (WIN32)
 		target_compile_definitions(sentools PUBLIC BUILD_FOR_WINDOWS UNICODE _UNICODE)
 	endif()
+
+	senpatcher_generate_embeddable_file_if_exists("dirtree/generated/compressed-dirtree-cs1.bin" "embed_compressed_dirtree_cs1.h" "HAS_COMPRESSED_DIRTREE_CS1")
+	senpatcher_generate_embeddable_file_if_exists("dirtree/generated/compressed-dirtree-cs2.bin" "embed_compressed_dirtree_cs2.h" "HAS_COMPRESSED_DIRTREE_CS2")
+	senpatcher_generate_embeddable_file_if_exists("dirtree/generated/compressed-dirtree-cs3.bin" "embed_compressed_dirtree_cs3.h" "HAS_COMPRESSED_DIRTREE_CS3")
+	senpatcher_generate_embeddable_file_if_exists("dirtree/generated/compressed-dirtree-cs4.bin" "embed_compressed_dirtree_cs4.h" "HAS_COMPRESSED_DIRTREE_CS4")
+	senpatcher_generate_embeddable_file_if_exists("dirtree/generated/compressed-dirtree-reverie.bin" "embed_compressed_dirtree_reverie.h" "HAS_COMPRESSED_DIRTREE_REVERIE")
+	senpatcher_generate_embeddable_file_if_exists("dirtree/generated/compressed-dirtree-tx.bin" "embed_compressed_dirtree_tx.h" "HAS_COMPRESSED_DIRTREE_TX")
+	if (HAS_COMPRESSED_DIRTREE_CS1)
+		target_compile_definitions(sentools PRIVATE HAS_COMPRESSED_DIRTREE_CS1)
+	endif()
+	if (HAS_COMPRESSED_DIRTREE_CS2)
+		target_compile_definitions(sentools PRIVATE HAS_COMPRESSED_DIRTREE_CS2)
+	endif()
+	if (HAS_COMPRESSED_DIRTREE_CS3)
+		target_compile_definitions(sentools PRIVATE HAS_COMPRESSED_DIRTREE_CS3)
+	endif()
+	if (HAS_COMPRESSED_DIRTREE_CS4)
+		target_compile_definitions(sentools PRIVATE HAS_COMPRESSED_DIRTREE_CS4)
+	endif()
+	if (HAS_COMPRESSED_DIRTREE_REVERIE)
+		target_compile_definitions(sentools PRIVATE HAS_COMPRESSED_DIRTREE_REVERIE)
+	endif()
+	if (HAS_COMPRESSED_DIRTREE_TX)
+		target_compile_definitions(sentools PRIVATE HAS_COMPRESSED_DIRTREE_TX)
+	endif()
+
 	target_compile_options(sentools PRIVATE ${SENPATCHER_BUILDFLAGS})
 	target_include_directories(sentools
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"

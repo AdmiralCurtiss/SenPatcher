@@ -7,3 +7,4 @@ packages
 /native/.vs
 /native/build
 /native/out
+/native/dirtree/generated/*.bin

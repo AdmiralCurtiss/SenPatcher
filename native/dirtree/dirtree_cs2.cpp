@@ -1,10 +1,20 @@
 #include "dirtree_cs2.h"
 
-#include "generated/internal_dirtree_cs2.h"
-
 #include "dirtree/entry.h"
 #include "dirtree/tree.h"
 #include "util/hash/sha1.h"
+
+#ifdef HAS_COMPRESSED_DIRTREE_CS2
+#include "init_dirtree_from_buffer.h"
+#include "sen/decompress_helper.h"
+
+static constexpr char CompressedDirtreeData[] = {
+#include "embed_compressed_dirtree_cs2.h"
+};
+static constexpr size_t CompressedDirtreeLength = sizeof(CompressedDirtreeData);
+#else
+#include "generated/internal_dirtree_cs2.h"
+#endif
 
 namespace SenLib::Sen2 {
 static constexpr const char* s_version_names[] = {
@@ -36,6 +46,17 @@ static constexpr const char* s_dlc_names[] = {
 };
 
 HyoutaUtils::DirTree::Tree GetDirTree() {
+#ifdef HAS_COMPRESSED_DIRTREE_CS2
+    static auto s_decompressed =
+        SenLib::AlignedDecompressFromBuffer(CompressedDirtreeData, CompressedDirtreeLength, 16);
+    return HyoutaUtils::DirTree::InitDirTreeFromBuffer(
+        s_decompressed ? s_decompressed->AlignedData : nullptr,
+        s_decompressed ? s_decompressed->Length : 0,
+        s_version_names,
+        sizeof(s_version_names) / sizeof(s_version_names[0]),
+        s_dlc_names,
+        sizeof(s_dlc_names) / sizeof(s_dlc_names[0]));
+#else
     static_assert(s_max_dlc_index == (sizeof(s_dlc_names) / sizeof(s_dlc_names[0])));
     return HyoutaUtils::DirTree::Tree{
         .Entries = reinterpret_cast<const HyoutaUtils::DirTree::Entry*>(&s_raw_dirtree[0]),
@@ -51,5 +72,6 @@ HyoutaUtils::DirTree::Tree GetDirTree() {
         .DlcNames = s_dlc_names,
         .NumberOfDlcs = s_max_dlc_index,
     };
+#endif
 }
 } // namespace SenLib::Sen2

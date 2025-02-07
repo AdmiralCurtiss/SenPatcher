@@ -1,0 +1,6 @@
+{
+	"Input": [],
+	"InternalInput": "TX",
+	"Output": "dirtree-tx.bin",
+	"OutputType": "bytes"
+}
