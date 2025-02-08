@@ -1,7 +1,12 @@
 #include "sha256.h"
 
+#include <bit>
 #include <cstdint>
 #include <cstring>
+
+#include "util/cpuid.h"
+
+#include "sha_x86_extension.h"
 
 // sha.cpp - modified by Wei Dai from Steve Reid's public domain sha1.c
 
@@ -175,6 +180,21 @@ static void SHA256_InitState(word32 *state) noexcept
 
 static size_t SHA256_Update(word32* digest, const char* data, size_t length) noexcept
 {
+#ifdef HAS_SHA_X86_EXTENSION
+    static const bool hasShaCpuInstruction = HyoutaUtils::CpuId::SupportsSHA();
+    const bool isDataAligned = ((std::bit_cast<size_t>(data) % 16) == 0);
+    if (hasShaCpuInstruction && isDataAligned) {
+        const size_t consume = length & ~static_cast<size_t>(0x3f);
+        if (consume > 0) {
+            SHA256_HashMultipleBlocks_SHANI(digest,
+                                            reinterpret_cast<const uint32_t*>(data),
+                                            consume,
+                                            SHA_X68_EXTENSION_BIG_ENDIAN_ORDER);
+        }
+        return consume;
+    }
+#endif
+
     alignas(16) word32 buffer[16];
     size_t rest = length;
     const char* input = data;
