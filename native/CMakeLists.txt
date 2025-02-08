@@ -261,6 +261,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/hash/crc32.h
 		util/hash/crc32.c
 		util/hash/md5.h
+		util/hash/sha_x86_extension.cpp
+		util/hash/sha_x86_extension.h
 		util/hash/sha1.h
 		util/hash/sha1.cpp
 		util/hash/sha256.h
@@ -270,6 +272,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/align.cpp
 		util/bps.h
 		util/bps.cpp
+		util/cpuid.cpp
+		util/cpuid.h
 		util/endian.h
 		util/file.h
 		util/file.cpp
@@ -788,10 +792,14 @@ set(SOURCES_BASE_FIXES
 	util/ini.h
 	util/logger.cpp
 	util/logger.h
+	util/hash/sha_x86_extension.cpp
+	util/hash/sha_x86_extension.h
 	util/hash/sha1.cpp
 	util/hash/sha1.h
 	util/hash/util.h
 
+	util/cpuid.cpp
+	util/cpuid.h
 	util/endian.h
 	util/memread.h
 	util/memwrite.h

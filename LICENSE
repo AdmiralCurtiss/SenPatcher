@@ -62,9 +62,9 @@ Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 All rights reserved.
 See the native/rapidjson/license.txt file for details.
 
-== native/sha1.cpp, native/sha256.cpp ==
+== native/sha1.cpp, native/sha256.cpp, native/sha_x86_extension.cpp ==
 The SHA hashing code is extracted and modified from the cryptopp source code.
-cryptopp commit 782057f5f18fbdad2bd2b291fb1ec558a8ab8225, sha.cpp
+cryptopp commit 782057f5f18fbdad2bd2b291fb1ec558a8ab8225, sha.cpp sha_simd.cpp
 Public domain
 
 == native/lzma2301 ==

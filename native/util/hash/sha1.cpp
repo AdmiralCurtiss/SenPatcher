@@ -1,10 +1,14 @@
 #include "sha1.h"
 
+#include <bit>
 #include <cassert>
 #include <cstdint>
 #include <optional>
 
+#include "util/cpuid.h"
 #include "util/file.h"
+
+#include "sha_x86_extension.h"
 
 // sha.cpp - modified by Wei Dai from Steve Reid's public domain sha1.c
 
@@ -162,13 +166,27 @@ static void SHA1_InitState(word32 *state) noexcept
 
 static size_t SHA1_Update(word32* digest, const char* data, size_t length) noexcept
 {
-    word32 buffer[16];
+#ifdef HAS_SHA_X86_EXTENSION
+    static const bool hasShaCpuInstruction = HyoutaUtils::CpuId::SupportsSHA();
+    const bool isDataAligned = ((std::bit_cast<size_t>(data) % 16) == 0);
+    if (hasShaCpuInstruction && isDataAligned) {
+        const size_t consume = length & ~static_cast<size_t>(0x3f);
+        if (consume > 0) {
+            SHA1_HashMultipleBlocks_SHANI(digest,
+                                          reinterpret_cast<const uint32_t*>(data),
+                                          consume,
+                                          SHA_X68_EXTENSION_BIG_ENDIAN_ORDER);
+        }
+        return consume;
+    }
+#endif
+
+    alignas(16) word32 buffer[16];
     size_t rest = length;
     const char* input = data;
-    size_t i;
     while (rest >= 64) {
-        for (i = 0; i < 16; ++i) {
-            buffer[i] =   ((word32)((unsigned char)input[i * 4 + 3]))
+        for (size_t i = 0; i < 16; ++i) {
+            buffer[i] =    ((word32)((unsigned char)input[i * 4 + 3]))
                         | (((word32)((unsigned char)input[i * 4 + 2])) << 8)
                         | (((word32)((unsigned char)input[i * 4 + 1])) << 16)
                         | (((word32)((unsigned char)input[i * 4])) << 24);
@@ -186,7 +204,7 @@ static size_t SHA1_Update(word32* digest, const char* data, size_t length) noexc
 
 static void SHA1_Rest(word32* digest, uint64_t totalByteLength, const char* data, size_t rest) noexcept
 {
-    word32 buffer[16];
+    alignas(16) word32 buffer[16];
     const char* input = data;
     size_t i;
 
@@ -241,7 +259,7 @@ static void SHA1_Rest(word32* digest, uint64_t totalByteLength, const char* data
 static void SHA1_All(word32* digest, const char* data, size_t length) noexcept
 {
     SHA1_InitState(digest);
-    const size_t bytesConsumed = SHA1_Update(digest, data, length);
+    const size_t bytesConsumed = length > 0 ? SHA1_Update(digest, data, length) : 0;
     SHA1_Rest(digest, length, data + bytesConsumed, length - bytesConsumed);
 }
 
@@ -260,7 +278,7 @@ SHA1 DigestToSHA1(word32* state) noexcept {
 }
 
 SHA1 CalculateSHA1(const void* data, size_t length) noexcept {
-    word32 state[5];
+    alignas(16) word32 state[5];
     SHA1_All(state, ((const char*)data), length);
     return DigestToSHA1(state);
 }
@@ -282,13 +300,13 @@ std::optional<SHA1> CalculateSHA1FromFile(HyoutaUtils::IO::File& file) noexcept 
         return std::nullopt;
     }
 
-    word32 digest[5];
+    alignas(16) word32 digest[5];
     SHA1_InitState(digest);
 
 #define BUFFER_LENGTH 4096
     static_assert((BUFFER_LENGTH % 64) == 0);
 
-    char buffer[BUFFER_LENGTH];
+    alignas(16) char buffer[BUFFER_LENGTH];
     uint64_t rest = *length;
     while (true) {
         if (rest == 0) {
