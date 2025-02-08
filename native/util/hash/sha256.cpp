@@ -79,7 +79,7 @@ static constexpr word32 SHA256_K[64] = {
 ///  than a <tt>rotate REG</tt>. Immediate rotates can be up to three times faster than their register
 ///  counterparts.
 /// \sa rotlConstant, rotrConstant, rotlFixed, rotrFixed, rotlVariable, rotrVariable
-template <unsigned int R, class T> inline T rotrConstant(T x)
+template <unsigned int R, class T> inline T rotrConstant(T x) noexcept
 {
 	// Portable rotate that reduces to single instruction...
 	// http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57157,
@@ -115,7 +115,7 @@ template <unsigned int R, class T> inline T rotrConstant(T x)
 #define S0(x) (rotrConstant<2>(x)^rotrConstant<13>(x)^rotrConstant<22>(x))
 #define S1(x) (rotrConstant<6>(x)^rotrConstant<11>(x)^rotrConstant<25>(x))
 
-void SHA256_HashBlock_CXX(word32 *state, const word32 *data)
+void SHA256_HashBlock_CXX(word32 *state, const word32 *data) noexcept
 {
     word32 W[16]={0}, T[8];
     /* Copy context->state[] to working vars */
@@ -161,7 +161,7 @@ void SHA256_HashBlock_CXX(word32 *state, const word32 *data)
 
 }
 
-static void SHA256_InitState(word32 *state)
+static void SHA256_InitState(word32 *state) noexcept
 {
     state[0] = 0x6a09e667;
     state[1] = 0xbb67ae85;
@@ -173,11 +173,9 @@ static void SHA256_InitState(word32 *state)
     state[7] = 0x5be0cd19;
 }
 
-static void SHA256_All(word32* digest, const char* data, size_t length)
+static size_t SHA256_Update(word32* digest, const char* data, size_t length) noexcept
 {
-    word32 buffer[16];
-
-    SHA256_InitState(digest);
+    alignas(16) word32 buffer[16];
     size_t rest = length;
     const char* input = data;
     size_t i;
@@ -194,6 +192,15 @@ static void SHA256_All(word32* digest, const char* data, size_t length)
         rest -= 64;
         input += 64;
     }
+
+    // number of bytes consumed
+    return static_cast<size_t>(input - data);
+}
+
+static void SHA256_Rest(word32* digest, uint64_t totalByteLength, const char* data, size_t rest) noexcept {
+    alignas(16) word32 buffer[16];
+    const char* input = data;
+    size_t i;
 
     // handle remaining bytes and '1' bit at the end of message
     for (i = 0; i < rest / 4; ++i) {
@@ -233,19 +240,24 @@ static void SHA256_All(word32* digest, const char* data, size_t length)
         }
     }
 
-    const word32 lowbits = (word32)((length << 3) & 0xffffffff);
-    const word32 highbits = (word32)((length >> 29) & 0xffffffff);
+    const word32 lowbits = (word32)((totalByteLength << 3) & 0xffffffff);
+    const word32 highbits = (word32)((totalByteLength >> 29) & 0xffffffff);
     buffer[14] = highbits;
     buffer[15] = lowbits;
 
     SHA256_HashBlock_CXX(digest, buffer);
 }
 
+static void SHA256_All(word32* digest, const char* data, size_t length) noexcept {
+    SHA256_InitState(digest);
+    const size_t bytesConsumed = length > 0 ? SHA256_Update(digest, data, length) : 0;
+    SHA256_Rest(digest, length, data + bytesConsumed, length - bytesConsumed);
+}
 }
 
 namespace HyoutaUtils::Hash {
-SHA256 CalculateSHA256(const void* data, size_t length) {
-    word32 state[8];
+SHA256 CalculateSHA256(const void* data, size_t length) noexcept {
+    alignas(16) word32 state[8];
     SHA256_All(state, ((const char*)data), length);
 
     SHA256 rv;

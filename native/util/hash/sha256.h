@@ -12,7 +12,7 @@ struct SHA256 {
     std::array<char, 32> Hash;
 };
 
-SHA256 CalculateSHA256(const void* data, size_t length);
+SHA256 CalculateSHA256(const void* data, size_t length) noexcept;
 
 constexpr std::optional<SHA256> TrySHA256FromHexString(std::string_view sv) {
     if (sv.size() != 64) {
