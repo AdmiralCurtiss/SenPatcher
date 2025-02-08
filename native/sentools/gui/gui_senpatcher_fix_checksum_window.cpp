@@ -119,7 +119,7 @@ bool SenPatcherFixChecksumWindow::RenderFrame(GuiState& state) {
                 ImGui::OpenPopup("Select file to compress");
             }
 
-            ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+            ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
             bool modal_open = true;
             if (ImGui::BeginPopupModal(
                     "Select file to compress", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
@@ -155,7 +155,7 @@ bool SenPatcherFixChecksumWindow::RenderFrame(GuiState& state) {
                 ImGui::OpenPopup("Select target file");
             }
 
-            ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+            ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
             modal_open = true;
             if (ImGui::BeginPopupModal(
                     "Select target file", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {

@@ -722,12 +722,13 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
 
     bool modal_open = true;
     bool shouldOverwrite = false;
+    ImGuiUtils::SetNextWindowSizeForStandardPopup();
     if (ImGui::BeginPopupModal("Overwrite?", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
         if (!PImpl->SelectedPaths.empty()) {
             if (PImpl->SelectedPaths.size() == 1) {
                 ImGui::Text("Overwrite %s?", PImpl->SelectedPaths[0].c_str());
             } else {
-                ImGui::Text("Overwrite the selected files?");
+                ImGuiUtils::TextUnformatted("Overwrite the selected files?");
             }
             if (ImGuiUtils::ButtonFullWidth("Overwrite")) {
                 ImGui::CloseCurrentPopup();

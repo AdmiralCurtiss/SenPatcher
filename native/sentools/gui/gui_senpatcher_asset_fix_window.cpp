@@ -12,7 +12,7 @@ void HandleAssetFixDetailButton(SenTools::GuiState& state, const std::string& de
     if (ImGui::Button("Show details (may contain spoilers)")) {
         ImGui::OpenPopup("Asset fixes and improvements");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     bool modal_open = true;
     if (ImGui::BeginPopupModal(
             "Asset fixes and improvements", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {

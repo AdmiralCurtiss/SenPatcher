@@ -214,7 +214,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           false);
         ImGui::OpenPopup("Select CS1 game directory root (Sen1Launcher.exe)");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     bool modal_open = true;
     if (ImGui::BeginPopupModal("Select CS1 game directory root (Sen1Launcher.exe)",
                                &modal_open,
@@ -250,7 +250,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           false);
         ImGui::OpenPopup("Select CS1 System Data file (save511.dat)");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     modal_open = true;
     if (ImGui::BeginPopupModal("Select CS1 System Data file (save511.dat)",
                                &modal_open,
@@ -285,7 +285,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           false);
         ImGui::OpenPopup("Select CS2 game directory root (Sen2Launcher.exe)");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     modal_open = true;
     if (ImGui::BeginPopupModal("Select CS2 game directory root (Sen2Launcher.exe)",
                                &modal_open,
@@ -321,7 +321,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           false);
         ImGui::OpenPopup("Select CS2 System Data file (save255.dat)");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     modal_open = true;
     if (ImGui::BeginPopupModal("Select CS2 System Data file (save255.dat)",
                                &modal_open,
@@ -355,7 +355,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           false);
         ImGui::OpenPopup("Select CS3 game directory root (Sen3Launcher.exe)");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     modal_open = true;
     if (ImGui::BeginPopupModal("Select CS3 game directory root (Sen3Launcher.exe)",
                                &modal_open,
@@ -390,7 +390,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           false);
         ImGui::OpenPopup("Select CS4 game directory root (Sen4Launcher.exe)");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     modal_open = true;
     if (ImGui::BeginPopupModal("Select CS4 game directory root (Sen4Launcher.exe)",
                                &modal_open,
@@ -428,7 +428,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           false);
         ImGui::OpenPopup("Select Reverie game directory (hnk.exe)");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     modal_open = true;
     if (ImGui::BeginPopupModal("Select Reverie game directory (hnk.exe)",
                                &modal_open,
@@ -462,7 +462,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           false);
         ImGui::OpenPopup("Select TX game directory root (TokyoXanadu.exe)");
     }
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+    ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
     modal_open = true;
     if (ImGui::BeginPopupModal("Select TX game directory root (TokyoXanadu.exe)",
                                &modal_open,
@@ -495,7 +495,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                 if (!ImGui::IsPopupOpen("Error")) {
                     ImGui::OpenPopup("Error");
                 }
-                ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_Once);
+                ImGuiUtils::SetNextWindowSizeForStandardPopup();
                 bool modal_open = true;
                 if (ImGui::BeginPopupModal(
                         "Error", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
@@ -521,7 +521,7 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                 if (!ImGui::IsPopupOpen("Question")) {
                     ImGui::OpenPopup("Question");
                 }
-                ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_Once);
+                ImGuiUtils::SetNextWindowSizeForStandardPopup();
                 bool modal_open = true;
                 if (ImGui::BeginPopupModal(
                         "Question", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {

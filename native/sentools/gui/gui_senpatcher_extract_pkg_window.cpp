@@ -98,7 +98,7 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
                 ImGui::OpenPopup("Select PKG to unpack");
             }
 
-            ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+            ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
             bool modal_open = true;
             if (ImGui::BeginPopupModal(
                     "Select PKG to unpack", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
@@ -143,7 +143,7 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
                 ImGui::OpenPopup("Select target directory name (will be created)");
             }
 
-            ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once);
+            ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
             modal_open = true;
             if (ImGui::BeginPopupModal("Select target directory name (will be created)",
                                        &modal_open,

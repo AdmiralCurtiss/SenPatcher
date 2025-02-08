@@ -26,4 +26,21 @@ inline bool ButtonRightAlign(const char* label) {
                          - (textWidth + framePadding));
     return ImGui::Button(label);
 }
+
+inline void SetNextWindowSizeForStandardPopup(ImGuiCond cond = ImGuiCond_Appearing) {
+    float windowWidth = ImGui::GetMainViewport()->WorkSize.x;
+    float popupWidth = windowWidth * 0.3f;
+    if (popupWidth < 320.0f) {
+        popupWidth = 320.0f;
+    }
+    if (popupWidth > windowWidth) {
+        popupWidth = windowWidth;
+    }
+    ImGui::SetNextWindowSize(ImVec2(popupWidth, 0.0f), cond);
+}
+
+inline void SetNextWindowSizeForNearFullscreenPopup(ImGuiCond cond = ImGuiCond_Appearing) {
+    auto windowSize = ImGui::GetMainViewport()->WorkSize;
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.9f, windowSize.y * 0.9f), cond);
+}
 } // namespace ImGuiUtils
