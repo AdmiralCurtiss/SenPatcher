@@ -76,4 +76,10 @@ bool VerifyDlc(const uint32_t possibleVersions,
                const HyoutaUtils::DirTree::Tree& dirtree,
                std::string_view gamePath,
                VerificationStorage* verificationStorage);
+
+bool FixUnicodeFilenames(const uint32_t gameVersionBits,
+                         const HyoutaUtils::DirTree::Tree& dirtree,
+                         std::string_view gamePath);
+
+void PrintDirTree(const HyoutaUtils::DirTree::Tree& dirtree);
 } // namespace SenTools::GameVerify

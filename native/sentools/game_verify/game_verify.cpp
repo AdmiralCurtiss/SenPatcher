@@ -484,6 +484,390 @@ bool VerifyDlc(const uint32_t possibleVersions,
                              HyoutaUtils::IO::FilesystemPathFromUtf8(gamePath),
                              verificationStorage);
 }
+
+static bool HasUnicodeChar(std::string_view filename) {
+    for (char c : filename) {
+        if (static_cast<uint8_t>(c) >= 0x80) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool AnyChildHasUnicodeChar(uint32_t gameVersionBits,
+                                   const HyoutaUtils::DirTree::Tree& dirtree,
+                                   size_t dirTreeIndex) {
+    const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[dirTreeIndex];
+    const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+    const size_t count = entry.GetDirectoryNumberOfEntries();
+    for (size_t i = 0; i < count; ++i) {
+        const HyoutaUtils::DirTree::Entry& child = dirtree.Entries[firstChildIndex + i];
+        if ((gameVersionBits & child.GetGameVersionBits()) == 0) {
+            continue;
+        }
+        std::string_view filename(dirtree.StringTable + child.GetFilenameOffset(),
+                                  child.GetFilenameLength());
+        if (HasUnicodeChar(filename)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+namespace {
+struct FileInFileSystem {
+    std::filesystem::path Path;
+    bool IsDirectory;
+    bool HasIntermediateDirectory = false;
+    size_t CorrespondingDirtreeIndex = std::numeric_limits<size_t>::max();
+};
+
+static bool ConvertDirectoryToSingleFileInDirectory(FileInFileSystem& e) {
+    while (e.IsDirectory) {
+        std::error_code ec;
+        std::filesystem::directory_iterator it(e.Path, ec);
+        if (ec) {
+            return false;
+        }
+        if (it == std::filesystem::directory_iterator()) {
+            // zero files in this directory, this is clearly something else
+            return false;
+        }
+        auto stat = it->status(ec);
+        if (ec) {
+            return false;
+        }
+        e.Path = it->path();
+        e.IsDirectory = std::filesystem::is_directory(stat);
+        it.increment(ec);
+        if (ec) {
+            return false;
+        }
+        if (it != std::filesystem::directory_iterator()) {
+            // more than one file in this directory, this is clearly something else
+            return false;
+        }
+    }
+    return true;
+}
+} // namespace
+
+static bool FixUnicodeFilenamesInDirectory(uint32_t gameVersionBits,
+                                           const HyoutaUtils::DirTree::Tree& dirtree,
+                                           size_t dirTreeIndex,
+                                           const std::filesystem::path& gamePath) {
+    if (!AnyChildHasUnicodeChar(gameVersionBits, dirtree, dirTreeIndex)) {
+        return false;
+    }
+
+    // match the expected dirtree against the actual filesystem
+    std::unordered_map<std::string_view, size_t, CaseInsensitiveHash, CaseInsensitiveEquals>
+        filesInDirtreeButNotFilesystem;
+    std::vector<FileInFileSystem> filesInFilesystemButNotDirtree;
+    const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[dirTreeIndex];
+    const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+    const size_t count = entry.GetDirectoryNumberOfEntries();
+    for (size_t i = 0; i < count; ++i) {
+        const size_t index = firstChildIndex + i;
+        const HyoutaUtils::DirTree::Entry& child = dirtree.Entries[index];
+        if ((gameVersionBits & child.GetGameVersionBits()) == 0) {
+            continue;
+        }
+        std::string_view filename(dirtree.StringTable + child.GetFilenameOffset(),
+                                  child.GetFilenameLength());
+        filesInDirtreeButNotFilesystem.try_emplace(filename, index);
+    }
+    std::error_code ec;
+    {
+        std::filesystem::directory_iterator it(gamePath, ec);
+        if (ec) {
+            return false;
+        }
+        while (it != std::filesystem::directory_iterator()) {
+            std::string filename = HyoutaUtils::IO::FilesystemPathToUtf8(it->path().filename());
+            if (filesInDirtreeButNotFilesystem.erase(std::string_view(filename)) == 0) {
+                auto stat = it->status(ec);
+                if (ec) {
+                    return false;
+                }
+                filesInFilesystemButNotDirtree.emplace_back(FileInFileSystem{
+                    .Path = it->path(), .IsDirectory = std::filesystem::is_directory(stat)});
+            }
+            it.increment(ec);
+            if (ec) {
+                return false;
+            }
+        }
+    }
+    if (filesInDirtreeButNotFilesystem.empty()) {
+        // directory matches dirtree (at least filename-wise)
+        return false;
+    }
+
+    const size_t numberOfUnmatchedDirectoriesInDirtree = [&]() {
+        size_t c = 0;
+        for (const auto& e : filesInDirtreeButNotFilesystem) {
+            if (dirtree.Entries[e.second].IsDirectory()) {
+                ++c;
+            }
+        }
+        return c;
+    }();
+    if (numberOfUnmatchedDirectoriesInDirtree == 0) {
+        // all entries in the filesystem must be single files. it's possible that due to encoding
+        // issues, intermediate directories were crated. handle this.
+        // TODO: what if multiple files end up in the same wrong directory?
+        for (auto& e : filesInFilesystemButNotDirtree) {
+            if (e.IsDirectory) {
+                if (!ConvertDirectoryToSingleFileInDirectory(e)) {
+                    return false;
+                }
+            }
+        }
+        if (filesInDirtreeButNotFilesystem.size() != filesInFilesystemButNotDirtree.size()) {
+            return false;
+        }
+    } else {
+        // dirtree has at least 1 directory, this is more complicated
+        if (numberOfUnmatchedDirectoriesInDirtree > 1) {
+            return false; // TODO: Handle this case.
+        }
+        if (filesInDirtreeButNotFilesystem.size() != filesInFilesystemButNotDirtree.size()) {
+            return false;
+        }
+        const size_t numberOfUnmatchedDirectoriesInFilesystem = [&]() {
+            size_t c = 0;
+            for (const auto& e : filesInFilesystemButNotDirtree) {
+                if (e.IsDirectory) {
+                    ++c;
+                }
+            }
+            return c;
+        }();
+        if (numberOfUnmatchedDirectoriesInDirtree != numberOfUnmatchedDirectoriesInFilesystem) {
+            return false;
+        }
+    }
+
+    // match the two lists
+    for (auto& e : filesInFilesystemButNotDirtree) {
+        if (e.IsDirectory) {
+            // FIXME: This only works for a single directory.
+            const bool matched = [&]() -> bool {
+                for (auto it = filesInDirtreeButNotFilesystem.begin();
+                     it != filesInDirtreeButNotFilesystem.end();
+                     ++it) {
+                    const auto& entry = dirtree.Entries[it->second];
+                    if (entry.IsDirectory()) {
+                        e.CorrespondingDirtreeIndex = it->second;
+                        filesInDirtreeButNotFilesystem.erase(it);
+                        return true;
+                    }
+                }
+                return false;
+            }();
+            if (!matched) {
+                return false;
+            }
+        } else {
+            auto filesize = std::filesystem::file_size(e.Path, ec);
+            if (ec) {
+                return false;
+            }
+            const bool matched = [&]() -> bool {
+                std::optional<HyoutaUtils::Hash::SHA1> hash;
+                for (auto it = filesInDirtreeButNotFilesystem.begin();
+                     it != filesInDirtreeButNotFilesystem.end();
+                     ++it) {
+                    const auto& entry = dirtree.Entries[it->second];
+                    if (entry.IsFile() && entry.GetFileSize() == filesize) {
+                        if (!hash) {
+                            HyoutaUtils::IO::File file(e.Path, HyoutaUtils::IO::OpenMode::Read);
+                            if (!file.IsOpen() || file.GetLength() != filesize) {
+                                return false;
+                            }
+                            hash = HyoutaUtils::Hash::CalculateSHA1FromFile(file);
+                            if (!hash) {
+                                return false;
+                            }
+                        }
+                        if (*hash == dirtree.HashTable[entry.GetFileHashIndex()]) {
+                            e.CorrespondingDirtreeIndex = it->second;
+                            filesInDirtreeButNotFilesystem.erase(it);
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }();
+            if (!matched) {
+                return false;
+            }
+        }
+    }
+
+    // matched everything, rename to the corrected names
+    for (auto& e : filesInFilesystemButNotDirtree) {
+        const auto& entry = dirtree.Entries[e.CorrespondingDirtreeIndex];
+        std::string_view filename(dirtree.StringTable + entry.GetFilenameOffset(),
+                                  entry.GetFilenameLength());
+        auto newPath = gamePath / HyoutaUtils::IO::FilesystemPathFromUtf8(filename);
+        printf("Rename %s -> %s\n",
+               HyoutaUtils::IO::FilesystemPathToUtf8(e.Path).c_str(),
+               HyoutaUtils::IO::FilesystemPathToUtf8(newPath).c_str());
+        // std::filesystem::rename(e.Path, newPath, ec);
+        if (ec) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool FixUnicodeFilenames(uint32_t gameVersionBits,
+                                const HyoutaUtils::DirTree::Tree& dirtree,
+                                size_t firstDirTreeIndex,
+                                size_t numberOfEntries,
+                                const std::filesystem::path& parentPath) {
+    std::optional<std::filesystem::path> currentPath;
+    for (size_t i = 0; i < numberOfEntries; ++i) {
+        const size_t dirTreeIndex = firstDirTreeIndex + i;
+        const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[dirTreeIndex];
+        if (entry.GetDlcIndex() != 0) {
+            // ignore DLC... this is a hack but it works for the supported games
+            continue;
+        }
+        if ((gameVersionBits & entry.GetGameVersionBits()) == 0) {
+            continue;
+        }
+
+        std::string_view filename(dirtree.StringTable + entry.GetFilenameOffset(),
+                                  entry.GetFilenameLength());
+        if (!currentPath) {
+            currentPath =
+                parentPath / std::u8string_view((const char8_t*)filename.data(), filename.size());
+        }
+        if (entry.IsDirectory()) {
+            FixUnicodeFilenamesInDirectory(gameVersionBits, dirtree, dirTreeIndex, *currentPath);
+
+            HyoutaUtils::DirTree::DirectoryIterationState dir;
+            const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+            while (HyoutaUtils::DirTree::GetNextEntries(dir, dirtree, entry)) {
+                if (!FixUnicodeFilenames(gameVersionBits,
+                                         dirtree,
+                                         dir.Begin + firstChildIndex,
+                                         dir.End - dir.Begin,
+                                         *currentPath)) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+static bool FixUnicodeFilenamesFromRoot(uint32_t gameVersionBits,
+                                        const HyoutaUtils::DirTree::Tree& dirtree,
+                                        const std::filesystem::path& gamePath) {
+    if (dirtree.NumberOfEntries > 0) {
+        FixUnicodeFilenamesInDirectory(gameVersionBits, dirtree, 0, gamePath);
+
+        const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[0];
+        HyoutaUtils::DirTree::DirectoryIterationState dir;
+        const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+        while (HyoutaUtils::DirTree::GetNextEntries(dir, dirtree, entry)) {
+            if (!FixUnicodeFilenames(gameVersionBits,
+                                     dirtree,
+                                     dir.Begin + firstChildIndex,
+                                     dir.End - dir.Begin,
+                                     gamePath)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool FixUnicodeFilenames(const uint32_t gameVersionBits,
+                         const HyoutaUtils::DirTree::Tree& dirtree,
+                         std::string_view gamePath) {
+    return FixUnicodeFilenamesFromRoot(
+        gameVersionBits, dirtree, HyoutaUtils::IO::FilesystemPathFromUtf8(gamePath));
+}
+
+static void PrintDirTreeRecursive(const HyoutaUtils::DirTree::Tree& dirtree,
+                                  size_t dirTreeIndex,
+                                  int indent) {
+    const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[dirTreeIndex];
+    std::string_view filename(dirtree.StringTable + entry.GetFilenameOffset(),
+                              entry.GetFilenameLength());
+    if (entry.IsDirectory()) {
+        printf("%5zx %4zu %55s %*s%.*s\n",
+               static_cast<size_t>(entry.GetGameVersionBits()),
+               static_cast<size_t>(entry.GetDlcIndex()),
+               "",
+               indent,
+               "",
+               static_cast<int>(filename.size()),
+               filename.data());
+
+        const size_t count = entry.GetDirectoryNumberOfEntries();
+        const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+        for (size_t i = 0; i < count; ++i) {
+            PrintDirTreeRecursive(dirtree, firstChildIndex + i, indent + 1);
+        }
+    } else {
+        auto& hash = dirtree.HashTable[entry.GetFileHashIndex()].Hash;
+        printf(
+            "%5zx %4zu %14llu "
+            "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x "
+            "%*s%.*s\n",
+            static_cast<size_t>(entry.GetGameVersionBits()),
+            static_cast<size_t>(entry.GetDlcIndex()),
+            static_cast<unsigned long long>(entry.GetFileSize()),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[0])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[1])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[2])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[3])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[4])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[5])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[6])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[7])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[8])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[9])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[10])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[11])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[12])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[13])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[14])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[15])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[16])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[17])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[18])),
+            static_cast<unsigned int>(static_cast<uint8_t>(hash[19])),
+            indent,
+            "",
+            static_cast<int>(filename.size()),
+            filename.data());
+    }
+}
+
+static void PrintDirTreeFromRoot(const HyoutaUtils::DirTree::Tree& dirtree) {
+    printf("%-5s %-4s %-14s %-40s %s\n", "ver", "dlc", "filesize", "sha1", "filename");
+    if (dirtree.NumberOfEntries > 0) {
+        const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[0];
+        const size_t count = entry.GetDirectoryNumberOfEntries();
+        const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
+        for (size_t i = 0; i < count; ++i) {
+            PrintDirTreeRecursive(dirtree, firstChildIndex + i, 0);
+        }
+    }
+}
+
+
+void PrintDirTree(const HyoutaUtils::DirTree::Tree& dirtree) {
+    PrintDirTreeFromRoot(dirtree);
+}
 } // namespace SenTools::GameVerify
 
 namespace SenTools {
