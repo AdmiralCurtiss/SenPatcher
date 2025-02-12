@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <limits>
 #include <optional>
 #include <string_view>
@@ -552,10 +553,12 @@ static bool ConvertDirectoryToSingleFileInDirectory(FileInFileSystem& e) {
 }
 } // namespace
 
-static bool FixUnicodeFilenamesInDirectory(uint32_t gameVersionBits,
-                                           const HyoutaUtils::DirTree::Tree& dirtree,
-                                           size_t dirTreeIndex,
-                                           const std::filesystem::path& gamePath) {
+static bool FixUnicodeFilenamesInDirectory(
+    uint32_t gameVersionBits,
+    const HyoutaUtils::DirTree::Tree& dirtree,
+    size_t dirTreeIndex,
+    const std::filesystem::path& gamePath,
+    const std::function<bool(std::string_view path, size_t count)>& confirmationCallback) {
     if (!AnyChildHasUnicodeChar(gameVersionBits, dirtree, dirTreeIndex)) {
         return false;
     }
@@ -706,16 +709,25 @@ static bool FixUnicodeFilenamesInDirectory(uint32_t gameVersionBits,
         }
     }
 
+    if (!confirmationCallback(
+            HyoutaUtils::IO::FilesystemPathToUtf8(filesInFilesystemButNotDirtree.size() == 1
+                                                      ? filesInFilesystemButNotDirtree[0].Path
+                                                      : gamePath),
+            filesInFilesystemButNotDirtree.size())) {
+        // user declined the fix
+        return false;
+    }
+
     // matched everything, rename to the corrected names
     for (auto& e : filesInFilesystemButNotDirtree) {
         const auto& entry = dirtree.Entries[e.CorrespondingDirtreeIndex];
         std::string_view filename(dirtree.StringTable + entry.GetFilenameOffset(),
                                   entry.GetFilenameLength());
         auto newPath = gamePath / HyoutaUtils::IO::FilesystemPathFromUtf8(filename);
-        printf("Rename %s -> %s\n",
-               HyoutaUtils::IO::FilesystemPathToUtf8(e.Path).c_str(),
-               HyoutaUtils::IO::FilesystemPathToUtf8(newPath).c_str());
-        // std::filesystem::rename(e.Path, newPath, ec);
+        // printf("Rename %s -> %s\n",
+        //        HyoutaUtils::IO::FilesystemPathToUtf8(e.Path).c_str(),
+        //        HyoutaUtils::IO::FilesystemPathToUtf8(newPath).c_str());
+        std::filesystem::rename(e.Path, newPath, ec);
         if (ec) {
             return false;
         }
@@ -724,11 +736,13 @@ static bool FixUnicodeFilenamesInDirectory(uint32_t gameVersionBits,
     return true;
 }
 
-static bool FixUnicodeFilenames(uint32_t gameVersionBits,
-                                const HyoutaUtils::DirTree::Tree& dirtree,
-                                size_t firstDirTreeIndex,
-                                size_t numberOfEntries,
-                                const std::filesystem::path& parentPath) {
+static bool FixUnicodeFilenames(
+    uint32_t gameVersionBits,
+    const HyoutaUtils::DirTree::Tree& dirtree,
+    size_t firstDirTreeIndex,
+    size_t numberOfEntries,
+    const std::filesystem::path& parentPath,
+    const std::function<bool(std::string_view path, size_t count)>& confirmationCallback) {
     std::optional<std::filesystem::path> currentPath;
     for (size_t i = 0; i < numberOfEntries; ++i) {
         const size_t dirTreeIndex = firstDirTreeIndex + i;
@@ -748,7 +762,8 @@ static bool FixUnicodeFilenames(uint32_t gameVersionBits,
                 parentPath / std::u8string_view((const char8_t*)filename.data(), filename.size());
         }
         if (entry.IsDirectory()) {
-            FixUnicodeFilenamesInDirectory(gameVersionBits, dirtree, dirTreeIndex, *currentPath);
+            FixUnicodeFilenamesInDirectory(
+                gameVersionBits, dirtree, dirTreeIndex, *currentPath, confirmationCallback);
 
             HyoutaUtils::DirTree::DirectoryIterationState dir;
             const size_t firstChildIndex = entry.GetDirectoryFirstEntry();
@@ -757,7 +772,8 @@ static bool FixUnicodeFilenames(uint32_t gameVersionBits,
                                          dirtree,
                                          dir.Begin + firstChildIndex,
                                          dir.End - dir.Begin,
-                                         *currentPath)) {
+                                         *currentPath,
+                                         confirmationCallback)) {
                     return false;
                 }
             }
@@ -766,11 +782,13 @@ static bool FixUnicodeFilenames(uint32_t gameVersionBits,
     return true;
 }
 
-static bool FixUnicodeFilenamesFromRoot(uint32_t gameVersionBits,
-                                        const HyoutaUtils::DirTree::Tree& dirtree,
-                                        const std::filesystem::path& gamePath) {
+static bool FixUnicodeFilenamesFromRoot(
+    uint32_t gameVersionBits,
+    const HyoutaUtils::DirTree::Tree& dirtree,
+    const std::filesystem::path& gamePath,
+    const std::function<bool(std::string_view path, size_t count)>& confirmationCallback) {
     if (dirtree.NumberOfEntries > 0) {
-        FixUnicodeFilenamesInDirectory(gameVersionBits, dirtree, 0, gamePath);
+        FixUnicodeFilenamesInDirectory(gameVersionBits, dirtree, 0, gamePath, confirmationCallback);
 
         const HyoutaUtils::DirTree::Entry& entry = dirtree.Entries[0];
         HyoutaUtils::DirTree::DirectoryIterationState dir;
@@ -780,7 +798,8 @@ static bool FixUnicodeFilenamesFromRoot(uint32_t gameVersionBits,
                                      dirtree,
                                      dir.Begin + firstChildIndex,
                                      dir.End - dir.Begin,
-                                     gamePath)) {
+                                     gamePath,
+                                     confirmationCallback)) {
                 return false;
             }
         }
@@ -788,11 +807,15 @@ static bool FixUnicodeFilenamesFromRoot(uint32_t gameVersionBits,
     return true;
 }
 
-bool FixUnicodeFilenames(const uint32_t gameVersionBits,
-                         const HyoutaUtils::DirTree::Tree& dirtree,
-                         std::string_view gamePath) {
-    return FixUnicodeFilenamesFromRoot(
-        gameVersionBits, dirtree, HyoutaUtils::IO::FilesystemPathFromUtf8(gamePath));
+bool FixUnicodeFilenames(
+    const uint32_t gameVersionBits,
+    const HyoutaUtils::DirTree::Tree& dirtree,
+    std::string_view gamePath,
+    const std::function<bool(std::string_view path, size_t count)>& confirmationCallback) {
+    return FixUnicodeFilenamesFromRoot(gameVersionBits,
+                                       dirtree,
+                                       HyoutaUtils::IO::FilesystemPathFromUtf8(gamePath),
+                                       confirmationCallback);
 }
 
 static void PrintDirTreeRecursive(const HyoutaUtils::DirTree::Tree& dirtree,

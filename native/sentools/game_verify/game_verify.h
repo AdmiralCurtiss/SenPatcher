@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <string_view>
@@ -77,9 +78,11 @@ bool VerifyDlc(const uint32_t possibleVersions,
                std::string_view gamePath,
                VerificationStorage* verificationStorage);
 
-bool FixUnicodeFilenames(const uint32_t gameVersionBits,
-                         const HyoutaUtils::DirTree::Tree& dirtree,
-                         std::string_view gamePath);
+bool FixUnicodeFilenames(
+    const uint32_t gameVersionBits,
+    const HyoutaUtils::DirTree::Tree& dirtree,
+    std::string_view gamePath,
+    const std::function<bool(std::string_view path, size_t count)>& confirmationCallback);
 
 void PrintDirTree(const HyoutaUtils::DirTree::Tree& dirtree);
 } // namespace SenTools::GameVerify

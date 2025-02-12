@@ -2,6 +2,7 @@
 
 #include <array>
 #include <condition_variable>
+#include <format>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -58,12 +59,15 @@ struct SenPatcherMainWindow::WorkThreadState {
         None,
         ErrorMessage,
         YesNoQuestion,
+        YesNoYesToAllNoToAllQuestion,
     };
     enum class UserInputReplyType {
         None,
         OK,
         Yes,
         No,
+        YesToAll,
+        NoToAll,
     };
     UserInputRequestType UserInputRequest = UserInputRequestType::None;
     UserInputReplyType UserInputReply = UserInputReplyType::None;
@@ -101,6 +105,18 @@ struct SenPatcherMainWindow::WorkThreadState {
         return UserInputReply;
     }
 
+    // Asks the user a yes/no/yes-to-all/no-to-all question, waits for the reply, and returns.
+    // If the message box is closed we assume a 'no' answer.
+    UserInputReplyType ShowYesAllNoAllQuestion(std::string message) {
+        std::unique_lock lk(UserInputRequestMutex);
+        UserInputRequest = UserInputRequestType::YesNoYesToAllNoToAllQuestion;
+        UserInputReply = UserInputReplyType::None;
+        UserInputRequestMessage = std::move(message);
+        UserInputRequestCondVar.wait(
+            lk, [this] { return CancelAll.load() || UserInputReply != UserInputReplyType::None; });
+        return UserInputReply;
+    }
+
     ~WorkThreadState() {
         CancelAll.store(true);
         UserInputRequestCondVar.notify_all();
@@ -130,6 +146,50 @@ struct SenPatcherMainWindow::WorkThreadState {
             }
         }
         return true;
+    }
+
+    void DoFixUnicodeFilenames(const std::string& path,
+                               const HyoutaUtils::DirTree::Tree& dirtree,
+                               uint32_t gameVersionBits) {
+        bool yesToAll = false;
+        bool noToAll = false;
+
+        SenTools::GameVerify::FixUnicodeFilenames(
+            gameVersionBits, dirtree, path, [&](std::string_view path, size_t count) -> bool {
+                if (yesToAll) {
+                    return true;
+                }
+                if (noToAll) {
+                    return false;
+                }
+
+                std::string question;
+                if (count == 1) {
+                    question = std::format(
+                        "Found a {} with unicode encoding issues:\n{}\n\n"
+                        "Would you like SenPatcher to fix this?",
+                        HyoutaUtils::IO::DirectoryExists(path) ? "directory" : "file",
+                        path);
+                } else {
+                    question = std::format(
+                        "Found a directory containing {} files with unicode encoding "
+                        "issues:\n{}\n\n"
+                        "Would you like SenPatcher to fix this?",
+                        count,
+                        path);
+                }
+
+                UserInputReplyType result = ShowYesAllNoAllQuestion(question);
+                if (result == UserInputReplyType::YesToAll) {
+                    yesToAll = true;
+                    return true;
+                }
+                if (result == UserInputReplyType::NoToAll) {
+                    noToAll = true;
+                    return false;
+                }
+                return result == UserInputReplyType::Yes;
+            });
     }
 };
 
@@ -554,6 +614,56 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                 }
                 break;
             }
+            case SenPatcherMainWindow::WorkThreadState::UserInputRequestType::
+                YesNoYesToAllNoToAllQuestion: {
+                if (!ImGui::IsPopupOpen("Question")) {
+                    ImGui::OpenPopup("Question");
+                }
+                ImGuiUtils::SetNextWindowSizeForStandardPopup();
+                bool modal_open = true;
+                if (ImGui::BeginPopupModal(
+                        "Question", &modal_open, ImGuiWindowFlags_NoSavedSettings)) {
+                    ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
+                    ImGuiUtils::TextUnformatted(WorkThread->UserInputRequestMessage);
+                    ImGui::PopTextWrapPos();
+                    if (ImGuiUtils::ButtonFullWidth("Yes")) {
+                        WorkThread->UserInputReply =
+                            SenPatcherMainWindow::WorkThreadState::UserInputReplyType::Yes;
+                        ImGui::CloseCurrentPopup();
+                        modal_open = false;
+                    }
+                    if (ImGuiUtils::ButtonFullWidth("No")) {
+                        WorkThread->UserInputReply =
+                            SenPatcherMainWindow::WorkThreadState::UserInputReplyType::No;
+                        ImGui::CloseCurrentPopup();
+                        modal_open = false;
+                    }
+                    if (ImGuiUtils::ButtonFullWidth("Yes to all")) {
+                        WorkThread->UserInputReply =
+                            SenPatcherMainWindow::WorkThreadState::UserInputReplyType::YesToAll;
+                        ImGui::CloseCurrentPopup();
+                        modal_open = false;
+                    }
+                    if (ImGuiUtils::ButtonFullWidth("No to all")) {
+                        WorkThread->UserInputReply =
+                            SenPatcherMainWindow::WorkThreadState::UserInputReplyType::NoToAll;
+                        ImGui::CloseCurrentPopup();
+                        modal_open = false;
+                    }
+                    ImGui::EndPopup();
+                }
+                if (!modal_open) {
+                    WorkThread->UserInputRequest =
+                        SenPatcherMainWindow::WorkThreadState::UserInputRequestType::None;
+                    if (WorkThread->UserInputReply
+                        == SenPatcherMainWindow::WorkThreadState::UserInputReplyType::None) {
+                        WorkThread->UserInputReply =
+                            SenPatcherMainWindow::WorkThreadState::UserInputReplyType::No;
+                    }
+                    WorkThread->UserInputRequestCondVar.notify_all();
+                }
+                break;
+            }
             default: assert(0); break;
         }
     }
@@ -614,8 +724,6 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                             alreadyAsked = true;
                         }
 
-                        // TODO: Check/fix filename encoding issues.
-
                         threadState->DoUnpatchWithUserConfirmation(path, 1);
 
                         uint32_t possibleVersions = SenTools::GameVerify::VerifyGame(
@@ -632,6 +740,9 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                                 return;
                             }
                         }
+
+                        threadState->DoFixUnicodeFilenames(
+                            path, SenLib::Sen1::GetDirTree(), possibleVersions);
 
                         threadState->PathToOpen = std::move(path);
                         threadState->PatchDllPath = std::move(patchDllPath);
@@ -724,8 +835,6 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                             alreadyAsked = true;
                         }
 
-                        // TODO: Check/fix filename encoding issues.
-
                         auto updateResult = SenTools::TryPatchCs2Version14(path, [&]() -> bool {
                             return threadState->ShowYesNoQuestion(
                                        "This appears to be version 1.4 of Trails of Cold Steel "
@@ -769,6 +878,9 @@ void SenPatcherMainWindow::HandlePendingWindowRequest(GuiState& state) {
                                 return;
                             }
                         }
+
+                        threadState->DoFixUnicodeFilenames(
+                            path, SenLib::Sen2::GetDirTree(), possibleVersions);
 
                         threadState->PathToOpen = std::move(path);
                         threadState->PatchDllPath = std::move(patchDllPath);
