@@ -169,6 +169,8 @@ static int InternalMain(int argc, char** argvUtf8) {
 
 #ifdef BUILD_FOR_WINDOWS
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[]) {
+    SetConsoleOutputCP(65001); // we use printf() with utf8 strings
+
     std::unique_ptr<const char*[]> argvUtf8Pts;
     std::unique_ptr<std::string[]> argvStorage;
     const size_t argcSizet = static_cast<size_t>(argc > 0 ? argc : 0);
