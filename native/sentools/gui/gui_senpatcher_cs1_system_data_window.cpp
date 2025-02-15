@@ -70,22 +70,28 @@ struct SenPatcherCS1SystemDataWindow::WorkThreadState {
     }
 };
 
+void SenPatcherCS1SystemDataWindow::Cleanup(GuiState& state) {
+    state.WindowIdsSysDataCS1.ReturnId(WindowId);
+}
+
 SenPatcherCS1SystemDataWindow::SenPatcherCS1SystemDataWindow(
     GuiState& state,
     std::string_view filePath,
     const SenLib::Sen1::SystemData& systemData)
-  : FilePath(filePath), Data(systemData) {
-    // TODO: Is there a better way to get imgui to handle windows where the user can create as many
-    // copies as they want at will?
-    sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
-}
+  : WindowId(GenerateWindowId(state.WindowIdsSysDataCS1,
+                              WindowIdString.data(),
+                              WindowIdString.size(),
+                              WindowTitle,
+                              sizeof(WindowTitle)))
+  , FilePath(filePath)
+  , Data(systemData) {}
 
 SenPatcherCS1SystemDataWindow::~SenPatcherCS1SystemDataWindow() = default;
 
 bool SenPatcherCS1SystemDataWindow::RenderFrame(GuiState& state) {
     ImGui::SetNextWindowSize(ImVec2(600, 550), ImGuiCond_Once);
     bool open = true;
-    bool visible = ImGui::Begin(WindowID.data(), &open, ImGuiWindowFlags_None);
+    bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
     if (!visible) {
         return open || WorkThread;

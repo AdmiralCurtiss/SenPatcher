@@ -43,18 +43,23 @@ struct SenPatcherExtractPkaWindow::ExtractionThreadState {
     }
 };
 
-SenPatcherExtractPkaWindow::SenPatcherExtractPkaWindow(GuiState& state) {
-    // TODO: Is there a better way to get imgui to handle windows where the user can create as many
-    // copies as they want at will?
-    sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
+void SenPatcherExtractPkaWindow::Cleanup(GuiState& state) {
+    state.WindowIdsExtractPKA.ReturnId(WindowId);
 }
+
+SenPatcherExtractPkaWindow::SenPatcherExtractPkaWindow(GuiState& state)
+  : WindowId(GenerateWindowId(state.WindowIdsExtractPKA,
+                              WindowIdString.data(),
+                              WindowIdString.size(),
+                              WindowTitle,
+                              sizeof(WindowTitle))) {}
 
 SenPatcherExtractPkaWindow::~SenPatcherExtractPkaWindow() = default;
 
 bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
     ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
     bool open = true;
-    bool visible = ImGui::Begin(WindowID.data(), &open, ImGuiWindowFlags_None);
+    bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
     if (!visible) {
         return open || ExtractionThread;

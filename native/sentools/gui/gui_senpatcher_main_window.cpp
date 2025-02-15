@@ -196,6 +196,8 @@ struct SenPatcherMainWindow::WorkThreadState {
 SenPatcherMainWindow::SenPatcherMainWindow() = default;
 SenPatcherMainWindow::~SenPatcherMainWindow() = default;
 
+void SenPatcherMainWindow::Cleanup(GuiState& state) {}
+
 bool SenPatcherMainWindow::RenderFrame(GuiState& state) {
     bool open = true;
     bool visible = ImGui::Begin("SenPatcher", &open, ImGuiWindowFlags_MenuBar);

@@ -9,6 +9,7 @@
 #include "gui_window.h"
 #include "sentools/senpatcher_dll_loader.h"
 #include "util/file.h"
+#include "window_id_management.h"
 
 namespace SenTools::GUI {
 struct SenPatcherPatchTXWindow : public SenTools::GUI::Window {
@@ -24,6 +25,7 @@ struct SenPatcherPatchTXWindow : public SenTools::GUI::Window {
     ~SenPatcherPatchTXWindow();
 
     bool RenderFrame(GuiState& state) override;
+    void Cleanup(GuiState& state) override;
     void UpdateInstalledDllInfo();
 
     struct Settings {
@@ -42,8 +44,8 @@ struct SenPatcherPatchTXWindow : public SenTools::GUI::Window {
 
 private:
     static constexpr char WindowTitle[] = "Patch Tokyo Xanadu eX+";
-    // size is: actual title (including null) + "##W" + index converted to hex
-    std::array<char, sizeof(WindowTitle) + 3 + sizeof(size_t) * 2> WindowID{};
+    std::array<char, GetWindowIdBufferLength(sizeof(WindowTitle))> WindowIdString;
+    size_t WindowId;
 
     Settings GameSettings;
     std::string GamePath;

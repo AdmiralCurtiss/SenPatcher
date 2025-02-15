@@ -45,11 +45,16 @@ struct SenPatcherFixChecksumWindow::WorkThreadState {
     }
 };
 
-SenPatcherFixChecksumWindow::SenPatcherFixChecksumWindow(GuiState& state) {
-    // TODO: Is there a better way to get imgui to handle windows where the user can create as many
-    // copies as they want at will?
-    sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
+void SenPatcherFixChecksumWindow::Cleanup(GuiState& state) {
+    state.WindowIdsFixChecksum.ReturnId(WindowId);
 }
+
+SenPatcherFixChecksumWindow::SenPatcherFixChecksumWindow(GuiState& state)
+  : WindowId(GenerateWindowId(state.WindowIdsFixChecksum,
+                              WindowIdString.data(),
+                              WindowIdString.size(),
+                              WindowTitle,
+                              sizeof(WindowTitle))) {}
 
 SenPatcherFixChecksumWindow::~SenPatcherFixChecksumWindow() = default;
 
@@ -85,7 +90,7 @@ static void InitFileBrowser(std::string_view currentPath, FileBrowser& browser, 
 bool SenPatcherFixChecksumWindow::RenderFrame(GuiState& state) {
     ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
     bool open = true;
-    bool visible = ImGui::Begin(WindowID.data(), &open, ImGuiWindowFlags_None);
+    bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
     if (!visible) {
         return open || WorkThread;

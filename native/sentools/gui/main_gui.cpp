@@ -27,6 +27,7 @@ static bool RenderFrame(ImGuiIO& io, GuiState& state) {
         GUI::Window* window = state.Windows[i].get();
         ImGui::PushID(static_cast<const void*>(window));
         if (!window->RenderFrame(state)) {
+            window->Cleanup(state);
             state.Windows.erase(state.Windows.begin() + i);
             --windowCount;
         } else {

@@ -15,7 +15,8 @@ struct SenPatcherMainWindow : public SenTools::GUI::Window {
     SenPatcherMainWindow& operator=(SenPatcherMainWindow&& other) = delete;
     ~SenPatcherMainWindow() override;
 
-    bool RenderFrame(GuiState& state);
+    bool RenderFrame(GuiState& state) override;
+    void Cleanup(GuiState& state) override;
 
 private:
     bool RenderContents(GuiState& state);

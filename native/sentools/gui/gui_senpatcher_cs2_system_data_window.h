@@ -8,6 +8,7 @@
 #include "gui_file_browser.h"
 #include "gui_window.h"
 #include "sen2/system_data.h"
+#include "window_id_management.h"
 
 namespace SenTools::GUI {
 struct SenPatcherCS2SystemDataWindow : public SenTools::GUI::Window {
@@ -21,11 +22,12 @@ struct SenPatcherCS2SystemDataWindow : public SenTools::GUI::Window {
     ~SenPatcherCS2SystemDataWindow();
 
     bool RenderFrame(GuiState& state) override;
+    void Cleanup(GuiState& state) override;
 
 private:
     static constexpr char WindowTitle[] = "Edit Trails of Cold Steel II System Data";
-    // size is: actual title (including null) + "##W" + index converted to hex
-    std::array<char, sizeof(WindowTitle) + 3 + sizeof(size_t) * 2> WindowID{};
+    std::array<char, GetWindowIdBufferLength(sizeof(WindowTitle))> WindowIdString;
+    size_t WindowId;
 
     std::string FilePath;
     SenLib::Sen2::SystemData Data;

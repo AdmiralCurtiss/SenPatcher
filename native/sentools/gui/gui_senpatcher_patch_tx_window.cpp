@@ -98,20 +98,25 @@ struct SenPatcherPatchTXWindow::WorkThreadState {
     }
 };
 
+void SenPatcherPatchTXWindow::Cleanup(GuiState& state) {
+    state.WindowIdsPatchTX.ReturnId(WindowId);
+}
+
 SenPatcherPatchTXWindow::SenPatcherPatchTXWindow(GuiState& state,
                                                  std::string gamePath,
                                                  std::string patchDllPath,
                                                  HyoutaUtils::IO::File patchDllFile,
                                                  SenPatcherDllIdentificationResult patchDllInfo)
-  : GamePath(std::move(gamePath))
+  : WindowId(GenerateWindowId(state.WindowIdsPatchTX,
+                              WindowIdString.data(),
+                              WindowIdString.size(),
+                              WindowTitle,
+                              sizeof(WindowTitle)))
+  , GamePath(std::move(gamePath))
   , PatchDllPath(std::move(patchDllPath))
   , PatchDllFile(std::move(patchDllFile))
   , PatchDllInfo(std::move(patchDllInfo)) {
     UpdateInstalledDllInfo();
-
-    // TODO: Is there a better way to get imgui to handle windows where the user can create as many
-    // copies as they want at will?
-    sprintf(WindowID.data(), "%s##W%zx", WindowTitle, state.WindowIndexCounter++);
 
     // load config stored in game path, if any
     HyoutaUtils::Ini::IniFile ini;
@@ -191,7 +196,7 @@ static void HelpMarker(std::string_view desc) {
 bool SenPatcherPatchTXWindow::RenderFrame(GuiState& state) {
     ImGui::SetNextWindowSize(ImVec2(600, 550), ImGuiCond_Once);
     bool open = true;
-    bool visible = ImGui::Begin(WindowID.data(), &open, ImGuiWindowFlags_None);
+    bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
     if (!visible) {
         return open || WorkThread;

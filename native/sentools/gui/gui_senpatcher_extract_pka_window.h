@@ -6,6 +6,7 @@
 
 #include "gui_file_browser.h"
 #include "gui_window.h"
+#include "window_id_management.h"
 
 namespace SenTools::GUI {
 struct SenPatcherExtractPkaWindow : public SenTools::GUI::Window {
@@ -17,11 +18,12 @@ struct SenPatcherExtractPkaWindow : public SenTools::GUI::Window {
     ~SenPatcherExtractPkaWindow();
 
     bool RenderFrame(GuiState& state) override;
+    void Cleanup(GuiState& state) override;
 
 private:
     static constexpr char WindowTitle[] = "Extract PKA";
-    // size is: actual title (including null) + "##W" + index converted to hex
-    std::array<char, sizeof(WindowTitle) + 3 + sizeof(size_t) * 2> WindowID{};
+    std::array<char, GetWindowIdBufferLength(sizeof(WindowTitle))> WindowIdString;
+    size_t WindowId;
 
     std::array<char, 1024> InputPath{};
     std::array<char, 1024> OutputPath{};
