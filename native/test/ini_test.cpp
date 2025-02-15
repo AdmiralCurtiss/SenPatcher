@@ -106,8 +106,14 @@ TEST(Ini, MalformedKeyValue) {
         EXPECT_FALSE(ini.ParseExternalMemory(INI2, sizeof(INI2) - 1));
     }
     {
+        // empty value is okay
         HyoutaUtils::Ini::IniFile ini;
-        EXPECT_FALSE(ini.ParseExternalMemory(INI3, sizeof(INI3) - 1));
+        EXPECT_TRUE(ini.ParseExternalMemory(INI3, sizeof(INI3) - 1));
+        const auto* kvp = ini.FindValue("Section", "Key1");
+        EXPECT_TRUE(kvp != nullptr);
+        if (kvp != nullptr) {
+            EXPECT_EQ("", kvp->Value);
+        }
     }
     {
         HyoutaUtils::Ini::IniFile ini;
