@@ -10,6 +10,7 @@
 #include "cli_tool.h"
 
 #include "bra_extract/bra_extract_main.h"
+#include "daybreak_save_convert/daybreak_save_convert_main.h"
 #include "dirtree_create/dirtree_create_main.h"
 #include "game_verify/game_verify_main.h"
 #include "p3a_extract/p3a_extract_main.h"
@@ -82,6 +83,10 @@ static constexpr auto CliTools = {
     CliTool{.Name = DirTree_Create_Name,
             .ShortDescription = DirTree_Create_ShortDescription,
             .Function = DirTree_Create_Function,
+            .Hidden = true},
+    CliTool{.Name = Daybreak_Save_Convert_Name,
+            .ShortDescription = Daybreak_Save_Convert_ShortDescription,
+            .Function = Daybreak_Save_Convert_Function,
             .Hidden = true},
 };
 } // namespace SenTools

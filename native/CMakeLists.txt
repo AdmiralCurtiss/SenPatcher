@@ -225,6 +225,9 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/senpatcher_dll_loader.h
 		sentools/bra_extract/bra_extract.cpp
 		sentools/bra_extract/bra_extract_main.h
+		sentools/daybreak_save_convert/daybreak_save_convert.cpp
+		sentools/daybreak_save_convert/daybreak_save_convert.h
+		sentools/daybreak_save_convert/daybreak_save_convert_main.h
 		sentools/dirtree_create/dirtree_create.cpp
 		sentools/dirtree_create/dirtree_create_main.h
 		sentools/game_verify/game_verify.cpp
