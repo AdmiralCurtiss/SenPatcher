@@ -55,18 +55,12 @@ int Save_Checksum_Fix_Function(int argc, char** argv) {
     return 0;
 }
 
-namespace {
-enum class SaveFileType {
-    Unknown,
-    CS4_SystemData,
-    CS4_GameData,
-    Reverie_SystemData,
-    Reverie_GameData,
-};
-}
-
-HyoutaUtils::Result<SaveChecksumFixResult, std::string> SaveChecksumFix(std::string_view source,
-                                                                        std::string_view target) {
+HyoutaUtils::Result<SaveChecksumFixResult, std::string>
+    SaveChecksumFix(std::string_view source,
+                    std::string_view target,
+                    SaveFileType saveFileTypeInput,
+                    bool forceCompress,
+                    bool forceWrite) {
     using namespace HyoutaUtils::MemRead;
     using namespace HyoutaUtils::MemWrite;
     using HyoutaUtils::EndianUtils::FromEndian;
@@ -99,11 +93,33 @@ HyoutaUtils::Result<SaveChecksumFixResult, std::string> SaveChecksumFix(std::str
     }
     infile.Close();
 
-    const uint32_t zstdIdent = FromEndian(ReadUInt32(saveMemory.get()), LittleEndian);
+    return SaveChecksumFix(
+        saveMemory.get(), szlen, target, saveFileTypeInput, forceCompress, forceWrite);
+}
+
+HyoutaUtils::Result<SaveChecksumFixResult, std::string>
+    SaveChecksumFix(char* saveMemoryData,
+                    size_t saveMemoryLength,
+                    std::string_view target,
+                    SaveFileType saveFileTypeInput,
+                    bool forceCompress,
+                    bool forceWrite) {
+    using namespace HyoutaUtils::MemRead;
+    using namespace HyoutaUtils::MemWrite;
+    using HyoutaUtils::EndianUtils::FromEndian;
+    using HyoutaUtils::EndianUtils::ToEndian;
+    using HyoutaUtils::EndianUtils::Endianness::BigEndian;
+    using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
+
+    char* saveMemory = saveMemoryData;
+    size_t szlen = saveMemoryLength;
+
+    std::unique_ptr<char[]> uncompressedDataBuffer;
+    const uint32_t zstdIdent = FromEndian(ReadUInt32(saveMemory), LittleEndian);
     bool wasCompressed = false;
     if (zstdIdent == 0xfd2fb528u) {
         // ZSTD compressed, decompress first
-        const auto uncompressedDataLength = ZSTD_getFrameContentSize(saveMemory.get(), szlen);
+        const auto uncompressedDataLength = ZSTD_getFrameContentSize(saveMemory, szlen);
         size_t decompressBufferSize = 0;
         if (uncompressedDataLength == ZSTD_CONTENTSIZE_UNKNOWN) {
             decompressBufferSize = (2u * 1024u * 1024u);
@@ -114,13 +130,13 @@ HyoutaUtils::Result<SaveChecksumFixResult, std::string> SaveChecksumFix(std::str
         } else {
             decompressBufferSize = static_cast<size_t>(uncompressedDataLength);
         }
-        auto uncompressedDataBuffer = std::make_unique_for_overwrite<char[]>(decompressBufferSize);
-        const size_t zstdReturn = ZSTD_decompress(
-            uncompressedDataBuffer.get(), decompressBufferSize, saveMemory.get(), szlen);
+        uncompressedDataBuffer = std::make_unique_for_overwrite<char[]>(decompressBufferSize);
+        const size_t zstdReturn =
+            ZSTD_decompress(uncompressedDataBuffer.get(), decompressBufferSize, saveMemory, szlen);
         if (ZSTD_isError(zstdReturn)) {
             return std::string("Failed to decompress input file.");
         }
-        saveMemory.swap(uncompressedDataBuffer);
+        saveMemory = uncompressedDataBuffer.get();
         szlen = zstdReturn;
         wasCompressed = true;
     }
@@ -130,42 +146,67 @@ HyoutaUtils::Result<SaveChecksumFixResult, std::string> SaveChecksumFix(std::str
     }
 
     // identify file
-    SaveFileType saveFileType = SaveFileType::Unknown;
-    const uint32_t header1 = FromEndian(ReadUInt32(saveMemory.get()), LittleEndian);
-    const uint32_t header2 = FromEndian(ReadUInt32(saveMemory.get() + 4), LittleEndian);
-    const uint32_t header3 = FromEndian(ReadUInt32(saveMemory.get() + 8), LittleEndian);
-    const uint32_t header4 = FromEndian(ReadUInt32(saveMemory.get() + 12), LittleEndian);
-    if (szlen == 1184 && header3 == szlen && header1 == 1 && header2 == 2) {
-        saveFileType = SaveFileType::CS4_SystemData;
-    } else if (szlen == 1463976 && header3 == szlen && header1 == 3 && header2 == 2) {
-        saveFileType = SaveFileType::CS4_GameData;
-    } else if (szlen == 3488 && header3 == szlen && header1 == 1 && header2 == 7) {
-        saveFileType = SaveFileType::Reverie_SystemData;
-    } else if (szlen == 1720032 && header3 == szlen && header1 == 8 && header2 == 3) {
-        saveFileType = SaveFileType::Reverie_GameData;
-    }
-
+    SaveFileType saveFileType = saveFileTypeInput;
+    const uint32_t header1 = FromEndian(ReadUInt32(saveMemory), LittleEndian);
+    const uint32_t header2 = FromEndian(ReadUInt32(saveMemory + 4), LittleEndian);
+    const uint32_t header3 = FromEndian(ReadUInt32(saveMemory + 8), LittleEndian);
+    const uint32_t header4 = FromEndian(ReadUInt32(saveMemory + 12), LittleEndian);
     if (saveFileType == SaveFileType::Unknown) {
-        return std::string("File does not appear to be a savefile with a checksum to fix.");
+        // try to autodetect
+        if (szlen == 1184 && header3 == szlen && header1 == 1 && header2 == 2) {
+            saveFileType = SaveFileType::CS4_SystemData;
+        } else if (szlen == 1463976 && header3 == szlen && header1 == 3 && header2 == 2) {
+            saveFileType = SaveFileType::CS4_GameData;
+        } else if (szlen == 3488 && header3 == szlen && header1 == 1 && header2 == 7) {
+            saveFileType = SaveFileType::Reverie_SystemData;
+        } else if (szlen == 1720032 && header3 == szlen && header1 == 8 && header2 == 3) {
+            saveFileType = SaveFileType::Reverie_GameData;
+        }
     }
 
-    const uint32_t checksum = crc_update(header3 - 16, saveMemory.get() + 16, szlen - 16);
-    if (checksum == header4) {
+    uint32_t initialCrcValue;
+    size_t sumDataStartOffset;
+    size_t sumDataLength;
+    size_t sumOffset;
+    switch (saveFileType) {
+        case SaveFileType::CS4_SystemData:
+        case SaveFileType::CS4_GameData:
+        case SaveFileType::Reverie_SystemData:
+        case SaveFileType::Reverie_GameData:
+            initialCrcValue = header3 - 16;
+            sumDataStartOffset = 16;
+            sumDataLength = szlen - 16;
+            sumOffset = 12;
+            break;
+        case SaveFileType::Daybreak_GameData:
+            initialCrcValue = static_cast<uint32_t>(szlen - 12);
+            sumDataStartOffset = 12;
+            sumDataLength = szlen - 12;
+            sumOffset = 8;
+            break;
+        default:
+            return std::string("File does not appear to be a savefile with a checksum to fix.");
+    }
+
+    const uint32_t checksum =
+        crc_update(initialCrcValue, saveMemory + sumDataStartOffset, sumDataLength);
+    if (!forceWrite && checksum == FromEndian(ReadUInt32(saveMemory + sumOffset), LittleEndian)) {
         return SaveChecksumFixResult::AlreadyCorrect;
     }
 
-    WriteUInt32(saveMemory.get() + 12, ToEndian(checksum, LittleEndian));
+    WriteUInt32(saveMemory + sumOffset, ToEndian(checksum, LittleEndian));
 
-    if (wasCompressed) {
+    std::unique_ptr<char[]> compressedData;
+    if (wasCompressed || forceCompress) {
         // try to recompress, but if it doesn't work whatever,
         // the game also reads uncompressed files fine
         size_t bound = ZSTD_compressBound(szlen);
         if (!ZSTD_isError(bound)) {
-            auto compressedData = std::make_unique_for_overwrite<char[]>(bound);
+            compressedData = std::make_unique_for_overwrite<char[]>(bound);
             const size_t zstdReturn =
-                ZSTD_compress(compressedData.get(), bound, saveMemory.get(), szlen, 22);
+                ZSTD_compress(compressedData.get(), bound, saveMemory, szlen, 22);
             if (!ZSTD_isError(zstdReturn)) {
-                saveMemory.swap(compressedData);
+                saveMemory = compressedData.get();
                 szlen = zstdReturn;
             }
         }
@@ -176,7 +217,7 @@ HyoutaUtils::Result<SaveChecksumFixResult, std::string> SaveChecksumFix(std::str
         return std::string("Failed to open output file.");
     }
     auto outfileScope = HyoutaUtils::MakeDisposableScopeGuard([&]() { outfile.Delete(); });
-    if (outfile.Write(saveMemory.get(), szlen) != szlen) {
+    if (outfile.Write(saveMemory, szlen) != szlen) {
         return std::string("Failed to write to output file.");
     }
     if (!outfile.Rename(target)) {
