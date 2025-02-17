@@ -43,4 +43,14 @@ inline void SetNextWindowSizeForNearFullscreenPopup(ImGuiCond cond = ImGuiCond_A
     auto windowSize = ImGui::GetMainViewport()->WorkSize;
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.9f, windowSize.y * 0.9f), cond);
 }
+
+inline void SetInitialNextWindowSizeWidthOnly(float width,
+                                              ImGuiCond cond = ImGuiCond_FirstUseEver) {
+    float windowWidth = ImGui::GetMainViewport()->WorkSize.x;
+    float popupWidth = width;
+    if (popupWidth > windowWidth) {
+        popupWidth = windowWidth;
+    }
+    ImGui::SetNextWindowSize(ImVec2(popupWidth, 0.0f), cond);
+}
 } // namespace ImGuiUtils

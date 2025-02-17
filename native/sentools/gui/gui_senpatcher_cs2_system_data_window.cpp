@@ -91,7 +91,7 @@ SenPatcherCS2SystemDataWindow::SenPatcherCS2SystemDataWindow(
 SenPatcherCS2SystemDataWindow::~SenPatcherCS2SystemDataWindow() = default;
 
 bool SenPatcherCS2SystemDataWindow::RenderFrame(GuiState& state) {
-    ImGui::SetNextWindowSize(ImVec2(600, 550), ImGuiCond_Once);
+    ImGuiUtils::SetInitialNextWindowSizeWidthOnly(400.0f * state.CurrentDpi);
     bool open = true;
     bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });

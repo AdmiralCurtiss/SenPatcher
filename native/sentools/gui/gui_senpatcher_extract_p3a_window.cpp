@@ -59,7 +59,7 @@ SenPatcherExtractP3AWindow::SenPatcherExtractP3AWindow(GuiState& state)
 SenPatcherExtractP3AWindow::~SenPatcherExtractP3AWindow() = default;
 
 bool SenPatcherExtractP3AWindow::RenderFrame(GuiState& state) {
-    ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
+    ImGuiUtils::SetInitialNextWindowSizeWidthOnly(400.0f * state.CurrentDpi);
     bool open = true;
     bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });

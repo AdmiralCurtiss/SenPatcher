@@ -58,7 +58,7 @@ SenPatcherCompressType1Window::SenPatcherCompressType1Window(GuiState& state)
 SenPatcherCompressType1Window::~SenPatcherCompressType1Window() = default;
 
 bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
-    ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
+    ImGuiUtils::SetInitialNextWindowSizeWidthOnly(400.0f * state.CurrentDpi);
     bool open = true;
     bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });

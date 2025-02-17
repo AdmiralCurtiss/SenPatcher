@@ -88,7 +88,7 @@ static void InitFileBrowser(std::string_view currentPath, FileBrowser& browser, 
 }
 
 bool SenPatcherFixChecksumWindow::RenderFrame(GuiState& state) {
-    ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
+    ImGuiUtils::SetInitialNextWindowSizeWidthOnly(400.0f * state.CurrentDpi);
     bool open = true;
     bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });

@@ -194,7 +194,7 @@ static void HelpMarker(std::string_view desc) {
 }
 
 bool SenPatcherPatchTXWindow::RenderFrame(GuiState& state) {
-    ImGui::SetNextWindowSize(ImVec2(600, 550), ImGuiCond_Once);
+    ImGuiUtils::SetInitialNextWindowSizeWidthOnly(600.0f * state.CurrentDpi);
     bool open = true;
     bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });

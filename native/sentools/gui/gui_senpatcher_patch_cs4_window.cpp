@@ -26,9 +26,8 @@ static constexpr char IniData[] = {
 };
 static constexpr size_t IniLength = sizeof(IniData);
 
-static constexpr const char* BUTTON_LAYOUTS[] = {
-    "Xbox or English PlayStation Style (Confirm on bottom, Cancel on right)",
-    "Nintendo or Japanese PlayStation Style (Confirm on right, Cancel on bottom)"};
+static constexpr const char* BUTTON_LAYOUTS[] = {"Confirm on bottom, Cancel on right",
+                                                 "Confirm on right, Cancel on bottom"};
 
 static constexpr char RELATIVE_DLL_PATH[] = "/bin/Win64/DINPUT8.dll";
 static constexpr char RELATIVE_INI_PATH[] = "/senpatcher_settings.ini";
@@ -158,7 +157,7 @@ static void HelpMarker(std::string_view desc) {
 }
 
 bool SenPatcherPatchCS4Window::RenderFrame(GuiState& state) {
-    ImGui::SetNextWindowSize(ImVec2(600, 550), ImGuiCond_Once);
+    ImGuiUtils::SetInitialNextWindowSizeWidthOnly(600.0f * state.CurrentDpi);
     bool open = true;
     bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
