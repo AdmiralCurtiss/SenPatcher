@@ -19,7 +19,6 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
-        "SENPATCHER_BUILDFLAGS": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
         "SENPATCHER_BUILD_TOOLS": "OFF",
         "SENPATCHER_BUILD_CS1HOOK": "ON",
         "SENPATCHER_BUILD_CS2HOOK": "ON",
@@ -49,7 +48,6 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
-        "SENPATCHER_BUILDFLAGS": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
         "SENPATCHER_BUILD_TOOLS": "OFF",
         "SENPATCHER_BUILD_CS1HOOK": "ON",
         "SENPATCHER_BUILD_CS2HOOK": "ON",
@@ -79,7 +77,6 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
-        "SENPATCHER_BUILDFLAGS": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive-",
         "SENPATCHER_BUILD_TOOLS": "ON",
         "SENPATCHER_BUILD_CS1HOOK": "OFF",
         "SENPATCHER_BUILD_CS2HOOK": "OFF",
@@ -109,7 +106,6 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
-        "SENPATCHER_BUILDFLAGS": "/Wall /wd4310 /wd5045 /wd4514 /wd4820 /wd4061 /wd4464 /wd4710 /permissive- /Gy /Zc:inline /Oi",
         "SENPATCHER_BUILD_TOOLS": "ON",
         "SENPATCHER_BUILD_CS1HOOK": "OFF",
         "SENPATCHER_BUILD_CS2HOOK": "OFF",

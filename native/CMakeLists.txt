@@ -22,7 +22,92 @@ option(SENPATCHER_BUILD_GTESTS "build tests" ON)
 
 option(SENPATCHER_WITH_IMGUI "enable imgui GUI for tools" ON)
 
-separate_arguments(SENPATCHER_BUILDFLAGS NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS}")
+if (DEFINED SENPATCHER_BUILDFLAGS OR DEFINED SENPATCHER_BUILDFLAGS_RELEASE OR DEFINED SENPATCHER_BUILDFLAGS_DEBUG)
+	# user has explicitly set buildflags
+	separate_arguments(SENPATCHER_BUILDFLAGS_INTERNAL NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS}")
+	separate_arguments(SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS_RELEASE}")
+	separate_arguments(SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS_DEBUG}")
+else()
+	if (MSVC)
+		# enable all warnings, then disable the ones that don't really help
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/Wall")
+
+		# spectre mitigation warning
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd5045")
+
+		# unreferenced inline function has been removed
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4514")
+
+		# reports padding of structs
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4820")
+
+		# enum not explicitly handled in switch
+		# this triggers even when a 'default' case exists, which makes it kind of useless
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4061")
+
+		# relative include path includes '..'
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4464")
+
+		# function marked for inlining was not inlined
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4710")
+
+		# aligned struct is padded
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4324")
+
+		# passing exception-throwing function to extern C. this unfortunately occurs in winbase.h by itself...
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd5039")
+		
+		# ifdef DEFINE is defined as '0'
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4574")
+
+		# if DEFINE not defined, assuming '0'. this also occurs in windows headers
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4668")
+
+		# all of these are variations on 'copy constructor was implicitly deleted'
+		# these are extremely noisy if you're making method-less structs for readability
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4623")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4624")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4625")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4626")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd5024")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd5025")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd5026")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd5027")
+
+		# be standards-conforming
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/permissive-")
+
+		# catch C++ exceptions, assume C functions do not throw, do not catch structured exceptions
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/EHsc")
+
+		# generate .pdb files
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/Zi")
+
+
+		# for debug build:
+
+		# disable optimizations
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG "/Od")
+
+
+		# for release build:
+
+		# optimize as fast code
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/O2")
+
+		# remove unreferenced functions or data
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/Zc:inline")
+
+		# handle the intel JCC performance erratum
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/QIntel-jcc-erratum")
+
+		# enable whole-program optimization
+		# list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/GL")
+	endif()
+endif()
+message(STATUS "Using build flags (any): ${SENPATCHER_BUILDFLAGS_INTERNAL}")
+message(STATUS "Using build flags (debug): ${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}")
+message(STATUS "Using build flags (release): ${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}")
 
 function(senpatcher_generate_embeddable_file SOURCE_PATH TARGET_NAME)
 	get_filename_component(TMP_SENPATCHER_FILEPATH "${SOURCE_PATH}" ABSOLUTE)
@@ -391,7 +476,9 @@ if (SENPATCHER_BUILD_TOOLS)
 		target_compile_definitions(sentools PRIVATE HAS_COMPRESSED_DIRTREE_TX)
 	endif()
 
-	target_compile_options(sentools PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(sentools PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(sentools PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(sentools PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(sentools
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -864,7 +951,9 @@ if (SENPATCHER_BUILD_CS1TEST)
 	if (WIN32)
 		target_compile_definitions(cs1test PUBLIC BUILD_FOR_WINDOWS)
 	endif()
-	target_compile_options(cs1test PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(cs1test PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(cs1test PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(cs1test PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(cs1test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -913,7 +1002,9 @@ if (SENPATCHER_BUILD_CS1HOOK)
 	target_compile_definitions(cs1hook
 		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
-	target_compile_options(cs1hook PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(cs1hook PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(cs1hook PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(cs1hook PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(cs1hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -941,7 +1032,9 @@ if (SENPATCHER_BUILD_CS2TEST)
 	if (WIN32)
 		target_compile_definitions(cs2test PUBLIC BUILD_FOR_WINDOWS)
 	endif()
-	target_compile_options(cs2test PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(cs2test PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(cs2test PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(cs2test PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(cs2test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -995,7 +1088,9 @@ if (SENPATCHER_BUILD_CS2HOOK)
 	target_compile_definitions(cs2hook
 		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
-	target_compile_options(cs2hook PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(cs2hook PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(cs2hook PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(cs2hook PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(cs2hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -1142,7 +1237,9 @@ if (SENPATCHER_BUILD_TXTEST)
 	if (WIN32)
 		target_compile_definitions(txtest PUBLIC BUILD_FOR_WINDOWS)
 	endif()
-	target_compile_options(txtest PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(txtest PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(txtest PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(txtest PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(txtest
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -1196,7 +1293,9 @@ if (SENPATCHER_BUILD_TXHOOK)
 	target_compile_definitions(txhook
 		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
-	target_compile_options(txhook PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(txhook PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(txhook PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(txhook PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(txhook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -1225,7 +1324,9 @@ if (SENPATCHER_BUILD_CS3TEST)
 	if (WIN32)
 		target_compile_definitions(cs3test PUBLIC BUILD_FOR_WINDOWS)
 	endif()
-	target_compile_options(cs3test PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(cs3test PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(cs3test PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(cs3test PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(cs3test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -1276,7 +1377,9 @@ if (SENPATCHER_BUILD_CS3HOOK)
 	target_compile_definitions(cs3hook
 		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
-	target_compile_options(cs3hook PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(cs3hook PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(cs3hook PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(cs3hook PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(cs3hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -1304,7 +1407,9 @@ if (SENPATCHER_BUILD_CS4TEST)
 	if (WIN32)
 		target_compile_definitions(cs4test PUBLIC BUILD_FOR_WINDOWS)
 	endif()
-	target_compile_options(cs4test PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(cs4test PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(cs4test PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(cs4test PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(cs4test
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -1350,7 +1455,9 @@ if (SENPATCHER_BUILD_CS4HOOK)
 	target_compile_definitions(cs4hook
 		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
-	target_compile_options(cs4hook PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(cs4hook PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(cs4hook PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(cs4hook PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(cs4hook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -1378,7 +1485,9 @@ if (SENPATCHER_BUILD_REVTEST)
 	if (WIN32)
 		target_compile_definitions(reverietest PUBLIC BUILD_FOR_WINDOWS)
 	endif()
-	target_compile_options(reverietest PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(reverietest PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(reverietest PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(reverietest PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(reverietest
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
@@ -1420,7 +1529,9 @@ if (SENPATCHER_BUILD_REVHOOK)
 	target_compile_definitions(reveriehook
 		PUBLIC ${DEFINES_ZSTD} BUILD_FOR_WINDOWS
 	)
-	target_compile_options(reveriehook PRIVATE ${SENPATCHER_BUILDFLAGS})
+	target_compile_options(reveriehook PRIVATE ${SENPATCHER_BUILDFLAGS_INTERNAL})
+	target_compile_options(reveriehook PRIVATE $<$<CONFIG:Debug>:${SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG}>)
+	target_compile_options(reveriehook PRIVATE $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:${SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE}>)
 	target_include_directories(reveriehook
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
