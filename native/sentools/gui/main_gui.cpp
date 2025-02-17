@@ -94,17 +94,26 @@ int RunGui(int argc, char** argvUtf8) {
     };
 
     const std::string_view windowTitle("SenPatcher " SENPATCHER_VERSION);
+    ImVec4 backgroundColor(0.070f, 0.125f, 0.070f, 1.000f); // dark gray-ish green
+    // ImVec4 backgroundColor(0.060f, 0.000f, 0.125f, 1.000f); // dark blue/purple
+    // ImVec4 backgroundColor(0.000f, 0.000f, 0.000f, 1.000f); // black
 #ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(windowTitle.data(), windowTitle.size());
     int rv = RunGuiDX11(state,
                         wstr ? wstr->c_str() : L"SenPatcher",
+                        backgroundColor,
                         LoadFonts,
                         RenderFrame,
                         load_imgui_ini,
                         save_imgui_ini);
 #else
-    int rv = RunGuiGlfwVulkan(
-        state, windowTitle.data(), LoadFonts, RenderFrame, load_imgui_ini, save_imgui_ini);
+    int rv = RunGuiGlfwVulkan(state,
+                              windowTitle.data(),
+                              backgroundColor,
+                              LoadFonts,
+                              RenderFrame,
+                              load_imgui_ini,
+                              save_imgui_ini);
 #endif
     if (guiSettingsFolder) {
         HyoutaUtils::IO::CreateDirectory(std::string_view(*guiSettingsFolder));

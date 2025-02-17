@@ -441,6 +441,7 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd) {
 int SenTools::RunGuiGlfwVulkan(
     GuiState& state,
     const char* windowTitle,
+    const ImVec4& backgroundColor,
     const std::function<void(ImGuiIO& io, GuiState& state)>& loadFontsCallback,
     const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback,
     const std::function<void(ImGuiIO& io, GuiState& state)>& loadIniCallback,
@@ -584,10 +585,10 @@ int SenTools::RunGuiGlfwVulkan(
         const bool is_minimized =
             (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
         if (!is_minimized) {
-            wd->ClearValue.color.float32[0] = state.clear_color.x * state.clear_color.w;
-            wd->ClearValue.color.float32[1] = state.clear_color.y * state.clear_color.w;
-            wd->ClearValue.color.float32[2] = state.clear_color.z * state.clear_color.w;
-            wd->ClearValue.color.float32[3] = state.clear_color.w;
+            wd->ClearValue.color.float32[0] = backgroundColor.x * backgroundColor.w;
+            wd->ClearValue.color.float32[1] = backgroundColor.y * backgroundColor.w;
+            wd->ClearValue.color.float32[2] = backgroundColor.z * backgroundColor.w;
+            wd->ClearValue.color.float32[3] = backgroundColor.w;
             FrameRender(wd, draw_data);
             FramePresent(wd);
         }

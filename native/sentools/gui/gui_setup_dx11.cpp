@@ -36,6 +36,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 int SenTools::RunGuiDX11(
     GuiState& state,
     const wchar_t* windowTitle,
+    const ImVec4& backgroundColor,
     const std::function<void(ImGuiIO& io, GuiState& state)>& loadFontsCallback,
     const std::function<bool(ImGuiIO& io, GuiState& state)>& renderFrameCallback,
     const std::function<void(ImGuiIO& io, GuiState& state)>& loadIniCallback,
@@ -173,10 +174,10 @@ int SenTools::RunGuiDX11(
 
         // Rendering
         ImGui::Render();
-        const float clear_color_with_alpha[4] = {state.clear_color.x * state.clear_color.w,
-                                                 state.clear_color.y * state.clear_color.w,
-                                                 state.clear_color.z * state.clear_color.w,
-                                                 state.clear_color.w};
+        const float clear_color_with_alpha[4] = {backgroundColor.x * backgroundColor.w,
+                                                 backgroundColor.y * backgroundColor.w,
+                                                 backgroundColor.z * backgroundColor.w,
+                                                 backgroundColor.w};
         g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
         g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
