@@ -186,16 +186,6 @@ void SenPatcherPatchCS1Window::UpdateInstalledDllInfo() {
 
 SenPatcherPatchCS1Window::~SenPatcherPatchCS1Window() = default;
 
-static void HelpMarker(std::string_view desc) {
-    ImGui::TextDisabled("(?)");
-    if (ImGui::BeginItemTooltip()) {
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc.data(), desc.data() + desc.size());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-}
-
 bool SenPatcherPatchCS1Window::RenderFrame(GuiState& state) {
     ImGuiUtils::SetInitialNextWindowSizeWidthOnly(600.0f * state.CurrentDpi);
     bool open = true;
@@ -276,11 +266,15 @@ bool SenPatcherPatchCS1Window::RenderFrame(GuiState& state) {
         }
 
         ImGui::SameLine();
-        HelpMarker(
+        ImGuiUtils::GamepadNavigableHelperTooltip(
+            "##TurboKeyTip",
+            "(?)",
             "All original functionality of the selected button will still trigger when pressing "
             "that button. L3/LS is unused in CS1, so you can map it there and then remap it to a "
             "more convenient button using eg. Steam's button remapping feature. Some buttons may "
-            "be inaccessible when using Mouse/Keyboard controls.");
+            "be inaccessible when using Mouse/Keyboard controls.",
+            state.CurrentDpi * 350.0f,
+            true);
 
         if (ImGuiUtils::ButtonFullWidth("Patch!", 40.0f * state.CurrentDpi) && !WorkThread) {
             StatusMessage = "Patching...";

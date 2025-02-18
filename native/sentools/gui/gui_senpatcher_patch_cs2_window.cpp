@@ -155,16 +155,6 @@ void SenPatcherPatchCS2Window::UpdateInstalledDllInfo() {
 
 SenPatcherPatchCS2Window::~SenPatcherPatchCS2Window() = default;
 
-static void HelpMarker(std::string_view desc) {
-    ImGui::TextDisabled("(?)");
-    if (ImGui::BeginItemTooltip()) {
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc.data(), desc.data() + desc.size());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-}
-
 bool SenPatcherPatchCS2Window::RenderFrame(GuiState& state) {
     ImGuiUtils::SetInitialNextWindowSizeWidthOnly(600.0f * state.CurrentDpi);
     bool open = true;
@@ -214,15 +204,23 @@ bool SenPatcherPatchCS2Window::RenderFrame(GuiState& state) {
         ImGui::Checkbox("Fix wrong BGM when BGM is changed while track is fading out",
                         &GameSettings.CheckBoxBgmEnqueueingLogic);
         ImGui::SameLine();
-        HelpMarker(
+        ImGuiUtils::GamepadNavigableHelperTooltip(
+            "##BgmEnqueueTip",
+            "(?)",
             "Fixes the missing BGM bug in the intermission as well as the incorrect BGM being "
-            "played when quickly and repeatedly moving between areas with different music.");
+            "played when quickly and repeatedly moving between areas with different music.",
+            state.CurrentDpi * 350.0f,
+            true);
         ImGui::Checkbox("Replace Audio Timing Thread (Recommended)",
                         &GameSettings.CheckBoxPatchAudioThread);
         ImGui::SameLine();
-        HelpMarker(
+        ImGuiUtils::GamepadNavigableHelperTooltip(
+            "##AudioThreadTip",
+            "(?)",
             "Makes the audio thread's timing more consistent, which fixes overly long BGM fades "
-            "and some missing sound effects such as Fie's Sweep Craft.");
+            "and some missing sound effects such as Fie's Sweep Craft.",
+            state.CurrentDpi * 350.0f,
+            true);
         ImGui::Checkbox(
             "Fix inconsistent Controller Button Prompts and Mappings when remapping buttons",
             &GameSettings.CheckBoxControllerMapping);

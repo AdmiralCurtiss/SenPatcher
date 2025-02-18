@@ -53,4 +53,29 @@ inline void SetInitialNextWindowSizeWidthOnly(float width,
     }
     ImGui::SetNextWindowSize(ImVec2(popupWidth, 0.0f), cond);
 }
+
+inline void GamepadNavigableHelperTooltip(const char* id,
+                                          std::string_view outerText,
+                                          std::string_view innerText,
+                                          float tooltipWidth,
+                                          bool requiresHighBox = false) {
+    auto& style = ImGui::GetStyle();
+    ImVec2 textSize = ImGui::CalcTextSize(outerText.data(), outerText.data() + outerText.size());
+    if (requiresHighBox) {
+        textSize.y += style.FramePadding.y * 2.0f;
+    }
+    ImGui::InvisibleButton(id, textSize, ImGuiButtonFlags_EnableNav);
+    const bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone);
+    ImGui::SameLine(0.0f, 0.0f);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() - textSize.x);
+    ImGui::PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
+    ImGui::TextUnformatted(outerText.data(), outerText.data() + outerText.size());
+    ImGui::PopStyleColor();
+    if (hovered && ImGui::BeginTooltip()) {
+        ImGui::PushTextWrapPos(tooltipWidth);
+        ImGui::TextUnformatted(innerText.data(), innerText.data() + innerText.size());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
 } // namespace ImGuiUtils

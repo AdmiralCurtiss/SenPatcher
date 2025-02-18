@@ -183,16 +183,6 @@ void SenPatcherPatchTXWindow::UpdateInstalledDllInfo() {
 
 SenPatcherPatchTXWindow::~SenPatcherPatchTXWindow() = default;
 
-static void HelpMarker(std::string_view desc) {
-    ImGui::TextDisabled("(?)");
-    if (ImGui::BeginItemTooltip()) {
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc.data(), desc.data() + desc.size());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-}
-
 bool SenPatcherPatchTXWindow::RenderFrame(GuiState& state) {
     ImGuiUtils::SetInitialNextWindowSizeWidthOnly(600.0f * state.CurrentDpi);
     bool open = true;
@@ -255,9 +245,13 @@ bool SenPatcherPatchTXWindow::RenderFrame(GuiState& state) {
             ImGui::EndCombo();
         }
         ImGui::SameLine();
-        HelpMarker(
-            "The default button for Turbo Mode is L3 on controller and Left Ctrl on "
-            "keyboard.\nThis can be changed in the in-game Button Configuration options.");
+        ImGuiUtils::GamepadNavigableHelperTooltip(
+            "##TurboTip",
+            "(?)",
+            "The default button for Turbo Mode is L3 on controller and Left Ctrl on keyboard. This "
+            "can be changed in the in-game Button Configuration options.",
+            state.CurrentDpi * 350.0f,
+            true);
 
         ImGui::Checkbox("Make turbo mode a toggle instead of hold",
                         &GameSettings.CheckBoxTurboToggle);

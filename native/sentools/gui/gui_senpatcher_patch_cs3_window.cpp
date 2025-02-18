@@ -147,16 +147,6 @@ void SenPatcherPatchCS3Window::UpdateInstalledDllInfo() {
 
 SenPatcherPatchCS3Window::~SenPatcherPatchCS3Window() = default;
 
-static void HelpMarker(std::string_view desc) {
-    ImGui::TextDisabled("(?)");
-    if (ImGui::BeginItemTooltip()) {
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc.data(), desc.data() + desc.size());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-}
-
 bool SenPatcherPatchCS3Window::RenderFrame(GuiState& state) {
     ImGuiUtils::SetInitialNextWindowSizeWidthOnly(600.0f * state.CurrentDpi);
     bool open = true;
