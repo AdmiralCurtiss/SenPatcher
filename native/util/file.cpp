@@ -859,6 +859,17 @@ bool DeleteDirectory(std::string_view path) noexcept {
 }
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+bool DeleteDirectory(const std::filesystem::path& p) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return RemoveDirectoryW(p.c_str()) != 0;
+#else
+    int result = rmdir(p.c_str());
+    return result == 0;
+#endif
+}
+#endif
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 std::filesystem::path FilesystemPathFromUtf8(std::string_view path) {
 #ifdef BUILD_FOR_WINDOWS
     // convert forward slashes to backslashes, some Windows functions need that

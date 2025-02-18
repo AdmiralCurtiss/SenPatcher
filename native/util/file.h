@@ -88,6 +88,7 @@ bool FileExists(const std::filesystem::path& p) noexcept;
 std::optional<uint64_t> GetFilesize(const std::filesystem::path& p) noexcept;
 bool DirectoryExists(const std::filesystem::path& p) noexcept;
 bool CreateDirectory(const std::filesystem::path& p) noexcept;
+bool DeleteDirectory(const std::filesystem::path& p) noexcept; // must be empty
 
 std::filesystem::path FilesystemPathFromUtf8(std::string_view path);
 std::string FilesystemPathToUtf8(const std::filesystem::path& p);

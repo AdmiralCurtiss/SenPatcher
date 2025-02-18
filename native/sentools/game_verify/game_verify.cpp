@@ -519,36 +519,34 @@ namespace {
 struct FileInFileSystem {
     std::filesystem::path Path;
     bool IsDirectory;
-    bool HasIntermediateDirectory = false;
     size_t CorrespondingDirtreeIndex = std::numeric_limits<size_t>::max();
 };
 
-static bool ConvertDirectoryToSingleFileInDirectory(FileInFileSystem& e) {
-    while (e.IsDirectory) {
-        std::error_code ec;
+static bool AddContents(std::vector<FileInFileSystem>& contents, const FileInFileSystem& e) {
+    if (!e.IsDirectory) {
+        return false;
+    }
+
+    std::error_code ec;
+    {
         std::filesystem::directory_iterator it(e.Path, ec);
         if (ec) {
             return false;
         }
-        if (it == std::filesystem::directory_iterator()) {
-            // zero files in this directory, this is clearly something else
-            return false;
-        }
-        auto stat = it->status(ec);
-        if (ec) {
-            return false;
-        }
-        e.Path = it->path();
-        e.IsDirectory = std::filesystem::is_directory(stat);
-        it.increment(ec);
-        if (ec) {
-            return false;
-        }
-        if (it != std::filesystem::directory_iterator()) {
-            // more than one file in this directory, this is clearly something else
-            return false;
+        while (it != std::filesystem::directory_iterator()) {
+            auto stat = it->status(ec);
+            if (ec) {
+                return false;
+            }
+            contents.emplace_back(FileInFileSystem{
+                .Path = it->path(), .IsDirectory = std::filesystem::is_directory(stat)});
+            it.increment(ec);
+            if (ec) {
+                return false;
+            }
         }
     }
+
     return true;
 }
 } // namespace
@@ -616,16 +614,39 @@ static bool FixUnicodeFilenamesInDirectory(
         }
         return c;
     }();
+    std::vector<FileInFileSystem> intermediateDirectories;
     if (numberOfUnmatchedDirectoriesInDirtree == 0) {
         // all entries in the filesystem must be single files. it's possible that due to encoding
         // issues, intermediate directories were crated. handle this.
-        // TODO: what if multiple files end up in the same wrong directory?
-        for (auto& e : filesInFilesystemButNotDirtree) {
+        for (size_t i = 0; i < filesInFilesystemButNotDirtree.size();) {
+            auto& e = filesInFilesystemButNotDirtree[i];
             if (e.IsDirectory) {
-                if (!ConvertDirectoryToSingleFileInDirectory(e)) {
+                std::vector<FileInFileSystem> tmp;
+                if (!AddContents(tmp, e)) {
+                    // IO error
                     return false;
                 }
+                if (tmp.size() == 0) {
+                    // there were zero files in this directory, so this isn't a fake-intermediate
+                    // encoding issue directory
+                    return false;
+                }
+
+                // move the parent directory into intermediateDirectories
+                intermediateDirectories.emplace_back(std::move(e));
+
+                // replace it with the first contained entry
+                filesInFilesystemButNotDirtree[i] = std::move(tmp[0]);
+
+                // move the rest to the end of the list
+                for (size_t j = 1; j < tmp.size(); ++j) {
+                    filesInFilesystemButNotDirtree.emplace_back(std::move(tmp[j]));
+                }
+
+                // don't increment i so the next iteration handles the first contained entry
+                continue;
             }
+            ++i;
         }
         if (filesInDirtreeButNotFilesystem.size() != filesInFilesystemButNotDirtree.size()) {
             return false;
@@ -719,21 +740,29 @@ static bool FixUnicodeFilenamesInDirectory(
     }
 
     // matched everything, rename to the corrected names
+    bool returnValue = true;
     for (auto& e : filesInFilesystemButNotDirtree) {
-        const auto& entry = dirtree.Entries[e.CorrespondingDirtreeIndex];
-        std::string_view filename(dirtree.StringTable + entry.GetFilenameOffset(),
-                                  entry.GetFilenameLength());
+        const auto& dentry = dirtree.Entries[e.CorrespondingDirtreeIndex];
+        std::string_view filename(dirtree.StringTable + dentry.GetFilenameOffset(),
+                                  dentry.GetFilenameLength());
         auto newPath = gamePath / HyoutaUtils::IO::FilesystemPathFromUtf8(filename);
         // printf("Rename %s -> %s\n",
         //        HyoutaUtils::IO::FilesystemPathToUtf8(e.Path).c_str(),
         //        HyoutaUtils::IO::FilesystemPathToUtf8(newPath).c_str());
         std::filesystem::rename(e.Path, newPath, ec);
         if (ec) {
-            return false;
+            // rename failed, but try the rest anyway so we fix as much as possible
+            returnValue = false;
         }
     }
 
-    return true;
+    // delete the intermediate directories. we start at the back of the list so that inner
+    // directories are deleted before outer directories. if this fails we don't care too much.
+    for (auto it = intermediateDirectories.rbegin(); it != intermediateDirectories.rend(); ++it) {
+        HyoutaUtils::IO::DeleteDirectory(it->Path);
+    }
+
+    return returnValue;
 }
 
 static bool FixUnicodeFilenames(
