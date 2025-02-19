@@ -48,7 +48,7 @@ std::optional<std::string> GetCurrentExecutableDirectory() noexcept {
     heapBuffer.resize(stackBuffer.size() * 2);
     while (true) {
         SetLastError(0);
-        DWORD result =
+        result =
             GetModuleFileNameW(nullptr, heapBuffer.data(), static_cast<DWORD>(heapBuffer.size()));
         if (result == 0) {
             break;

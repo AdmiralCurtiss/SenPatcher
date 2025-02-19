@@ -29,7 +29,8 @@ static std::optional<std::string>
     }
 
     BOOL usedDefaultChar = FALSE;
-    const DWORD flags = (codepage == CP_UTF8) ? WC_ERR_INVALID_CHARS : WC_NO_BEST_FIT_CHARS;
+    const DWORD flags = (codepage == CP_UTF8) ? static_cast<DWORD>(WC_ERR_INVALID_CHARS)
+                                              : static_cast<DWORD>(WC_NO_BEST_FIT_CHARS);
     const LPBOOL usedDefaultCharPtr = (codepage == CP_UTF8) ? nullptr : &usedDefaultChar;
 
     const auto requiredBytes = WideCharToMultiByte(
@@ -39,13 +40,13 @@ static std::optional<std::string>
     }
 
     std::string result;
-    result.resize(requiredBytes);
+    result.resize(static_cast<size_t>(requiredBytes));
     const auto convertedBytes = WideCharToMultiByte(codepage,
                                                     flags,
                                                     data,
                                                     static_cast<int>(length),
                                                     result.data(),
-                                                    result.size(),
+                                                    requiredBytes,
                                                     nullptr,
                                                     usedDefaultCharPtr);
     if (convertedBytes != requiredBytes || usedDefaultChar != FALSE) {
@@ -67,16 +68,20 @@ static std::optional<T> CodepageToString16(const char* data, size_t length, UINT
         return std::nullopt;
     }
 
-    const auto requiredBytes =
-        MultiByteToWideChar(codepage, MB_ERR_INVALID_CHARS, data, length, nullptr, 0);
+    const auto requiredBytes = MultiByteToWideChar(
+        codepage, MB_ERR_INVALID_CHARS, data, static_cast<int>(length), nullptr, 0);
     if (requiredBytes <= 0) {
         return std::nullopt;
     }
 
     T wstr;
-    wstr.resize(requiredBytes);
-    const auto convertedBytes = MultiByteToWideChar(
-        codepage, MB_ERR_INVALID_CHARS, data, length, (wchar_t*)wstr.data(), wstr.size());
+    wstr.resize(static_cast<size_t>(requiredBytes));
+    const auto convertedBytes = MultiByteToWideChar(codepage,
+                                                    MB_ERR_INVALID_CHARS,
+                                                    data,
+                                                    static_cast<int>(length),
+                                                    (wchar_t*)wstr.data(),
+                                                    requiredBytes);
     if (convertedBytes != requiredBytes) {
         return std::nullopt;
     }

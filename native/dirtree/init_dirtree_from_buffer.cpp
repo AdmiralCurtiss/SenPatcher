@@ -14,6 +14,8 @@ HyoutaUtils::DirTree::Tree InitDirTreeFromBuffer(const char* buffer,
                                                  size_t numberOfVersions,
                                                  const char* const* dlcNames,
                                                  size_t numberOfDlcs) {
+    // TODO: In C++23 this can use std::start_lifetime_as() to avoid the UB reinterpret_cast.
+
     assert((std::bit_cast<size_t>(buffer) % 16) == 0); // must be aligned
     if (length > 16) {
         const size_t raw_dirtree_entry_count = HyoutaUtils::MemRead::ReadUInt32(buffer);

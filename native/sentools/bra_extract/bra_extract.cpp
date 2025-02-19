@@ -93,7 +93,7 @@ static bool InflateToFile(const char* buffer, size_t length, HyoutaUtils::IO::Fi
             ret = inflate(&strm, Z_NO_FLUSH);
             assert(ret != Z_STREAM_ERROR); /* state not clobbered */
             switch (ret) {
-                case Z_NEED_DICT: ret = Z_DATA_ERROR; /* and fall through */
+                case Z_NEED_DICT: ret = Z_DATA_ERROR; [[fallthrough]];
                 case Z_DATA_ERROR:
                 case Z_MEM_ERROR: (void)inflateEnd(&strm); return false;
             }

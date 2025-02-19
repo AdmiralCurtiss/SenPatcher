@@ -60,16 +60,14 @@ static constexpr char PatchData_t1001_dat_to_tbl[] = {
 };
 static constexpr size_t PatchLength_t1001_dat_to_tbl = sizeof(PatchData_t1001_dat_to_tbl);
 static constexpr char PatchData_t1001_j14_to_j142[] = {
-    (char)0x42, (char)0x50, (char)0x53, (char)0x31, (char)0x51, (char)0x59, (char)0x89, (char)0x51,
-    (char)0x59, (char)0x89, (char)0x80, (char)0x50, (char)0x13, (char)0x93, (char)0x81, (char)0xfe,
-    (char)0x68, (char)0x54, (char)0x95, (char)0xd1, (char)0x34, (char)0x92, (char)0x1c, (char)0x08,
-    (char)0x78, (char)0xd2, (char)0xa8, (char)0x99, (char)0xe0, (char)0x0c, (char)0x42};
+    '\x42', '\x50', '\x53', '\x31', '\x51', '\x59', '\x89', '\x51', '\x59', '\x89', '\x80',
+    '\x50', '\x13', '\x93', '\x81', '\xfe', '\x68', '\x54', '\x95', '\xd1', '\x34', '\x92',
+    '\x1c', '\x08', '\x78', '\xd2', '\xa8', '\x99', '\xe0', '\x0c', '\x42'};
 static constexpr size_t PatchLength_t1001_j14_to_j142 = sizeof(PatchData_t1001_j14_to_j142);
 static constexpr char PatchData_t1001_u14_to_u142[] = {
-    (char)0x42, (char)0x50, (char)0x53, (char)0x31, (char)0x11, (char)0x6a, (char)0x8a, (char)0x11,
-    (char)0x6a, (char)0x8a, (char)0x80, (char)0x28, (char)0x76, (char)0x94, (char)0x81, (char)0xfe,
-    (char)0x10, (char)0x34, (char)0x98, (char)0x4b, (char)0x18, (char)0x20, (char)0x67, (char)0x25,
-    (char)0xf8, (char)0x4d, (char)0x9d, (char)0xc0, (char)0x33, (char)0x34, (char)0xcd};
+    '\x42', '\x50', '\x53', '\x31', '\x11', '\x6a', '\x8a', '\x11', '\x6a', '\x8a', '\x80',
+    '\x28', '\x76', '\x94', '\x81', '\xfe', '\x10', '\x34', '\x98', '\x4b', '\x18', '\x20',
+    '\x67', '\x25', '\xf8', '\x4d', '\x9d', '\xc0', '\x33', '\x34', '\xcd'};
 static constexpr size_t PatchLength_t1001_u14_to_u142 = sizeof(PatchData_t1001_u14_to_u142);
 } // namespace
 
@@ -607,11 +605,11 @@ TryPatchCs2Version14Result TryPatchCs2Version14(std::string_view path,
     }
 
     // clean up any possible leftovers
-    HyoutaUtils::IO::DeleteFile(path_exe_jp_tmp);
-    HyoutaUtils::IO::DeleteFile(path_exe_us_tmp);
-    HyoutaUtils::IO::DeleteFile(path_t1001_jp_tmp);
-    HyoutaUtils::IO::DeleteFile(path_t1001_us_tmp);
-    HyoutaUtils::IO::DeleteFile(path_asm_file_tmp);
+    HyoutaUtils::IO::DeleteFile(std::string_view(path_exe_jp_tmp));
+    HyoutaUtils::IO::DeleteFile(std::string_view(path_exe_us_tmp));
+    HyoutaUtils::IO::DeleteFile(std::string_view(path_t1001_jp_tmp));
+    HyoutaUtils::IO::DeleteFile(std::string_view(path_t1001_us_tmp));
+    HyoutaUtils::IO::DeleteFile(std::string_view(path_asm_file_tmp));
 
     return TryPatchCs2Version14Result::UpdateSucceeded;
 }

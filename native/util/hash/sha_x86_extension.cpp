@@ -3,6 +3,7 @@
 // sha_simd.cpp - written and placed in the public domain by
 //                Jeffrey Walton, Uri Blumenthal and Marcel Raad.
 
+#include <bit>
 #include <cassert>
 #include <cstdint>
 
@@ -44,7 +45,7 @@ void SHA1_HashMultipleBlocks_SHANI(uint32_t* state,
 
     // Load initial values
     ABCD = _mm_loadu_si128(CONST_M128_CAST(state));
-    E0 = _mm_set_epi32(state[4], 0, 0, 0);
+    E0 = _mm_set_epi32(std::bit_cast<int>(state[4]), 0, 0, 0);
     ABCD = _mm_shuffle_epi32(ABCD, 0x1B);
 
     // IA-32 SHA is little endian, SHA::Transform is big endian,
@@ -227,7 +228,7 @@ void SHA1_HashMultipleBlocks_SHANI(uint32_t* state,
     // Save state
     ABCD = _mm_shuffle_epi32(ABCD, 0x1B);
     _mm_storeu_si128(M128_CAST(state), ABCD);
-    state[4] = _mm_extract_epi32(E0, 3);
+    state[4] = std::bit_cast<uint32_t>(_mm_extract_epi32(E0, 3));
 }
 
 // Based on http://software.intel.com/en-us/articles/intel-sha-extensions and code by Sean Gulley.

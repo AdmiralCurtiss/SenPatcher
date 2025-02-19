@@ -486,6 +486,7 @@ void WriteStream::WriteString(HyoutaUtils::TextUtils::GameTextEncoding encoding,
         case HyoutaUtils::TextUtils::GameTextEncoding::UTF8:
             WriteStringRaw(str, count, trim);
             return;
+        default: break;
     }
     throw "Writing string not implemented for encoding";
 }
@@ -515,6 +516,7 @@ void WriteStream::WriteNulltermString(std::string_view str,
         case HyoutaUtils::TextUtils::GameTextEncoding::ASCII: WriteAsciiNullterm(str); return;
         case HyoutaUtils::TextUtils::GameTextEncoding::ShiftJIS: WriteShiftJisNullterm(str); return;
         case HyoutaUtils::TextUtils::GameTextEncoding::UTF8: WriteUTF8Nullterm(str); return;
+        default: break;
     }
     throw "Writing string not implemented for encoding";
 }

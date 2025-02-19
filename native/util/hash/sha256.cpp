@@ -86,14 +86,9 @@ static constexpr word32 SHA256_K[64] = {
 /// \sa rotlConstant, rotrConstant, rotlFixed, rotrFixed, rotlVariable, rotrVariable
 template <unsigned int R, class T> inline T rotrConstant(T x) noexcept
 {
-	// Portable rotate that reduces to single instruction...
-	// http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57157,
-	// http://software.intel.com/en-us/forums/topic/580884
-	// and http://llvm.org/bugs/show_bug.cgi?id=24226
 	CRYPTOPP_CONSTANT(THIS_SIZE = sizeof(T)*8);
-	CRYPTOPP_CONSTANT(MASK = THIS_SIZE-1);
 	static_assert(static_cast<int>(R) < THIS_SIZE);
-	return T((x >> R)|(x<<(-R&MASK)));
+	return std::rotr(x, static_cast<int>(R));
 }
 
 #define a(i) T[(0-i)&7]
