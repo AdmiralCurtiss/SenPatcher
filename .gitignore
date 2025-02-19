@@ -8,3 +8,4 @@ packages
 /native/build
 /native/out
 /native/dirtree/generated/*.bin
+/SenPatcher-release
