@@ -14,7 +14,11 @@
 #include <d3d11.h>
 #include <tchar.h>
 
+#include "util/scope.h"
+
 #include "gui_state.h"
+
+using PGetDpiForWindow = UINT(WINAPI*)(HWND hwnd);
 
 // Data
 static ID3D11Device* g_pd3dDevice = nullptr;
@@ -94,6 +98,22 @@ int SenTools::RunGuiDX11(
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
+    HMODULE user32_dll = LoadLibraryW(L"USER32.dll");
+    auto user32_dll_scope = HyoutaUtils::MakeScopeGuard([&] {
+        if (user32_dll != NULL) {
+            FreeLibrary(user32_dll);
+            user32_dll = NULL;
+        }
+    });
+    PGetDpiForWindow ptrGetDpiForWindow = nullptr;
+    if (user32_dll != NULL) {
+        FARPROC ptr = GetProcAddress(user32_dll, "GetDpiForWindow");
+        if (ptr != NULL) {
+            ptrGetDpiForWindow = reinterpret_cast<PGetDpiForWindow>(ptr);
+        }
+    }
+
+
     g_WindowMoved = true; // init the DPI and style stuff
 
     // Main loop
@@ -133,9 +153,12 @@ int SenTools::RunGuiDX11(
         if (g_WindowMoved) {
             float oldDpi = state.CurrentDpi;
             float newDpi;
-            const UINT dpi = GetDpiForWindow(hwnd);
+            UINT dpi = 0;
+            if (ptrGetDpiForWindow) {
+                dpi = (*ptrGetDpiForWindow)(hwnd);
+            }
             if (dpi == 0) {
-                // error, assume unchanged
+                // error or function not available, assume unchanged
                 newDpi = oldDpi;
             } else {
                 newDpi = static_cast<float>(dpi) / USER_DEFAULT_SCREEN_DPI;
