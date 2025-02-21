@@ -174,6 +174,9 @@ static int InternalMain(int argc, char** argvUtf8) {
 
 #ifdef BUILD_FOR_WINDOWS
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[]) {
+    // don't display any 'please insert a disk into drive x' textboxes
+    // when accessing a drive with removable storage
+    SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
     SetConsoleOutputCP(65001); // we use printf() with utf8 strings
 
     std::unique_ptr<const char*[]> argvUtf8Pts;
