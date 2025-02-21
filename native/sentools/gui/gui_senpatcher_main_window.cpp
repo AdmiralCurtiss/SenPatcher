@@ -265,7 +265,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGuiUtils::ButtonFullWidth("Patch game##1") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"CS1 game directory root", "Sen1Launcher.exe"});
+        filters.push_back(
+            FileFilter{"CS1 game directory root (Sen1Launcher.exe)", "Sen1Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
                           SenTools::GetDefaultPathCS1(state.GuiSettings),
@@ -296,7 +297,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGuiUtils::ButtonFullWidth("Edit System Save Data##1") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"CS1 System Data file", "save511.dat"});
+        filters.push_back(FileFilter{"CS1 System Data file (save511.dat)", "save511.dat"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         auto savedGames = SenTools::CommonPaths::GetSavedGamesFolder();
         std::string saveFolder;
@@ -336,7 +337,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGuiUtils::ButtonFullWidth("Patch game##2") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"CS2 game directory root", "Sen2Launcher.exe"});
+        filters.push_back(
+            FileFilter{"CS2 game directory root (Sen2Launcher.exe)", "Sen2Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
                           SenTools::GetDefaultPathCS2(state.GuiSettings),
@@ -367,7 +369,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGuiUtils::ButtonFullWidth("Edit System Save Data##2") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"CS2 System Data file", "save255.dat"});
+        filters.push_back(FileFilter{"CS2 System Data file (save255.dat)", "save255.dat"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         auto savedGames = SenTools::CommonPaths::GetSavedGamesFolder();
         std::string saveFolder;
@@ -406,7 +408,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGuiUtils::ButtonFullWidth("Patch game##3") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"CS3 game directory root", "Sen3Launcher.exe"});
+        filters.push_back(
+            FileFilter{"CS3 game directory root (Sen3Launcher.exe)", "Sen3Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
                           SenTools::GetDefaultPathCS3(state.GuiSettings),
@@ -441,7 +444,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGuiUtils::ButtonFullWidth("Patch game##4") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"CS4 game directory root", "Sen4Launcher.exe"});
+        filters.push_back(
+            FileFilter{"CS4 game directory root (Sen4Launcher.exe)", "Sen4Launcher.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
                           SenTools::GetDefaultPathCS4(state.GuiSettings),
@@ -475,7 +479,7 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGuiUtils::ButtonFullWidth("Patch game##5") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"Reverie game directory", "hnk.exe"});
+        filters.push_back(FileFilter{"Reverie game directory (hnk.exe)", "hnk.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         std::string reverieDir = SenTools::GetDefaultPathReverie(state.GuiSettings);
         if (!reverieDir.empty()) {
@@ -513,7 +517,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
     if (ImGuiUtils::ButtonFullWidth("Patch game##X") && !HasPendingWindowRequest()) {
         std::vector<FileFilter> filters;
         filters.reserve(2);
-        filters.push_back(FileFilter{"TX game directory root", "TokyoXanadu.exe"});
+        filters.push_back(
+            FileFilter{"TX game directory root (TokyoXanadu.exe)", "TokyoXanadu.exe"});
         filters.push_back(FileFilter{"All files (*.*)", "*"});
         GameBrowser.Reset(FileBrowserMode::OpenExistingFile,
                           SenTools::GetDefaultPathTX(state.GuiSettings),
