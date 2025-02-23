@@ -12,7 +12,8 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
                            const PkaHeader& pka,
                            size_t index,
                            HyoutaUtils::IO::File& file,
-                           std::vector<SenLib::ReferencedPka>& referencedPkas) {
+                           std::vector<SenLib::ReferencedPka>& referencedPkas,
+                           bool convertAsPkaReferenceStub) {
     if (index >= pka.PkgCount) {
         return false;
     }
@@ -28,22 +29,27 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
     const PkaFileHashData* const pkaFiles = &pka.PkgFiles[pkaPkgToHashData.FileOffset];
     size_t headerSize = 8 + (static_cast<size_t>(fileCount) * 0x50);
     size_t requiredMemorySize = 0;
-    for (size_t i = 0; i < fileCount; ++i) {
-        auto* f = FindFileInPkaByHash(pka.Files.get(), pka.FilesCount, pkaFiles[i].Hash);
-        if (!f) {
-            for (auto& refPka : referencedPkas) {
-                f = FindFileInPkaByHash(
-                    refPka.PkaHeader.Files.get(), refPka.PkaHeader.FilesCount, pkaFiles[i].Hash);
-                if (f) {
-                    break;
+    if (convertAsPkaReferenceStub) {
+        requiredMemorySize = (static_cast<size_t>(0x20) * fileCount);
+    } else {
+        for (size_t i = 0; i < fileCount; ++i) {
+            auto* f = FindFileInPkaByHash(pka.Files.get(), pka.FilesCount, pkaFiles[i].Hash);
+            if (!f) {
+                for (auto& refPka : referencedPkas) {
+                    f = FindFileInPkaByHash(refPka.PkaHeader.Files.get(),
+                                            refPka.PkaHeader.FilesCount,
+                                            pkaFiles[i].Hash);
+                    if (f) {
+                        break;
+                    }
                 }
             }
-        }
-        if (!f) {
-            return false;
-        }
+            if (!f) {
+                return false;
+            }
 
-        requiredMemorySize += f->CompressedSize;
+            requiredMemorySize += f->CompressedSize;
+        }
     }
 
     auto pkgFiles = std::make_unique<PkgFile[]>(fileCount);
@@ -73,13 +79,20 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
         pkgFiles[i].Flags = f->Flags;
         pkgFiles[i].Data = &data[dataOffset];
 
-        if (!hf->SetPosition(f->Offset)) {
-            return false;
+        if (convertAsPkaReferenceStub) {
+            std::memcpy(&data[dataOffset], f->Hash.data(), f->Hash.size());
+            pkgFiles[i].CompressedSize = static_cast<uint32_t>(f->Hash.size());
+            pkgFiles[i].Flags = 0x80;
+            dataOffset += f->Hash.size();
+        } else {
+            if (!hf->SetPosition(f->Offset)) {
+                return false;
+            }
+            if (hf->Read(&data[dataOffset], f->CompressedSize) != f->CompressedSize) {
+                return false;
+            }
+            dataOffset += f->CompressedSize;
         }
-        if (hf->Read(&data[dataOffset], f->CompressedSize) != f->CompressedSize) {
-            return false;
-        }
-        dataOffset += f->CompressedSize;
     }
 
     dataBuffer = std::move(data);

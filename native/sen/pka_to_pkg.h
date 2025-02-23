@@ -27,5 +27,6 @@ bool ConvertPkaToSinglePkg(PkgHeader& pkg,
                            const PkaHeader& pka,
                            size_t index,
                            HyoutaUtils::IO::File& file,
-                           std::vector<SenLib::ReferencedPka>& referencedPkas);
+                           std::vector<SenLib::ReferencedPka>& referencedPkas,
+                           bool convertAsPkaReferenceStub);
 } // namespace SenLib

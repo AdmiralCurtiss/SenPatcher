@@ -29,7 +29,7 @@ struct SenPatcherExtractPkaWindow::ExtractionThreadState {
       , Result(ExtractPkaResult::Success)
       , Thread([this]() -> void {
           try {
-              Result = SenTools::ExtractPka(InputPath, OutputPath, {});
+              Result = SenTools::ExtractPka(InputPath, OutputPath, {}, false);
           } catch (...) {
               Result = std::string("Unexpected error.");
           }

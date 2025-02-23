@@ -44,6 +44,12 @@ int PKA_Extract_Function(int argc, char** argv) {
             "Referenced pka file that could also contain files, see the corresponding option in "
             "PKA.Pack for details. Option can be provided multiple times. This is a nonstandard "
             "feature that the vanilla game does not handle.");
+    parser.add_option("--as-pka-reference")
+        .dest("as-pka-reference")
+        .action(optparse::ActionType::StoreTrue)
+        .help(
+            "Generate pkg files that only contain the file hashes, not the actual file data. The "
+            "pka file(s) will be needed to actually extract the data later.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -68,7 +74,9 @@ int PKA_Extract_Function(int argc, char** argv) {
         referencedPkaPaths = referenced_pka_option->strings();
     }
 
-    auto result = ExtractPka(source, target, referencedPkaPaths);
+    const bool asPkaRef = options["as-pka-reference"].flag();
+
+    auto result = ExtractPka(source, target, referencedPkaPaths, asPkaRef);
     if (result.IsError()) {
         printf("%s\n", result.GetErrorValue().c_str());
         return -1;
@@ -80,7 +88,8 @@ int PKA_Extract_Function(int argc, char** argv) {
 HyoutaUtils::Result<ExtractPkaResult, std::string>
     ExtractPka(std::string_view source,
                std::string_view target,
-               std::span<const std::string> referencedPkaPaths) {
+               std::span<const std::string> referencedPkaPaths,
+               bool extractAsPkaReferenceStub) {
     std::filesystem::path sourcepath = HyoutaUtils::IO::FilesystemPathFromUtf8(source);
     std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
     HyoutaUtils::IO::File infile(sourcepath, HyoutaUtils::IO::OpenMode::Read);
@@ -123,7 +132,8 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
 
         SenLib::PkgHeader pkg;
         std::unique_ptr<char[]> buffer;
-        if (!SenLib::ConvertPkaToSinglePkg(pkg, buffer, pkaHeader, i, infile, referencedPkas)) {
+        if (!SenLib::ConvertPkaToSinglePkg(
+                pkg, buffer, pkaHeader, i, infile, referencedPkas, extractAsPkaReferenceStub)) {
             return std::format("Failed to convert archive {} ({}) to pkg.", i, pkgNameSv);
         }
 

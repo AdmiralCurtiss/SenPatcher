@@ -12,5 +12,6 @@ enum class ExtractPkaResult { Success };
 HyoutaUtils::Result<ExtractPkaResult, std::string>
     ExtractPka(std::string_view source,
                std::string_view target,
-               std::span<const std::string> referencedPkaPaths);
+               std::span<const std::string> referencedPkaPaths,
+               bool extractAsPkaReferenceStub);
 } // namespace SenTools
