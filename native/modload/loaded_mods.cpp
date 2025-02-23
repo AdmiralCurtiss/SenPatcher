@@ -261,7 +261,7 @@ static std::vector<std::string> CollectModPaths(HyoutaUtils::Logger& logger,
 
     bool modified = false;
     while (iterator != std::filesystem::directory_iterator()) {
-        if (iterator->is_directory()) {
+        if (!iterator->is_directory()) {
             auto& path = iterator->path();
             auto& string = path.native();
             if (string.size() >= 4 && string[string.size() - 4] == L'.'
