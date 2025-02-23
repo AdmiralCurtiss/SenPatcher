@@ -83,7 +83,6 @@ static bool CollectEntries(std::vector<P3APackFile>& fileinfos,
                                 allowUppercaseInFilenames)) {
                 return false;
             }
-            continue;
         } else {
             const auto relativePath = std::filesystem::relative(entryPath, rootDir, ec);
             if (relativePath.empty()) {
