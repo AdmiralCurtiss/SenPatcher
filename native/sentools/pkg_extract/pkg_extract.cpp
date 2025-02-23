@@ -14,6 +14,8 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
+#include "sen/pka.h"
+#include "sen/pka_to_pkg.h"
 #include "sen/pkg.h"
 #include "sen/pkg_extract.h"
 #include "util/file.h"
@@ -37,6 +39,14 @@ int PKG_Extract_Function(int argc, char** argv) {
             "If set, a __pkg.json will be generated that contains information about the files in "
             "the archive. This file can be used to repack the archive with the PKG.Repack option "
             "while preserving compression types and file order within the archive.");
+    parser.add_option("--referenced-pka")
+        .dest("referenced-pka")
+        .action(optparse::ActionType::Append)
+        .metavar("PKA")
+        .help(
+            "Referenced pka file that could contain file data, see the --as-pka-reference option "
+            "in PKA.Extract for details. Option can be provided multiple times. This is a "
+            "nonstandard feature that the vanilla game does not handle.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -57,7 +67,12 @@ int PKG_Extract_Function(int argc, char** argv) {
         target = tmp;
     }
 
-    auto result = ExtractPkg(source, target, generateJson);
+    std::span<const std::string> referencedPkaPaths;
+    if (auto* referenced_pka_option = options.get("referenced-pka")) {
+        referencedPkaPaths = referenced_pka_option->strings();
+    }
+
+    auto result = ExtractPkg(source, target, referencedPkaPaths, generateJson);
     if (result.IsError()) {
         printf("%s\n", result.GetErrorValue().c_str());
         return -1;
@@ -67,7 +82,10 @@ int PKG_Extract_Function(int argc, char** argv) {
 }
 
 HyoutaUtils::Result<ExtractPkgResult, std::string>
-    ExtractPkg(std::string_view source, std::string_view target, bool generateJson) {
+    ExtractPkg(std::string_view source,
+               std::string_view target,
+               std::span<const std::string> referencedPkaPaths,
+               bool generateJson) {
     std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
     HyoutaUtils::IO::File infile(std::string_view(source), HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
@@ -84,6 +102,22 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
     }
     if (infile.Read(pkgMemory.get(), *filesize) != *filesize) {
         return std::string("Failed read input file.");
+    }
+
+    std::vector<SenLib::ReferencedPka> referencedPkas;
+    {
+        referencedPkas.reserve(referencedPkaPaths.size());
+        for (const auto& referencedPkaPath : referencedPkaPaths) {
+            auto& refPka = referencedPkas.emplace_back();
+            refPka.PkaFile.Open(std::filesystem::path(referencedPkaPath),
+                                HyoutaUtils::IO::OpenMode::Read);
+            if (!refPka.PkaFile.IsOpen()) {
+                return std::string("Error opening referenced pka.");
+            }
+            if (!SenLib::ReadPkaFromFile(refPka.PkaHeader, refPka.PkaFile)) {
+                return std::string("Error reading referenced pka.");
+            }
+        }
     }
 
     SenLib::PkgHeader pkg;
@@ -112,17 +146,54 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
         json.StartObject();
 
         const auto& pkgFile = pkg.Files[i];
+        uint32_t uncompressedSize = pkgFile.UncompressedSize;
+        uint32_t compressedSize = pkgFile.CompressedSize;
+        uint32_t flags = pkgFile.Flags;
+        const char* data = pkgFile.Data;
 
-        auto buffer = std::make_unique<char[]>(pkgFile.UncompressedSize);
+        std::unique_ptr<char[]> pkaDataBuffer;
+        bool isPkaRef = false;
+        if ((flags & 0x80) && compressedSize == 0x20) {
+            // this is a PKA reference
+            const SenLib::PkaHashToFileData* pkaFileData = nullptr;
+            SenLib::ReferencedPka* pka = nullptr;
+            for (auto& refPka : referencedPkas) {
+                auto* f = SenLib::FindFileInPkaByHash(
+                    refPka.PkaHeader.Files.get(), refPka.PkaHeader.FilesCount, data);
+                if (f && f->UncompressedSize == uncompressedSize) {
+                    pkaFileData = f;
+                    pka = &refPka;
+                    break;
+                }
+            }
+            if (!pkaFileData) {
+                return std::format("Failed to find data for file {} in referenced pka files.", i);
+            }
+            if (!pka->PkaFile.SetPosition(pkaFileData->Offset)) {
+                return std::format("Failed to seek in referenced pka.");
+            }
+            pkaDataBuffer = std::make_unique<char[]>(pkaFileData->CompressedSize);
+            if (pka->PkaFile.Read(pkaDataBuffer.get(), pkaFileData->CompressedSize)
+                != pkaFileData->CompressedSize) {
+                return std::format("Failed to read from referenced pka.");
+            }
+
+            isPkaRef = true;
+            data = pkaDataBuffer.get();
+            compressedSize = pkaFileData->CompressedSize;
+            flags = pkaFileData->Flags;
+        }
+
+        auto buffer = std::make_unique<char[]>(uncompressedSize);
         if (!buffer) {
             return std::string("Failed to allocate memory.");
         }
         if (!SenLib::ExtractAndDecompressPkgFile(
                 buffer.get(),
-                pkgFile.UncompressedSize,
-                pkgFile.Data,
-                pkgFile.CompressedSize,
-                pkgFile.Flags,
+                uncompressedSize,
+                data,
+                compressedSize,
+                flags,
                 HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
             return std::format("Failed to extract file {} from pkg.", i);
         }
@@ -140,7 +211,7 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
             return std::string("Failed to open output file.");
         }
 
-        if (outfile.Write(buffer.get(), pkgFile.UncompressedSize) != pkgFile.UncompressedSize) {
+        if (outfile.Write(buffer.get(), uncompressedSize) != uncompressedSize) {
             return std::string("Failed to write to output file.");
         }
 
@@ -149,7 +220,11 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
         json.Key("PathOnDisk");
         json.String(pkgFile.Filename.data(), pkgFilenameLength);
         json.Key("Flags");
-        json.Uint(pkgFile.Flags);
+        json.Uint(flags);
+        if (isPkaRef) {
+            json.Key("IsPkaReference");
+            json.Bool(true);
+        }
         json.EndObject();
     }
     json.EndArray();

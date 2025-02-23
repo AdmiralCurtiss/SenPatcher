@@ -19,6 +19,7 @@
 #include "sen/pkg_compress.h"
 #include "util/endian.h"
 #include "util/file.h"
+#include "util/hash/sha256.h"
 
 namespace SenTools {
 template<typename T>
@@ -46,6 +47,19 @@ static std::optional<std::string> JsonReadString(T& json, const char* key) {
         const char* str = j.GetString();
         const auto len = j.GetStringLength();
         return std::string(str, len);
+    }
+    return std::nullopt;
+}
+
+template<typename T>
+static std::optional<bool> JsonReadBool(T& json, const char* key) {
+    auto it = json.FindMember(key);
+    if (it == json.MemberEnd()) {
+        return std::nullopt;
+    }
+    auto& j = it->value;
+    if (j.IsBool()) {
+        return j.GetBool();
     }
     return std::nullopt;
 }
@@ -125,6 +139,7 @@ int PKG_Repack_Function(int argc, char** argv) {
                 const auto nameInArchive = JsonReadString(file, "NameInArchive");
                 const auto pathOnDisk = JsonReadString(file, "PathOnDisk");
                 const auto flags = JsonReadUInt32(file, "Flags");
+                const auto isPkaRef = JsonReadBool(file, "IsPkaReference");
                 if (!nameInArchive || !pathOnDisk || !flags) {
                     return -1;
                 }
@@ -162,14 +177,26 @@ int PKG_Repack_Function(int argc, char** argv) {
                     return -1;
                 }
 
-                if (!SenLib::CompressPkgFile(fd,
-                                             fi,
-                                             uncompressedData.get(),
-                                             static_cast<uint32_t>(*uncompressedLength),
-                                             *flags,
-                                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-                    printf("Failed adding file to pkg.\n");
-                    return -1;
+                if (isPkaRef.has_value() && *isPkaRef) {
+                    auto hash = HyoutaUtils::Hash::CalculateSHA256(uncompressedData.get(),
+                                                                   *uncompressedLength);
+                    fd = std::make_unique<char[]>(hash.Hash.size());
+                    std::memcpy(fd.get(), hash.Hash.data(), hash.Hash.size());
+                    fi.UncompressedSize = static_cast<uint32_t>(*uncompressedLength);
+                    fi.CompressedSize = static_cast<uint32_t>(hash.Hash.size());
+                    fi.Flags = 0x80;
+                    fi.Data = fd.get();
+                } else {
+                    if (!SenLib::CompressPkgFile(
+                            fd,
+                            fi,
+                            uncompressedData.get(),
+                            static_cast<uint32_t>(*uncompressedLength),
+                            *flags,
+                            HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+                        printf("Failed adding file to pkg.\n");
+                        return -1;
+                    }
                 }
             } else {
                 return -1;

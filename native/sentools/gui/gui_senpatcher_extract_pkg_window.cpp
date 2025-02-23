@@ -31,7 +31,7 @@ struct SenPatcherExtractPkgWindow::ExtractionThreadState {
       , Result(ExtractPkgResult::Success)
       , Thread([this]() -> void {
           try {
-              Result = SenTools::ExtractPkg(InputPath, OutputPath, GenerateJson);
+              Result = SenTools::ExtractPkg(InputPath, OutputPath, {}, GenerateJson);
           } catch (...) {
               Result = std::string("Unexpected error.");
           }
