@@ -33,6 +33,7 @@ __declspec(dllexport) char SenPatcherVersion[] = SENPATCHER_VERSION;
 }
 
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
 
 using SenLib::Sen2::GameVersion;
@@ -197,37 +198,9 @@ static PTrackedFree s_TrackedFree = nullptr;
 static SenLib::ModLoad::LoadedP3AData s_LoadedVanillaP3As{};
 static SenLib::ModLoad::LoadedModsData s_LoadedModsData{};
 
-struct LoadedPkaData {
-    HyoutaUtils::IO::File PrimaryPka;
-    std::unique_ptr<SenLib::PkaPkgToHashData[]> PrimaryPkgs;
-    size_t PrimaryPkgCount = 0;
-    std::unique_ptr<SenLib::PkaFileHashData[]> PrimaryPkgFiles;
-    size_t PrimaryPkgFilesCount = 0;
-    HyoutaUtils::IO::File SecondaryPka;
-    std::unique_ptr<SenLib::PkaPkgToHashData[]> SecondaryPkgs;
-    size_t SecondaryPkgCount = 0;
-    std::unique_ptr<SenLib::PkaFileHashData[]> SecondaryPkgFiles;
-    size_t SecondaryPkgFilesCount = 0;
-
-    std::unique_ptr<SenLib::PkaHashToFileData[]> Files;
-    size_t FilesCount = 0;
-
-    std::recursive_mutex PrimaryPkaMutex;
-    std::recursive_mutex SecondaryPkaMutex;
-
-    LoadedPkaData() = default;
-    LoadedPkaData(const LoadedPkaData& other) = delete;
-    LoadedPkaData(LoadedPkaData&& other) = delete;
-    LoadedPkaData& operator=(const LoadedPkaData& other) = delete;
-    LoadedPkaData& operator=(LoadedPkaData&& other) = delete;
-    ~LoadedPkaData() = default;
-};
-static LoadedPkaData s_LoadedPkaData{};
-
-#define PRIMARY_PKA_PATH "data/asset/D3D11/assets.pka"
-#define PRIMARY_PKG_PREFIX "data/asset/d3d11/"
-#define SECONDARY_PKA_PATH "data/asset/D3D11_us/assets.pka"
-#define SECONDARY_PKG_PREFIX "data/asset/d3d11_us/"
+static SenLib::ModLoad::LoadedPkaData s_LoadedPkaData{};
+static constexpr std::array<std::string_view, 2> s_PkaGroupPrefixes{
+    {"data/asset/d3d11/", "data/asset/d3d11_us/"}};
 
 // ignore any path that doesn't begin with the 'data' directory
 static bool IsValidReroutablePath(const char* path) {
@@ -339,8 +312,11 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
                 }
 
                 // build fake pkg
-                if (!SenLib::ModLoad::BuildFakePkaPkg(
-                        (char*)memory, pkaPkg, pkgFiles, pkaData.Files.get(), pkaData.FilesCount)) {
+                if (!SenLib::ModLoad::BuildFakePkaPkg((char*)memory,
+                                                      pkaPkg,
+                                                      pkgFiles,
+                                                      pkaData.Hashes.Files.get(),
+                                                      pkaData.Hashes.FilesCount)) {
                     s_TrackedFree(memory);
                     ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
                     return 0;
@@ -356,23 +332,17 @@ static int32_t OpenModFile(FFile* ffile, const char* path) {
         return -1;
     };
 
-    int32_t pkaCheckResult1 = checkPka(pkaData.PrimaryPkgs.get(),
-                                       pkaData.PrimaryPkgCount,
-                                       pkaData.PrimaryPkgFiles.get(),
-                                       pkaData.PrimaryPkgFilesCount,
-                                       PRIMARY_PKG_PREFIX,
-                                       sizeof(PRIMARY_PKG_PREFIX) - 1);
-    if (pkaCheckResult1 >= 0) {
-        return pkaCheckResult1;
-    }
-    int32_t pkaCheckResult2 = checkPka(pkaData.SecondaryPkgs.get(),
-                                       pkaData.SecondaryPkgCount,
-                                       pkaData.SecondaryPkgFiles.get(),
-                                       pkaData.SecondaryPkgFilesCount,
-                                       SECONDARY_PKG_PREFIX,
-                                       sizeof(SECONDARY_PKG_PREFIX) - 1);
-    if (pkaCheckResult2 >= 0) {
-        return pkaCheckResult2;
+    const auto& pkaPrefixes = s_PkaGroupPrefixes;
+    for (size_t i = 0; i < pkaPrefixes.size(); ++i) {
+        int32_t pkaCheckResult = checkPka(pkaData.Groups[i].Pkgs.get(),
+                                          pkaData.Groups[i].PkgCount,
+                                          pkaData.Groups[i].PkgFiles.get(),
+                                          pkaData.Groups[i].PkgFileCount,
+                                          pkaPrefixes[i].data(),
+                                          pkaPrefixes[i].size());
+        if (pkaCheckResult >= 0) {
+            return pkaCheckResult;
+        }
     }
 
     return -1;
@@ -427,25 +397,19 @@ static int32_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
     }
 
     const auto& pkaData = s_LoadedPkaData;
-    int32_t pkaCheckResult1 = SenLib::ModLoad::GetPkaPkgFilesize(pkaData.PrimaryPkgs.get(),
-                                                                 pkaData.PrimaryPkgCount,
-                                                                 PRIMARY_PKG_PREFIX,
-                                                                 sizeof(PRIMARY_PKG_PREFIX) - 1,
-                                                                 filteredPath,
-                                                                 path,
-                                                                 out_filesize);
-    if (pkaCheckResult1 >= 0) {
-        return pkaCheckResult1;
-    }
-    int32_t pkaCheckResult2 = SenLib::ModLoad::GetPkaPkgFilesize(pkaData.SecondaryPkgs.get(),
-                                                                 pkaData.SecondaryPkgCount,
-                                                                 SECONDARY_PKG_PREFIX,
-                                                                 sizeof(SECONDARY_PKG_PREFIX) - 1,
-                                                                 filteredPath,
-                                                                 path,
-                                                                 out_filesize);
-    if (pkaCheckResult2 >= 0) {
-        return pkaCheckResult2;
+    const auto& pkaPrefixes = s_PkaGroupPrefixes;
+    for (size_t i = 0; i < pkaPrefixes.size(); ++i) {
+        int32_t pkaCheckResult = SenLib::ModLoad::GetPkaPkgFilesize(pkaData.Groups[i].Pkgs.get(),
+                                                                    pkaData.Groups[i].PkgCount,
+                                                                    pkaPrefixes[i].data(),
+                                                                    pkaPrefixes[i].size(),
+                                                                    filteredPath,
+                                                                    path,
+                                                                    out_filesize,
+                                                                    true);
+        if (pkaCheckResult >= 0) {
+            return pkaCheckResult;
+        }
     }
 
     return -1;
@@ -481,22 +445,20 @@ static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
     if ((flags & 0x80) && compressedSize == 0x20) {
         // this is a PKA hash, look up the data in the PKA
         auto& pkaData = s_LoadedPkaData;
-        const SenLib::PkaHashToFileData* fileData =
-            SenLib::FindFileInPkaByHash(pkaData.Files.get(), pkaData.FilesCount, compressedData);
+        const SenLib::PkaHashToFileData* fileData = SenLib::FindFileInPkaByHash(
+            pkaData.Hashes.Files.get(), pkaData.Hashes.FilesCount, compressedData);
         if (fileData && fileData->UncompressedSize == uncompressedSize) {
             std::unique_ptr<char[]> buffer = nullptr;
-            {
-                bool isSecondary = (fileData->Offset & static_cast<uint64_t>(0x8000'0000'0000'0000))
-                                       ? true
-                                       : false;
-                auto& pka = isSecondary ? pkaData.SecondaryPka : pkaData.PrimaryPka;
-                std::lock_guard<std::recursive_mutex> lock(isSecondary ? pkaData.SecondaryPkaMutex
-                                                                       : pkaData.PrimaryPkaMutex);
-                if (pka.SetPosition(fileData->Offset
-                                    & static_cast<uint64_t>(0x7fff'ffff'ffff'ffff))) {
+            const size_t index = static_cast<size_t>(static_cast<size_t>(fileData->Offset >> 48)
+                                                     & static_cast<size_t>(0xffff));
+            if (index < pkaData.HandleCount) {
+                auto& pka = pkaData.Handles[index];
+                std::lock_guard<std::recursive_mutex> lock(pka.Mutex);
+                if (pka.Handle.SetPosition(fileData->Offset
+                                           & static_cast<uint64_t>(0xffff'ffff'ffff))) {
                     buffer = std::make_unique<char[]>(fileData->CompressedSize);
                     if (buffer) {
-                        if (pka.Read(buffer.get(), fileData->CompressedSize)
+                        if (pka.Handle.Read(buffer.get(), fileData->CompressedSize)
                             != fileData->CompressedSize) {
                             buffer.reset();
                         }
@@ -527,94 +489,6 @@ static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
     }
 
     return uncompressedSize;
-}
-
-static std::optional<HyoutaUtils::IO::File>
-    LoadPka(HyoutaUtils::Logger& logger, SenLib::PkaHeader& pka, std::string_view path) {
-    logger.Log("Trying to open PKA at ").Log(path).Log("\n");
-    HyoutaUtils::IO::File f(path, HyoutaUtils::IO::OpenMode::Read);
-    bool success = f.IsOpen() && SenLib::ReadPkaFromFile(pka, f);
-    if (success) {
-        // make pkg names consistent
-        for (size_t i = 0; i < pka.PkgCount; ++i) {
-            auto& pkgName = pka.Pkgs[i].PkgName;
-            SenLib::ModLoad::FilterP3APath(pkgName.data(), pkgName.size());
-        }
-
-        // sort the pkgs for binary lookup
-        std::stable_sort(
-            pka.Pkgs.get(),
-            pka.Pkgs.get() + pka.PkgCount,
-            [](const SenLib::PkaPkgToHashData& lhs, const SenLib::PkaPkgToHashData& rhs) {
-                return strncmp(lhs.PkgName.data(), rhs.PkgName.data(), lhs.PkgName.size()) < 0;
-            });
-
-        // also need to sort the files but we do that later...
-        logger.Log("Opened PKA.\n");
-        return f;
-    }
-    return std::nullopt;
-}
-
-static void
-    LoadPkas(HyoutaUtils::Logger& logger, LoadedPkaData& loadedPkaData, std::string_view baseDir) {
-    constexpr static size_t longestPkaPath = sizeof(PRIMARY_PKA_PATH) > sizeof(SECONDARY_PKA_PATH)
-                                                 ? sizeof(PRIMARY_PKA_PATH)
-                                                 : sizeof(SECONDARY_PKA_PATH);
-    std::string pkaFilePath;
-    pkaFilePath.reserve(baseDir.size() + longestPkaPath);
-    pkaFilePath.append(baseDir);
-    pkaFilePath.push_back('/');
-    pkaFilePath.append(PRIMARY_PKA_PATH);
-    SenLib::PkaHeader primaryPka;
-    auto primaryPkaFile = LoadPka(logger, primaryPka, pkaFilePath);
-    if (!primaryPkaFile) {
-        return;
-    }
-
-    pkaFilePath.clear();
-    pkaFilePath.append(baseDir);
-    pkaFilePath.push_back('/');
-    pkaFilePath.append(SECONDARY_PKA_PATH);
-    SenLib::PkaHeader secondaryPka;
-    auto secondaryPkaFile = LoadPka(logger, secondaryPka, pkaFilePath);
-    if (!secondaryPkaFile) {
-        return;
-    }
-
-    // mark the files from the secondary pka by setting the high bit of the offset
-    for (size_t i = 0; i < secondaryPka.FilesCount; ++i) {
-        secondaryPka.Files[i].Offset |= static_cast<uint64_t>(0x8000'0000'0000'0000);
-    }
-
-    // build a combined files list
-    size_t filesCount = primaryPka.FilesCount + secondaryPka.FilesCount;
-    auto files = std::make_unique<SenLib::PkaHashToFileData[]>(filesCount);
-    auto it = std::copy(
-        primaryPka.Files.get(), primaryPka.Files.get() + primaryPka.FilesCount, files.get());
-    std::copy(secondaryPka.Files.get(), secondaryPka.Files.get() + secondaryPka.FilesCount, it);
-
-    // sort the file hashes for binary lookup
-    std::stable_sort(
-        files.get(),
-        files.get() + filesCount,
-        [](const SenLib::PkaHashToFileData& lhs, const SenLib::PkaHashToFileData& rhs) {
-            return memcmp(lhs.Hash.data(), rhs.Hash.data(), lhs.Hash.size()) < 0;
-        });
-
-    // store the collected data
-    loadedPkaData.PrimaryPka = std::move(*primaryPkaFile);
-    loadedPkaData.PrimaryPkgs = std::move(primaryPka.Pkgs);
-    loadedPkaData.PrimaryPkgCount = primaryPka.PkgCount;
-    loadedPkaData.PrimaryPkgFiles = std::move(primaryPka.PkgFiles);
-    loadedPkaData.PrimaryPkgFilesCount = primaryPka.PkgFilesCount;
-    loadedPkaData.SecondaryPka = std::move(*secondaryPkaFile);
-    loadedPkaData.SecondaryPkgs = std::move(secondaryPka.Pkgs);
-    loadedPkaData.SecondaryPkgCount = secondaryPka.PkgCount;
-    loadedPkaData.SecondaryPkgFiles = std::move(secondaryPka.PkgFiles);
-    loadedPkaData.SecondaryPkgFilesCount = secondaryPka.PkgFilesCount;
-    loadedPkaData.Files = std::move(files);
-    loadedPkaData.FilesCount = filesCount;
 }
 
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
@@ -734,7 +608,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
              s_LoadedVanillaP3As,
              baseDirUtf8,
              {{"data/misc.p3a", "data/bgm.p3a", "data/se.p3a", "data/voen.p3a", "data/vojp.p3a"}});
-    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8);
+    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, {});
 
     bool assetCreationSuccess = true;
     if (assetFixes) {

@@ -1,11 +1,46 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
+#include <memory>
+#include <mutex>
+#include <span>
+#include <string_view>
 
 #include "sen/pka.h"
+#include "util/file.h"
+#include "util/logger.h"
 
 namespace SenLib::ModLoad {
+struct LoadedPkaSingleData {
+    HyoutaUtils::IO::File Handle;
+    std::recursive_mutex Mutex;
+};
+struct LoadedPkaGroupData {
+    std::unique_ptr<SenLib::PkaPkgToHashData[]> Pkgs;
+    size_t PkgCount = 0;
+    std::unique_ptr<SenLib::PkaFileHashData[]> PkgFiles;
+    size_t PkgFileCount = 0;
+};
+struct LoadedPkaAllData {
+    std::unique_ptr<SenLib::PkaHashToFileData[]> Files;
+    size_t FilesCount = 0;
+};
+struct LoadedPkaData {
+    std::unique_ptr<LoadedPkaGroupData[]> Groups;
+    std::unique_ptr<LoadedPkaSingleData[]> Handles;
+    size_t HandleCount = 0;
+    LoadedPkaAllData Hashes;
+};
+
+// Loads all PKA files in baseDir/prefixes[i]/names[i][n].pka into loadedPkaData.
+void LoadPkas(HyoutaUtils::Logger& logger,
+              LoadedPkaData& loadedPkaData,
+              std::string_view baseDir,
+              std::span<const std::string_view> prefixes,
+              std::span<const std::string_view> names);
+
 // Build a 'fake' PKG where every file is just a reference with hash to the PKA.
 // This is a nonstandard extension that the vanilla game does not understand!
 // Preconditions:
@@ -29,5 +64,6 @@ int32_t GetPkaPkgFilesize(SenLib::PkaPkgToHashData* pkgs,
                           size_t pkgPrefixLength,
                           const std::array<char, 0x100>& filteredPath,
                           const char* path,
-                          uint32_t* out_filesize);
+                          uint32_t* out_filesize,
+                          bool checkFilesystemFirst);
 } // namespace SenLib::ModLoad
