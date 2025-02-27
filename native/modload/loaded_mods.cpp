@@ -384,7 +384,7 @@ static void MakeP3ABinarySearchable(std::unique_ptr<P3AFileRef[]>& combinedFileI
 void LoadP3As(HyoutaUtils::Logger& logger,
               LoadedP3AData& loadedP3AData,
               std::string_view baseDir,
-              std::span<const char* const> files) {
+              std::span<const std::string_view> files) {
     loadedP3AData.CombinedFileInfoCount = 0;
     loadedP3AData.CombinedFileInfos.reset();
     loadedP3AData.P3As.reset();

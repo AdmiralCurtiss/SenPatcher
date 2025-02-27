@@ -196,6 +196,9 @@ static PTrackedMalloc s_TrackedMalloc = nullptr;
 static PTrackedFree s_TrackedFree = nullptr;
 
 static SenLib::ModLoad::LoadedP3AData s_LoadedVanillaP3As{};
+static constexpr std::array<std::string_view, 5> s_VanillaP3ANames{
+    {"misc.p3a", "bgm.p3a", "se.p3a", "voice.p3a", "voice_jp.p3a"}};
+
 static SenLib::ModLoad::LoadedModsData s_LoadedModsData{};
 
 static SenLib::ModLoad::LoadedPkaData s_LoadedPkaData{};
@@ -604,10 +607,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
-    LoadP3As(logger,
-             s_LoadedVanillaP3As,
-             baseDirUtf8,
-             {{"data/misc.p3a", "data/bgm.p3a", "data/se.p3a", "data/voen.p3a", "data/vojp.p3a"}});
+    LoadP3As(logger, s_LoadedVanillaP3As, baseDirUtf8, s_VanillaP3ANames);
     LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, {});
 
     bool assetCreationSuccess = true;

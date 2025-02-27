@@ -75,7 +75,7 @@ void CreateModDirectory(std::string_view baseDir);
 void LoadP3As(HyoutaUtils::Logger& logger,
               LoadedP3AData& loadedP3AData,
               std::string_view baseDir,
-              std::span<const char* const> files);
+              std::span<const std::string_view> files);
 void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
@@ -114,8 +114,9 @@ void FilterP3APath(char* path, size_t length);
 // returns true if the entire input string fit into out_path, false if not
 bool FilterGamePath(char* out_path, const char* in_path, size_t length);
 
-void AppendLoadedModInfo(char*& string,
-                         const LoadedModsData& loadedModsData,
-                         const std::function<bool(const SenPatcher::P3AFileInfo& fi)>& shouldDisplayCallback,
-                         bool assetFixCreatingFailed);
+void AppendLoadedModInfo(
+    char*& string,
+    const LoadedModsData& loadedModsData,
+    const std::function<bool(const SenPatcher::P3AFileInfo& fi)>& shouldDisplayCallback,
+    bool assetFixCreatingFailed);
 } // namespace SenLib::ModLoad

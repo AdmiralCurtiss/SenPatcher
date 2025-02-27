@@ -205,6 +205,9 @@ static PPrFileMalloc s_PrFileBufferMalloc = nullptr;
 static PPPrFileFree s_Ptr_PrFileBufferFree = nullptr;
 
 static SenLib::ModLoad::LoadedP3AData s_LoadedVanillaP3As{};
+static constexpr std::array<std::string_view, 5> s_VanillaP3ANames{
+    {"misc_jp.p3a", "misc.p3a", "bgm.p3a", "se.p3a", "voice.p3a"}};
+
 static SenLib::ModLoad::LoadedModsData s_LoadedModsData{};
 
 static SenLib::ModLoad::LoadedPkaData s_LoadedPkaData{};
@@ -952,19 +955,13 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
-    // Japanese.p3a is only loaded when using Japanese, where it is loaded first and overrides the
-    // System.p3a files for scripts/text
-    if (useJapaneseLanguage) {
-        LoadP3As(logger,
-                 s_LoadedVanillaP3As,
-                 baseDirUtf8,
-                 {{"Japanese.p3a", "System.p3a", "BGM.p3a", "SE.p3a", "Voice.p3a"}});
-    } else {
-        LoadP3As(logger,
-                 s_LoadedVanillaP3As,
-                 baseDirUtf8,
-                 {{"System.p3a", "BGM.p3a", "SE.p3a", "Voice.p3a"}});
-    }
+    // misc_jp.p3a is only loaded when using Japanese, where it is loaded first and overrides some
+    // misc.p3a files for scripts/text
+    std::span<const std::string_view> vanillaP3aNames =
+        useJapaneseLanguage ? s_VanillaP3ANames
+                            : std::span<const std::string_view>(s_VanillaP3ANames.data() + 1,
+                                                                s_VanillaP3ANames.size() - 1);
+    LoadP3As(logger, s_LoadedVanillaP3As, baseDirUtf8, vanillaP3aNames);
     LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, s_PkaNames);
 
     if (!useJapaneseLanguage && s_LoadedPkaData.Groups) {
