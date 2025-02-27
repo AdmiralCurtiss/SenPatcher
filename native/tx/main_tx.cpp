@@ -962,7 +962,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                             : std::span<const std::string_view>(s_VanillaP3ANames.data() + 1,
                                                                 s_VanillaP3ANames.size() - 1);
     LoadP3As(logger, s_LoadedVanillaP3As, baseDirUtf8, vanillaP3aNames);
-    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, s_PkaNames);
+    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, s_PkaNames, false);
 
     if (!useJapaneseLanguage && s_LoadedPkaData.Groups) {
         // skip checking the Japanese pkgs if we're running in English

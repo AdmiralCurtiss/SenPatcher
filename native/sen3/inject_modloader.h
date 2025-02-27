@@ -12,4 +12,5 @@ enum class GameVersion;
 void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder);
 void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder);
 void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder);
+void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder);
 } // namespace SenLib::Sen3

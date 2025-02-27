@@ -213,7 +213,9 @@ static bool CollectAudio(HyoutaUtils::Logger& logger,
     return true;
 }
 
-bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger, std::string_view baseDir) {
+bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
+                              std::string_view baseDir,
+                              SenLib::ModLoad::LoadedP3AData& vanillaP3As) {
     // TODO: handle this flag somehow?
     bool allowSwitchToNightmare = true;
 
@@ -222,7 +224,7 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger, std::string_view base
         [&](std::string_view path,
             size_t size,
             const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
-        return GetCheckedFile(baseDir, nullptr, path, size, hash);
+        return GetCheckedFile(baseDir, &vanillaP3As, path, size, hash);
     };
 
     bool success = true;

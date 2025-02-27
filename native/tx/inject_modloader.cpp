@@ -145,16 +145,17 @@ void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder
     // TODO: Is that all the '(flags & 1) != 0' checks?
 
     {
-        // this changes a '(flags & 1) != 0' check to a '(flags & 0xfd) != 0' check
-        // that way compression is detected if any non-checksum flag is set, and not just bit 0
+        // this changes a '(flags & 1) != 0' check to a '(flags & 0x9d) != 0' check
+        // that way compression is detected if any non-checksum compression flag is set, and not
+        // just bit 0 (bit 0 -> type1, bit 2 -> lz4, bit 3 -> lzma, bit 4 -> zstd, bit 7 -> pka ref)
         char* tmp = compressionFlagCheck1;
         PageUnprotect page(logger, tmp, 4);
-        *(tmp + 3) = (char)0xfd;
+        *(tmp + 3) = (char)0x9d;
     }
     {
         char* tmp = compressionFlagCheck2;
         PageUnprotect page(logger, tmp, 4);
-        *(tmp + 3) = (char)0xfd;
+        *(tmp + 3) = (char)0x9d;
     }
 
     char* codespaceBegin = codespace;

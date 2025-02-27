@@ -46,7 +46,8 @@ void LoadPkas(HyoutaUtils::Logger& logger,
               LoadedPkaData& loadedPkaData,
               std::string_view baseDir,
               std::span<const std::string_view> prefixes,
-              std::span<const std::string_view> names) {
+              std::span<const std::string_view> names,
+              bool ignorePkgsOfPrefix0File0) {
     // prefixes contains a list of directories that may contain .pka files
     // names contains a list of names for the pka file
     // eg. if prefix is "data/asset/d3d11/" and name is "assets", then
@@ -124,7 +125,11 @@ void LoadPkas(HyoutaUtils::Logger& logger,
 
         // count the number of PKGs we have
         size_t numberOfPkgs = 0;
-        for (size_t j = prefixGroupStart; j < pkaHeaders.size(); ++j) {
+        size_t prefixGroupStartForPkgs =
+            (ignorePkgsOfPrefix0File0 && i == 0 && prefixGroupStart != pkaHeaders.size())
+                ? (prefixGroupStart + 1)
+                : prefixGroupStart;
+        for (size_t j = prefixGroupStartForPkgs; j < pkaHeaders.size(); ++j) {
             numberOfPkgs += pkaHeaders[j].Header.PkgCount;
         }
 
@@ -137,7 +142,7 @@ void LoadPkas(HyoutaUtils::Logger& logger,
             auto pkgArray = std::make_unique<PkgIndexProxy[]>(numberOfPkgs);
             {
                 size_t idx = 0;
-                for (size_t j = prefixGroupStart; j < pkaHeaders.size(); ++j) {
+                for (size_t j = prefixGroupStartForPkgs; j < pkaHeaders.size(); ++j) {
                     auto& hdr = pkaHeaders[j].Header;
                     for (size_t k = 0; k < hdr.PkgCount; ++k) {
                         pkgArray[idx].PkgIndex = k;

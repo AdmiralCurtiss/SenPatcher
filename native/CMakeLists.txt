@@ -1340,6 +1340,8 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		sen3/main_cs3.cpp
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 		x64/emitter.cpp
 		x64/emitter.h
 		x64/inject_jump_into.h

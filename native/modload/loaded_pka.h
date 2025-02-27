@@ -35,11 +35,15 @@ struct LoadedPkaData {
 };
 
 // Loads all PKA files in baseDir/prefixes[i]/names[i][n].pka into loadedPkaData.
+// ignorePkgsOfPrefix0File0 = true should be set for the games that have native .pka support,
+// so we let the game handle the pkgs of that specific file on its own while still having it
+// accessible for the hashes/files in it
 void LoadPkas(HyoutaUtils::Logger& logger,
               LoadedPkaData& loadedPkaData,
               std::string_view baseDir,
               std::span<const std::string_view> prefixes,
-              std::span<const std::string_view> names);
+              std::span<const std::string_view> names,
+              bool ignorePkgsOfPrefix0File0);
 
 // Build a 'fake' PKG where every file is just a reference with hash to the PKA.
 // This is a nonstandard extension that the vanilla game does not understand!
