@@ -340,4 +340,69 @@ void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder) 
 
     execData.Codespace = codespace;
 }
+
+void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
+    using namespace SenPatcher::x64;
+
+    char* const entryPoint = GetCodeAddressEn(
+        version, textRegion, Addresses{.En114 = 0x140098f58, .En115 = 0x1400996d8});
+    char* const compressionFlagCheckForDecompression = GetCodeAddressEn(
+        version, textRegion, Addresses{.En114 = 0x140098e7f, .En115 = 0x1400995ff});
+    char* const compressionFlagCheckForSomethingElse = GetCodeAddressEn(
+        version, textRegion, Addresses{.En114 = 0x14006c3b6, .En115 = 0x14006c4b6});
+
+    // TODO: Is that all the checks for pkg flags?
+
+    {
+        // this changes a '(flags & 1) != 0' check to a '(flags & 0x81) != 0' check.
+        // this causes the code flow to proceed towards the type1 extraction (which we inject at)
+        // for both that and the fake pka ref 'compression'
+        char* tmp = compressionFlagCheckForDecompression;
+        PageUnprotect page(logger, tmp, 2);
+        *(tmp + 1) = (char)0x81;
+    }
+    {
+        // same as above, except this is checking for any compression, not specifically for type1,
+        // so we update the check for all compression flags from 0x1d to 0x9d.
+        // (bit 0 -> type1, bit 2 -> lz4, bit 3 -> lzma, bit 4 -> zstd, bit 7 -> pka ref)
+        char* tmp = compressionFlagCheckForSomethingElse;
+        PageUnprotect page(logger, tmp, 4);
+        *(tmp + 3) = (char)0x9d;
+    }
+
+    char* codespaceBegin = codespace;
+    auto injectResult = InjectJumpIntoCode<14, PaddingInstruction::Nop>(
+        logger, entryPoint, R64::RDX, codespaceBegin);
+
+    // we have overwritten:
+    // - mov rdx,rax
+    // - mov rcx,r13
+    // - call pkg_decompress_type1
+    // - mov ecx,dword ptr[rsi+0x40]
+    std::memcpy(codespace, injectResult.OverwrittenInstructions.data(), 6);
+    codespace += 6;
+
+    // r13/rcx is the input bufer
+    // rax/rdx is the output buffer
+    // rsi is the pointer to the single file pkg header
+
+    // rcx and rdx are already set
+    Emit_MOV_R64_R64(codespace, R64::R8, R64::RSI);
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(decompressPkgForwarder));
+    Emit_CALL_R64(codespace, R64::RAX);
+
+    std::memcpy(codespace, injectResult.OverwrittenInstructions.data() + 6 + 5, 3);
+    codespace += 3;
+
+    // return value in eax is already correct
+    Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(injectResult.JumpBackAddress));
+    Emit_JMP_R64(codespace, R64::RDX);
+
+    execData.Codespace = codespace;
+}
 } // namespace SenLib::Sen5

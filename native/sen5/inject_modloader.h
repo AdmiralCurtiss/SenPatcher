@@ -15,4 +15,5 @@ void InjectAtFileExists1(PatchExecData& execData, void* ffileExistsForwarder);
 void InjectAtFileExists2(PatchExecData& execData, void* ffileExistsForwarder);
 void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeForwarder);
 void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder);
+void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder);
 } // namespace SenLib::Sen5
