@@ -213,4 +213,93 @@ void InjectAtOpenFSoundFile(PatchExecData& execData, void* fsoundOpenForwarder) 
 
     execData.Codespace = codespace;
 }
+
+void InjectAtDecompressPkg(PatchExecData& execData, void* decompressPkgForwarder) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
+    using namespace SenPatcher::x64;
+
+    char* const entryPoint = GetCodeAddressJpEn(version,
+                                                textRegion,
+                                                Addresses{.Jp121 = 0x1400be56c,
+                                                          .En121 = 0x1400be58e,
+                                                          .Jp122 = 0x1400be56c,
+                                                          .En122 = 0x1400be58e});
+    char* const compressionFlagCheckForDecompression =
+        GetCodeAddressJpEn(version,
+                           textRegion,
+                           Addresses{.Jp121 = 0x1400be4d9,
+                                     .En121 = 0x1400be4fb,
+                                     .Jp122 = 0x1400be4d9,
+                                     .En122 = 0x1400be4fb});
+    char* const compressionFlagCheckForSomethingElse =
+        GetCodeAddressJpEn(version,
+                           textRegion,
+                           Addresses{.Jp121 = 0x140099338,
+                                     .En121 = 0x140099328,
+                                     .Jp122 = 0x140099338,
+                                     .En122 = 0x140099328});
+
+    // TODO: Is that all the checks for pkg flags?
+
+    {
+        // this changes a '(flags & 1) != 0' check to a '(flags & 0x81) != 0' check.
+        // this causes the code flow to proceed towards the type1 extraction (which we inject at)
+        // for both that and the fake pka ref 'compression'
+        char* tmp = compressionFlagCheckForDecompression;
+        PageUnprotect page(logger, tmp, 2);
+        *(tmp + 1) = (char)0x81;
+    }
+    {
+        // same as above, except this is checking for any compression, not specifically for type1,
+        // so we update the check for all compression flags from 0x1d to 0x9d.
+        // (bit 0 -> type1, bit 2 -> lz4, bit 3 -> lzma, bit 4 -> zstd, bit 7 -> pka ref)
+        char* tmp = compressionFlagCheckForSomethingElse;
+        PageUnprotect page(logger, tmp, 4);
+        *(tmp + 3) = (char)0x9d;
+    }
+
+    char* codespaceBegin = codespace;
+    auto injectResult = InjectJumpIntoCode<12, PaddingInstruction::Nop>(
+        logger, entryPoint, R64::RDX, codespaceBegin);
+
+    // we have overwritten:
+    // - test rax,rax
+    // - jz output_buffer_allocation_failure
+    // - mov rdx,rax
+    // reconstruct this code
+    std::memcpy(codespace, injectResult.OverwrittenInstructions.data(), 3);
+    codespace += 3;
+    BranchHelper1Byte output_buffer_allocation_success;
+    output_buffer_allocation_success.WriteJump(codespace, JumpCondition::JNZ);
+    int32_t relativeTarget;
+    std::memcpy(&relativeTarget, injectResult.OverwrittenInstructions.data() + 5, 4);
+    char* failureJumpBackAddress = (injectResult.JumpBackAddress - 3) + relativeTarget;
+    Emit_MOV_R64_IMM64(codespace, R64::RDX, std::bit_cast<uint64_t>(failureJumpBackAddress));
+    Emit_JMP_R64(codespace, R64::RDX);
+
+    output_buffer_allocation_success.SetTarget(codespace);
+
+    // r12/rcx is the input bufer
+    // rdx/rax is the output buffer
+    // rbx is the pointer to the single file pkg header
+
+    // allocation was successful, so we can call our replacement decompressor
+    // rcx is already set
+    Emit_MOV_R64_R64(codespace, R64::RDX, R64::RAX);
+    Emit_MOV_R64_R64(codespace, R64::R8, R64::RBX);
+    Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(decompressPkgForwarder));
+    Emit_CALL_R64(codespace, R64::RAX);
+
+    // return value in eax is already correct
+    // skip the original decompression call and go back
+    char* successJumpBackAddress = (injectResult.JumpBackAddress + 5);
+    Emit_MOV_R64_IMM64(codespace, R64::RCX, std::bit_cast<uint64_t>(successJumpBackAddress));
+    Emit_JMP_R64(codespace, R64::RCX);
+
+    execData.Codespace = codespace;
+}
 } // namespace SenLib::Sen4

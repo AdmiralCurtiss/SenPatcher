@@ -14,6 +14,10 @@
 #include "util/logger.h"
 
 #include "modload/loaded_mods.h"
+#include "modload/loaded_pka.h"
+#include "sen/pka.h"
+#include "sen/pkg.h"
+#include "sen/pkg_extract.h"
 #include "sen4/exe_patch.h"
 #include "sen4/file_fixes.h"
 #include "sen4/inject_modloader.h"
@@ -27,6 +31,7 @@ __declspec(dllexport) char SenPatcherVersion[] = SENPATCHER_VERSION;
 }
 
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
 
 using SenLib::Sen4::GameVersion;
@@ -210,7 +215,25 @@ using PTrackedFree = void(__fastcall*)(void* memory);
 
 static PTrackedMalloc s_TrackedMalloc = nullptr;
 static PTrackedFree s_TrackedFree = nullptr;
+
+static SenLib::ModLoad::LoadedP3AData s_LoadedVanillaP3As{};
+static constexpr std::array<std::string_view, 9> s_VanillaP3ANames{{"misc.p3a",
+                                                                    "bgm.p3a",
+                                                                    "se.p3a",
+                                                                    "voice.p3a",
+                                                                    "voice_jp.p3a",
+                                                                    "bgm_lossless.p3a",
+                                                                    "se_lossless.p3a",
+                                                                    "voice_lossless.p3a",
+                                                                    "voice_jp_lossless.p3a"}};
+
 static SenLib::ModLoad::LoadedModsData s_LoadedModsData{};
+
+static SenLib::ModLoad::LoadedPkaData s_LoadedPkaData{};
+static constexpr std::array<std::string_view, 4> s_PkaGroupPrefixes{{"data/asset/d3d11/",
+                                                                     "data/asset/d3d11_jp/",
+                                                                     "data/dlc/asset/d3d11/",
+                                                                     "data/dlc/asset/d3d11_jp/"}};
 
 // ignore any path that doesn't begin with the 'data' directory
 static bool IsValidReroutablePath(const char* path) {
@@ -255,6 +278,9 @@ static int64_t OpenModFile(FFile* ffile, const char* path) {
 
     const SenLib::ModLoad::P3AFileRef* refptr =
         FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
+    if (refptr == nullptr) {
+        refptr = FindP3AFileRef(s_LoadedVanillaP3As, filteredPath);
+    }
     if (refptr != nullptr) {
         void* memory = nullptr;
         uint64_t filesize = 0;
@@ -273,6 +299,83 @@ static int64_t OpenModFile(FFile* ffile, const char* path) {
         ffile->MemoryPointerForFreeing = memory;
         ffile->MemoryPosition = 0;
         return 1;
+    }
+
+    const auto& pkaData = s_LoadedPkaData;
+    const auto checkPka = [&](SenLib::PkaPkgToHashData* pkgs,
+                              size_t pkgCount,
+                              SenLib::PkaFileHashData* pkgFiles,
+                              size_t pkgFilesCount,
+                              const char* pkgPrefix,
+                              size_t pkgPrefixLength) -> int32_t {
+        if (pkgCount > 0 && memcmp(pkgPrefix, filteredPath.data(), pkgPrefixLength) == 0) {
+            // first check for the real PKG
+            HyoutaUtils::IO::File file(std::string_view(path), HyoutaUtils::IO::OpenMode::Read);
+            if (file.IsOpen()) {
+                auto length = file.GetLength();
+                if (!length) {
+                    ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
+                    return 0;
+                }
+                ffile->NativeFileHandle = file.ReleaseHandle();
+                ffile->Filesize = static_cast<uint32_t>(*length);
+                return 1;
+            }
+
+            // then check for data in the PKA
+            const size_t start = pkgPrefixLength;
+            assert(filteredPath.size() - start >= pkgs[0].PkgName.size());
+            const SenLib::PkaPkgToHashData* pkaPkg =
+                SenLib::FindPkgInPkaByName(pkgs, pkgCount, &filteredPath[start]);
+            if (pkaPkg) {
+                // check bounds
+                // 0x120'0000 is an arbitrary limit; it would result in an allocation of near 2 GB
+                // just for the header which is clearly too much
+                if (pkaPkg->FileCount > 0x120'0000 || pkaPkg->FileOffset > pkgFilesCount
+                    || pkaPkg->FileCount > pkgFilesCount - pkaPkg->FileOffset) {
+                    ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
+                    return 0;
+                }
+
+                size_t length = 8 + (pkaPkg->FileCount * (0x50 + 0x20));
+                void* memory = s_TrackedMalloc(length, 8);
+                if (!memory) {
+                    ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
+                    return 0;
+                }
+
+                // build fake pkg
+                if (!SenLib::ModLoad::BuildFakePkaPkg((char*)memory,
+                                                      pkaPkg,
+                                                      pkgFiles,
+                                                      pkaData.Hashes.Files.get(),
+                                                      pkaData.Hashes.FilesCount)) {
+                    s_TrackedFree(memory);
+                    ffile->NativeFileHandle = INVALID_HANDLE_VALUE;
+                    return 0;
+                }
+
+                ffile->Filesize = static_cast<uint32_t>(length);
+                ffile->MemoryPointer = memory;
+                ffile->MemoryPointerForFreeing = memory;
+                ffile->MemoryPosition = 0;
+                return 1;
+            }
+        }
+        return -1;
+    };
+
+    const auto& pkaPrefixes = s_PkaGroupPrefixes;
+    for (size_t i = 0; i < pkaPrefixes.size(); ++i) {
+        int32_t pkaCheckResult = checkPka(pkaData.Groups[i].Pkgs.get(),
+                                          pkaData.Groups[i].PkgCount,
+                                          pkaData.Groups[i].PkgFiles.get(),
+                                          pkaData.Groups[i].PkgFileCount,
+                                          pkaPrefixes[i].data(),
+                                          pkaPrefixes[i].size());
+        if (pkaCheckResult >= 0) {
+            return pkaCheckResult;
+        }
     }
 
     return -1;
@@ -314,6 +417,9 @@ static int64_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
 
     const SenLib::ModLoad::P3AFileRef* refptr =
         FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
+    if (refptr == nullptr) {
+        refptr = FindP3AFileRef(s_LoadedVanillaP3As, filteredPath);
+    }
     if (refptr != nullptr) {
         const SenLib::ModLoad::P3AFileRef& ref = *refptr;
         const SenPatcher::P3AFileInfo& fi = *ref.FileInfo;
@@ -321,6 +427,22 @@ static int64_t GetFilesizeOfModFile(const char* path, uint32_t* out_filesize) {
             *out_filesize = static_cast<uint32_t>(fi.UncompressedSize);
         }
         return 1;
+    }
+
+    const auto& pkaData = s_LoadedPkaData;
+    const auto& pkaPrefixes = s_PkaGroupPrefixes;
+    for (size_t i = 0; i < pkaPrefixes.size(); ++i) {
+        int32_t pkaCheckResult = SenLib::ModLoad::GetPkaPkgFilesize(pkaData.Groups[i].Pkgs.get(),
+                                                                    pkaData.Groups[i].PkgCount,
+                                                                    pkaPrefixes[i].data(),
+                                                                    pkaPrefixes[i].size(),
+                                                                    filteredPath,
+                                                                    path,
+                                                                    out_filesize,
+                                                                    true);
+        if (pkaCheckResult >= 0) {
+            return pkaCheckResult;
+        }
     }
 
     return -1;
@@ -477,6 +599,9 @@ static int64_t __fastcall FSoundOpenForwarder(FSoundFile* soundFile,
 
     const SenLib::ModLoad::P3AFileRef* refptr =
         FindP3AFileRef(s_LoadedModsData.LoadedP3As, filteredPath);
+    if (refptr == nullptr) {
+        refptr = FindP3AFileRef(s_LoadedVanillaP3As, filteredPath);
+    }
     if (refptr != nullptr) {
         void* memory = nullptr;
         uint64_t filesize = 0;
@@ -502,6 +627,74 @@ static int64_t __fastcall FSoundOpenForwarder(FSoundFile* soundFile,
     }
 
     return -1;
+}
+
+struct PkgSingleFileHeader {
+    std::array<char, 0x40> Filename;
+    uint32_t UncompressedSize;
+    uint32_t CompressedSize;
+    uint32_t DataOffset;
+    uint32_t Flags;
+};
+static_assert(offsetof(PkgSingleFileHeader, Filename) == 0);
+static_assert(offsetof(PkgSingleFileHeader, UncompressedSize) == 0x40);
+static_assert(offsetof(PkgSingleFileHeader, CompressedSize) == 0x44);
+static_assert(offsetof(PkgSingleFileHeader, DataOffset) == 0x48);
+static_assert(offsetof(PkgSingleFileHeader, Flags) == 0x4c);
+
+static uint32_t __fastcall DecompressPkgForwarder(const char* compressedData,
+                                                  char* decompressedData,
+                                                  const PkgSingleFileHeader* pkgSingleFileHeader) {
+    const uint32_t uncompressedSize = pkgSingleFileHeader->UncompressedSize;
+    const uint32_t compressedSize = pkgSingleFileHeader->CompressedSize;
+    const uint32_t flags = pkgSingleFileHeader->Flags;
+    if ((flags & 0x80) && compressedSize == 0x20) {
+        // this is a PKA hash, look up the data in the PKA
+        auto& pkaData = s_LoadedPkaData;
+        const SenLib::PkaHashToFileData* fileData = SenLib::FindFileInPkaByHash(
+            pkaData.Hashes.Files.get(), pkaData.Hashes.FilesCount, compressedData);
+        if (fileData && fileData->UncompressedSize == uncompressedSize) {
+            std::unique_ptr<char[]> buffer = nullptr;
+            const size_t index = static_cast<size_t>(static_cast<size_t>(fileData->Offset >> 48)
+                                                     & static_cast<size_t>(0xffff));
+            if (index < pkaData.HandleCount) {
+                auto& pka = pkaData.Handles[index];
+                std::lock_guard<std::recursive_mutex> lock(pka.Mutex);
+                if (pka.Handle.SetPosition(fileData->Offset
+                                           & static_cast<uint64_t>(0xffff'ffff'ffff))) {
+                    buffer = std::make_unique<char[]>(fileData->CompressedSize);
+                    if (buffer) {
+                        if (pka.Handle.Read(buffer.get(), fileData->CompressedSize)
+                            != fileData->CompressedSize) {
+                            buffer.reset();
+                        }
+                    }
+                }
+            }
+            if (buffer
+                && SenLib::ExtractAndDecompressPkgFile(
+                    decompressedData,
+                    uncompressedSize,
+                    buffer.get(),
+                    fileData->CompressedSize,
+                    fileData->Flags,
+                    HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+                return uncompressedSize;
+            }
+        }
+        return 0;
+    }
+
+    if (!SenLib::ExtractAndDecompressPkgFile(decompressedData,
+                                             uncompressedSize,
+                                             compressedData,
+                                             compressedSize,
+                                             flags,
+                                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
+        return 0;
+    }
+
+    return uncompressedSize;
 }
 
 static void* SetupHacks(HyoutaUtils::Logger& logger) {
@@ -641,9 +834,13 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
+    LoadP3As(logger, s_LoadedVanillaP3As, baseDirUtf8, s_VanillaP3ANames);
+    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, {}, true);
+
     bool assetCreationSuccess = true;
     if (assetFixes) {
-        assetCreationSuccess = SenLib::Sen4::CreateAssetPatchIfNeeded(logger, baseDirUtf8);
+        assetCreationSuccess =
+            SenLib::Sen4::CreateAssetPatchIfNeeded(logger, baseDirUtf8, s_LoadedVanillaP3As);
     }
 
     LoadModP3As(logger,
@@ -666,6 +863,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     SenLib::Sen4::InjectAtFFileGetFilesize(patchExecData, &FFileGetFilesizeForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
     SenLib::Sen4::InjectAtOpenFSoundFile(patchExecData, &FSoundOpenForwarder);
+    Align16CodePage(logger, patchExecData.Codespace);
+    SenLib::Sen4::InjectAtDecompressPkg(patchExecData, &DecompressPkgForwarder);
     Align16CodePage(logger, patchExecData.Codespace);
 
     DeglobalizeMutexes(patchExecData);

@@ -1425,6 +1425,8 @@ if (SENPATCHER_BUILD_CS4HOOK)
 		sen4/main_cs4.cpp
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 		x64/emitter.cpp
 		x64/emitter.h
 		x64/inject_jump_into.h
