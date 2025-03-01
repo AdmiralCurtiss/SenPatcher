@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -11,7 +12,8 @@
 
 namespace SenLib::ModLoad {
 struct LoadedP3AData;
-}
+struct LoadedPkaData;
+} // namespace SenLib::ModLoad
 
 namespace SenLib {
 bool CreateArchiveIfNeeded(
@@ -25,7 +27,9 @@ bool CreateVideoIfNeeded(HyoutaUtils::Logger& logger,
                          const std::function<bool(std::vector<char>& videoData)>& getVideo);
 std::optional<SenPatcher::CheckedFileResult>
     GetCheckedFile(std::string_view baseDir,
-                   SenLib::ModLoad::LoadedP3AData* vanillaP3As,
+                   SenLib::ModLoad::LoadedP3AData& vanillaP3As,
+                   SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
+                   std::span<const std::string_view> pkaPrefixes,
                    std::string_view path,
                    size_t size,
                    const HyoutaUtils::Hash::SHA1& hash);

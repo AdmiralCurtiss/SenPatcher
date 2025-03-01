@@ -937,6 +937,8 @@ if (SENPATCHER_BUILD_CS1TEST)
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS1_FIXES}
@@ -1018,6 +1020,8 @@ if (SENPATCHER_BUILD_CS2TEST)
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS2_FIXES}
@@ -1108,6 +1112,8 @@ if (SENPATCHER_BUILD_TXTEST)
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_TX_FIXES}
@@ -1310,6 +1316,8 @@ if (SENPATCHER_BUILD_CS3TEST)
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS3_FIXES}
@@ -1395,6 +1403,8 @@ if (SENPATCHER_BUILD_CS4TEST)
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_CS4_FIXES}
@@ -1475,6 +1485,8 @@ if (SENPATCHER_BUILD_REVTEST)
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 
 		${SOURCES_BASE_FIXES}
 		${SOURCES_REVERIE_FIXES}
@@ -1559,6 +1571,8 @@ if (SENPATCHER_BUILD_GTESTS)
 		${SOURCES_ZSTD_COMPRESSION}
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
+		modload/loaded_pka.cpp
+		modload/loaded_pka.h
 		util/hash/sha256.h
 		util/hash/sha256.cpp
 		util/hash/util.h

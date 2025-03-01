@@ -796,8 +796,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     bool assetCreationSuccess = true;
     if (assetFixes) {
-        assetCreationSuccess =
-            SenLib::Sen5::CreateAssetPatchIfNeeded(logger, baseDirUtf8, s_LoadedVanillaP3As);
+        assetCreationSuccess = SenLib::Sen5::CreateAssetPatchIfNeeded(
+            logger, baseDirUtf8, s_LoadedVanillaP3As, s_LoadedPkaData, s_PkaGroupPrefixes);
     }
 
     SenLib::ModLoad::LoadModP3As(logger,

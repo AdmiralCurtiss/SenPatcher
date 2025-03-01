@@ -407,7 +407,9 @@ SenPatcher::P3APackFile* FindAlreadyPackedFile(std::vector<SenPatcher::P3APackFi
 bool CreateSwitchScriptArchive(HyoutaUtils::Logger& logger,
                                std::string_view dataDirSwitch,
                                std::string_view baseDirPc,
-                               SenLib::ModLoad::LoadedP3AData& vanillaP3As) {
+                               SenLib::ModLoad::LoadedP3AData& vanillaP3As,
+                               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
+                               std::span<const std::string_view> pkaPrefixes) {
     // lazy init these so that they won't get inited if no one asks for a file
     bool allowJapaneseBra = false;
     std::optional<SenPatcher::BRA> asset1_bra;
@@ -528,7 +530,7 @@ bool CreateSwitchScriptArchive(HyoutaUtils::Logger& logger,
             logger.Log("Found ").Log(path).Log(" in Asset4.bra\n");
             return f4;
         }
-        return GetCheckedFile(baseDirPc, &vanillaP3As, path, size, hash);
+        return GetCheckedFile(baseDirPc, vanillaP3As, vanillaPKAs, pkaPrefixes, path, size, hash);
     };
 
     std::string_view archivePath = "mods/tx_switch_script.p3a";

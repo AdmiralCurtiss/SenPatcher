@@ -66,7 +66,9 @@ static bool CollectAssetsEnglish(HyoutaUtils::Logger& logger,
 
 bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                               std::string_view baseDir,
-                              SenLib::ModLoad::LoadedP3AData& vanillaP3As) {
+                              SenLib::ModLoad::LoadedP3AData& vanillaP3As,
+                              SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
+                              std::span<const std::string_view> pkaPrefixes) {
     // lazy init these so that they won't get inited if no one asks for a file
     std::optional<SenPatcher::BRA> asset1_bra;
     std::optional<SenPatcher::BRA> asset2_bra;
@@ -177,7 +179,7 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
         if (f4) {
             return f4;
         }
-        return GetCheckedFile(baseDir, &vanillaP3As, path, size, hash);
+        return GetCheckedFile(baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, path, size, hash);
     };
 
     return CreateArchiveIfNeeded(logger,
