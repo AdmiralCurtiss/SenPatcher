@@ -38,7 +38,7 @@ int InternalMain(int argc, char** argv) {
     SenLib::ModLoad::LoadedP3AData vanillaP3As;
     SenLib::ModLoad::LoadedPkaData vanillaPKAs;
     LoadP3As(logger, vanillaP3As, baseDirUtf8, s_VanillaP3ANames);
-    LoadPkas(logger, vanillaPKAs, baseDirUtf8, s_PkaGroupPrefixes, {}, false);
+    LoadPkas(logger, vanillaPKAs, baseDirUtf8, s_PkaGroupPrefixes, {});
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
     SenLib::Sen2::CreateAssetPatchIfNeeded(
         logger, baseDirUtf8, vanillaP3As, vanillaPKAs, s_PkaGroupPrefixes);

@@ -37,11 +37,12 @@ int InternalMain(int argc, char** argv) {
     HyoutaUtils::Logger logger;
     SenLib::ModLoad::LoadedP3AData vanillaP3As;
     SenLib::ModLoad::LoadedPkaData vanillaPKAs;
+    SenLib::ModLoad::LoadedPkaGroupData pkgsOfPrefix0File0;
     LoadP3As(logger, vanillaP3As, baseDirUtf8, s_VanillaP3ANames);
-    LoadPkas(logger, vanillaPKAs, baseDirUtf8, s_PkaGroupPrefixes, {}, true);
+    LoadPkas(logger, vanillaPKAs, baseDirUtf8, s_PkaGroupPrefixes, {}, &pkgsOfPrefix0File0);
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
     SenLib::Sen5::CreateAssetPatchIfNeeded(
-        logger, baseDirUtf8, vanillaP3As, vanillaPKAs, s_PkaGroupPrefixes);
+        logger, baseDirUtf8, vanillaP3As, vanillaPKAs, s_PkaGroupPrefixes, pkgsOfPrefix0File0);
     return 0;
 }
 

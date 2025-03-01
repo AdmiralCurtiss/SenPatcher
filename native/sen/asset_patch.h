@@ -13,6 +13,7 @@
 namespace SenLib::ModLoad {
 struct LoadedP3AData;
 struct LoadedPkaData;
+struct LoadedPkaGroupData;
 } // namespace SenLib::ModLoad
 
 namespace SenLib {
@@ -31,6 +32,7 @@ std::optional<SenPatcher::CheckedFileResult>
                    SenLib::ModLoad::LoadedP3AData& vanillaP3As,
                    SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
                    std::span<const std::string_view> pkaPrefixes,
+                   SenLib::ModLoad::LoadedPkaGroupData* pkgsOfPrefix0File0,
                    std::string_view path,
                    size_t size,
                    const HyoutaUtils::Hash::SHA1& hash);

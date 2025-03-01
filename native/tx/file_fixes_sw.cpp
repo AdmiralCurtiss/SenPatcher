@@ -530,7 +530,8 @@ bool CreateSwitchScriptArchive(HyoutaUtils::Logger& logger,
             logger.Log("Found ").Log(path).Log(" in Asset4.bra\n");
             return f4;
         }
-        return GetCheckedFile(baseDirPc, vanillaP3As, vanillaPKAs, pkaPrefixes, path, size, hash);
+        return GetCheckedFile(
+            baseDirPc, vanillaP3As, vanillaPKAs, pkaPrefixes, nullptr, path, size, hash);
     };
 
     std::string_view archivePath = "mods/tx_switch_script.p3a";

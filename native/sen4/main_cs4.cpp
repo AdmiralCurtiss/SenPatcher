@@ -834,8 +834,9 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
+    SenLib::ModLoad::LoadedPkaGroupData pkgsOfPrefix0File0;
     LoadP3As(logger, s_LoadedVanillaP3As, baseDirUtf8, s_VanillaP3ANames);
-    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, {}, true);
+    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, {}, &pkgsOfPrefix0File0);
 
     bool assetCreationSuccess = true;
     if (assetFixes) {
@@ -844,6 +845,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                                                                       s_LoadedVanillaP3As,
                                                                       s_LoadedPkaData,
                                                                       s_PkaGroupPrefixes,
+                                                                      pkgsOfPrefix0File0,
                                                                       allowSwitchToNightmare);
     }
 

@@ -70,7 +70,7 @@ int InternalMain(int argc, char** argv) {
     SenLib::ModLoad::LoadedP3AData vanillaP3As;
     SenLib::ModLoad::LoadedPkaData vanillaPKAs;
     LoadP3As(logger, vanillaP3As, baseDirUtf8, vanillaP3aNames);
-    LoadPkas(logger, vanillaPKAs, baseDirUtf8, s_PkaGroupPrefixes, s_PkaNames, false);
+    LoadPkas(logger, vanillaPKAs, baseDirUtf8, s_PkaGroupPrefixes, s_PkaNames);
 
     if (!useJapaneseLanguage && vanillaPKAs.Groups) {
         // skip checking the Japanese pkgs if we're running in English

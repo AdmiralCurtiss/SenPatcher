@@ -104,7 +104,8 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
         [&](std::string_view path,
             size_t size,
             const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
-        return GetCheckedFile(baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, path, size, hash);
+        return GetCheckedFile(
+            baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, nullptr, path, size, hash);
     };
 
     std::string_view versionString(SENPATCHER_VERSION, sizeof(SENPATCHER_VERSION) - 1);

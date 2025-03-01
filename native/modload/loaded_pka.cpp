@@ -14,6 +14,13 @@
 #include "util/file.h"
 #include "util/logger.h"
 
+namespace {
+struct PkaHeaderWithHandle {
+    SenLib::PkaHeader Header;
+    HyoutaUtils::IO::File FileHandle;
+};
+} // namespace
+
 namespace SenLib::ModLoad {
 static std::optional<HyoutaUtils::IO::File>
     LoadPka(HyoutaUtils::Logger& logger, SenLib::PkaHeader& pka, std::string_view path) {
@@ -42,12 +49,113 @@ static std::optional<HyoutaUtils::IO::File>
     return std::nullopt;
 }
 
+static void CombinePkaGroup(LoadedPkaGroupData& group,
+                            std::vector<PkaHeaderWithHandle>& pkaHeaders,
+                            size_t prefixGroupStart,
+                            size_t prefixGroupEnd) {
+    // count the number of PKGs we have
+    size_t numberOfPkgs = 0;
+    for (size_t j = prefixGroupStart; j < prefixGroupEnd; ++j) {
+        numberOfPkgs += pkaHeaders[j].Header.PkgCount;
+    }
+    if (numberOfPkgs == 0) {
+        group.Pkgs = nullptr;
+        group.PkgCount = 0;
+        group.PkgFiles = nullptr;
+        group.PkgFileCount = 0;
+        return;
+    }
+
+    // sort these via a proxy
+    struct PkgIndexProxy {
+        size_t PkgIndex;
+        size_t PkaIndex;
+    };
+    auto pkgArray = std::make_unique<PkgIndexProxy[]>(numberOfPkgs);
+    {
+        size_t idx = 0;
+        for (size_t j = prefixGroupStart; j < prefixGroupEnd; ++j) {
+            auto& hdr = pkaHeaders[j].Header;
+            for (size_t k = 0; k < hdr.PkgCount; ++k) {
+                pkgArray[idx].PkgIndex = k;
+                pkgArray[idx].PkaIndex = j;
+                ++idx;
+            }
+        }
+    }
+    std::stable_sort(pkgArray.get(),
+                     pkgArray.get() + numberOfPkgs,
+                     [&](const PkgIndexProxy& lhs, const PkgIndexProxy& rhs) {
+                         // we sort first by pkg name, second by pka index (biggest first)
+                         auto& lhsName = pkaHeaders[lhs.PkaIndex].Header.Pkgs[lhs.PkgIndex].PkgName;
+                         auto& rhsName = pkaHeaders[rhs.PkaIndex].Header.Pkgs[rhs.PkgIndex].PkgName;
+                         int nameResult = strncmp(lhsName.data(), rhsName.data(), lhsName.size());
+                         if (nameResult != 0) {
+                             return nameResult < 0;
+                         }
+                         return lhs.PkaIndex > rhs.PkaIndex;
+                     });
+
+    // now drop all duplicate pkg names
+    size_t remainingPkgCount = numberOfPkgs;
+    {
+        size_t in = 1;
+        size_t out = 0;
+        while (in < numberOfPkgs) {
+            const PkgIndexProxy& last = pkgArray[out];
+            const PkgIndexProxy& next = pkgArray[in];
+            auto& lastName = pkaHeaders[last.PkaIndex].Header.Pkgs[last.PkgIndex].PkgName;
+            auto& nextName = pkaHeaders[next.PkaIndex].Header.Pkgs[next.PkgIndex].PkgName;
+            if (strncmp(lastName.data(), nextName.data(), lastName.size()) == 0) {
+                --remainingPkgCount;
+            } else {
+                const PkgIndexProxy tmp = next;
+                ++out;
+                pkgArray[out] = tmp;
+            }
+            ++in;
+        }
+    }
+
+    // combine the remaining pkgs into one large array
+    size_t remainingFileCount = 0;
+    for (size_t j = 0; j < remainingPkgCount; ++j) {
+        const PkgIndexProxy& proxy = pkgArray[j];
+        remainingFileCount += pkaHeaders[proxy.PkaIndex].Header.Pkgs[proxy.PkgIndex].FileCount;
+    }
+    auto restPkgs = remainingPkgCount > 0
+                        ? std::make_unique<SenLib::PkaPkgToHashData[]>(remainingPkgCount)
+                        : nullptr;
+    auto restPkgFiles = remainingFileCount > 0
+                            ? std::make_unique<SenLib::PkaFileHashData[]>(remainingFileCount)
+                            : nullptr;
+    uint32_t newOffset = 0;
+    for (size_t j = 0; j < remainingPkgCount; ++j) {
+        const PkgIndexProxy& proxy = pkgArray[j];
+        const auto& oldHdr = pkaHeaders[proxy.PkaIndex].Header;
+        const auto& oldPkg = oldHdr.Pkgs[proxy.PkgIndex];
+        auto& newPkg = restPkgs[j];
+        newPkg.PkgName = oldPkg.PkgName;
+        newPkg.FileOffset = newOffset;
+        newPkg.FileCount = oldPkg.FileCount;
+        for (size_t k = 0; k < oldPkg.FileCount; ++k) {
+            restPkgFiles[newOffset] = oldHdr.PkgFiles[oldPkg.FileOffset + k];
+            ++newOffset;
+        }
+    }
+
+    group.Pkgs = std::move(restPkgs);
+    group.PkgCount = remainingPkgCount;
+    group.PkgFiles = std::move(restPkgFiles);
+    group.PkgFileCount = remainingFileCount;
+}
+
 void LoadPkas(HyoutaUtils::Logger& logger,
               LoadedPkaData& loadedPkaData,
               std::string_view baseDir,
               std::span<const std::string_view> prefixes,
               std::span<const std::string_view> names,
-              bool ignorePkgsOfPrefix0File0) {
+              LoadedPkaGroupData* pkgsOfPrefix0File0) {
     // prefixes contains a list of directories that may contain .pka files
     // names contains a list of names for the pka file
     // eg. if prefix is "data/asset/d3d11/" and name is "assets", then
@@ -79,10 +187,6 @@ void LoadPkas(HyoutaUtils::Logger& logger,
 
     auto groups = std::make_unique<LoadedPkaGroupData[]>(prefixes.size());
 
-    struct PkaHeaderWithHandle {
-        SenLib::PkaHeader Header;
-        HyoutaUtils::IO::File FileHandle;
-    };
     std::vector<PkaHeaderWithHandle> pkaHeaders;
     // likely way too much, but we want to avoid a reallocation,
     // this will be free'd at the end of the function anyway
@@ -121,109 +225,19 @@ void LoadPkas(HyoutaUtils::Logger& logger,
         }
 
         // combine the group into one set of .pkg files
-        LoadedPkaGroupData& group = groups[i];
-
-        // count the number of PKGs we have
-        size_t numberOfPkgs = 0;
-        size_t prefixGroupStartForPkgs =
-            (ignorePkgsOfPrefix0File0 && i == 0 && prefixGroupStart != pkaHeaders.size())
-                ? (prefixGroupStart + 1)
-                : prefixGroupStart;
-        for (size_t j = prefixGroupStartForPkgs; j < pkaHeaders.size(); ++j) {
-            numberOfPkgs += pkaHeaders[j].Header.PkgCount;
-        }
-
-        if (numberOfPkgs > 0) {
-            // sort these via a proxy
-            struct PkgIndexProxy {
-                size_t PkgIndex;
-                size_t PkaIndex;
-            };
-            auto pkgArray = std::make_unique<PkgIndexProxy[]>(numberOfPkgs);
-            {
-                size_t idx = 0;
-                for (size_t j = prefixGroupStartForPkgs; j < pkaHeaders.size(); ++j) {
-                    auto& hdr = pkaHeaders[j].Header;
-                    for (size_t k = 0; k < hdr.PkgCount; ++k) {
-                        pkgArray[idx].PkgIndex = k;
-                        pkgArray[idx].PkaIndex = j;
-                        ++idx;
-                    }
-                }
+        if (pkgsOfPrefix0File0 != nullptr && i == 0) {
+            // the caller requested the first file here to be returned separately, so do that
+            LoadedPkaGroupData& file0Group = *pkgsOfPrefix0File0;
+            if (prefixGroupStart != pkaHeaders.size()) {
+                CombinePkaGroup(file0Group, pkaHeaders, prefixGroupStart, prefixGroupStart + 1);
+                CombinePkaGroup(groups[i], pkaHeaders, prefixGroupStart + 1, pkaHeaders.size());
+            } else {
+                // this is the '0 pkas found' case, this will clear out the result just in case
+                CombinePkaGroup(file0Group, pkaHeaders, prefixGroupStart, pkaHeaders.size());
+                CombinePkaGroup(groups[i], pkaHeaders, prefixGroupStart, pkaHeaders.size());
             }
-            std::stable_sort(
-                pkgArray.get(),
-                pkgArray.get() + numberOfPkgs,
-                [&](const PkgIndexProxy& lhs, const PkgIndexProxy& rhs) {
-                    // we sort first by pkg name, second by pka index (biggest first)
-                    auto& lhsName = pkaHeaders[lhs.PkaIndex].Header.Pkgs[lhs.PkgIndex].PkgName;
-                    auto& rhsName = pkaHeaders[rhs.PkaIndex].Header.Pkgs[rhs.PkgIndex].PkgName;
-                    int nameResult = strncmp(lhsName.data(), rhsName.data(), lhsName.size());
-                    if (nameResult != 0) {
-                        return nameResult < 0;
-                    }
-                    return lhs.PkaIndex > rhs.PkaIndex;
-                });
-
-            // now drop all duplicate pkg names
-            size_t remainingPkgCount = numberOfPkgs;
-            {
-                size_t in = 1;
-                size_t out = 0;
-                while (in < numberOfPkgs) {
-                    const PkgIndexProxy& last = pkgArray[out];
-                    const PkgIndexProxy& next = pkgArray[in];
-                    auto& lastName = pkaHeaders[last.PkaIndex].Header.Pkgs[last.PkgIndex].PkgName;
-                    auto& nextName = pkaHeaders[next.PkaIndex].Header.Pkgs[next.PkgIndex].PkgName;
-                    if (strncmp(lastName.data(), nextName.data(), lastName.size()) == 0) {
-                        --remainingPkgCount;
-                    } else {
-                        const PkgIndexProxy tmp = next;
-                        ++out;
-                        pkgArray[out] = tmp;
-                    }
-                    ++in;
-                }
-            }
-
-            // combine the remaining pkgs into one large array
-            size_t remainingFileCount = 0;
-            for (size_t j = 0; j < remainingPkgCount; ++j) {
-                const PkgIndexProxy& proxy = pkgArray[j];
-                remainingFileCount +=
-                    pkaHeaders[proxy.PkaIndex].Header.Pkgs[proxy.PkgIndex].FileCount;
-            }
-            auto restPkgs = remainingPkgCount > 0
-                                ? std::make_unique<SenLib::PkaPkgToHashData[]>(remainingPkgCount)
-                                : nullptr;
-            auto restPkgFiles =
-                remainingFileCount > 0
-                    ? std::make_unique<SenLib::PkaFileHashData[]>(remainingFileCount)
-                    : nullptr;
-            uint32_t newOffset = 0;
-            for (size_t j = 0; j < remainingPkgCount; ++j) {
-                const PkgIndexProxy& proxy = pkgArray[j];
-                const auto& oldHdr = pkaHeaders[proxy.PkaIndex].Header;
-                const auto& oldPkg = oldHdr.Pkgs[proxy.PkgIndex];
-                auto& newPkg = restPkgs[j];
-                newPkg.PkgName = oldPkg.PkgName;
-                newPkg.FileOffset = newOffset;
-                newPkg.FileCount = oldPkg.FileCount;
-                for (size_t k = 0; k < oldPkg.FileCount; ++k) {
-                    restPkgFiles[newOffset] = oldHdr.PkgFiles[oldPkg.FileOffset + k];
-                    ++newOffset;
-                }
-            }
-
-            group.Pkgs = std::move(restPkgs);
-            group.PkgCount = remainingPkgCount;
-            group.PkgFiles = std::move(restPkgFiles);
-            group.PkgFileCount = remainingFileCount;
         } else {
-            group.Pkgs = nullptr;
-            group.PkgCount = 0;
-            group.PkgFiles = nullptr;
-            group.PkgFileCount = 0;
+            CombinePkaGroup(groups[i], pkaHeaders, prefixGroupStart, pkaHeaders.size());
         }
 
         // free the data for this group (except the actual file references, we need that later)

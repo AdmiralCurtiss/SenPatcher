@@ -203,6 +203,7 @@ std::optional<SenPatcher::CheckedFileResult>
                    SenLib::ModLoad::LoadedP3AData& vanillaP3As,
                    SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
                    std::span<const std::string_view> pkaPrefixes,
+                   SenLib::ModLoad::LoadedPkaGroupData* pkgsOfPrefix0File0,
                    std::string_view path,
                    size_t size,
                    const HyoutaUtils::Hash::SHA1& hash) {
@@ -344,6 +345,16 @@ std::optional<SenPatcher::CheckedFileResult>
         return false;
     };
 
+    if (pkgsOfPrefix0File0 && !pkaPrefixes.empty()) {
+        if (checkPka(pkgsOfPrefix0File0->Pkgs.get(),
+                     pkgsOfPrefix0File0->PkgCount,
+                     pkgsOfPrefix0File0->PkgFiles.get(),
+                     pkgsOfPrefix0File0->PkgFileCount,
+                     pkaPrefixes[0].data(),
+                     pkaPrefixes[0].size())) {
+            return result;
+        }
+    }
     for (size_t i = 0; i < pkaPrefixes.size(); ++i) {
         if (checkPka(vanillaPKAs.Groups[i].Pkgs.get(),
                      vanillaPKAs.Groups[i].PkgCount,

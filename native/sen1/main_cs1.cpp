@@ -620,7 +620,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
 
     LoadP3As(logger, s_LoadedVanillaP3As, baseDirUtf8, s_VanillaP3ANames);
-    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, {}, false);
+    LoadPkas(logger, s_LoadedPkaData, baseDirUtf8, s_PkaGroupPrefixes, {});
 
     bool assetCreationSuccess = true;
     if (assetFixes) {

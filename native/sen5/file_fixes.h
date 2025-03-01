@@ -8,6 +8,7 @@
 namespace SenLib::ModLoad {
 struct LoadedP3AData;
 struct LoadedPkaData;
+struct LoadedPkaGroupData;
 } // namespace SenLib::ModLoad
 
 namespace SenLib::Sen5 {
@@ -15,5 +16,6 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                               std::string_view baseDir,
                               SenLib::ModLoad::LoadedP3AData& vanillaP3As,
                               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
-                              std::span<const std::string_view> pkaPrefixes);
+                              std::span<const std::string_view> pkaPrefixes,
+                              SenLib::ModLoad::LoadedPkaGroupData& pkgsOfPrefix0File0);
 }

@@ -183,7 +183,8 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
         if (f4) {
             return f4;
         }
-        return GetCheckedFile(baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, path, size, hash);
+        return GetCheckedFile(
+            baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, nullptr, path, size, hash);
     };
 
     return CreateArchiveIfNeeded(logger,

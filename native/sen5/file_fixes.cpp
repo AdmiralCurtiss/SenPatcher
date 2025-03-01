@@ -41,14 +41,16 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                               std::string_view baseDir,
                               SenLib::ModLoad::LoadedP3AData& vanillaP3As,
                               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
-                              std::span<const std::string_view> pkaPrefixes) {
+                              std::span<const std::string_view> pkaPrefixes,
+                              SenLib::ModLoad::LoadedPkaGroupData& pkgsOfPrefix0File0) {
     std::string_view versionString(SENPATCHER_VERSION, sizeof(SENPATCHER_VERSION) - 1);
 
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
             size_t size,
             const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
-        return GetCheckedFile(baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, path, size, hash);
+        return GetCheckedFile(
+            baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, &pkgsOfPrefix0File0, path, size, hash);
     };
 
     return CreateArchiveIfNeeded(logger,
