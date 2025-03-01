@@ -978,7 +978,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     LoadModP3As(logger,
                 s_LoadedModsData,
                 baseDirUtf8,
-                assetFixes,
+                assetFixes && assetCreationSuccess,
                 "TXMod",
                 useJapaneseLanguage,
                 [&](const HyoutaUtils::Ini::IniFile& ini) {

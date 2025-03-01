@@ -856,7 +856,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     LoadModP3As(logger,
                 s_LoadedModsData,
                 baseDirUtf8,
-                assetFixes,
+                assetFixes && assetCreationSuccess,
                 "CS3Mod",
                 IsGameVersionJp(version),
                 [](const HyoutaUtils::Ini::IniFile& ini) { return; });

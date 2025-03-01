@@ -619,7 +619,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     LoadModP3As(logger,
                 s_LoadedModsData,
                 baseDirUtf8,
-                assetFixes,
+                assetFixes && assetCreationSuccess,
                 "CS2Mod",
                 version == GameVersion::Japanese,
                 [](const HyoutaUtils::Ini::IniFile& ini) { return; });

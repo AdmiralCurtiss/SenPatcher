@@ -803,7 +803,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     SenLib::ModLoad::LoadModP3As(logger,
                                  s_LoadedModsData,
                                  baseDirUtf8,
-                                 assetFixes,
+                                 assetFixes && assetCreationSuccess,
                                  "ReverieMod",
                                  false,
                                  [](const HyoutaUtils::Ini::IniFile& ini) { return; });
