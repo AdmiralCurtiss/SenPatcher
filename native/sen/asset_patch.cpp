@@ -26,15 +26,20 @@
 #include "sen/file_getter.h"
 #include "sen/pka.h"
 
-#include "senpatcher_version.h"
-
 namespace SenLib {
 static bool IsSenPatcherVersionFile(const SenPatcher::P3AFileInfo& f) {
     return strcmp(f.Filename.data(), "_senpatcher_version.txt") == 0;
 }
 
 static bool CheckArchiveExistsAndIsRightVersion(HyoutaUtils::Logger& logger,
-                                                std::string_view path) {
+                                                std::string_view path,
+                                                std::string_view versionString) {
+    std::array<char, 256> versionInFile;
+    if (versionString.size() > versionInFile.size()) {
+        logger.Log("Version string too long.\n");
+        return false;
+    }
+
     logger.Log("Checking for existing asset archive.\n");
 
     SenPatcher::P3A p3a;
@@ -42,14 +47,14 @@ static bool CheckArchiveExistsAndIsRightVersion(HyoutaUtils::Logger& logger,
         for (size_t i = 0; i < p3a.FileCount; ++i) {
             const auto& f = p3a.FileInfo[i];
             if (IsSenPatcherVersionFile(f)) {
-                std::array<char, sizeof(SENPATCHER_VERSION) - 1> versionInFile;
                 if (f.CompressionType == SenPatcher::P3ACompressionType::None
-                    && f.CompressedSize == versionInFile.size()
+                    && f.CompressedSize == versionString.size()
                     && p3a.FileHandle.SetPosition(f.Offset)
-                    && p3a.FileHandle.Read(versionInFile.data(), versionInFile.size())
-                           == versionInFile.size()) {
-                    if (std::string_view(SENPATCHER_VERSION)
-                        == std::string_view(versionInFile.begin(), versionInFile.end())) {
+                    && p3a.FileHandle.Read(versionInFile.data(), versionString.size())
+                           == versionString.size()) {
+                    if (versionString
+                        == std::string_view(versionInFile.begin(),
+                                            versionInFile.begin() + versionString.size())) {
                         logger.Log("Found archive with correct version.\n");
                         return true;
                     }
@@ -62,9 +67,9 @@ static bool CheckArchiveExistsAndIsRightVersion(HyoutaUtils::Logger& logger,
     return false;
 }
 
-static void AddSenPatcherVersionFile(SenPatcher::P3APackData& packData) {
-    std::string_view sv(SENPATCHER_VERSION);
-    std::vector<char> bin(sv.begin(), sv.end());
+static void AddSenPatcherVersionFile(SenPatcher::P3APackData& packData,
+                                     std::string_view versionString) {
+    std::vector<char> bin(versionString.begin(), versionString.end());
     packData.GetMutableFiles().emplace_back(
         std::move(bin),
         SenPatcher::InitializeP3AFilename("_senpatcher_version.txt"),
@@ -75,6 +80,7 @@ bool CreateArchiveIfNeeded(
     HyoutaUtils::Logger& logger,
     std::string_view baseDir,
     std::string_view archivePath,
+    std::string_view versionString,
     const std::function<bool(SenPatcher::P3APackData& packData)>& collectAssets) {
     std::string fullArchivePath;
     fullArchivePath.reserve(baseDir.size() + 1 + archivePath.size());
@@ -84,7 +90,7 @@ bool CreateArchiveIfNeeded(
 
     // check if the archive already exists and is at the correct version,
     // and if yes don't recreate it
-    if (CheckArchiveExistsAndIsRightVersion(logger, fullArchivePath)) {
+    if (CheckArchiveExistsAndIsRightVersion(logger, fullArchivePath, versionString)) {
         return true;
     }
 
@@ -102,7 +108,7 @@ bool CreateArchiveIfNeeded(
     SenPatcher::P3APackData packData;
     packData.SetVersion(SenPatcher::P3AHighestSupportedVersion);
     packData.SetAlignment(0x10);
-    AddSenPatcherVersionFile(packData);
+    AddSenPatcherVersionFile(packData, versionString);
     if (!collectAssets(packData)) {
         logger.Log("Collecting failed.\n");
         newArchive.Delete();

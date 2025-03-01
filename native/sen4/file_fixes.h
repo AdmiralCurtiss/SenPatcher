@@ -15,5 +15,6 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                               std::string_view baseDir,
                               SenLib::ModLoad::LoadedP3AData& vanillaP3As,
                               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
-                              std::span<const std::string_view> pkaPrefixes);
+                              std::span<const std::string_view> pkaPrefixes,
+                              bool allowSwitchToNightmare);
 }

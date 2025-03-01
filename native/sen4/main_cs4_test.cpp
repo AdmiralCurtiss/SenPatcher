@@ -50,7 +50,7 @@ int InternalMain(int argc, char** argv) {
     LoadPkas(logger, vanillaPKAs, baseDirUtf8, s_PkaGroupPrefixes, {}, true);
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
     SenLib::Sen4::CreateAssetPatchIfNeeded(
-        logger, baseDirUtf8, vanillaP3As, vanillaPKAs, s_PkaGroupPrefixes);
+        logger, baseDirUtf8, vanillaP3As, vanillaPKAs, s_PkaGroupPrefixes, true);
     return 0;
 }
 

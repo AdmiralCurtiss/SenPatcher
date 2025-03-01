@@ -8,6 +8,8 @@
 #include "sen/file_getter.h"
 #include "util/logger.h"
 
+#include "senpatcher_version.h"
+
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen2::FileFixes::##name {                                 \
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
@@ -105,9 +107,12 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
         return GetCheckedFile(baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, path, size, hash);
     };
 
+    std::string_view versionString(SENPATCHER_VERSION, sizeof(SENPATCHER_VERSION) - 1);
+
     return CreateArchiveIfNeeded(logger,
                                  baseDir,
                                  "mods/zzz_senpatcher_cs2asset.p3a",
+                                 versionString,
                                  [&](SenPatcher::P3APackData& packData) -> bool {
                                      return CollectAssets(
                                          logger, callback, packData.GetMutableFiles());

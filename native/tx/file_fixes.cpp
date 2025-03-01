@@ -18,6 +18,8 @@
 #include "util/hash/sha1.h"
 #include "util/logger.h"
 
+#include "senpatcher_version.h"
+
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::TX::FileFixes::##name {                                   \
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
@@ -69,6 +71,8 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                               SenLib::ModLoad::LoadedP3AData& vanillaP3As,
                               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
                               std::span<const std::string_view> pkaPrefixes) {
+    std::string_view versionString(SENPATCHER_VERSION, sizeof(SENPATCHER_VERSION) - 1);
+
     // lazy init these so that they won't get inited if no one asks for a file
     std::optional<SenPatcher::BRA> asset1_bra;
     std::optional<SenPatcher::BRA> asset2_bra;
@@ -185,6 +189,7 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
     return CreateArchiveIfNeeded(logger,
                                  baseDir,
                                  "mods/zzz_senpatcher_txenglish.p3a",
+                                 versionString,
                                  [&](SenPatcher::P3APackData& packData) -> bool {
                                      return CollectAssetsEnglish(
                                          logger, callback, packData.GetMutableFiles());

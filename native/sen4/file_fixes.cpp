@@ -1,5 +1,7 @@
 #include "file_fixes.h"
 
+#include <format>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -7,6 +9,8 @@
 #include "sen/asset_patch.h"
 #include "sen/file_getter.h"
 #include "util/logger.h"
+
+#include "senpatcher_version.h"
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen4::FileFixes::##name {                                 \
@@ -55,10 +59,11 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                               std::string_view baseDir,
                               SenLib::ModLoad::LoadedP3AData& vanillaP3As,
                               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
-                              std::span<const std::string_view> pkaPrefixes) {
-    // TODO: handle this flag somehow?
-    bool allowSwitchToNightmare = true;
-
+                              std::span<const std::string_view> pkaPrefixes,
+                              bool allowSwitchToNightmare) {
+    std::string_view versionString(SENPATCHER_VERSION, sizeof(SENPATCHER_VERSION) - 1);
+    std::string versionStringWithSettings =
+        std::format("{}:{}", versionString, allowSwitchToNightmare ? 1 : 0);
 
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
@@ -70,6 +75,7 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
     return CreateArchiveIfNeeded(logger,
                                  baseDir,
                                  "mods/zzz_senpatcher_cs4asset.p3a",
+                                 versionStringWithSettings,
                                  [&](SenPatcher::P3APackData& packData) -> bool {
                                      return CollectAssets(logger,
                                                           callback,

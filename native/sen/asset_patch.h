@@ -20,6 +20,7 @@ bool CreateArchiveIfNeeded(
     HyoutaUtils::Logger& logger,
     std::string_view baseDir,
     std::string_view archivePath,
+    std::string_view versionString,
     const std::function<bool(SenPatcher::P3APackData& packData)>& collectAssets);
 bool CreateVideoIfNeeded(HyoutaUtils::Logger& logger,
                          std::string_view baseDir,
