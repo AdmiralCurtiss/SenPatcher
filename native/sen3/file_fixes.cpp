@@ -43,6 +43,7 @@ DECLARE_STANDARD_FIX(f2000_dat)
 DECLARE_STANDARD_FIX(I_CVIS0061_pkg)
 DECLARE_STANDARD_FIX(I_CVIS1008_pkg)
 DECLARE_STANDARD_FIX(I_JMP009_pkg)
+DECLARE_STANDARD_FIX(M_T0010_pkg)
 DECLARE_STANDARD_FIX(m0000_dat)
 DECLARE_STANDARD_FIX(m0100_dat)
 DECLARE_STANDARD_FIX(m0300_dat)
@@ -154,6 +155,7 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(I_CVIS0061_pkg, TryApply(callback, packFiles));
     TRY_APPLY(I_CVIS1008_pkg, TryApply(callback, packFiles));
     TRY_APPLY(I_JMP009_pkg, TryApply(callback, packFiles));
+    TRY_APPLY(M_T0010_pkg, TryApply(callback, packFiles));
     TRY_APPLY(m0000_dat, TryApply(callback, packFiles));
     TRY_APPLY(m0100_dat, TryApply(callback, packFiles));
     TRY_APPLY(m0300_dat, TryApply(callback, packFiles));

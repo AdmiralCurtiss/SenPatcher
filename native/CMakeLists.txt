@@ -597,6 +597,7 @@ if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_08.bin" "embed_sen3_insa_08.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_09.bin" "embed_sen3_insa_09.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/jump009.bin" "embed_sen3_jump009.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/sign09.bin" "embed_sen3_sign09.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/t0250_dat.bin" "embed_sen3_t0250_dat.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0427.bin" "embed_sen3_v00_e0427.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0441.bin" "embed_sen3_v00_e0441.h")
@@ -778,6 +779,7 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/insa05.cpp
 	sen3/file_fixes/insa08.cpp
 	sen3/file_fixes/insa09.cpp
+	sen3/file_fixes/M_T0010_pkg.cpp
 	sen3/file_fixes/m0000_dat.cpp
 	sen3/file_fixes/m0100_dat.cpp
 	sen3/file_fixes/m0300_dat.cpp
@@ -922,6 +924,8 @@ set(SOURCES_BASE_FIXES
 	sen/pka.h
 	sen/pkg.cpp
 	sen/pkg.h
+	sen/pkg_compress.cpp
+	sen/pkg_compress.h
 	sen/pkg_extract.cpp
 	sen/pkg_extract.h
 	sen/sen_script_patcher.cpp

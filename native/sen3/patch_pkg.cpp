@@ -3,16 +3,20 @@
 #include <memory>
 #include <vector>
 
-#include "util/bps.h"
-#include "lz4/lz4.h"
 #include "sen/pkg.h"
+#include "sen/pkg_compress.h"
+#include "sen/pkg_extract.h"
+#include "util/bps.h"
+#include "util/endian.h"
 #include "util/stream.h"
 
 namespace SenLib::Sen3 {
-std::vector<char> PatchSingleTexturePkg(const char* file,
-                                        size_t fileLength,
-                                        const char* patch,
-                                        size_t patchLength) {
+std::vector<char> PatchSingleFileInPkg(const char* file,
+                                       size_t fileLength,
+                                       const char* patch,
+                                       size_t patchLength,
+                                       size_t expectedFileCount,
+                                       size_t fileToPatch) {
     PkgHeader pkg;
 
     if (!SenLib::ReadPkgFromMemory(
@@ -20,34 +24,41 @@ std::vector<char> PatchSingleTexturePkg(const char* file,
         throw "failed to read pkg";
     }
 
-    if (pkg.FileCount < 2 || !pkg.Files[1].Data) {
-        throw "invalid single texture pkg";
+    if (pkg.FileCount != expectedFileCount) {
+        throw "invalid pkg";
     }
-    auto& f1 = pkg.Files[1];
-    auto decompressedOriginal = std::make_unique<char[]>(f1.UncompressedSize);
-    if (LZ4_decompress_safe(
-            f1.Data, decompressedOriginal.get(), f1.CompressedSize, f1.UncompressedSize)
-        != f1.UncompressedSize) {
+    for (size_t i = 0; i < pkg.FileCount; ++i) {
+        if (!pkg.Files[i].Data) {
+            throw "invalid pkg";
+        }
+    }
+
+    SenLib::PkgFile& f1 = pkg.Files[fileToPatch];
+    auto decompressedOriginal = std::make_unique_for_overwrite<char[]>(f1.UncompressedSize);
+    if (!SenLib::ExtractAndDecompressPkgFile(decompressedOriginal.get(),
+                                             f1.UncompressedSize,
+                                             f1.Data,
+                                             f1.CompressedSize,
+                                             f1.Flags,
+                                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
         throw "decompression error";
     }
 
     HyoutaUtils::Stream::DuplicatableByteArrayStream originalStream(decompressedOriginal.get(),
-                                                       f1.UncompressedSize);
+                                                                    f1.UncompressedSize);
     HyoutaUtils::Stream::DuplicatableByteArrayStream patchStream(patch, patchLength);
     std::vector<char> modified;
     HyoutaUtils::Bps::ApplyPatchToStream(originalStream, patchStream, modified);
 
-    std::vector<char> modifiedCompressed;
-    modifiedCompressed.resize(LZ4_compressBound(modified.size()));
-    int modifiedCompressedSize = LZ4_compress_default(
-        modified.data(), modifiedCompressed.data(), modified.size(), modifiedCompressed.size());
-    if (modifiedCompressedSize <= 0) {
+    std::unique_ptr<char[]> modifiedCompressed;
+    if (!CompressPkgFile(modifiedCompressed,
+                         f1,
+                         modified.data(),
+                         modified.size(),
+                         0x4,
+                         HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
         throw "compression error";
     }
-
-    f1.Data = modifiedCompressed.data();
-    f1.UncompressedSize = modified.size();
-    f1.CompressedSize = modifiedCompressedSize;
 
     std::vector<char> ms;
     {
