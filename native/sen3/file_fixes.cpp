@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "modload/loaded_pka.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "p3a/util.h"
@@ -21,6 +22,14 @@ static constexpr size_t Length_SenpatcherModIniDefault = sizeof(Data_SenpatcherM
     namespace SenLib::Sen3::FileFixes::##name {                                 \
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
                       std::vector<SenPatcher::P3APackFile>& result);            \
+    }
+
+#define DECLARE_PKA_FIX(name)                                                           \
+    namespace SenLib::Sen3::FileFixes::##name {                                         \
+        bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,         \
+                      std::vector<SenPatcher::P3APackFile>& result,                     \
+                      SenLib::ModLoad::LoadedPkaData& vanillaPKAs,                      \
+                      const SenPatcher::GetCheckedFileCallback& getCheckedFilePkaStub); \
     }
 
 DECLARE_STANDARD_FIX(alchr022_dat)
@@ -48,7 +57,6 @@ DECLARE_STANDARD_FIX(f2000_dat)
 DECLARE_STANDARD_FIX(I_CVIS0061_pkg)
 DECLARE_STANDARD_FIX(I_CVIS1008_pkg)
 DECLARE_STANDARD_FIX(I_JMP009_pkg)
-DECLARE_STANDARD_FIX(M_T0010_pkg)
 DECLARE_STANDARD_FIX(m0000_dat)
 DECLARE_STANDARD_FIX(m0100_dat)
 DECLARE_STANDARD_FIX(m0300_dat)
@@ -102,6 +110,8 @@ DECLARE_STANDARD_FIX(v0050_dat)
 DECLARE_STANDARD_FIX(voice_opus_ps4_103)
 DECLARE_STANDARD_FIX(voice_opus_v00e0441)
 DECLARE_STANDARD_FIX(voice_opus_v00s2728)
+
+DECLARE_PKA_FIX(M_T0010_pkg)
 
 namespace SenLib::Sen3::FileFixes::t_text {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
@@ -245,8 +255,10 @@ static constexpr size_t Length_SenpatcherModIniPkaRemap = sizeof(Data_Senpatcher
 
 static bool CollectPkaAssets(HyoutaUtils::Logger& logger,
                              const SenPatcher::GetCheckedFileCallback& callback,
-                             std::vector<SenPatcher::P3APackFile>& packFiles) {
-    TRY_APPLY(M_T0010_pkg, TryApply(callback, packFiles));
+                             std::vector<SenPatcher::P3APackFile>& packFiles,
+                             SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
+                             const SenPatcher::GetCheckedFileCallback& callbackPkaStub) {
+    TRY_APPLY(M_T0010_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
 
     for (auto& f : packFiles) {
         std::array<char, 256> path = f.GetFilename();
@@ -278,13 +290,36 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
     std::string_view versionString(SENPATCHER_VERSION, sizeof(SENPATCHER_VERSION) - 1);
     std::string versionStringWithSettings =
         std::format("{}:{}", versionString, allowSwitchToNightmare ? 1 : 0);
+    std::string versionStringWithPka = std::format(
+        "{}:{}/{}", versionString, pkgsOfPrefix0File0.PkgCount, pkgsOfPrefix0File0.PkgFileCount);
 
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
             size_t size,
             const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
-        return GetCheckedFile(
-            baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, &pkgsOfPrefix0File0, path, size, hash);
+        return GetCheckedFile(baseDir,
+                              vanillaP3As,
+                              vanillaPKAs,
+                              pkaPrefixes,
+                              &pkgsOfPrefix0File0,
+                              path,
+                              size,
+                              hash,
+                              false);
+    };
+    const SenPatcher::GetCheckedFileCallback callbackPkaStub =
+        [&](std::string_view path,
+            size_t size,
+            const HyoutaUtils::Hash::SHA1& hash) -> std::optional<SenPatcher::CheckedFileResult> {
+        return GetCheckedFile(baseDir,
+                              vanillaP3As,
+                              vanillaPKAs,
+                              pkaPrefixes,
+                              &pkgsOfPrefix0File0,
+                              path,
+                              size,
+                              hash,
+                              true);
     };
 
     bool success = true;
@@ -311,10 +346,13 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
     success = CreateArchiveIfNeeded(logger,
                                     baseDir,
                                     "mods/zzz_senpatcher_cs3pka.p3a",
-                                    versionString,
+                                    versionStringWithPka,
                                     [&](SenPatcher::P3APackData& packData) -> bool {
-                                        return CollectPkaAssets(
-                                            logger, callback, packData.GetMutableFiles());
+                                        return CollectPkaAssets(logger,
+                                                                callback,
+                                                                packData.GetMutableFiles(),
+                                                                vanillaPKAs,
+                                                                callbackPkaStub);
                                     })
               && success;
     success = CreateVideoIfNeeded(logger,
