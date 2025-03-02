@@ -35,5 +35,6 @@ std::optional<SenPatcher::CheckedFileResult>
                    SenLib::ModLoad::LoadedPkaGroupData* pkgsOfPrefix0File0,
                    std::string_view path,
                    size_t size,
-                   const HyoutaUtils::Hash::SHA1& hash);
+                   const HyoutaUtils::Hash::SHA1& hash,
+                   bool getPkgsFromPkaAsStub = false);
 } // namespace SenLib

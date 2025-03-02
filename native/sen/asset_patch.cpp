@@ -206,7 +206,8 @@ std::optional<SenPatcher::CheckedFileResult>
                    SenLib::ModLoad::LoadedPkaGroupData* pkgsOfPrefix0File0,
                    std::string_view path,
                    size_t size,
-                   const HyoutaUtils::Hash::SHA1& hash) {
+                   const HyoutaUtils::Hash::SHA1& hash,
+                   bool getPkgsFromPkaAsStub) {
     SenPatcher::CheckedFileResult result{};
     if (!SenPatcher::CopyToP3AFilename(result.Filename, path)) {
         return std::nullopt;
@@ -272,17 +273,22 @@ std::optional<SenPatcher::CheckedFileResult>
                 size_t headerSize =
                     static_cast<size_t>(8) + (pkaPkg->FileCount * static_cast<size_t>(0x50));
                 size_t dataSize = 0;
-                for (uint32_t i = 0; i < pkaPkg->FileCount; ++i) {
-                    auto* f = SenLib::FindFileInPkaByHash(vanillaPKAs.Hashes.Files.get(),
-                                                          vanillaPKAs.Hashes.FilesCount,
-                                                          pkgFiles[pkaPkg->FileOffset + i].Hash);
-                    if (!f) {
-                        return false;
+                if (getPkgsFromPkaAsStub) {
+                    dataSize = (static_cast<size_t>(0x20) * pkaPkg->FileCount);
+                } else {
+                    for (uint32_t i = 0; i < pkaPkg->FileCount; ++i) {
+                        auto* f =
+                            SenLib::FindFileInPkaByHash(vanillaPKAs.Hashes.Files.get(),
+                                                        vanillaPKAs.Hashes.FilesCount,
+                                                        pkgFiles[pkaPkg->FileOffset + i].Hash);
+                        if (!f) {
+                            return false;
+                        }
+                        dataSize += f->CompressedSize;
                     }
-                    dataSize += f->CompressedSize;
                 }
 
-                if (size != headerSize + dataSize) {
+                if (size != (headerSize + dataSize)) {
                     return false;
                 }
 
@@ -304,9 +310,9 @@ std::optional<SenPatcher::CheckedFileResult>
                 size_t headerOffset = 8;
                 size_t dataOffset = headerSize;
                 for (uint32_t i = 0; i < pkaPkg->FileCount; ++i) {
-                    auto* f = SenLib::FindFileInPkaByHash(vanillaPKAs.Hashes.Files.get(),
-                                                          vanillaPKAs.Hashes.FilesCount,
-                                                          pkgFiles[pkaPkg->FileOffset + i].Hash);
+                    const std::array<char, 0x20>& hash = pkgFiles[pkaPkg->FileOffset + i].Hash;
+                    auto* f = SenLib::FindFileInPkaByHash(
+                        vanillaPKAs.Hashes.Files.get(), vanillaPKAs.Hashes.FilesCount, hash);
                     if (!f) {
                         return false;
                     }
@@ -317,24 +323,34 @@ std::optional<SenPatcher::CheckedFileResult>
                                 ToEndian(static_cast<uint32_t>(dataOffset), e));
                     WriteUInt32(&vec[headerOffset + 0x4c], ToEndian(f->Flags, e));
 
-                    const size_t index = static_cast<size_t>(static_cast<size_t>(f->Offset >> 48)
-                                                             & static_cast<size_t>(0xffff));
-                    if (index >= vanillaPKAs.HandleCount) {
-                        return false;
-                    }
-
-                    auto& pka = vanillaPKAs.Handles[index];
-                    std::lock_guard<std::recursive_mutex> lock(pka.Mutex);
-                    if (pka.Handle.SetPosition(f->Offset
-                                               & static_cast<uint64_t>(0xffff'ffff'ffff))) {
-                        if (pka.Handle.Read(vec.data() + dataOffset, f->CompressedSize)
-                            != f->CompressedSize) {
+                    if (getPkgsFromPkaAsStub) {
+                        WriteUInt32(&vec[headerOffset + 0x44],
+                                    ToEndian(static_cast<uint32_t>(0x20), e));
+                        WriteUInt32(&vec[headerOffset + 0x4c],
+                                    ToEndian(static_cast<uint32_t>(0x80), e));
+                        std::memcpy(vec.data() + dataOffset, hash.data(), hash.size());
+                        dataOffset += hash.size();
+                    } else {
+                        const size_t index = static_cast<size_t>(
+                            static_cast<size_t>(f->Offset >> 48) & static_cast<size_t>(0xffff));
+                        if (index >= vanillaPKAs.HandleCount) {
                             return false;
                         }
+
+                        auto& pka = vanillaPKAs.Handles[index];
+                        std::lock_guard<std::recursive_mutex> lock(pka.Mutex);
+                        if (pka.Handle.SetPosition(f->Offset
+                                                   & static_cast<uint64_t>(0xffff'ffff'ffff))) {
+                            if (pka.Handle.Read(vec.data() + dataOffset, f->CompressedSize)
+                                != f->CompressedSize) {
+                                return false;
+                            }
+                        }
+
+                        dataOffset += f->CompressedSize;
                     }
 
                     headerOffset += 0x50;
-                    dataOffset += f->CompressedSize;
                 }
 
                 if (HyoutaUtils::Hash::CalculateSHA1(vec.data(), size) == hash) {
