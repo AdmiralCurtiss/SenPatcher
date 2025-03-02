@@ -1,8 +1,11 @@
 #include "patch_pkg.h"
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
+#include "modload/loaded_pka.h"
+#include "sen/pka.h"
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
 #include "sen/pkg_extract.h"
@@ -16,7 +19,8 @@ std::vector<char> PatchSingleFileInPkg(const char* file,
                                        const char* patch,
                                        size_t patchLength,
                                        size_t expectedFileCount,
-                                       size_t fileToPatch) {
+                                       size_t fileToPatch,
+                                       SenLib::ModLoad::LoadedPkaData* vanillaPKAs) {
     PkgHeader pkg;
 
     if (!SenLib::ReadPkgFromMemory(
@@ -35,11 +39,43 @@ std::vector<char> PatchSingleFileInPkg(const char* file,
 
     SenLib::PkgFile& f1 = pkg.Files[fileToPatch];
     auto decompressedOriginal = std::make_unique_for_overwrite<char[]>(f1.UncompressedSize);
+    uint32_t compressedSize = f1.CompressedSize;
+    uint32_t flags = f1.Flags;
+    const char* compressedData = f1.Data;
+    std::unique_ptr<char[]> compressedDataBuffer = nullptr;
+    if (vanillaPKAs && (flags & 0x80) && compressedSize == 0x20) {
+        // this is a PKA hash, look up the data in the PKA
+        const SenLib::PkaHashToFileData* fileData = SenLib::FindFileInPkaByHash(
+            vanillaPKAs->Hashes.Files.get(), vanillaPKAs->Hashes.FilesCount, compressedData);
+        if (fileData && fileData->UncompressedSize == f1.UncompressedSize) {
+            const size_t index = static_cast<size_t>(static_cast<size_t>(fileData->Offset >> 48)
+                                                     & static_cast<size_t>(0xffff));
+            if (index < vanillaPKAs->HandleCount) {
+                auto& pka = vanillaPKAs->Handles[index];
+                std::lock_guard<std::recursive_mutex> lock(pka.Mutex);
+                if (pka.Handle.SetPosition(fileData->Offset
+                                           & static_cast<uint64_t>(0xffff'ffff'ffff))) {
+                    compressedDataBuffer = std::make_unique<char[]>(fileData->CompressedSize);
+                    if (compressedDataBuffer) {
+                        if (pka.Handle.Read(compressedDataBuffer.get(), fileData->CompressedSize)
+                            == fileData->CompressedSize) {
+                            compressedData = compressedDataBuffer.get();
+                            compressedSize = fileData->CompressedSize;
+                            flags = fileData->Flags;
+                        } else {
+                            compressedDataBuffer.reset();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     if (!SenLib::ExtractAndDecompressPkgFile(decompressedOriginal.get(),
                                              f1.UncompressedSize,
-                                             f1.Data,
-                                             f1.CompressedSize,
-                                             f1.Flags,
+                                             compressedData,
+                                             compressedSize,
+                                             flags,
                                              HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
         throw "decompression error";
     }
