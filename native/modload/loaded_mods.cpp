@@ -1,6 +1,7 @@
 #include "loaded_mods.h"
 
 #include <algorithm>
+#include <charconv>
 #include <cstring>
 #include <filesystem>
 #include <memory>
@@ -18,6 +19,12 @@
 #include "util/file.h"
 #include "util/ini.h"
 #include "util/text.h"
+
+// Feature level for senpatcher_mod.ini. p3a files can set a feature level via 'MinFeatureLevel' and
+// SenPatcher (since version 1.3) will not load it.
+// Features by version:
+// 0 -> Support for the 'Language' key, which allows 'English', 'Japanese', and 'All' values
+#define SENPATCHER_MOD_MIN_FEATURE_LEVEL 0
 
 namespace {
 struct ZSTD_DCtx_Deleter {
@@ -432,6 +439,79 @@ void LoadP3As(HyoutaUtils::Logger& logger,
     loadedP3AData.CombinedFileInfos = std::move(combinedFileInfos);
 }
 
+// Returns true if the p3a is acceptable, false if it should be skipped.
+static bool HandleSenpatcherSettingsIni(
+    HyoutaUtils::Logger& logger,
+    SenPatcher::P3A& p3a,
+    const char* iniBuffer,
+    size_t iniBufferLength,
+    std::string_view iniCategory,
+    bool isRunningInJapaneseLanguage,
+    const std::function<void(const HyoutaUtils::Ini::IniFile& ini)>& iniHandler) {
+    HyoutaUtils::Ini::IniFile ini;
+    if (!ini.ParseExternalMemory(iniBuffer, iniBufferLength)) {
+        return false;
+    }
+
+    bool hasGameCategory = false;
+    for (const auto& kvp : ini.GetValues()) {
+        if (kvp.Section == iniCategory) {
+            hasGameCategory = true;
+            break;
+        }
+    }
+    if (!hasGameCategory) {
+        // if there's an ini but no section for this game, this p3a is for a different game
+        logger.Log("Didn't find game section [");
+        logger.Log(iniCategory);
+        logger.Log("] in ini\n");
+        return false;
+    }
+
+    auto* featureLevel = ini.FindValue(iniCategory, "MinFeatureLevel");
+    if (featureLevel) {
+        unsigned int intval = 0;
+        const auto [_, ec] =
+            std::from_chars(featureLevel->Value.data(),
+                            featureLevel->Value.data() + featureLevel->Value.size(),
+                            intval);
+        if (ec == std::errc()) {
+            if (intval > SENPATCHER_MOD_MIN_FEATURE_LEVEL) {
+                // requested feature level exceeds the level this build implements
+                logger.Log("Feature level ");
+                logger.LogInt(intval);
+                logger.Log(" > ");
+                logger.LogInt(SENPATCHER_MOD_MIN_FEATURE_LEVEL);
+                logger.Log("\n");
+                return false;
+            }
+        } else {
+            // not a valid integer, skip always
+            return false;
+        }
+    }
+    auto* lang = ini.FindValue(iniCategory, "Language");
+    if (lang) {
+        using HyoutaUtils::TextUtils::CaseInsensitiveEquals;
+        if (isRunningInJapaneseLanguage) {
+            if (!(CaseInsensitiveEquals("Japanese", lang->Value)
+                  || CaseInsensitiveEquals("All", lang->Value))) {
+                logger.Log("Language mismatch\n");
+                return false;
+            }
+        } else {
+            if (!(CaseInsensitiveEquals("English", lang->Value)
+                  || CaseInsensitiveEquals("All", lang->Value))) {
+                logger.Log("Language mismatch\n");
+                return false;
+            }
+        }
+    }
+
+    iniHandler(ini);
+    return true;
+}
+
 void LoadModP3As(HyoutaUtils::Logger& logger,
                  LoadedModsData& loadedModsData,
                  std::string_view baseDir,
@@ -511,30 +591,13 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                                 out_filesize,
                                 [](size_t length) { return malloc(length); },
                                 [](void* memory) { free(memory); })) {
-                            bool skip = false;
-                            {
-                                HyoutaUtils::Ini::IniFile ini;
-                                ini.ParseExternalMemory(static_cast<char*>(out_memory),
-                                                        out_filesize);
-                                auto* lang = ini.FindValue(iniCategory, "Language");
-                                if (lang) {
-                                    if (isRunningInJapaneseLanguage) {
-                                        skip = !(HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                                                     "Japanese", lang->Value)
-                                                 || HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                                                     "All", lang->Value));
-                                    } else {
-                                        skip = !(HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                                                     "English", lang->Value)
-                                                 || HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-                                                     "All", lang->Value));
-                                    }
-                                }
-                                if (!skip) {
-                                    iniHandler(ini);
-                                }
-                            }
-
+                            bool skip = !HandleSenpatcherSettingsIni(logger,
+                                                                     p3a,
+                                                                     static_cast<char*>(out_memory),
+                                                                     out_filesize,
+                                                                     iniCategory,
+                                                                     isRunningInJapaneseLanguage,
+                                                                     iniHandler);
                             free(out_memory);
                             return skip;
                         } else {
