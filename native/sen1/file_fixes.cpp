@@ -4,11 +4,16 @@
 #include <vector>
 
 #include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "p3a/util.h"
 #include "sen/asset_patch.h"
 #include "sen/file_getter.h"
 #include "util/logger.h"
 
 #include "senpatcher_version.h"
+
+static constexpr char Data_SenpatcherModIniDefault[] = "[CS1Mod]\nMinFeatureLevel=0";
+static constexpr size_t Length_SenpatcherModIniDefault = sizeof(Data_SenpatcherModIniDefault) - 1;
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen1::FileFixes::##name {                                 \
@@ -83,6 +88,12 @@ namespace SenLib::Sen1 {
 static bool CollectAssets(HyoutaUtils::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           std::vector<SenPatcher::P3APackFile>& packFiles) {
+    packFiles.emplace_back(
+        std::vector<char>(Data_SenpatcherModIniDefault,
+                          Data_SenpatcherModIniDefault + Length_SenpatcherModIniDefault),
+        SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
+        SenPatcher::P3ACompressionType::None);
+
     TRY_APPLY(scripts_book_dat_us_book00_dat, TryApply(callback, packFiles));
     TRY_APPLY(scripts_book_dat_us_book01_dat, TryApply(callback, packFiles));
     TRY_APPLY(scripts_book_dat_us_book02_dat, TryApply(callback, packFiles));
@@ -138,6 +149,12 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
 static bool CollectAudio(HyoutaUtils::Logger& logger,
                          const SenPatcher::GetCheckedFileCallback& callback,
                          std::vector<SenPatcher::P3APackFile>& packFiles) {
+    packFiles.emplace_back(
+        std::vector<char>(Data_SenpatcherModIniDefault,
+                          Data_SenpatcherModIniDefault + Length_SenpatcherModIniDefault),
+        SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
+        SenPatcher::P3ACompressionType::None);
+
     TRY_APPLY(missing_audio_files, TryApply(callback, packFiles));
     TRY_APPLY(se_wav_ed8m2123_wav, TryApply(callback, packFiles));
     return true;

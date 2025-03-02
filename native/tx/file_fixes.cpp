@@ -20,6 +20,10 @@
 
 #include "senpatcher_version.h"
 
+static constexpr char Data_SenpatcherModIniEnglish[] =
+    "[TXMod]\nMinFeatureLevel=0\nLanguage=English";
+static constexpr size_t Length_SenpatcherModIniEnglish = sizeof(Data_SenpatcherModIniEnglish) - 1;
+
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::TX::FileFixes::##name {                                   \
         bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile, \
@@ -38,20 +42,6 @@ DECLARE_STANDARD_FIX(a0000)
         logger.Log("\n");                             \
     } while (false)
 
-namespace {
-static constexpr char Data_SenpatcherModIniEnglish[] = {
-    (char)0x5B, (char)0x54, (char)0x58, (char)0x4D, (char)0x6F, (char)0x64, (char)0x5D,
-    (char)0x0D, (char)0x0A, (char)0x4C, (char)0x61, (char)0x6E, (char)0x67, (char)0x75,
-    (char)0x61, (char)0x67, (char)0x65, (char)0x3D, (char)0x45, (char)0x6E, (char)0x67,
-    (char)0x6C, (char)0x69, (char)0x73, (char)0x68, (char)0x0D, (char)0x0A};
-static constexpr size_t Length_SenpatcherModIniEnglish = sizeof(Data_SenpatcherModIniEnglish);
-static constexpr char Data_SenpatcherModIniJapanese[] = {
-    (char)0x5B, (char)0x54, (char)0x58, (char)0x4D, (char)0x6F, (char)0x64, (char)0x5D,
-    (char)0x0D, (char)0x0A, (char)0x4C, (char)0x61, (char)0x6E, (char)0x67, (char)0x75,
-    (char)0x61, (char)0x67, (char)0x65, (char)0x3D, (char)0x4A, (char)0x61, (char)0x70,
-    (char)0x61, (char)0x6E, (char)0x65, (char)0x73, (char)0x65, (char)0x0D, (char)0x0A};
-static constexpr size_t Length_SenpatcherModIniJapanese = sizeof(Data_SenpatcherModIniJapanese);
-} // namespace
 namespace SenLib::TX {
 static bool CollectAssetsEnglish(HyoutaUtils::Logger& logger,
                                  const SenPatcher::GetCheckedFileCallback& callback,

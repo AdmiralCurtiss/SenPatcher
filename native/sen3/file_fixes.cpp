@@ -6,11 +6,16 @@
 #include <vector>
 
 #include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "p3a/util.h"
 #include "sen/asset_patch.h"
 #include "sen/file_getter.h"
 #include "util/logger.h"
 
 #include "senpatcher_version.h"
+
+static constexpr char Data_SenpatcherModIniDefault[] = "[CS3Mod]\nMinFeatureLevel=0";
+static constexpr size_t Length_SenpatcherModIniDefault = sizeof(Data_SenpatcherModIniDefault) - 1;
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::Sen3::FileFixes::##name {                                 \
@@ -130,6 +135,12 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
                           const SenPatcher::GetCheckedFileCallback& callback,
                           std::vector<SenPatcher::P3APackFile>& packFiles,
                           bool allowSwitchToNightmare) {
+    packFiles.emplace_back(
+        std::vector<char>(Data_SenpatcherModIniDefault,
+                          Data_SenpatcherModIniDefault + Length_SenpatcherModIniDefault),
+        SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
+        SenPatcher::P3ACompressionType::None);
+
     TRY_APPLY(a0417_dat, TryApply(callback, packFiles));
     TRY_APPLY(alchr022_dat, TryApply(callback, packFiles));
     TRY_APPLY(book05_dat, TryApply(callback, packFiles));
@@ -213,6 +224,12 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
 static bool CollectAudio(HyoutaUtils::Logger& logger,
                          const SenPatcher::GetCheckedFileCallback& callback,
                          std::vector<SenPatcher::P3APackFile>& packFiles) {
+    packFiles.emplace_back(
+        std::vector<char>(Data_SenpatcherModIniDefault,
+                          Data_SenpatcherModIniDefault + Length_SenpatcherModIniDefault),
+        SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
+        SenPatcher::P3ACompressionType::None);
+
     TRY_APPLY(voice_opus_ps4_103, TryApply(callback, packFiles));
     TRY_APPLY(voice_opus_v00e0441, TryApply(callback, packFiles));
     TRY_APPLY(voice_opus_v00s2728, TryApply(callback, packFiles));
