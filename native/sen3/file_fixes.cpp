@@ -166,7 +166,6 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(I_CVIS0061_pkg, TryApply(callback, packFiles));
     TRY_APPLY(I_CVIS1008_pkg, TryApply(callback, packFiles));
     TRY_APPLY(I_JMP009_pkg, TryApply(callback, packFiles));
-    TRY_APPLY(M_T0010_pkg, TryApply(callback, packFiles));
     TRY_APPLY(m0000_dat, TryApply(callback, packFiles));
     TRY_APPLY(m0100_dat, TryApply(callback, packFiles));
     TRY_APPLY(m0300_dat, TryApply(callback, packFiles));
@@ -236,6 +235,39 @@ static bool CollectAudio(HyoutaUtils::Logger& logger,
     return true;
 }
 
+// This is a workaround. Older SenPatcher builds cannot handle the 'stub' pkg files that reference
+// pka files via hash, but will attempt to load them anyway, which causes the game to misbehave. By
+// storing the files at a 'wrong' path in the p3a but remapping the path on load, only SenPatcher
+// versions that already support this feature will be able to correctly load the file.
+static constexpr char Data_SenpatcherModIniPkaRemap[] =
+    "[CS3Mod]\nMinFeatureLevel=1\nStripPathPrefix=pka/";
+static constexpr size_t Length_SenpatcherModIniPkaRemap = sizeof(Data_SenpatcherModIniPkaRemap) - 1;
+
+static bool CollectPkaAssets(HyoutaUtils::Logger& logger,
+                             const SenPatcher::GetCheckedFileCallback& callback,
+                             std::vector<SenPatcher::P3APackFile>& packFiles) {
+    TRY_APPLY(M_T0010_pkg, TryApply(callback, packFiles));
+
+    for (auto& f : packFiles) {
+        std::array<char, 256> path = f.GetFilename();
+        for (size_t i = path.size() - 1; i >= 4; --i) {
+            path[i] = path[i - 4];
+        }
+        path[0] = 'p';
+        path[1] = 'k';
+        path[2] = 'a';
+        path[3] = '/';
+        f.SetFilename(path);
+    }
+
+    packFiles.emplace_back(
+        std::vector<char>(Data_SenpatcherModIniPkaRemap,
+                          Data_SenpatcherModIniPkaRemap + Length_SenpatcherModIniPkaRemap),
+        SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
+        SenPatcher::P3ACompressionType::None);
+    return true;
+}
+
 bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                               std::string_view baseDir,
                               SenLib::ModLoad::LoadedP3AData& vanillaP3As,
@@ -276,6 +308,15 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                                   return CollectAudio(logger, callback, packData.GetMutableFiles());
                               })
         && success;
+    success = CreateArchiveIfNeeded(logger,
+                                    baseDir,
+                                    "mods/zzz_senpatcher_cs3pka.p3a",
+                                    versionString,
+                                    [&](SenPatcher::P3APackData& packData) -> bool {
+                                        return CollectPkaAssets(
+                                            logger, callback, packData.GetMutableFiles());
+                                    })
+              && success;
     success = CreateVideoIfNeeded(logger,
                                   baseDir,
                                   "data/movie_us/webm/insa_f5.webm",

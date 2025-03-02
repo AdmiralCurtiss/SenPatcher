@@ -108,12 +108,12 @@ bool CreateArchiveIfNeeded(
     SenPatcher::P3APackData packData;
     packData.SetVersion(SenPatcher::P3AHighestSupportedVersion);
     packData.SetAlignment(0x10);
-    AddSenPatcherVersionFile(packData, versionString);
     if (!collectAssets(packData)) {
         logger.Log("Collecting failed.\n");
         newArchive.Delete();
         return false;
     }
+    AddSenPatcherVersionFile(packData, versionString);
 
     auto& packFiles = packData.GetMutableFiles();
     for (auto& pf : packFiles) {
