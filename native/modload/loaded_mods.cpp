@@ -24,7 +24,9 @@
 // SenPatcher (since version 1.3) will not load it.
 // Features by version:
 // 0 -> Support for the 'Language' key, which allows 'English', 'Japanese', and 'All' values
-#define SENPATCHER_MOD_MIN_FEATURE_LEVEL 0
+// 1 -> Support for the 'StripPathPrefix' key, which strips a prefix from all paths matching it and
+//      drops all files that don't match the prefix
+#define SENPATCHER_MOD_MIN_FEATURE_LEVEL 1
 
 namespace {
 struct ZSTD_DCtx_Deleter {
@@ -506,6 +508,28 @@ static bool HandleSenpatcherSettingsIni(
                 return false;
             }
         }
+    }
+
+    auto* stripPrefix = ini.FindValue(iniCategory, "StripPathPrefix");
+    if (stripPrefix && stripPrefix->Value.size() > 0) {
+        std::string strip = HyoutaUtils::TextUtils::ToLower(stripPrefix->Value);
+        uint64_t out = 0;
+        for (uint64_t in = 0; in < p3a.FileCount; ++in) {
+            auto& f = p3a.FileInfo[in];
+            auto path = HyoutaUtils::TextUtils::StripToNull(f.Filename);
+            if (path.starts_with(strip)) {
+                std::array<char, 256> newPath{};
+                for (size_t i = strip.size(), j = 0; i < path.size(); ++i, ++j) {
+                    newPath[j] = path[i];
+                }
+                f.Filename = newPath;
+                if (in != out) {
+                    p3a.FileInfo[out] = f;
+                }
+                ++out;
+            }
+        }
+        p3a.FileCount = out;
     }
 
     iniHandler(ini);
