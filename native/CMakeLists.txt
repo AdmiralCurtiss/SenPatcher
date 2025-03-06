@@ -332,6 +332,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/daybreak_save_convert/daybreak_save_convert_main.h
 		sentools/dirtree_create/dirtree_create.cpp
 		sentools/dirtree_create/dirtree_create_main.h
+		sentools/file_compressor/file_compressor.cpp
+		sentools/file_compressor/file_compressor_main.h
 		sentools/game_verify/game_verify.cpp
 		sentools/game_verify/game_verify.h
 		sentools/game_verify/game_verify_main.h
