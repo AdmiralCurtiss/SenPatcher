@@ -217,6 +217,7 @@ set(SOURCES_ZSTD_COMPRESSION
 	zstd/compress/zstd_lazy.c
 	zstd/compress/zstd_ldm.c
 	zstd/compress/zstd_opt.c
+	zstd/compress/zstd_preSplit.c
 	zstd/compress/zstdmt_compress.c
 	zstd/compress/clevels.h
 	zstd/compress/hist.h
@@ -231,6 +232,7 @@ set(SOURCES_ZSTD_COMPRESSION
 	zstd/compress/zstd_ldm.h
 	zstd/compress/zstd_ldm_geartab.h
 	zstd/compress/zstd_opt.h
+	zstd/compress/zstd_preSplit.h
 	zstd/compress/zstdmt_compress.h
 )
 set(SOURCES_ZSTD_DICTBUILDER
