@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "lz4/lz4.h"
-#include "lzma2301/LzmaDec.h"
+#include "lzma/LzmaDec.h"
 #include "zstd/zstd.h"
 
 #include "pkg.h"

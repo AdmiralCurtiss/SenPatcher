@@ -6,7 +6,7 @@
 #include <optional>
 #include <vector>
 
-#include "lzma2301/LzmaDec.h"
+#include "lzma/LzmaDec.h"
 #include "util/align.h"
 #include "util/hash/crc32.h"
 

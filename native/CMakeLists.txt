@@ -243,12 +243,27 @@ set(SOURCES_ZSTD_DICTBUILDER
 	zstd/dictBuilder/cover.h
 	zstd/dictBuilder/divsufsort.h
 )
-set(SOURCES_LZMA
-	lzma2301/7zTypes.h
-	lzma2301/Compiler.h
-	lzma2301/LzmaDec.c
-	lzma2301/LzmaDec.h
-	lzma2301/Precomp.h
+set(SOURCES_LZMA_BASE
+	lzma/7zTypes.h
+	lzma/Compiler.h
+	lzma/LzmaDec.c
+	lzma/LzmaDec.h
+	lzma/Precomp.h
+)
+set(SOURCES_LZMA_COMPRESSION
+	lzma/7zWindows.h
+	lzma/CpuArch.c
+	lzma/CpuArch.h
+	lzma/LzFind.c
+	lzma/LzFind.h
+	lzma/LzFindMt.c
+	lzma/LzFindMt.h
+	lzma/LzFindOpt.c
+	lzma/LzHash.h
+	lzma/LzmaEnc.c
+	lzma/LzmaEnc.h
+	lzma/Threads.c
+	lzma/Threads.h
 )
 set(SOURCES_RAPIDJSON
 	rapidjson/allocators.h
@@ -439,7 +454,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		cpp-optparse/OptionParser.h
 
 		${SOURCES_LZ4}
-		${SOURCES_LZMA}
+		${SOURCES_LZMA_BASE}
+		${SOURCES_LZMA_COMPRESSION}
 		${SOURCES_ZSTD_BASE}
 		${SOURCES_ZSTD_COMPRESSION}
 		${SOURCES_ZSTD_DICTBUILDER}
@@ -933,7 +949,7 @@ set(SOURCES_BASE_FIXES
 	sen/sen_script_patcher.cpp
 	sen/sen_script_patcher.h
 
-	${SOURCES_LZMA}
+	${SOURCES_LZMA_BASE}
 )
 
 if (SENPATCHER_BUILD_CS1TEST)
