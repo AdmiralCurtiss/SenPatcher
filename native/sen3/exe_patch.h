@@ -65,6 +65,7 @@ void PatchDisablePauseOnFocusLoss(PatchExecData& execData);
 void PatchForceXInput(PatchExecData& execData);
 void PatchFixControllerMappings(PatchExecData& execData);
 void PatchMusicQueueing(PatchExecData& execData);
+void PatchDisableMotionBlur(PatchExecData& execData);
 
 // fix the crash that happens when opening the Costumes menu
 // when you have non-installed DLC costumes equipped

@@ -1401,6 +1401,7 @@ if (SENPATCHER_BUILD_CS3HOOK)
 		sen3/exe_patch_custom_dlc_multiuse.cpp
 		sen3/exe_patch_deglobalize_mutexes.cpp
 		sen3/exe_patch_disable_crash_reporter.cpp
+		sen3/exe_patch_disable_motion_blur.cpp
 		sen3/exe_patch_disable_mouse_capture.cpp
 		sen3/exe_patch_disable_pause_on_focus_loss.cpp
 		sen3/exe_patch_dlc_costume_crash.cpp

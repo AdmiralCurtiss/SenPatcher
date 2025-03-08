@@ -764,6 +764,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool fixDlcCostumeCrash = true;
     bool fixDlcFrenchBounds = true;
     bool allowCustomDlcMultiuse = true;
+    bool disableMotionBlur = false;
 
     {
         std::string settingsFilePath;
@@ -834,6 +835,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("CS3", "FixDlcCostumeCrash", fixDlcCostumeCrash);
                 check_boolean("CS3", "FixDlcFrenchBounds", fixDlcFrenchBounds);
                 check_boolean("CS3", "AllowCustomDlcMultiuse", allowCustomDlcMultiuse);
+                check_boolean("CS3", "DisableMovementMotionBlur", disableMotionBlur);
             }
         }
     }
@@ -937,6 +939,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     }
     if (allowCustomDlcMultiuse) {
         PatchCustomDlcMultiuse(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (disableMotionBlur) {
+        PatchDisableMotionBlur(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 

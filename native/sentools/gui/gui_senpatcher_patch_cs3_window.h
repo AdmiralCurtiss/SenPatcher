@@ -39,6 +39,7 @@ struct SenPatcherPatchCS3Window : public SenTools::GUI::Window {
         bool CheckBoxShowMouseCursor = false;
         bool CheckBoxDisablePauseOnFocusLoss = false;
         bool CheckBoxForceXInput = false;
+        bool CheckBoxDisableMotionBlur = false;
     };
 
 private:

@@ -43,6 +43,7 @@ static void WriteToIni(const SenPatcherPatchCS3Window::Settings& settings,
     writer.SetBool("CS3", "ShowMouseCursor", settings.CheckBoxShowMouseCursor);
     writer.SetBool("CS3", "DisablePauseOnFocusLoss", settings.CheckBoxDisablePauseOnFocusLoss);
     writer.SetBool("CS3", "ForceXInput", settings.CheckBoxForceXInput);
+    writer.SetBool("CS3", "DisableMovementMotionBlur", settings.CheckBoxDisableMotionBlur);
 }
 
 struct SenPatcherPatchCS3Window::WorkThreadState {
@@ -137,6 +138,7 @@ SenPatcherPatchCS3Window::SenPatcherPatchCS3Window(GuiState& state,
         check_boolean(
             "CS3", "DisablePauseOnFocusLoss", GameSettings.CheckBoxDisablePauseOnFocusLoss);
         check_boolean("CS3", "ForceXInput", GameSettings.CheckBoxForceXInput);
+        check_boolean("CS3", "DisableMovementMotionBlur", GameSettings.CheckBoxDisableMotionBlur);
     }
 }
 
@@ -206,6 +208,8 @@ bool SenPatcherPatchCS3Window::RenderFrame(GuiState& state) {
         ImGui::Checkbox(
             "Force all controllers as XInput (may fix issues with newer Xbox controllers)",
             &GameSettings.CheckBoxForceXInput);
+        ImGui::Checkbox("Disable the motion blur while running (backport from CS4/Reverie)",
+                        &GameSettings.CheckBoxDisableMotionBlur);
 
         if (ImGuiUtils::ButtonFullWidth("Patch!", 40.0f * state.CurrentDpi) && !WorkThread) {
             StatusMessage = "Patching...";
