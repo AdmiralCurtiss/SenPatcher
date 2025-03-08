@@ -611,6 +611,10 @@ if (SENPATCHER_BUILD_CS1HOOK OR SENPATCHER_BUILD_CS1TEST)
 	senpatcher_generate_embeddable_file("../SenLib/Sen1/FileFixes/vctiming_us_4.bin" "embed_sen1_vctiming_us_4.h")
 endif()
 if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/0sign003.bin" "embed_sen3_0sign003.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/5vCrest01.bin" "embed_sen3_5vCrest01.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t12hou23.bin" "embed_sen3_7t12hou23.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t12hou23n.bin" "embed_sen3_7t12hou23n.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis0061.bin" "embed_sen3_cvis0061.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis1008.bin" "embed_sen3_cvis1008.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_05.bin" "embed_sen3_insa_05.h")
@@ -800,6 +804,7 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/insa08.cpp
 	sen3/file_fixes/insa09.cpp
 	sen3/file_fixes/M_T0010_pkg.cpp
+	sen3/file_fixes/M_T1200_pkg.cpp
 	sen3/file_fixes/m0000_dat.cpp
 	sen3/file_fixes/m0100_dat.cpp
 	sen3/file_fixes/m0300_dat.cpp
@@ -808,6 +813,8 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/m3420_dat.cpp
 	sen3/file_fixes/m3430_dat.cpp
 	sen3/file_fixes/m4004_dat.cpp
+	sen3/file_fixes/O_C04OBJ01_pkg.cpp
+	sen3/file_fixes/O_V80TNK00_pkg.cpp
 	sen3/file_fixes/r0210_dat.cpp
 	sen3/file_fixes/r2290_dat.cpp
 	sen3/file_fixes/r3000_dat.cpp

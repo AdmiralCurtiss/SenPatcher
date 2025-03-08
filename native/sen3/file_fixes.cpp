@@ -112,6 +112,9 @@ DECLARE_STANDARD_FIX(voice_opus_v00e0441)
 DECLARE_STANDARD_FIX(voice_opus_v00s2728)
 
 DECLARE_PKA_FIX(M_T0010_pkg)
+DECLARE_PKA_FIX(M_T1200_pkg)
+DECLARE_PKA_FIX(O_C04OBJ01_pkg)
+DECLARE_PKA_FIX(O_V80TNK00_pkg)
 
 namespace SenLib::Sen3::FileFixes::t_text {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
@@ -259,6 +262,9 @@ static bool CollectPkaAssets(HyoutaUtils::Logger& logger,
                              SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
                              const SenPatcher::GetCheckedFileCallback& callbackPkaStub) {
     TRY_APPLY(M_T0010_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_T1200_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_C04OBJ01_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_V80TNK00_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
 
     for (auto& f : packFiles) {
         std::array<char, 256> path = f.GetFilename();
