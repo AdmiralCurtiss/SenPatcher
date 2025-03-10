@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_m0300[] = "Terminology fixes in Einhel Lv3.";
+__declspec(dllexport) char SenPatcherFix_1_m0300[] =
+    "Fix terminology consistency issues in Einhel Lv3.";
 }
 
 namespace SenLib::Sen3::FileFixes::m0300_dat {

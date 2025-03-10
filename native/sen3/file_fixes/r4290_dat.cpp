@@ -9,7 +9,8 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_r4290[] = "Terminology fixes in Heimdallr Ex. Camp.";
+__declspec(dllexport) char SenPatcherFix_1_r4290[] =
+    "Fix name consistency issues in Heimdallr Ex. Camp.";
 }
 
 namespace SenLib::Sen3::FileFixes::r4290_dat {

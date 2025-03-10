@@ -8,7 +8,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_ztk_patrick[] =
-    "Terminology fixes in conversations with Patrick.";
+    "Fix typography consistency issues in conversations with Patrick.";
 }
 
 namespace SenLib::Sen3::FileFixes::tk_patrick_dat {

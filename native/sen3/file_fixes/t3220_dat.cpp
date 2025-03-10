@@ -8,7 +8,8 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t3220[] = "Aurelia name fixes in Ordis (Orbal Factory).";
+__declspec(dllexport) char SenPatcherFix_1_t3220[] =
+    "Fix name consistency issues in Ordis (Orbal Factory).";
 }
 
 namespace SenLib::Sen3::FileFixes::t3220_dat {

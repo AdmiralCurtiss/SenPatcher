@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_ztk_toval[] =
-    "Terminology fixes in conversations with Toval.";
+    "Fix typography consistency issues in conversations with Toval.";
 }
 
 namespace SenLib::Sen3::FileFixes::tk_tovar_dat {

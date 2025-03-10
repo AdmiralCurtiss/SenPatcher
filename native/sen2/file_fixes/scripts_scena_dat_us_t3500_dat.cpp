@@ -9,7 +9,7 @@
 #include "util/memwrite.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t3500[] = "Text/Voice match in Roer.";
+__declspec(dllexport) char SenPatcherFix_1_t3500[] = "Fix text/voice consistency in Roer.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t3500_dat {

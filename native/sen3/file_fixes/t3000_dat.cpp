@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_t3000[] =
-    "Aurelia name fixes in Ordis (Business District).";
+    "Fix name consistency issues in Ordis (Business District).";
 }
 
 namespace SenLib::Sen3::FileFixes::t3000_dat {

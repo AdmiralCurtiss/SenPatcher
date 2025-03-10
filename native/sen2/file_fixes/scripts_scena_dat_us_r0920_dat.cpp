@@ -8,7 +8,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_r0920[] = "Fix logic error in Gone Air sidequest.";
+__declspec(dllexport) char SenPatcherFix_1_r0920[] = "Fix editing error in Gone Air sidequest.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_r0920_dat {

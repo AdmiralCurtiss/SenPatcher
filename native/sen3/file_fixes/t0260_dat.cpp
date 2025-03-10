@@ -9,7 +9,8 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0260[] = "Fix Hamilton gender (scene 1, text only).";
+__declspec(dllexport) char SenPatcherFix_1_t0260[] =
+    "Fix reference to Hamilton's gender (School hangar).";
 }
 
 namespace SenLib::Sen3::FileFixes::t0260_dat {

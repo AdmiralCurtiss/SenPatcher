@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_t3600[] =
-    "Terminology fixes in Ordis (Harbor District).";
+    "Fix terminology consistency issues in Ordis (Harbor District).";
 }
 
 namespace SenLib::Sen3::FileFixes::t3600_dat {

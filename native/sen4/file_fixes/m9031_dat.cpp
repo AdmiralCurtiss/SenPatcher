@@ -7,7 +7,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_m9031[] = "Newline fix in final dungeon.";
+__declspec(dllexport) char SenPatcherFix_1_m9031[] = "Fix line break in final dungeon.";
 }
 
 namespace SenLib::Sen4::FileFixes::m9031_dat {

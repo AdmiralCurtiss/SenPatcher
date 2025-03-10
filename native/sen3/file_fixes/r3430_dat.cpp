@@ -10,7 +10,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_r3430[] =
-    "Terminology fixes in Languedoc Canyon - North.";
+    "Fix terminology consistency issues in Languedoc Canyon - North.";
 }
 
 namespace SenLib::Sen3::FileFixes::r3430_dat {

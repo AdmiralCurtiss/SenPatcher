@@ -14,7 +14,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_2_book00[] =
-    "Minor text fixes in Imperial Chronicle issues.";
+    "Fix minor text and formatting issues in Imperial Chronicle.";
 }
 
 namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book00_dat {

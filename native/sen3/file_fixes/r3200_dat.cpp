@@ -7,7 +7,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_r3200[] = "Terminology fixes in Auros Coastal Road.";
+__declspec(dllexport) char SenPatcherFix_1_r3200[] =
+    "Fix terminology consistency issues in Auros Coastal Road.";
 }
 
 namespace SenLib::Sen3::FileFixes::r3200_dat {

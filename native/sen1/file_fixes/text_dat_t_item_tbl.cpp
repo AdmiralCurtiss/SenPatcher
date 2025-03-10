@@ -13,7 +13,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_0_item_jp[] =
-    "Series consistency fixes in Japanese item descriptions.";
+    "Apply series consistency fixes to Japanese item descriptions.";
 }
 
 namespace SenLib::Sen1::FileFixes::text_dat_t_item_tbl {

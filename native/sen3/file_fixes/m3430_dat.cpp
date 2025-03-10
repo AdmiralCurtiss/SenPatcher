@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_m3430[] =
-    "Terminology fixes in Dark Dragon's Nest (Area 1).";
+    "Fix name consistency issues in Dark Dragon's Nest (Area 1).";
 }
 
 namespace SenLib::Sen3::FileFixes::m3430_dat {

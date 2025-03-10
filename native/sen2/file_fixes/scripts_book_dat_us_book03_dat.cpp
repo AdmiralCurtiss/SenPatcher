@@ -11,7 +11,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_2_book03[] =
-    "Consistency with CS1 in Thors library books.";
+    "Fix consistency issues with CS1 in Thors library books.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_book_dat_us_book03_dat {

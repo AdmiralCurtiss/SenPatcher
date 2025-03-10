@@ -9,7 +9,8 @@
 #include "util/memwrite.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t1010[] = "Voice fixes in Class 7 dorm.";
+__declspec(dllexport) char SenPatcherFix_1_t1010[] =
+    "Fix voice clips in Class 7 dorm (final bond events).";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t1010_dat {

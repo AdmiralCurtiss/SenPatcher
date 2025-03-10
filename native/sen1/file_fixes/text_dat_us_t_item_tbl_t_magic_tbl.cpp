@@ -13,9 +13,9 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_0_item[] =
-    "Series consistency fixes in English item descriptions.";
+    "Apply series consistency fixes to English item descriptions.";
 __declspec(dllexport) char SenPatcherFix_0_magic[] =
-    "Series consistency fixes in English magic descriptions.";
+    "Apply series consistency fixes to English magic descriptions.";
 }
 
 namespace SenLib::Sen1::FileFixes::text_dat_us_t_item_tbl_t_magic_tbl {

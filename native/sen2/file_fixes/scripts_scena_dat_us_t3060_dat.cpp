@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t3060[] = "Text fixes in Viscount Arseid's Mansion.";
+__declspec(dllexport) char SenPatcherFix_1_t3060[] =
+    "Fix text errors in Viscount Arseid's Mansion.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t3060_dat {

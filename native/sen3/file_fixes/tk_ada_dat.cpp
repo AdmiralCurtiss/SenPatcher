@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_ztk_ada[] =
-    "Terminology fixes in conversations with Ada.";
+    "Fix name consistency issues in conversations with Ada.";
 }
 
 namespace SenLib::Sen3::FileFixes::tk_ada_dat {

@@ -8,7 +8,8 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_f0010[] = "Aurelia name fix in Dreknor Fortress.";
+__declspec(dllexport) char SenPatcherFix_1_f0010[] =
+    "Fix name consistency issues in Dreknor Fortress.";
 }
 
 namespace SenLib::Sen3::FileFixes::f0010_dat {

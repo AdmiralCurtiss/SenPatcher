@@ -7,7 +7,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0100[] = "Textbox overflow in Recette Bakery.";
+__declspec(dllexport) char SenPatcherFix_1_t0100[] = "Fix textbox overflow in Recette Bakery.";
 }
 
 namespace SenLib::Sen3::FileFixes::t0100_dat {

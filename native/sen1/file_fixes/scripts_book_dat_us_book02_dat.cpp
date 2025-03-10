@@ -10,7 +10,7 @@
 #include "util/text.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_2_book02[] = "Minor text fixes in Red Moon Rose.";
+__declspec(dllexport) char SenPatcherFix_2_book02[] = "Fix minor text issues in Red Moon Rose.";
 }
 
 namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book02_dat {

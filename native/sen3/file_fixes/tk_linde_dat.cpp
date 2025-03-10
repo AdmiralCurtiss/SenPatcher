@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_ztk_linde[] =
-    "Terminology fixes in conversations with Linde.";
+    "Fix name consistency issues in conversations with Linde.";
 }
 
 namespace SenLib::Sen3::FileFixes::tk_linde_dat {

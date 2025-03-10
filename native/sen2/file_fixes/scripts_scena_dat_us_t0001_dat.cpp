@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0001[] = "Text/voice match in epilogue NG+ only scene.";
+__declspec(dllexport) char SenPatcherFix_1_t0001[] =
+    "Fix text/voice consistency in epilogue NG+ only scene.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t0001_dat {

@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_c3000[] =
-    "Terminology fixes in Heimdallr (Sankt District).";
+    "Fix name consistency issues in Heimdallr (Sankt District).";
 }
 
 namespace SenLib::Sen3::FileFixes::c3000_dat {

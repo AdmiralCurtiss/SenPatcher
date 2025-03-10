@@ -8,7 +8,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t3740[] = "Typo fixes in Roer IoT.";
+__declspec(dllexport) char SenPatcherFix_1_t3740[] = "Fix typos in Roer IoT.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t3740_dat {

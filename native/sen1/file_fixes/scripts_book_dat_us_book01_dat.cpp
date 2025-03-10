@@ -12,7 +12,7 @@
 #include "util/text.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_2_book01[] = "Minor text fixes in Carnelia.";
+__declspec(dllexport) char SenPatcherFix_2_book01[] = "Fix minor text issues in Carnelia.";
 }
 
 namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book01_dat {

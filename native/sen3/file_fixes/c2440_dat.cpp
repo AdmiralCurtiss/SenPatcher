@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_c2440[] =
-    "Terminology fixes in Valflame Palace (back area).";
+    "Fix terminology consistency issues in Valflame Palace (back area).";
 }
 
 namespace SenLib::Sen3::FileFixes::c2440_dat {

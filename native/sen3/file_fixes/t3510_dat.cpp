@@ -8,7 +8,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_t3510[] =
-    "Terminology fixes in Ordis (Duke's Castle Entrance).";
+    "Fix terminology consistency issues in Ordis (Duke's Castle Entrance).";
 }
 
 namespace SenLib::Sen3::FileFixes::t3510_dat {

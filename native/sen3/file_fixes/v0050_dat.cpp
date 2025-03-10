@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_v0050[] = "Terminology fixes in Derfflinger Car 6.";
+__declspec(dllexport) char SenPatcherFix_1_v0050[] =
+    "Fix terminology consistency issues in Derfflinger Car 6.";
 }
 
 namespace SenLib::Sen3::FileFixes::v0050_dat {

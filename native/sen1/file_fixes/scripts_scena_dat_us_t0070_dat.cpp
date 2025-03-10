@@ -8,7 +8,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0070[] = "Minor fixes in Auditorium.";
+__declspec(dllexport) char SenPatcherFix_1_t0070[] = "Fix minor text issues in Auditorium.";
 }
 
 namespace SenLib::Sen1::FileFixes::scripts_scena_dat_us_t0070_dat {

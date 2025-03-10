@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0010[] = "Terminology fixes in Branch Campus Dorm.";
+__declspec(dllexport) char SenPatcherFix_1_t0010[] =
+    "Fix name consistency issues and voice/text mismatch in Branch Campus Dorm.";
 }
 
 namespace SenLib::Sen3::FileFixes::t0010_dat {

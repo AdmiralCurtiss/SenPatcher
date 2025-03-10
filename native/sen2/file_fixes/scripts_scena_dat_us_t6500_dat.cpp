@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_t6500[] =
-    "Missing voice clip at Schwarz Drache Barrier.";
+    "Add missing voice clip at Schwarz Drache Barrier.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_t6500_dat {

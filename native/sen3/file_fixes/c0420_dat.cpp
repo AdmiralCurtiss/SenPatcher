@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_a0420[] =
-    "Terminology fixes in Crossbell (Fisherman's Guild).";
+    "Fix terminology consistency issues in Crossbell (Fisherman's Guild).";
 }
 
 namespace SenLib::Sen3::FileFixes::c0420_dat {

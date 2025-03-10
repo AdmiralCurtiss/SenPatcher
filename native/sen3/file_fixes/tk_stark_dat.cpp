@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_ztk_stark[] =
-    "Terminology fixes in conversations with Stark.";
+    "Fix terminology consistency issues in conversations with Stark.";
 }
 
 namespace SenLib::Sen3::FileFixes::tk_stark_dat {

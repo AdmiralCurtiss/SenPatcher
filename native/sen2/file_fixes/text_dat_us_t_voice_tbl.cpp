@@ -9,8 +9,9 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_0_voice[] =
-    "Adjust voice file to ID mappings (required for some voice fixes).";
+// This is implied by references to fixed voice clips.
+// __declspec(dllexport) char SenPatcherFix_0_voice[] =
+//     "Adjust voice file to ID mappings (required for some voice fixes).";
 }
 
 namespace {

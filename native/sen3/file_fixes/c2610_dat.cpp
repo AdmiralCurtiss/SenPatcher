@@ -10,7 +10,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_c2610[] =
-    "Terminology fixes in Heimdallr (Foresta Tavern & Inn).";
+    "Fix terminology consistency issues in Heimdallr (Foresta Tavern & Inn).";
 }
 
 namespace SenLib::Sen3::FileFixes::c2610_dat {

@@ -7,7 +7,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t3400[] = "Terminology fixes in Ordis (Noble District).";
+__declspec(dllexport) char SenPatcherFix_1_t3400[] =
+    "Fix terminology consistency issues in Ordis (Noble District).";
 }
 
 namespace SenLib::Sen3::FileFixes::t3400_dat {

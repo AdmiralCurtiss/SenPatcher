@@ -12,7 +12,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_0_msqrt[] =
-    "Fix a handful of Master Quartzes having broken effects when playing in English or French.";
+    "Fix Master Quartz description errors and broken effects.";
 }
 
 namespace SenLib::Sen3::FileFixes::t_mstqrt {

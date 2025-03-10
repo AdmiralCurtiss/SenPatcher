@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_r3000[] = "Terminology fixes in West Lamare Highway 2.";
+__declspec(dllexport) char SenPatcherFix_1_r3000[] =
+    "Fix terminology consistency issues in West Lamare Highway 2.";
 }
 
 namespace SenLib::Sen3::FileFixes::r3000_dat {

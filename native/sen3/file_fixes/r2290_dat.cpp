@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_r2290[] = "Terminology fixes in Crossbell (Ex. Camp).";
+__declspec(dllexport) char SenPatcherFix_1_r2290[] =
+    "Fix terminology consistency issues in Crossbell (Ex. Camp).";
 }
 
 namespace SenLib::Sen3::FileFixes::r2290_dat {

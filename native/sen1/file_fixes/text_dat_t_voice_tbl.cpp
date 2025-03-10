@@ -11,8 +11,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_0_voice_jp[] =
-    "Fix Japanese voice tables. This is half of a fix for JP voice lipsync.";
+__declspec(dllexport) char SenPatcherFix_0_voice_jp[] = "Add Japanese lipsync data.";
 }
 
 namespace {

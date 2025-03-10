@@ -8,7 +8,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_a0430[] =
-    "Terminology fixes in Crossbell (Business Owners' Association).";
+    "Fix name consistency issues in Crossbell (Business Owners' Association).";
 }
 
 namespace SenLib::Sen3::FileFixes::c0430_dat {

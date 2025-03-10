@@ -8,7 +8,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0000[] = "Terminology fixes in Leeves.";
+__declspec(dllexport) char SenPatcherFix_1_t0000[] = "Fix name consistency issues in Leeves.";
 }
 
 namespace SenLib::Sen3::FileFixes::t0000_dat {

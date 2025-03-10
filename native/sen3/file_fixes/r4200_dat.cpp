@@ -9,7 +9,8 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_r4200[] = "Terminology fixes in South Ostia Highway.";
+__declspec(dllexport) char SenPatcherFix_1_r4200[] =
+    "Fix terminology consistency issues in South Ostia Highway.";
 }
 
 namespace SenLib::Sen3::FileFixes::r4200_dat {

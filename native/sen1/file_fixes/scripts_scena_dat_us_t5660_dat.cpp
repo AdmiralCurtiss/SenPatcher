@@ -9,7 +9,8 @@
 #include "util/memread.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t5660[] = "Text/Voice matches in Garellia Fortress.";
+__declspec(dllexport) char SenPatcherFix_1_t5660[] =
+    "Fix text/voice mismatches in Garellia Fortress.";
 }
 
 namespace SenLib::Sen1::FileFixes::scripts_scena_dat_us_t5660_dat {

@@ -7,7 +7,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t3600[] = "Typo in Casper's name.";
+__declspec(dllexport) char SenPatcherFix_1_t3600[] = "Fix typo in Casper's name.";
 }
 
 namespace SenLib::Sen4::FileFixes::t3600_dat {

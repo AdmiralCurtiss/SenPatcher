@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_m4004[] =
-    "Terminology fixes in Gral of Erebos (Bottom).";
+    "Fix terminology consistency issues in Gral of Erebos (Bottom).";
 }
 
 namespace SenLib::Sen3::FileFixes::m4004_dat {

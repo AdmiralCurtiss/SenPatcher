@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_f2000[] = "Fix Hamilton gender (scene 2, text only).";
+__declspec(dllexport) char SenPatcherFix_1_f2000[] =
+    "Fix reference to Hamilton's gender (Heimdallr graveyard).";
 }
 
 namespace SenLib::Sen3::FileFixes::f2000_dat {

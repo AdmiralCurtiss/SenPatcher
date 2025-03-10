@@ -14,7 +14,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_2_book00[] =
-    "Consistency with CS1 in Imperial Chronicle back-issues.";
+    "Fix consistency issues with CS1 in Imperial Chronicle back-issues.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_book_dat_us_book00_dat {

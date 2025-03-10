@@ -8,7 +8,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_c0400[] = "Typo in Crossbell East Street.";
+__declspec(dllexport) char SenPatcherFix_1_c0400[] = "Fix typo in Crossbell East Street.";
 }
 
 namespace SenLib::Sen3::FileFixes::c0400_dat {

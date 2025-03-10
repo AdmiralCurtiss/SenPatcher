@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_c0250[] =
-    "Terminology fixes in Crossbell (SSS Building).";
+    "Fix name and terminology consistency in Crossbell (SSS Building).";
 }
 
 namespace SenLib::Sen3::FileFixes::c0250_dat {

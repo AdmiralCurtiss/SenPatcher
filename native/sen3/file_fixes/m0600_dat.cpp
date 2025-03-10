@@ -7,7 +7,7 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_m0600[] = "Capitalization fixes in Isthmia.";
+__declspec(dllexport) char SenPatcherFix_1_m0600[] = "Fix capitalization issues in Isthmia.";
 }
 
 namespace SenLib::Sen3::FileFixes::m0600_dat {

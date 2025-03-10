@@ -9,7 +9,8 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_c3010[] = "Terminology fixes in Heimdallr (Cathedral).";
+__declspec(dllexport) char SenPatcherFix_1_c3010[] =
+    "Fix name and terminology consistency issues in Heimdallr (Cathedral).";
 }
 
 namespace SenLib::Sen3::FileFixes::c3010_dat {

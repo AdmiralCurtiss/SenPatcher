@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_m3000[] =
-    "Terminology fixes in Juno Naval Fortress (Sub 1).";
+    "Fix name consistency issues in Juno Naval Fortress (Sub 1).";
 }
 
 namespace SenLib::Sen3::FileFixes::m3000_dat {

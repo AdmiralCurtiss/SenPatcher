@@ -9,7 +9,8 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_c3210[] = "Terminology fixes in Heimdallr (Racecourse).";
+__declspec(dllexport) char SenPatcherFix_1_c3210[] =
+    "Fix name consistency issues in Heimdallr (Racecourse).";
 }
 
 namespace SenLib::Sen3::FileFixes::c3210_dat {

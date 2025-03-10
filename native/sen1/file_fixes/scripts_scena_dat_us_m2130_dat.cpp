@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_m2130[] = "Text/Voice match in Heimdallr catacombs.";
+__declspec(dllexport) char SenPatcherFix_1_m2130[] =
+    "Fix text/voice mismatch in Heimdallr catacombs.";
 }
 
 namespace SenLib::Sen1::FileFixes::scripts_scena_dat_us_m2130_dat {

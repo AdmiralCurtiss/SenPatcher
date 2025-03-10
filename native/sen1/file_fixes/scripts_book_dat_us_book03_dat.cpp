@@ -10,7 +10,8 @@
 #include "util/text.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_2_book03[] = "Minor text fixes in Thors library books.";
+__declspec(dllexport) char SenPatcherFix_2_book03[] =
+    "Fix minor text issues in Thors library books.";
 }
 
 namespace SenLib::Sen1::FileFixes::scripts_book_dat_us_book03_dat {

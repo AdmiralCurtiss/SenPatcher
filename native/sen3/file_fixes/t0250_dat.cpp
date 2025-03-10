@@ -9,7 +9,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0250[] = "Terminology fixes in Pool/Training Ground.";
+__declspec(dllexport) char SenPatcherFix_1_t0250[] =
+    "Fix a lot of dialogue issues in Pool/Training Ground.";
 }
 
 namespace {

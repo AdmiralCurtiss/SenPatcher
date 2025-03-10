@@ -8,7 +8,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0080[] = "Terminology fixes in Leeves (Radio Trista).";
+__declspec(dllexport) char SenPatcherFix_1_t0080[] =
+    "Fix name consistency issues in Leeves (Radio Trista).";
 }
 
 namespace SenLib::Sen3::FileFixes::t0080_dat {

@@ -8,7 +8,8 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0200[] = "Terminology fixes in Branch Campus grounds.";
+__declspec(dllexport) char SenPatcherFix_1_t0200[] =
+    "Fix terminology consistency issues in Branch Campus grounds.";
 }
 
 namespace SenLib::Sen3::FileFixes::t0200_dat {

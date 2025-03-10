@@ -8,7 +8,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_c0200[] =
-    "Terminology fixes in Crossbell (Central Square).";
+    "Fix name consistency issues in Crossbell (Central Square).";
 }
 
 namespace SenLib::Sen3::FileFixes::c0200_dat {

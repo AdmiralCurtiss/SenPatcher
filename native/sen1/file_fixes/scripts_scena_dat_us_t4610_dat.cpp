@@ -8,7 +8,7 @@
 #include "util/memwrite.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t4610[] = "Typo fix in Gwyn's cabin.";
+__declspec(dllexport) char SenPatcherFix_1_t4610[] = "Fix typo in Gwyn's cabin.";
 }
 
 namespace SenLib::Sen1::FileFixes::scripts_scena_dat_us_t4610_dat {

@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_c3610[] =
-    "Terminology fixes in Karel Imperial Villa (endgame).";
+    "Fix terminology consistency issues in Karel Imperial Villa (endgame).";
 }
 
 namespace SenLib::Sen3::FileFixes::c3610_dat {

@@ -10,7 +10,7 @@
 #include "util/text.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_0_name[] = "Fix incorrect NPC names.";
+__declspec(dllexport) char SenPatcherFix_0_name[] = "Fix inconsistent NPC names.";
 }
 
 namespace SenLib::Sen3::FileFixes::t_name {

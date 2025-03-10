@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_r0210[] =
-    "Terminology fixes in North Sutherland Highway 2.";
+    "Fix name consistency issues in North Sutherland Highway 2.";
 }
 
 namespace SenLib::Sen3::FileFixes::r0210_dat {

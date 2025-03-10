@@ -10,7 +10,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_t0210[] =
-    "Terminology fixes in Branch Campus Main Building.";
+    "Fix terminology consistency issues in Branch Campus Main Building.";
 }
 
 namespace SenLib::Sen3::FileFixes::t0210_dat {

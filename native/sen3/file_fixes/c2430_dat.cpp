@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_c2430[] =
-    "Terminology fixes in Valflame Palace (Esmelas Garden).";
+    "Fix terminology consistency issues in Valflame Palace (Esmelas Garden).";
 }
 
 namespace SenLib::Sen3::FileFixes::c2430_dat {

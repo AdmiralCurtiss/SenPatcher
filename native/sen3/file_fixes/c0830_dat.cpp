@@ -7,7 +7,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_c0830[] = "Terminology fixes in Crossbell (Heiyue).";
+__declspec(dllexport) char SenPatcherFix_1_c0830[] =
+    "Fix name consistency issues in Crossbell (Heiyue).";
 }
 
 namespace SenLib::Sen3::FileFixes::c0830_dat {

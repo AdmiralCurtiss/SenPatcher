@@ -8,7 +8,7 @@
 #include "util/vector.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_t0400[] = "Text fixes in Einhel Keep (Outside).";
+__declspec(dllexport) char SenPatcherFix_1_t0400[] = "Fix editing error in Einhel Keep (Outside).";
 }
 
 namespace SenLib::Sen3::FileFixes::t0400_dat {

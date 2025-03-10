@@ -11,7 +11,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_2_book05[] =
-    "Fix several consistency issues between encoded and decoded Black Records.";
+    "Fix consistency issues between encoded and decoded Black Records.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_book_dat_us_book05_dat {

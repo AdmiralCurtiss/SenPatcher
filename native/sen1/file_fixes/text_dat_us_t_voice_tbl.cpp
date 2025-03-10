@@ -10,7 +10,8 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_0_voice[] = "Add missing lipsync for the extra PC voices.";
+__declspec(dllexport) char SenPatcherFix_0_voice[] =
+    "Add missing lipsync data for the extra PC voices.";
 }
 
 namespace {

@@ -9,7 +9,7 @@
 #include "util/memwrite.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_e7110[] = "Voice clip fixes in Pantagruel main hall.";
+__declspec(dllexport) char SenPatcherFix_1_e7110[] = "Fix voice clips in Pantagruel main hall.";
 }
 
 namespace SenLib::Sen2::FileFixes::scripts_scena_dat_us_e7110_dat {
