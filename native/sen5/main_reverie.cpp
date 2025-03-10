@@ -721,6 +721,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool fixDlcCostumeCrash = true;
     bool allowCustomDlcMultiuse = true;
     bool allowCustomDlcIfNotInParty = true;
+    bool patchBrokenSprintf = true;
 
     {
         std::string settingsFilePath;
@@ -785,6 +786,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("Reverie", "FixDlcCostumeCrash", fixDlcCostumeCrash);
                 check_boolean("Reverie", "AllowCustomDlcMultiuse", allowCustomDlcMultiuse);
                 check_boolean("Reverie", "AllowCustomDlcIfNotInParty", allowCustomDlcIfNotInParty);
+                check_boolean("Reverie", "PatchBrokenSprintf", patchBrokenSprintf);
             }
         }
     }
@@ -868,6 +870,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     }
     if (allowCustomDlcIfNotInParty) {
         PatchCustomDlcIfNotInParty(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (patchBrokenSprintf) {
+        PatchBrokenSprintf(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 
