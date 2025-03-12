@@ -20,7 +20,19 @@
 #include "gui_setup_glfw_vulkan.h"
 #endif
 
+// #define HOOK_MAGIC_DESCRIPTION_GENERATOR
+#ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#undef CreateDirectory
+#endif
+
 namespace SenTools {
+#ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+void* s_memory;
+#endif
+
 static bool RenderFrame(ImGuiIO& io, GuiState& state) {
     size_t windowCount = state.Windows.size();
     for (size_t i = 0; i < windowCount;) {
@@ -38,10 +50,45 @@ static bool RenderFrame(ImGuiIO& io, GuiState& state) {
 
     // ImGui::ShowDemoWindow();
 
+#ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+    if (s_memory != nullptr) {
+        bool visible = ImGui::Begin("SenHook", nullptr, ImGuiWindowFlags_None);
+        if (visible) {
+            uint32_t* trigger = std::bit_cast<uint32_t*>(s_memory);
+            bool b = (*trigger != 0);
+            ImGui::Checkbox("Enable Override", &b);
+            *trigger = b ? 1 : 0;
+            uint32_t* value = (trigger + 1);
+            const float drag_speed = 0.2f;
+            if (ImGui::Button("-")) {
+                --(*value);
+            }
+            ImGui::SameLine();
+            ImGui::DragScalar("", ImGuiDataType_U32, value, drag_speed, NULL, NULL, "%u");
+            ImGui::SameLine();
+            if (ImGui::Button("+")) {
+                ++(*value);
+            }
+        }
+        ImGui::End();
+    }
+#endif
+
     return windowCount > 0;
 }
 
 int RunGui(int argc, char** argvUtf8) {
+#ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+    void* handle = CreateFileMappingW(
+        INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, 0x1000, L"SenMagicDescGenHook");
+    if (handle != nullptr) {
+        void* memory = MapViewOfFileEx(handle, FILE_MAP_ALL_ACCESS, 0, 0, 0x1000, nullptr);
+        if (memory != nullptr) {
+            s_memory = memory;
+        }
+    }
+#endif
+
     GuiState state;
     std::optional<std::string> guiSettingsFolder =
         CommonPaths::GetLocalSenPatcherGuiSettingsFolder();
