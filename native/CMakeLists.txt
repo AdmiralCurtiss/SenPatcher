@@ -29,6 +29,9 @@ if (DEFINED SENPATCHER_BUILDFLAGS OR DEFINED SENPATCHER_BUILDFLAGS_RELEASE OR DE
 	separate_arguments(SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS_DEBUG}")
 else()
 	if (MSVC)
+		# we want utf8 as our execution charset
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/utf-8")
+
 		# enable all warnings, then disable the ones that don't really help
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/Wall")
 
