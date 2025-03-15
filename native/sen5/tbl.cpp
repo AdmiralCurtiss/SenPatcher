@@ -95,4 +95,32 @@ std::vector<char> TextTableData::ToBinary() const {
     }
     return rv;
 }
+
+MagicData::MagicData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    d0 = stream.ReadArray<4>();
+    flags = stream.ReadUTF8Nullterm();
+    d1 = stream.ReadArray<104>();
+    animation = stream.ReadUTF8Nullterm();
+    name = stream.ReadUTF8Nullterm();
+    desc = stream.ReadUTF8Nullterm();
+    const size_t dlen = dataLength - stream.GetPosition();
+    d2.resize(dlen);
+    stream.Read(d2.data(), dlen);
+}
+
+std::vector<char> MagicData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.Write(d0.data(), d0.size());
+        ms.WriteUTF8Nullterm(flags);
+        ms.Write(d1.data(), d1.size());
+        ms.WriteUTF8Nullterm(animation);
+        ms.WriteUTF8Nullterm(name);
+        ms.WriteUTF8Nullterm(desc);
+        ms.Write(d2.data(), d2.size());
+    }
+    return rv;
+}
 } // namespace SenLib::Sen5

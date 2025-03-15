@@ -53,4 +53,18 @@ struct TextTableData {
 
     std::vector<char> ToBinary() const;
 };
+
+struct MagicData {
+    std::array<char, 4> d0;
+    std::string flags;
+    std::array<char, 104> d1;
+    std::string animation;
+    std::string name;
+    std::string desc;
+    std::vector<char> d2;
+
+    MagicData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
 } // namespace SenLib::Sen5

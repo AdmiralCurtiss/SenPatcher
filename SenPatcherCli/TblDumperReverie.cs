@@ -14,6 +14,7 @@ namespace SenPatcherCli.Hajimari {
 	public enum TblType {
 		LinkAbList,
 		LinkAbText,
+		magic,
 	}
 
 	public class TblDumper {
@@ -65,6 +66,33 @@ namespace SenPatcherCli.Hajimari {
 						}
 						sb.Append("\n");
 						break;
+					case TblType.magic: {
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						List<string> postprint = new List<string>();
+						sb.AppendFormat(" Idx {0}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}\n", stream.ReadUInt16());
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						for (int j = 0; j < 104; ++j) {
+							sb.AppendFormat("{0:x2} ", stream.ReadByte());
+						}
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						while (true) {
+							int b = stream.ReadByte();
+							if (b == -1)
+								break;
+							sb.AppendFormat(" {0:x2}", b);
+						}
+						foreach (string s in postprint) {
+							sb.AppendFormat("\n{0}", s);
+						}
+						sb.Append("\n");
+						sb.Append("\n");
+						break;
+					}
 				}
 			}
 			System.IO.File.WriteAllText(filenametxt, sb.ToString());

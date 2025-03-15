@@ -21,6 +21,7 @@ static constexpr size_t Length_SenpatcherModIniDefault = sizeof(Data_SenpatcherM
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
 
+DECLARE_STANDARD_FIX(t_magic)
 DECLARE_STANDARD_FIX(t_text)
 
 #define TRY_APPLY(asset, apply)                         \
@@ -44,6 +45,7 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
         SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
         SenPatcher::P3ACompressionType::None);
 
+    TRY_APPLY(t_magic, TryApply(callback, packFiles));
     TRY_APPLY(t_text, TryApply(callback, packFiles));
     return true;
 }
