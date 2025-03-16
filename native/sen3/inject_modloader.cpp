@@ -10,8 +10,103 @@
 
 // NOTE: When calling a function, stack must be aligned to 0x10 bytes!
 
+// #define HOOK_MAGIC_DESCRIPTION_GENERATOR
+#ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#endif
+
 namespace SenLib::Sen3 {
+#ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+static void HookMagicDescriptionGenerator(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+    char* codespace = execData.Codespace;
+
+    using namespace SenPatcher::x64;
+
+    char* const entryPointSystemMenu =
+        GetCodeAddressJpEn(version, textRegion, Addresses{.En106 = 0x14033ef1e});
+    char* const entryPointDivineKnightBattle =
+        GetCodeAddressJpEn(version, textRegion, Addresses{.En106 = 0x14013f5c6});
+    char* const freeSpaceDivineKnightBattle =
+        GetCodeAddressJpEn(version, textRegion, Addresses{.En106 = 0x14013f912});
+
+    void* handle = CreateFileMappingW(
+        INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, 0x1000, L"SenMagicDescGenHook");
+    if (handle == nullptr) {
+        return;
+    }
+
+    void* memory = MapViewOfFileEx(handle, FILE_MAP_ALL_ACCESS, 0, 0, 0x1000, nullptr);
+    if (memory == nullptr) {
+        return;
+    }
+
+    {
+        auto injectResult =
+            InjectJumpIntoCode<12>(logger, entryPointSystemMenu, R64::RAX, codespace);
+        char* inject = injectResult.JumpBackAddress;
+        const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+
+        Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(memory));
+        WriteInstruction16(codespace, 0x8b18); // mov ebx,dword ptr[rax]
+        Emit_TEST_R64_R64(codespace, R64::RBX, R64::RBX);
+        BranchHelper1Byte branch;
+        branch.WriteJump(codespace, JumpCondition::JZ);
+
+        WriteInstruction24(codespace, 0x8b5004); // mov edx,dword ptr[rax+4]
+        Emit_MOV_R64_R64(codespace, R64::RDI, R64::RDX);
+
+        branch.SetTarget(codespace);
+
+        std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
+        codespace += overwrittenInstructions.size();
+        Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(inject));
+        Emit_JMP_R64(codespace, R64::RAX);
+    }
+    {
+        auto injectResult = InjectJumpIntoCode2Step<7, 12>(
+            logger, entryPointDivineKnightBattle, freeSpaceDivineKnightBattle, R64::RDX, codespace);
+        char* inject = injectResult.JumpBackAddress;
+        const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
+
+        Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(memory));
+        WriteInstruction16(codespace, 0x8b10); // mov edx,dword ptr[rax]
+        Emit_TEST_R64_R64(codespace, R64::RDX, R64::RDX);
+        BranchHelper1Byte keep;
+        keep.WriteJump(codespace, JumpCondition::JZ);
+
+        WriteInstruction24(codespace, 0x8b5004); // mov edx,dword ptr[rax+4]
+
+        BranchHelper1Byte overwrite;
+        overwrite.WriteJump(codespace, JumpCondition::JMP);
+
+        keep.SetTarget(codespace);
+
+        std::memcpy(codespace, overwrittenInstructions.data() + 4, 3);
+        codespace += 3;
+
+        overwrite.SetTarget(codespace);
+
+        std::memcpy(codespace, overwrittenInstructions.data(), 4);
+        codespace += 4;
+
+        Emit_MOV_R64_IMM64(codespace, R64::RAX, std::bit_cast<uint64_t>(inject));
+        Emit_JMP_R64(codespace, R64::RAX);
+    }
+
+    execData.Codespace = codespace;
+}
+#endif
+
 void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
+#ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+    HookMagicDescriptionGenerator(execData);
+#endif
+
     HyoutaUtils::Logger& logger = *execData.Logger;
     char* textRegion = execData.TextRegion;
     GameVersion version = execData.Version;
