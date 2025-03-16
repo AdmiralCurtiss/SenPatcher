@@ -250,6 +250,86 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Revelation: Also inflicts Seal (40%)
+        {
+            auto& e = tbl_en.Entries[496];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 65, " - #11CSeal (40%)#0C");
+            e.Data = m.ToBinary();
+        }
+
+        // Rainbow Shot/2: 'All (Set)' makes no sense, it's just 'All'
+        {
+            auto& e = tbl_en.Entries[344];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 63, 6);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[345];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 64, 6);
+            e.Data = m.ToBinary();
+        }
+
+        // Sacred Circle/2: 'for 2 turns' on the Magic Reflect is wrong, it is just 1 hit and lasts
+        // until you get hit
+        {
+            auto& e = tbl_en.Entries[358];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 73, 12);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[359];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 73, 12);
+            e.Data = m.ToBinary();
+        }
+
+        // Blue Oratorio/2: Missing a space
+        {
+            auto& e = tbl_en.Entries[108];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 54, " ");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[111];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 56, " ");
+            e.Data = m.ToBinary();
+        }
+
+        // Spirit Unification/Enlightened Spirit Unification/Chained Spirit Unification:
+        // 'Unleash' needs to be separated by a dash from the stat boost. Also remove the space
+        // before the up arrow, inconsistent with all other stat boosts.
+        {
+            auto& e = tbl_en.Entries[74];
+            MagicData m(e.Data.data(), e.Data.size());
+            std::string dash = m.desc.substr(20, 10);
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 53, 1);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 37, 1, dash);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[79];
+            MagicData m(e.Data.data(), e.Data.size());
+            std::string dash = m.desc.substr(20, 10);
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 59, 1);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 37, 1, dash);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[80];
+            MagicData m(e.Data.data(), e.Data.size());
+            std::string dash = m.desc.substr(20, 10);
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 59, 1);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 37, 1, dash);
+            e.Data = m.ToBinary();
+        }
+
+
         // Divine Knight stuff below
 
         // Crescent Flash, Waning Crescent Slash: Claims One as the target, but hits All.
