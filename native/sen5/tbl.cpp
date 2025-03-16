@@ -1,5 +1,6 @@
 #include "tbl.h"
 
+#include <cassert>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -98,28 +99,42 @@ std::vector<char> TextTableData::ToBinary() const {
 
 MagicData::MagicData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
-    d0 = stream.ReadArray<4>();
+    idx = stream.ReadUInt16();
+    d0 = stream.ReadUInt16();
     flags = stream.ReadUTF8Nullterm();
-    d1 = stream.ReadArray<104>();
+    d1 = stream.ReadArray<22>();
+    for (size_t i = 0; i < effects.size(); ++i) {
+        effects[i].idx = stream.ReadUInt16();
+        for (size_t j = 0; j < effects[i].data.size(); ++j) {
+            effects[i].data[j] = stream.ReadUInt32();
+        }
+    }
+    d2 = stream.ReadArray<12>();
     animation = stream.ReadUTF8Nullterm();
     name = stream.ReadUTF8Nullterm();
     desc = stream.ReadUTF8Nullterm();
-    const size_t dlen = dataLength - stream.GetPosition();
-    d2.resize(dlen);
-    stream.Read(d2.data(), dlen);
+
+    assert(dataLength == stream.GetPosition());
 }
 
 std::vector<char> MagicData::ToBinary() const {
     std::vector<char> rv;
     {
         HyoutaUtils::Stream::MemoryStream ms(rv);
-        ms.Write(d0.data(), d0.size());
+        ms.WriteUInt16(idx);
+        ms.WriteUInt16(d0);
         ms.WriteUTF8Nullterm(flags);
         ms.Write(d1.data(), d1.size());
+        for (size_t i = 0; i < effects.size(); ++i) {
+            ms.WriteUInt16(effects[i].idx);
+            for (size_t j = 0; j < effects[i].data.size(); ++j) {
+                ms.WriteUInt32(effects[i].data[j]);
+            }
+        }
+        ms.Write(d2.data(), d2.size());
         ms.WriteUTF8Nullterm(animation);
         ms.WriteUTF8Nullterm(name);
         ms.WriteUTF8Nullterm(desc);
-        ms.Write(d2.data(), d2.size());
     }
     return rv;
 }

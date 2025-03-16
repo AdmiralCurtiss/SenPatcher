@@ -54,14 +54,21 @@ struct TextTableData {
     std::vector<char> ToBinary() const;
 };
 
+struct MagicDataEffect {
+    uint16_t idx;
+    std::array<uint32_t, 3> data;
+};
+
 struct MagicData {
-    std::array<char, 4> d0;
+    uint16_t idx;
+    uint16_t d0;
     std::string flags;
-    std::array<char, 104> d1;
+    std::array<char, 22> d1;
+    std::array<MagicDataEffect, 5> effects;
+    std::array<char, 12> d2;
     std::string animation;
     std::string name;
     std::string desc;
-    std::vector<char> d2;
 
     MagicData(const char* data, size_t dataLength);
 
