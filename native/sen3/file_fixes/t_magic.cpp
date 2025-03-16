@@ -100,6 +100,36 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // fix Juna's Gunner Mode craft descriptions using inconsistent formatting
+        {
+            auto& e = tbl_en.Entries[129];
+            auto& e2 = tbl_en.Entries[124];
+            MagicData m(e.Data.data(), e.Data.size());
+            MagicData m2(e2.Data.data(), e2.Data.size());
+            m.desc = m2.desc;
+            m.flags += 'Z';
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[130];
+            auto& e2 = tbl_en.Entries[125];
+            MagicData m(e.Data.data(), e.Data.size());
+            MagicData m2(e2.Data.data(), e2.Data.size());
+            m.desc = m2.desc;
+            m.flags += 'Z';
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[131];
+            auto& e2 = tbl_en.Entries[126];
+            MagicData m(e.Data.data(), e.Data.size());
+            MagicData m2(e2.Data.data(), e2.Data.size());
+            m.desc = m2.desc;
+            m.flags += 'Z';
+            e.Data = m.ToBinary();
+        }
+
+
         // normalize newlines
         for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
             auto& e = tbl_en.Entries[i];
