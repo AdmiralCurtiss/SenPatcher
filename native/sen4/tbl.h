@@ -77,4 +77,25 @@ struct MasterQuartzMemo {
 
     std::vector<char> ToBinary() const;
 };
+
+struct MagicDataEffect {
+    uint16_t idx;
+    std::array<uint32_t, 3> data;
+};
+
+struct MagicData {
+    uint16_t idx;
+    uint16_t d0;
+    std::string flags;
+    std::array<char, 22> d1;
+    std::array<MagicDataEffect, 5> effects;
+    std::array<char, 11> d2;
+    std::string animation;
+    std::string name;
+    std::string desc;
+
+    MagicData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
 } // namespace SenLib::Sen4
