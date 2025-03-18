@@ -99,7 +99,8 @@ bool SenPatcherExtractP3AWindow::RenderFrame(GuiState& state) {
                                        std::move(filters),
                                        "p3a",
                                        false,
-                                       false);
+                                       false,
+                                       SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select P3A to unpack");
             }
 
@@ -144,7 +145,8 @@ bool SenPatcherExtractP3AWindow::RenderFrame(GuiState& state) {
                                         std::move(filters),
                                         "",
                                         false,
-                                        false);
+                                        false,
+                                        SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select target directory name (will be created)");
             }
 

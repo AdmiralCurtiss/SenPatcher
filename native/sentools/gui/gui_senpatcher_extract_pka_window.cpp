@@ -97,7 +97,8 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
                                        std::move(filters),
                                        "pka",
                                        false,
-                                       false);
+                                       false,
+                                       SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select PKA to unpack");
             }
 
@@ -142,7 +143,8 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
                                         std::move(filters),
                                         "",
                                         false,
-                                        false);
+                                        false,
+                                        SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select target directory name (will be created)");
             }
 

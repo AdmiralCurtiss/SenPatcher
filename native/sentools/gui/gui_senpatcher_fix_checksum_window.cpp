@@ -58,7 +58,10 @@ SenPatcherFixChecksumWindow::SenPatcherFixChecksumWindow(GuiState& state)
 
 SenPatcherFixChecksumWindow::~SenPatcherFixChecksumWindow() = default;
 
-static void InitFileBrowser(std::string_view currentPath, FileBrowser& browser, bool forSaving) {
+static void InitFileBrowser(std::string_view currentPath,
+                            FileBrowser& browser,
+                            bool forSaving,
+                            bool useCustomFileBrowser) {
     std::vector<FileFilter> filters;
     filters.reserve(2);
     filters.push_back(FileFilter{"Save files (*.dat)", "*.dat"});
@@ -76,14 +79,16 @@ static void InitFileBrowser(std::string_view currentPath, FileBrowser& browser, 
                       std::move(filters),
                       "dat",
                       forSaving,
-                      false);
+                      false,
+                      useCustomFileBrowser);
     } else {
         browser.Reset(forSaving ? FileBrowserMode::SaveNewFile : FileBrowserMode::OpenExistingFile,
                       currentPath,
                       std::move(filters),
                       "dat",
                       forSaving,
-                      false);
+                      false,
+                      useCustomFileBrowser);
     }
 }
 
@@ -119,8 +124,10 @@ bool SenPatcherFixChecksumWindow::RenderFrame(GuiState& state) {
                 "##Input", InputPath.data(), InputPath.size(), ImGuiInputTextFlags_ElideLeft);
             ImGui::TableNextColumn();
             if (ImGui::Button("Browse...##BrowseInput")) {
-                InitFileBrowser(
-                    HyoutaUtils::TextUtils::StripToNull(InputPath), InputFileBrowser, false);
+                InitFileBrowser(HyoutaUtils::TextUtils::StripToNull(InputPath),
+                                InputFileBrowser,
+                                false,
+                                SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select file to compress");
             }
 
@@ -155,8 +162,10 @@ bool SenPatcherFixChecksumWindow::RenderFrame(GuiState& state) {
                 "##Output", OutputPath.data(), OutputPath.size(), ImGuiInputTextFlags_ElideLeft);
             ImGui::TableNextColumn();
             if (ImGui::Button("Browse...##BrowseOutput")) {
-                InitFileBrowser(
-                    HyoutaUtils::TextUtils::StripToNull(OutputPath), OutputFileBrowser, true);
+                InitFileBrowser(HyoutaUtils::TextUtils::StripToNull(OutputPath),
+                                OutputFileBrowser,
+                                true,
+                                SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select target file");
             }
 

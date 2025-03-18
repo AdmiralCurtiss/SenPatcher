@@ -97,7 +97,8 @@ bool SenPatcherDecompressType1Window::RenderFrame(GuiState& state) {
                                        std::move(filters),
                                        "",
                                        false,
-                                       false);
+                                       false,
+                                       SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select file to decompress");
             }
 
@@ -142,7 +143,8 @@ bool SenPatcherDecompressType1Window::RenderFrame(GuiState& state) {
                                         std::move(filters),
                                         "",
                                         true,
-                                        false);
+                                        false,
+                                        SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select target file");
             }
 

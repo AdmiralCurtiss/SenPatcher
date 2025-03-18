@@ -37,7 +37,8 @@ struct FileBrowser {
                std::vector<FileFilter> filter,
                std::string_view defaultExtension,
                bool promptForOverwrite,
-               bool multiselect);
+               bool multiselect,
+               bool useCustomFileBrowser);
 
     void Reset(FileBrowserMode mode,
                std::string_view initialDirectory,
@@ -45,7 +46,8 @@ struct FileBrowser {
                std::vector<FileFilter> filter,
                std::string_view defaultExtension,
                bool promptForOverwrite,
-               bool multiselect);
+               bool multiselect,
+               bool useCustomFileBrowser);
 
     FileBrowserResult RenderFrame(GuiState& state, std::string_view title);
 

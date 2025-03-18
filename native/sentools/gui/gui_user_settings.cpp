@@ -57,6 +57,17 @@ bool LoadUserSettingsFromIni(GuiUserSettings& settings, const HyoutaUtils::Ini::
         settings.GamepadSwapConfirmCancel =
             HyoutaUtils::TextUtils::CaseInsensitiveEquals(jpConfirm->Value, "true");
     }
+    auto* useCustomFileBrowser = ini.FindValue("GuiBehavior", "UseCustomFileBrowser");
+    if (useCustomFileBrowser) {
+        if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(useCustomFileBrowser->Value, "Always")) {
+            settings.UseCustomFileBrowser = GuiUserSettings_UseCustomFileBrowser::Always;
+        } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(useCustomFileBrowser->Value,
+                                                                 "Never")) {
+            settings.UseCustomFileBrowser = GuiUserSettings_UseCustomFileBrowser::Never;
+        } else {
+            settings.UseCustomFileBrowser = GuiUserSettings_UseCustomFileBrowser::Auto;
+        }
+    }
     return true;
 }
 
@@ -85,6 +96,12 @@ bool WriteUserSettingsToIni(const GuiUserSettings& settings, HyoutaUtils::Ini::I
     ini.SetString("GamePaths", "Sen5Path", settings.Sen5Path);
     ini.SetString("GamePaths", "TXPath", settings.TXPath);
     ini.SetBool("GuiBehavior", "GamepadSwapConfirmCancel", settings.GamepadSwapConfirmCancel);
+    ini.SetString(
+        "GuiBehavior",
+        "UseCustomFileBrowser",
+        settings.UseCustomFileBrowser == GuiUserSettings_UseCustomFileBrowser::Always  ? "Always"
+        : settings.UseCustomFileBrowser == GuiUserSettings_UseCustomFileBrowser::Never ? "Never"
+                                                                                       : "Auto");
     return true;
 }
 
@@ -505,5 +522,14 @@ std::string GetDefaultPathTX(const GuiUserSettings& settings) {
         "Tokyo Xanadu eX+",
     }};
     return FindExistingPath(settings.TXPath, otherPaths, possibleFolders, "TokyoXanadu.exe");
+}
+
+bool EvalUseCustomFileBrowser(const GuiUserSettings& settings) {
+    // Don't use the native dialog if we're in a context where we want a controller-navigable UI.
+    return settings.UseCustomFileBrowser == GuiUserSettings_UseCustomFileBrowser::Always ? true
+           : settings.UseCustomFileBrowser == GuiUserSettings_UseCustomFileBrowser::Never
+               ? false
+               : (HyoutaUtils::Sys::GetEnvironmentVar("SteamTenfoot") == "1"
+                  || HyoutaUtils::Sys::GetEnvironmentVar("SteamDeck") == "1");
 }
 } // namespace SenTools

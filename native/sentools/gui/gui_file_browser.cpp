@@ -18,7 +18,6 @@
 #include "sentools_imgui_utils.h"
 #include "util/file.h"
 #include "util/scope.h"
-#include "util/system.h"
 #include "util/text.h"
 
 #ifdef BUILD_FOR_WINDOWS
@@ -67,7 +66,7 @@ struct FileBrowser::Impl {
 };
 
 FileBrowser::FileBrowser() : PImpl(std::make_unique<Impl>()) {
-    Reset(FileBrowserMode::OpenExistingFile, "", "", {}, "", false, false);
+    Reset(FileBrowserMode::OpenExistingFile, "", "", {}, "", false, false, true);
 }
 
 FileBrowser::~FileBrowser() = default;
@@ -77,7 +76,8 @@ void FileBrowser::Reset(FileBrowserMode mode,
                         std::vector<FileFilter> filter,
                         std::string_view defaultExtension,
                         bool promptForOverwrite,
-                        bool multiselect) {
+                        bool multiselect,
+                        bool useCustomFileBrowser) {
     auto split = HyoutaUtils::IO::SplitPath(initialPath);
     Reset(mode,
           split.Directory,
@@ -85,7 +85,8 @@ void FileBrowser::Reset(FileBrowserMode mode,
           std::move(filter),
           defaultExtension,
           promptForOverwrite,
-          multiselect);
+          multiselect,
+          useCustomFileBrowser);
 }
 
 void FileBrowser::Reset(FileBrowserMode mode,
@@ -94,7 +95,8 @@ void FileBrowser::Reset(FileBrowserMode mode,
                         std::vector<FileFilter> filter,
                         std::string_view defaultExtension,
                         bool promptForOverwrite,
-                        bool multiselect) {
+                        bool multiselect,
+                        bool useCustomFileBrowser) {
     PImpl->Mode = mode;
 
     if (initialDirectory.empty()) {
@@ -115,12 +117,7 @@ void FileBrowser::Reset(FileBrowserMode mode,
     PImpl->SelectionStorage.Clear();
     PImpl->PromptForOverwrite = promptForOverwrite;
     PImpl->Multiselect = multiselect;
-
-    // Don't use the native dialog if we're in a context where we want a controller-navigable UI.
-    PImpl->UseNativeDialogIfAvailable =
-        !(HyoutaUtils::Sys::GetEnvironmentVar("SteamTenfoot") == "1"
-          || HyoutaUtils::Sys::GetEnvironmentVar("SteamDeck") == "1");
-
+    PImpl->UseNativeDialogIfAvailable = !useCustomFileBrowser;
     PImpl->LastDirectoryChangeByKeyboardOrController = false;
 }
 

@@ -97,7 +97,8 @@ bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
                                        std::move(filters),
                                        "",
                                        false,
-                                       false);
+                                       false,
+                                       SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select file to compress");
             }
 
@@ -142,7 +143,8 @@ bool SenPatcherCompressType1Window::RenderFrame(GuiState& state) {
                                         std::move(filters),
                                         "",
                                         true,
-                                        false);
+                                        false,
+                                        SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select target file");
             }
 

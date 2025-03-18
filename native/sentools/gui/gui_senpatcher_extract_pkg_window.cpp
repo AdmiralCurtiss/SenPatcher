@@ -99,7 +99,8 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
                                        std::move(filters),
                                        "pkg",
                                        false,
-                                       false);
+                                       false,
+                                       SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select PKG to unpack");
             }
 
@@ -144,7 +145,8 @@ bool SenPatcherExtractPkgWindow::RenderFrame(GuiState& state) {
                                         std::move(filters),
                                         "",
                                         false,
-                                        false);
+                                        false,
+                                        SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
                 ImGui::OpenPopup("Select target directory name (will be created)");
             }
 

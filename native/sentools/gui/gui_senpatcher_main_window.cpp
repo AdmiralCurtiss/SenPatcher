@@ -251,6 +251,30 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
             ImGui::MenuItem("Swap Confirm/Cancel on Controller",
                             nullptr,
                             &state.GuiSettings.GamepadSwapConfirmCancel);
+            if (ImGui::BeginMenu("File Browser")) {
+                if (ImGui::MenuItem("Use file browser from OS if possible",
+                                    nullptr,
+                                    state.GuiSettings.UseCustomFileBrowser
+                                        == GuiUserSettings_UseCustomFileBrowser::Never)) {
+                    state.GuiSettings.UseCustomFileBrowser =
+                        GuiUserSettings_UseCustomFileBrowser::Never;
+                }
+                if (ImGui::MenuItem("Use custom file browser",
+                                    nullptr,
+                                    state.GuiSettings.UseCustomFileBrowser
+                                        == GuiUserSettings_UseCustomFileBrowser::Always)) {
+                    state.GuiSettings.UseCustomFileBrowser =
+                        GuiUserSettings_UseCustomFileBrowser::Always;
+                }
+                if (ImGui::MenuItem("Autodetect",
+                                    nullptr,
+                                    state.GuiSettings.UseCustomFileBrowser
+                                        == GuiUserSettings_UseCustomFileBrowser::Auto)) {
+                    state.GuiSettings.UseCustomFileBrowser =
+                        GuiUserSettings_UseCustomFileBrowser::Auto;
+                }
+                ImGui::EndMenu();
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -280,7 +304,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           std::move(filters),
                           "exe",
                           false,
-                          false);
+                          false,
+                          SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
         ImGui::OpenPopup("Select CS1 game directory root (Sen1Launcher.exe)");
     }
     ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
@@ -316,7 +341,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           std::move(filters),
                           "dat",
                           false,
-                          false);
+                          false,
+                          SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
         ImGui::OpenPopup("Select CS1 System Data file (save511.dat)");
     }
     ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
@@ -352,7 +378,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           std::move(filters),
                           "exe",
                           false,
-                          false);
+                          false,
+                          SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
         ImGui::OpenPopup("Select CS2 game directory root (Sen2Launcher.exe)");
     }
     ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
@@ -388,7 +415,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           std::move(filters),
                           "dat",
                           false,
-                          false);
+                          false,
+                          SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
         ImGui::OpenPopup("Select CS2 System Data file (save255.dat)");
     }
     ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
@@ -423,7 +451,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           std::move(filters),
                           "exe",
                           false,
-                          false);
+                          false,
+                          SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
         ImGui::OpenPopup("Select CS3 game directory root (Sen3Launcher.exe)");
     }
     ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
@@ -459,7 +488,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           std::move(filters),
                           "exe",
                           false,
-                          false);
+                          false,
+                          SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
         ImGui::OpenPopup("Select CS4 game directory root (Sen4Launcher.exe)");
     }
     ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
@@ -497,7 +527,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           std::move(filters),
                           "exe",
                           false,
-                          false);
+                          false,
+                          SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
         ImGui::OpenPopup("Select Reverie game directory (hnk.exe)");
     }
     ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();
@@ -532,7 +563,8 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
                           std::move(filters),
                           "exe",
                           false,
-                          false);
+                          false,
+                          SenTools::EvalUseCustomFileBrowser(state.GuiSettings));
         ImGui::OpenPopup("Select TX game directory root (TokyoXanadu.exe)");
     }
     ImGuiUtils::SetNextWindowSizeForNearFullscreenPopup();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <string_view>
 
@@ -9,6 +10,12 @@ struct IniWriter;
 } // namespace HyoutaUtils::Ini
 
 namespace SenTools {
+enum class GuiUserSettings_UseCustomFileBrowser : uint8_t {
+    Auto,
+    Always,
+    Never, // this will still use the custom browser if we have no other option
+};
+
 struct GuiUserSettings {
     std::string Sen1Path;
     std::string Sen2Path;
@@ -17,6 +24,8 @@ struct GuiUserSettings {
     std::string Sen5Path;
     std::string TXPath;
     bool GamepadSwapConfirmCancel = false;
+    GuiUserSettings_UseCustomFileBrowser UseCustomFileBrowser =
+        GuiUserSettings_UseCustomFileBrowser::Auto;
 };
 
 bool LoadUserSettingsFromIni(GuiUserSettings& settings, std::string_view path);
@@ -33,4 +42,5 @@ std::string GetDefaultPathCS3(const GuiUserSettings& settings);
 std::string GetDefaultPathCS4(const GuiUserSettings& settings);
 std::string GetDefaultPathReverie(const GuiUserSettings& settings);
 std::string GetDefaultPathTX(const GuiUserSettings& settings);
+bool EvalUseCustomFileBrowser(const GuiUserSettings& settings);
 } // namespace SenTools
