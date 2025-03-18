@@ -235,6 +235,7 @@ std::optional<SenPatcher::CheckedFileResult>
         if (ref && ref->FileInfo->UncompressedSize == size
             && SenLib::ModLoad::ExtractP3AFileToMemory(
                 *ref,
+                ref->ArchiveData->Flags,
                 0x8000'0000,
                 out_memory,
                 out_filesize,

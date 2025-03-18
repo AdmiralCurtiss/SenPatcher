@@ -93,6 +93,7 @@ const P3AFileRef* FindP3AFileRef(const LoadedP3AData& loadedModsData,
                                  const std::array<char, 0x100>& filteredPath);
 
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,
+                            uint32_t p3aFlags,
                             uint64_t filesizeLimit,
                             void*& out_memory,
                             uint64_t& out_filesize,
@@ -101,6 +102,7 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
 
 bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                             SenPatcher::P3A& archive,
+                            uint32_t p3aFlags,
                             std::recursive_mutex* optional_mutex,
                             uint64_t filesizeLimit,
                             void*& out_memory,

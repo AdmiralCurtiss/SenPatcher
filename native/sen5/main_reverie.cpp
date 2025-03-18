@@ -252,6 +252,7 @@ static int64_t OpenModFile(FFile* ffile, const char* path) {
         uint64_t filesize = 0;
         if (!SenLib::ModLoad::ExtractP3AFileToMemory(
                 *refptr,
+                refptr->ArchiveData->Flags,
                 0x8000'0000,
                 memory,
                 filesize,
@@ -577,6 +578,7 @@ static int64_t __fastcall FSoundOpenForwarder(FSoundFile* soundFile,
         uint64_t filesize = 0;
         if (!SenLib::ModLoad::ExtractP3AFileToMemory(
                 *refptr,
+                refptr->ArchiveData->Flags,
                 0x8000'0000,
                 memory,
                 filesize,

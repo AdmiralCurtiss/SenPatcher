@@ -616,6 +616,7 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                         if (ExtractP3AFileToMemory(
                                 fileinfo,
                                 p3a,
+                                p3aflags,
                                 nullptr,
                                 0x8000'0000,
                                 out_memory,
@@ -694,6 +695,7 @@ const P3AFileRef* FindP3AFileRef(const LoadedP3AData& loadedModsData,
 }
 
 bool ExtractP3AFileToMemory(const P3AFileRef& ref,
+                            uint32_t p3aFlags,
                             uint64_t filesizeLimit,
                             void*& out_memory,
                             uint64_t& out_filesize,
@@ -701,6 +703,7 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
                             PFree free_func) {
     return ExtractP3AFileToMemory(*ref.FileInfo,
                                   ref.ArchiveData->Archive,
+                                  p3aFlags,
                                   &ref.ArchiveData->Mutex,
                                   filesizeLimit,
                                   out_memory,
@@ -711,6 +714,7 @@ bool ExtractP3AFileToMemory(const P3AFileRef& ref,
 
 bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                             SenPatcher::P3A& archive,
+                            uint32_t p3aFlags,
                             std::recursive_mutex* optional_mutex,
                             uint64_t filesizeLimit,
                             void*& out_memory,
@@ -724,6 +728,10 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
     switch (fi.CompressionType) {
         case SenPatcher::P3ACompressionType::None: {
             if (fi.CompressedSize != fi.UncompressedSize) {
+                return false;
+            }
+            if ((p3aFlags & SenPatcher::P3AFlag_HasUncompressedHashes) != 0
+                && fi.CompressedHash != fi.UncompressedHash) {
                 return false;
             }
 
@@ -809,6 +817,11 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
             }
             compressedMemory.reset();
 
+            if ((p3aFlags & SenPatcher::P3AFlag_HasUncompressedHashes) != 0
+                && XXH64(memory, fi.UncompressedSize, 0) != fi.UncompressedHash) {
+                return false;
+            }
+
             out_memory = memory;
             out_filesize = fi.UncompressedSize;
             return true;
@@ -858,6 +871,11 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
                 return false;
             }
             compressedMemory.reset();
+
+            if ((p3aFlags & SenPatcher::P3AFlag_HasUncompressedHashes) != 0
+                && XXH64(memory, fi.UncompressedSize, 0) != fi.UncompressedHash) {
+                return false;
+            }
 
             out_memory = memory;
             out_filesize = fi.UncompressedSize;
@@ -921,6 +939,11 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
             }
             dctx.reset();
             compressedMemory.reset();
+
+            if ((p3aFlags & SenPatcher::P3AFlag_HasUncompressedHashes) != 0
+                && XXH64(memory, fi.UncompressedSize, 0) != fi.UncompressedHash) {
+                return false;
+            }
 
             out_memory = memory;
             out_filesize = fi.UncompressedSize;
