@@ -287,6 +287,8 @@ int SenTools::RunGuiDX11(
             }
         }
 
+        io.ConfigNavSwapGamepadButtons = state.GuiSettings.GamepadSwapConfirmCancel;
+
         // Start the Dear ImGui frame
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();

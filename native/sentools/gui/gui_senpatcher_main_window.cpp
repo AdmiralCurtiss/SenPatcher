@@ -247,6 +247,12 @@ bool SenPatcherMainWindow::RenderContents(GuiState& state) {
             }
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Config")) {
+            ImGui::MenuItem("Swap Confirm/Cancel on Controller",
+                            nullptr,
+                            &state.GuiSettings.GamepadSwapConfirmCancel);
+            ImGui::EndMenu();
+        }
         ImGui::EndMenuBar();
     }
 

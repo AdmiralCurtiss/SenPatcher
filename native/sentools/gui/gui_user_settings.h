@@ -16,6 +16,7 @@ struct GuiUserSettings {
     std::string Sen4Path;
     std::string Sen5Path;
     std::string TXPath;
+    bool GamepadSwapConfirmCancel = false;
 };
 
 bool LoadUserSettingsFromIni(GuiUserSettings& settings, std::string_view path);

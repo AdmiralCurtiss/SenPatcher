@@ -12,6 +12,7 @@
 #include "util/ini.h"
 #include "util/ini_writer.h"
 #include "util/system.h"
+#include "util/text.h"
 
 namespace SenTools {
 bool LoadUserSettingsFromIni(GuiUserSettings& settings, std::string_view path) {
@@ -51,6 +52,11 @@ bool LoadUserSettingsFromIni(GuiUserSettings& settings, const HyoutaUtils::Ini::
     if (txpath) {
         settings.TXPath = std::string(txpath->Value);
     }
+    auto* jpConfirm = ini.FindValue("GuiBehavior", "GamepadSwapConfirmCancel");
+    if (jpConfirm) {
+        settings.GamepadSwapConfirmCancel =
+            HyoutaUtils::TextUtils::CaseInsensitiveEquals(jpConfirm->Value, "true");
+    }
     return true;
 }
 
@@ -78,6 +84,7 @@ bool WriteUserSettingsToIni(const GuiUserSettings& settings, HyoutaUtils::Ini::I
     ini.SetString("GamePaths", "Sen4Path", settings.Sen4Path);
     ini.SetString("GamePaths", "Sen5Path", settings.Sen5Path);
     ini.SetString("GamePaths", "TXPath", settings.TXPath);
+    ini.SetBool("GuiBehavior", "GamepadSwapConfirmCancel", settings.GamepadSwapConfirmCancel);
     return true;
 }
 

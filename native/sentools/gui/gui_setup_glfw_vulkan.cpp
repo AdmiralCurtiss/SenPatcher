@@ -565,6 +565,8 @@ int SenTools::RunGuiGlfwVulkan(
             loadFontsCallback(io, state);
         }
 
+        io.ConfigNavSwapGamepadButtons = state.GuiSettings.GamepadSwapConfirmCancel;
+
         // Start the Dear ImGui frame
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
