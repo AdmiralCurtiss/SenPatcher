@@ -11,6 +11,9 @@
 typedef struct ZSTD_DDict_s ZSTD_DDict;
 
 namespace SenPatcher {
+static constexpr uint32_t P3AFlag_HasUncompressedHashes = 1;
+static constexpr uint32_t P3AFlagMask = P3AFlag_HasUncompressedHashes;
+
 struct P3A {
     uint64_t FileCount = 0;
     std::unique_ptr<SenPatcher::P3AFileInfo[]> FileInfo{};
@@ -25,10 +28,10 @@ struct P3A {
     ~P3A();
 
     void Clear();
-    bool Load(std::string_view path);
+    bool Load(std::string_view path, uint32_t* out_p3aFlags);
 
 private:
-    bool Load(HyoutaUtils::IO::File& f);
+    bool Load(HyoutaUtils::IO::File& f, uint32_t* out_p3aFlags);
 };
 
 } // namespace SenPatcher

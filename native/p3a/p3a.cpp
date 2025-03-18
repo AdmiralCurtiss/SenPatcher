@@ -72,14 +72,18 @@ void P3A::Clear() {
     }
 }
 
-bool P3A::Load(std::string_view path) {
+bool P3A::Load(std::string_view path, uint32_t* out_p3aFlags) {
     this->Clear();
 
     HyoutaUtils::IO::File f(path, HyoutaUtils::IO::OpenMode::Read);
-    return Load(f);
+    return Load(f, out_p3aFlags);
 }
 
-bool P3A::Load(HyoutaUtils::IO::File& f) {
+bool P3A::Load(HyoutaUtils::IO::File& f, uint32_t* out_p3aFlags) {
+    if (out_p3aFlags) {
+        *out_p3aFlags = 0;
+    }
+
     if (!f.IsOpen()) {
         return false;
     }
@@ -134,6 +138,9 @@ bool P3A::Load(HyoutaUtils::IO::File& f) {
         }
 
         hasUncompressedHash = true;
+        if (out_p3aFlags) {
+            *out_p3aFlags |= P3AFlag_HasUncompressedHashes;
+        }
     } else {
         extHeader.Size = 0;
         extHeader.FileInfoSize = P3AFileInfoSize1100;

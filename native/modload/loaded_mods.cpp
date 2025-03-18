@@ -404,7 +404,7 @@ void LoadP3As(HyoutaUtils::Logger& logger,
     size_t p3acount = 0;
     std::unique_ptr<P3AData[]> p3as;
     {
-        std::vector<SenPatcher::P3A> p3avector;
+        std::vector<std::pair<SenPatcher::P3A, uint32_t>> p3avector;
         p3avector.reserve(files.size());
         for (std::string_view filename : files) {
             std::string filepath;
@@ -413,10 +413,15 @@ void LoadP3As(HyoutaUtils::Logger& logger,
             filepath.push_back('/');
             filepath.append(filename);
 
-            auto& p3a = p3avector.emplace_back();
-            if (!p3a.Load(std::string_view(filepath))) {
+            auto& p3apair = p3avector.emplace_back();
+            SenPatcher::P3A& p3a = p3apair.first;
+
+            uint32_t p3aflags = 0;
+            if (!p3a.Load(std::string_view(filepath), &p3aflags)) {
                 p3avector.pop_back();
+                continue;
             }
+            p3apair.second = p3aflags;
 
             for (size_t i = 0; i < p3a.FileCount; ++i) {
                 auto& fileinfo = p3a.FileInfo[i];
@@ -427,8 +432,8 @@ void LoadP3As(HyoutaUtils::Logger& logger,
         p3acount = p3avector.size();
         p3as = std::make_unique<P3AData[]>(p3acount);
         for (size_t i = 0; i < p3acount; ++i) {
-            p3as[i].Archive = std::move(p3avector[i]);
-            p3as[i].Flags = 0;
+            p3as[i].Archive = std::move(p3avector[i].first);
+            p3as[i].Flags = p3avector[i].second;
         }
     }
 
@@ -568,7 +573,7 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
         modsDir.append("mods");
 
         const auto modPaths = CollectModPaths(logger, modsDir);
-        std::vector<std::pair<SenPatcher::P3A, size_t>> p3avector;
+        std::vector<std::pair<SenPatcher::P3A, uint32_t>> p3avector;
         p3avector.reserve(modPaths.size());
         for (auto const& path : modPaths) {
             const bool isSenpatcherAsset = IsSenpatcherAsset(path);
@@ -585,9 +590,11 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
             filepath.push_back('/');
             filepath.append(path);
             logger.Log("Loading mod file at ").Log(filepath).Log("...\n");
-            if (!p3a.Load(std::string_view(filepath))) {
+            uint32_t p3aflags = 0;
+            if (!p3a.Load(std::string_view(filepath), &p3aflags)) {
                 logger.Log("Couldn't load, skipping.\n");
                 p3avector.pop_back();
+                continue;
             }
 
             for (size_t i = 0; i < p3a.FileCount; ++i) {
@@ -639,7 +646,7 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
                 continue;
             }
 
-            p3apair.second = 0;
+            p3apair.second = p3aflags;
             if (isSenpatcherAsset) {
                 p3apair.second |= P3AFlag_IsSenPatcherAssetMod;
             }

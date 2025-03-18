@@ -19,12 +19,14 @@ namespace SenLib::ModLoad {
 using PMalloc = void* (*)(size_t size);
 using PFree = void (*)(void* memory);
 
-static constexpr size_t P3AFlag_IsSenPatcherAssetMod = 1;
+// use an unused bit in the p3a flags to store this
+static constexpr uint32_t P3AFlag_IsSenPatcherAssetMod = 2;
+static_assert((SenPatcher::P3AFlagMask & P3AFlag_IsSenPatcherAssetMod) == 0);
 
 struct P3AData {
     SenPatcher::P3A Archive;
+    uint32_t Flags = 0;
     std::recursive_mutex Mutex;
-    size_t Flags = 0;
 
     P3AData() = default;
     P3AData(const P3AData& other) = delete;

@@ -10,6 +10,8 @@
 #include <string_view>
 #include <vector>
 
+#include "zstd/common/xxhash.h"
+
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/hash/sha1.h"
@@ -43,7 +45,7 @@ static bool CheckArchiveExistsAndIsRightVersion(HyoutaUtils::Logger& logger,
     logger.Log("Checking for existing asset archive.\n");
 
     SenPatcher::P3A p3a;
-    if (p3a.Load(path)) {
+    if (p3a.Load(path, nullptr)) {
         for (size_t i = 0; i < p3a.FileCount; ++i) {
             const auto& f = p3a.FileInfo[i];
             if (IsSenPatcherVersionFile(f)) {
@@ -52,9 +54,10 @@ static bool CheckArchiveExistsAndIsRightVersion(HyoutaUtils::Logger& logger,
                     && p3a.FileHandle.SetPosition(f.Offset)
                     && p3a.FileHandle.Read(versionInFile.data(), versionString.size())
                            == versionString.size()) {
-                    if (versionString
-                        == std::string_view(versionInFile.begin(),
-                                            versionInFile.begin() + versionString.size())) {
+                    if (XXH64(versionInFile.data(), versionString.size(), 0) == f.CompressedHash
+                        && versionString
+                               == std::string_view(versionInFile.begin(),
+                                                   versionInFile.begin() + versionString.size())) {
                         logger.Log("Found archive with correct version.\n");
                         return true;
                     }
