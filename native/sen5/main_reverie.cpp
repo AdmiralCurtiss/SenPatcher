@@ -719,6 +719,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool disableFpsLimitOnFocusLoss = false;
     int increaseDlcCount = 0x1000;
     bool fixDlcCostumeCrash = true;
+    bool allowMissingDlcSaveFileLoad = false;
     bool allowCustomDlcMultiuse = true;
     bool allowCustomDlcIfNotInParty = true;
     bool patchBrokenSprintf = true;
@@ -784,6 +785,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("Reverie", "DisableFpsLimitOnFocusLoss", disableFpsLimitOnFocusLoss);
                 check_integer("Reverie", "IncreaseDlcCount", increaseDlcCount);
                 check_boolean("Reverie", "FixDlcCostumeCrash", fixDlcCostumeCrash);
+                check_boolean(
+                    "Reverie", "AllowMissingDlcSaveFileLoad", allowMissingDlcSaveFileLoad);
                 check_boolean("Reverie", "AllowCustomDlcMultiuse", allowCustomDlcMultiuse);
                 check_boolean("Reverie", "AllowCustomDlcIfNotInParty", allowCustomDlcIfNotInParty);
                 check_boolean("Reverie", "PatchBrokenSprintf", patchBrokenSprintf);
@@ -862,6 +865,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     }
     if (fixDlcCostumeCrash) {
         PatchDlcCostumeCrash(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (allowMissingDlcSaveFileLoad) {
+        PatchDlcSaveFileLoad(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
     if (allowCustomDlcMultiuse) {

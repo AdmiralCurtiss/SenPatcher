@@ -61,4 +61,24 @@ void PatchDlcCostumeCrash(PatchExecData& execData) {
 
     execData.Codespace = tmp;
 }
+
+void PatchDlcSaveFileLoad(PatchExecData& execData) {
+    HyoutaUtils::Logger& logger = *execData.Logger;
+    char* textRegion = execData.TextRegion;
+    GameVersion version = execData.Version;
+
+    using namespace SenPatcher::x64;
+    char* injectPos = GetCodeAddressJpEn(version,
+                                         textRegion,
+                                         Addresses{.Jp121 = 0x1403e5405,
+                                                   .En121 = 0x1403e76a6,
+                                                   .Jp122 = 0x1403e5365,
+                                                   .En122 = 0x1403e7606});
+
+    {
+        char* tmp = injectPos;
+        PageUnprotect page(logger, tmp, 1);
+        *tmp = static_cast<char>(0xeb); // jnc -> jmp
+    }
+}
 } // namespace SenLib::Sen4

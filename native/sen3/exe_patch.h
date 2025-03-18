@@ -72,6 +72,9 @@ void PatchDisableMotionBlur(PatchExecData& execData);
 // (the game will just use the base model instead)
 void PatchDlcCostumeCrash(PatchExecData& execData);
 
+// allow loading of save files that have used non-installed DLCs
+void PatchDlcSaveFileLoad(PatchExecData& execData);
+
 // fix the out-of-bounds write when the english and french DLC files
 // disagree on the number of entries, which can easily happen with mods
 void PatchDlcLoadFrenchBounds(PatchExecData& execData);

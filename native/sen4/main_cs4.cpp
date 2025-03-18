@@ -761,6 +761,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool fixBgmEnqueue = true;
     int increaseDlcCount = 0x1000;
     bool fixDlcCostumeCrash = true;
+    bool allowMissingDlcSaveFileLoad = false;
     bool allowCustomDlcMultiuse = true;
 
     {
@@ -827,6 +828,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("CS4", "FixBgmEnqueue", fixBgmEnqueue);
                 check_integer("CS4", "IncreaseDlcCount", increaseDlcCount);
                 check_boolean("CS4", "FixDlcCostumeCrash", fixDlcCostumeCrash);
+                check_boolean("CS4", "AllowMissingDlcSaveFileLoad", allowMissingDlcSaveFileLoad);
                 check_boolean("CS4", "AllowCustomDlcMultiuse", allowCustomDlcMultiuse);
             }
         }
@@ -911,6 +913,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     }
     if (fixDlcCostumeCrash) {
         PatchDlcCostumeCrash(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (allowMissingDlcSaveFileLoad) {
+        PatchDlcSaveFileLoad(patchExecData);
         Align16CodePage(logger, patchExecData.Codespace);
     }
     if (allowCustomDlcMultiuse) {

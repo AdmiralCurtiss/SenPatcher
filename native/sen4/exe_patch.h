@@ -67,6 +67,9 @@ void PatchMusicQueueing(PatchExecData& execData);
 // (the game will just use the base model instead)
 void PatchDlcCostumeCrash(PatchExecData& execData);
 
+// allow loading of save files that have used non-installed DLCs
+void PatchDlcSaveFileLoad(PatchExecData& execData);
+
 // changes the number of DLCs the game checks for
 void PatchIncreaseDlcCount(PatchExecData& execData, uint32_t newLimit);
 
