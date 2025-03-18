@@ -819,6 +819,7 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
 
             if ((p3aFlags & SenPatcher::P3AFlag_HasUncompressedHashes) != 0
                 && XXH64(memory, fi.UncompressedSize, 0) != fi.UncompressedHash) {
+                free_func(memory);
                 return false;
             }
 
@@ -874,6 +875,7 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
 
             if ((p3aFlags & SenPatcher::P3AFlag_HasUncompressedHashes) != 0
                 && XXH64(memory, fi.UncompressedSize, 0) != fi.UncompressedHash) {
+                free_func(memory);
                 return false;
             }
 
@@ -942,6 +944,7 @@ bool ExtractP3AFileToMemory(const SenPatcher::P3AFileInfo& fi,
 
             if ((p3aFlags & SenPatcher::P3AFlag_HasUncompressedHashes) != 0
                 && XXH64(memory, fi.UncompressedSize, 0) != fi.UncompressedHash) {
+                free_func(memory);
                 return false;
             }
 
