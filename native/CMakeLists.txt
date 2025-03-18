@@ -581,6 +581,7 @@ if (SENPATCHER_BUILD_TOOLS)
 				imgui/backends/imgui_impl_win32.cpp
 			)
 			target_link_libraries(sentools PUBLIC d3d11.lib d3dcompiler.lib)
+			target_compile_definitions(sentools PUBLIC IMGUI_IMPL_WIN32_DISABLE_GAMEPAD) # we handle this ourselves
 		else()
 			# on Linux there's no obvious choice, so I just went with GLFW + Vulkan
 			target_sources(sentools PRIVATE

@@ -13,6 +13,7 @@
 #include "imgui_impl_win32.h"
 #include <d3d11.h>
 #include <tchar.h>
+#include <xinput.h>
 
 #include "util/scope.h"
 
@@ -28,6 +29,91 @@ static bool g_SwapChainOccluded = false;
 static bool g_WindowMoved = false;
 static UINT g_ResizeWidth = 0, g_ResizeHeight = 0;
 static ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
+
+// Using XInput for gamepad (will load DLL dynamically)
+typedef DWORD(WINAPI* PFN_XInputGetCapabilities)(DWORD, DWORD, XINPUT_CAPABILITIES*);
+typedef DWORD(WINAPI* PFN_XInputGetState)(DWORD, XINPUT_STATE*);
+static bool s_HasGamepad = false;
+static bool s_WantUpdateHasGamepad = false;
+static HMODULE s_XInputDLL = nullptr;
+static PFN_XInputGetCapabilities s_XInputGetCapabilities = nullptr;
+static PFN_XInputGetState s_XInputGetState = nullptr;
+
+static void ImplXInput_NewFrame(HWND hwnd, ImGuiIO& io) {
+    // Calling XInputGetState() every frame on disconnected gamepads is unfortunately too slow.
+    // Instead we refresh gamepad availability by calling XInputGetCapabilities() _only_ after
+    // receiving WM_DEVICECHANGE.
+    if (s_WantUpdateHasGamepad) {
+        XINPUT_CAPABILITIES caps = {};
+        s_HasGamepad =
+            s_XInputGetCapabilities
+                ? (s_XInputGetCapabilities(0, XINPUT_FLAG_GAMEPAD, &caps) == ERROR_SUCCESS)
+                : false;
+        s_WantUpdateHasGamepad = false;
+    }
+
+    io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
+
+    HWND focused_window = ::GetForegroundWindow();
+    const bool is_app_focused = (focused_window == hwnd);
+    if (!is_app_focused) {
+        return;
+    }
+
+    XINPUT_STATE xinput_state{};
+    if (!s_HasGamepad || s_XInputGetState == nullptr
+        || s_XInputGetState(0, &xinput_state) != ERROR_SUCCESS) {
+        return;
+    }
+    io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
+
+    XINPUT_GAMEPAD& gamepad = xinput_state.Gamepad;
+
+#define IM_SATURATE(V) (V < 0.0f ? 0.0f : V > 1.0f ? 1.0f : V)
+#define MAP_BUTTON(KEY_NO, BUTTON_ENUM)                                \
+    {                                                                  \
+        io.AddKeyEvent(KEY_NO, (gamepad.wButtons & BUTTON_ENUM) != 0); \
+    }
+#define MAP_ANALOG(KEY_NO, VALUE, V0, V1)                          \
+    {                                                              \
+        float vn = (float)(VALUE - V0) / (float)(V1 - V0);         \
+        io.AddKeyAnalogEvent(KEY_NO, vn > 0.10f, IM_SATURATE(vn)); \
+    }
+    MAP_BUTTON(ImGuiKey_GamepadStart, XINPUT_GAMEPAD_START);
+    MAP_BUTTON(ImGuiKey_GamepadBack, XINPUT_GAMEPAD_BACK);
+    MAP_BUTTON(ImGuiKey_GamepadFaceLeft, XINPUT_GAMEPAD_X);
+    MAP_BUTTON(ImGuiKey_GamepadFaceRight, XINPUT_GAMEPAD_B);
+    MAP_BUTTON(ImGuiKey_GamepadFaceUp, XINPUT_GAMEPAD_Y);
+    MAP_BUTTON(ImGuiKey_GamepadFaceDown, XINPUT_GAMEPAD_A);
+    MAP_BUTTON(ImGuiKey_GamepadDpadLeft, XINPUT_GAMEPAD_DPAD_LEFT);
+    MAP_BUTTON(ImGuiKey_GamepadDpadRight, XINPUT_GAMEPAD_DPAD_RIGHT);
+    MAP_BUTTON(ImGuiKey_GamepadDpadUp, XINPUT_GAMEPAD_DPAD_UP);
+    MAP_BUTTON(ImGuiKey_GamepadDpadDown, XINPUT_GAMEPAD_DPAD_DOWN);
+    MAP_BUTTON(ImGuiKey_GamepadL1, XINPUT_GAMEPAD_LEFT_SHOULDER);
+    MAP_BUTTON(ImGuiKey_GamepadR1, XINPUT_GAMEPAD_RIGHT_SHOULDER);
+    MAP_ANALOG(ImGuiKey_GamepadL2, gamepad.bLeftTrigger, XINPUT_GAMEPAD_TRIGGER_THRESHOLD, 255);
+    MAP_ANALOG(ImGuiKey_GamepadR2, gamepad.bRightTrigger, XINPUT_GAMEPAD_TRIGGER_THRESHOLD, 255);
+    MAP_BUTTON(ImGuiKey_GamepadL3, XINPUT_GAMEPAD_LEFT_THUMB);
+    MAP_BUTTON(ImGuiKey_GamepadR3, XINPUT_GAMEPAD_RIGHT_THUMB);
+    MAP_ANALOG(
+        ImGuiKey_GamepadLStickLeft, gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
+    MAP_ANALOG(
+        ImGuiKey_GamepadLStickRight, gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+    MAP_ANALOG(
+        ImGuiKey_GamepadLStickUp, gamepad.sThumbLY, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+    MAP_ANALOG(
+        ImGuiKey_GamepadLStickDown, gamepad.sThumbLY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
+    MAP_ANALOG(
+        ImGuiKey_GamepadRStickLeft, gamepad.sThumbRX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
+    MAP_ANALOG(
+        ImGuiKey_GamepadRStickRight, gamepad.sThumbRX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+    MAP_ANALOG(
+        ImGuiKey_GamepadRStickUp, gamepad.sThumbRY, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+    MAP_ANALOG(
+        ImGuiKey_GamepadRStickDown, gamepad.sThumbRY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
+#undef MAP_BUTTON
+#undef MAP_ANALOG
+}
 
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND hWnd);
@@ -96,6 +182,26 @@ int SenTools::RunGuiDX11(
 
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd);
+
+    s_WantUpdateHasGamepad = true;
+    const char* xinput_dll_names[] = {
+        "xinput1_4.dll",   // Windows 8+
+        "xinput1_3.dll",   // DirectX SDK
+        "xinput9_1_0.dll", // Windows Vista, Windows 7
+        "xinput1_2.dll",   // DirectX SDK
+        "xinput1_1.dll"    // DirectX SDK
+    };
+    for (int n = 0; n < IM_ARRAYSIZE(xinput_dll_names); n++) {
+        if (HMODULE dll = ::LoadLibraryA(xinput_dll_names[n])) {
+            s_XInputDLL = dll;
+            s_XInputGetCapabilities =
+                (PFN_XInputGetCapabilities)::GetProcAddress(dll, "XInputGetCapabilities");
+            s_XInputGetState = (PFN_XInputGetState)::GetProcAddress(dll, "XInputGetState");
+            break;
+        }
+    }
+
+
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
     HMODULE user32_dll = LoadLibraryW(L"USER32.dll");
@@ -184,6 +290,7 @@ int SenTools::RunGuiDX11(
         // Start the Dear ImGui frame
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
+        ImplXInput_NewFrame(hwnd, io);
         ImGui::NewFrame();
 
         if (!renderFrameCallback(io, state)) {
@@ -215,6 +322,14 @@ int SenTools::RunGuiDX11(
 
     // Cleanup
     ImGui_ImplDX11_Shutdown();
+
+    if (s_XInputDLL) {
+        ::FreeLibrary(s_XInputDLL);
+        s_XInputDLL = nullptr;
+        s_XInputGetCapabilities = nullptr;
+        s_XInputGetState = nullptr;
+    }
+
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
@@ -330,6 +445,10 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
 // application, or clear/overwrite your copy of the keyboard data. Generally you may always pass all
 // inputs to dear imgui, and hide them from your application based on those two flags.
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    if (msg == WM_DEVICECHANGE && static_cast<UINT>(wParam) == 0x0007) {
+        s_WantUpdateHasGamepad = true;
+    }
+
     if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
         return true;
 
