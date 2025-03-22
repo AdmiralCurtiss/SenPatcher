@@ -304,47 +304,23 @@ static uint32_t CalculateCRC32(const char* data, size_t length) {
     return crc32;
 }
 
-static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& resultProps,
-                                                 std::span<const char> instream,
-                                                 Prefilter filter,
-                                                 std::span<const uint8_t> dictionary,
-                                                 std::span<const int8_t> algos,
-                                                 std::span<const int8_t> posStateBits,
-                                                 std::span<const int8_t> litContextBits,
-                                                 std::span<const int8_t> litPosBits,
-                                                 std::span<const int16_t> numFastBytes,
-                                                 std::span<const MatchFinder> matchFinders,
-                                                 bool exhaustFastbytes) {
+struct FilteredData {
+    uint8_t FilterId;
+    uint32_t UnfilteredCrc;
+    std::vector<char> Data;
+};
+
+static std::optional<FilteredData> Filter(std::span<const char> instream, Prefilter filter) {
     using namespace HyoutaUtils::MemRead;
     using namespace HyoutaUtils::MemWrite;
     using namespace HyoutaUtils::EndianUtils;
 
-    uint32_t crc = CalculateCRC32(instream.data(), instream.size());
-    const auto create_outstream = [&](uint8_t filterId,
-                                      const std::vector<char>& compressed) -> std::vector<char> {
-        std::vector<char> outstream;
-        outstream.resize(5 + compressed.size());
-        WriteUInt8(outstream.data(), filterId);
-        WriteUInt32(outstream.data() + 1, ToEndian(crc, Endianness::LittleEndian));
-        std::memcpy(outstream.data() + 5, compressed.data(), compressed.size());
-        return outstream;
-    };
+    const uint32_t crc = CalculateCRC32(instream.data(), instream.size());
 
     if (filter == Prefilter::None) {
-        auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
-                                                                 instream,
-                                                                 dictionary,
-                                                                 algos,
-                                                                 posStateBits,
-                                                                 litContextBits,
-                                                                 litPosBits,
-                                                                 numFastBytes,
-                                                                 matchFinders,
-                                                                 exhaustFastbytes);
-        if (!compressed) {
-            return std::nullopt;
-        }
-        return create_outstream(0, *compressed);
+        return FilteredData{.FilterId = static_cast<uint8_t>(0),
+                            .UnfilteredCrc = crc,
+                            .Data = std::vector<char>(instream.begin(), instream.end())};
     }
 
     if (filter == Prefilter::Delta2LE_0x30Lead) {
@@ -366,20 +342,9 @@ static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& result
             pos += 2;
         }
 
-        auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
-                                                                 filteredstream,
-                                                                 dictionary,
-                                                                 algos,
-                                                                 posStateBits,
-                                                                 litContextBits,
-                                                                 litPosBits,
-                                                                 numFastBytes,
-                                                                 matchFinders,
-                                                                 exhaustFastbytes);
-        if (!compressed) {
-            return std::nullopt;
-        }
-        return create_outstream(1, *compressed);
+        return FilteredData{.FilterId = static_cast<uint8_t>(1),
+                            .UnfilteredCrc = crc,
+                            .Data = std::move(filteredstream)};
     }
 
     if (filter == Prefilter::Delta4LE_0x30Lead) {
@@ -401,20 +366,9 @@ static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& result
             pos += 4;
         }
 
-        auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
-                                                                 filteredstream,
-                                                                 dictionary,
-                                                                 algos,
-                                                                 posStateBits,
-                                                                 litContextBits,
-                                                                 litPosBits,
-                                                                 numFastBytes,
-                                                                 matchFinders,
-                                                                 exhaustFastbytes);
-        if (!compressed) {
-            return std::nullopt;
-        }
-        return create_outstream(2, *compressed);
+        return FilteredData{.FilterId = static_cast<uint8_t>(2),
+                            .UnfilteredCrc = crc,
+                            .Data = std::move(filteredstream)};
     }
 
     if (filter == Prefilter::Delta2LE_Deinterleaved_0x30Lead) {
@@ -451,24 +405,47 @@ static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& result
             outpos += 2;
         }
 
-        auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
-                                                                 filteredstream,
-                                                                 dictionary,
-                                                                 algos,
-                                                                 posStateBits,
-                                                                 litContextBits,
-                                                                 litPosBits,
-                                                                 numFastBytes,
-                                                                 matchFinders,
-                                                                 exhaustFastbytes);
-        if (!compressed) {
-            return std::nullopt;
-        }
-        return create_outstream(3, *compressed);
+        return FilteredData{.FilterId = static_cast<uint8_t>(3),
+                            .UnfilteredCrc = crc,
+                            .Data = std::move(filteredstream)};
     }
 
     printf("unexpected filter\n");
     return std::nullopt;
+}
+
+static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& resultProps,
+                                                 const FilteredData& data,
+                                                 std::span<const uint8_t> dictionary,
+                                                 std::span<const int8_t> algos,
+                                                 std::span<const int8_t> posStateBits,
+                                                 std::span<const int8_t> litContextBits,
+                                                 std::span<const int8_t> litPosBits,
+                                                 std::span<const int16_t> numFastBytes,
+                                                 std::span<const MatchFinder> matchFinders,
+                                                 bool exhaustFastbytes) {
+    auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
+                                                             data.Data,
+                                                             dictionary,
+                                                             algos,
+                                                             posStateBits,
+                                                             litContextBits,
+                                                             litPosBits,
+                                                             numFastBytes,
+                                                             matchFinders,
+                                                             exhaustFastbytes);
+    if (!compressed) {
+        return std::nullopt;
+    }
+
+    using namespace HyoutaUtils::MemWrite;
+    using namespace HyoutaUtils::EndianUtils;
+    std::vector<char> outstream;
+    outstream.resize(5 + compressed->size());
+    WriteUInt8(outstream.data(), data.FilterId);
+    WriteUInt32(outstream.data() + 1, ToEndian(data.UnfilteredCrc, Endianness::LittleEndian));
+    std::memcpy(outstream.data() + 5, compressed->data(), compressed->size());
+    return outstream;
 }
 } // namespace
 
@@ -665,10 +642,15 @@ int FileCompressor_Function(int argc, char** argv) {
             default: printf("invalid exhaustion\n"); return -1;
         }
 
+        auto filtered = Filter(std::span<const char>(buffer.get(), bufferSize), filter);
+        if (!filtered) {
+            printf("Failed to apply filter\n");
+            return -1;
+        }
+
         FileCompressorLzmaProps resultProps;
         auto compressed = Compress(resultProps,
-                                   std::span<const char>(buffer.get(), bufferSize),
-                                   filter,
+                                   *filtered,
                                    dictionary,
                                    algos,
                                    posStateBits,
