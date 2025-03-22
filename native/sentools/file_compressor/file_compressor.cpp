@@ -1,5 +1,6 @@
 #include "file_compressor_main.h"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -217,14 +218,19 @@ static std::optional<std::vector<char>>
             bestprops.lc = lc;
             bestprops.lp = lp;
             bestprops.fb = fb;
-            printf("New best compression with %zu bytes: d%u, algo%d, pb%d, lc%d, lp%d, fb%d\n",
-                   best->size(),
-                   static_cast<unsigned int>(d),
-                   static_cast<int>(algo),
-                   static_cast<int>(pb),
-                   static_cast<int>(lc),
-                   static_cast<int>(lp),
-                   static_cast<int>(fb));
+            std::string_view mfStr = MatchFinderToString(mf);
+            printf(
+                "New best compression (local) with %zu bytes: d%u, algo%d, pb%d, lc%d, lp%d, "
+                "fb%d, mf%.*s\n",
+                best->size(),
+                static_cast<unsigned int>(d),
+                static_cast<int>(algo),
+                static_cast<int>(pb),
+                static_cast<int>(lc),
+                static_cast<int>(lp),
+                static_cast<int>(fb),
+                static_cast<int>(mfStr.size()),
+                mfStr.data());
         }
     };
 
@@ -609,25 +615,19 @@ int FileCompressor_Function(int argc, char** argv) {
                     break;
                 }
             }
+            std::reverse(dictionary.begin(), dictionary.end());
         }
 
         switch (exhaustion) {
             case Exhaustion::Standard:
-                algos = {{0, 1}};
+                algos = {{1}};
                 posStateBits = {{0, 1, 2, 4}};
                 litContextBits = {{0, 1, 2, 3, 4, 8}};
                 litPosBits = {{0, 1, 2, 4}};
                 numFastBytes = {{16, 64, 128, 273}};
-                matchFinders = {{MatchFinder::Bt4}};
+                matchFinders = {{MatchFinder::Bt2, MatchFinder::Bt4}};
                 break;
             case Exhaustion::SemiExhaustive:
-                algos = {{0, 1}};
-                posStateBits = {{0, 1, 2, 3, 4}};
-                litContextBits = {{0, 1, 2, 3, 4, 5, 6, 7, 8}};
-                litPosBits = {{0, 1, 2, 3, 4}};
-                numFastBytes = {{5, 16, 32, 64, 96, 128, 192, 273}};
-                matchFinders = {{MatchFinder::Bt4}};
-                break;
             case Exhaustion::Exhaustive: {
                 algos = {{0, 1}};
                 posStateBits = {{0, 1, 2, 3, 4}};
@@ -636,7 +636,12 @@ int FileCompressor_Function(int argc, char** argv) {
                 for (int i = 5; i <= 273; ++i) {
                     numFastBytes.push_back(static_cast<int16_t>(i));
                 }
-                matchFinders = {{MatchFinder::Bt4}};
+                matchFinders = {{MatchFinder::Hc4,
+                                 MatchFinder::Hc5,
+                                 MatchFinder::Bt2,
+                                 MatchFinder::Bt3,
+                                 MatchFinder::Bt4,
+                                 MatchFinder::Bt5}};
                 break;
             }
             default: printf("invalid exhaustion\n"); return -1;
@@ -649,21 +654,58 @@ int FileCompressor_Function(int argc, char** argv) {
         }
 
         FileCompressorLzmaProps resultProps;
-        auto compressed = Compress(resultProps,
-                                   *filtered,
-                                   dictionary,
-                                   algos,
-                                   posStateBits,
-                                   litContextBits,
-                                   litPosBits,
-                                   numFastBytes,
-                                   matchFinders,
-                                   exhaustion != Exhaustion::Exhaustive);
+        std::optional<std::vector<char>> compressed;
+        if (exhaustion == Exhaustion::Exhaustive) {
+            compressed = Compress(resultProps,
+                                  *filtered,
+                                  dictionary,
+                                  algos,
+                                  posStateBits,
+                                  litContextBits,
+                                  litPosBits,
+                                  numFastBytes,
+                                  matchFinders,
+                                  false);
+        } else {
+            for (uint8_t d : dictionary) {
+                // larger dicts are typically better than small ones, so once we reach a run that
+                // doesn't improve anymore just break out.
+                FileCompressorLzmaProps tmpProps;
+                auto tmp = Compress(tmpProps,
+                                    *filtered,
+                                    std::span<const uint8_t>(&d, static_cast<size_t>(1)),
+                                    algos,
+                                    posStateBits,
+                                    litContextBits,
+                                    litPosBits,
+                                    numFastBytes,
+                                    matchFinders,
+                                    true);
+                if (tmp) {
+                    if (compressed) {
+                        if (tmp->size() < compressed->size()) {
+                            printf("Updating global best result.\n");
+                            resultProps = tmpProps;
+                            compressed = std::move(tmp);
+                        } else {
+                            printf("New local result not better than best global, exiting.\n");
+                            break;
+                        }
+                    } else {
+                        printf("Storing as global best result.\n");
+                        resultProps = tmpProps;
+                        compressed = std::move(tmp);
+                    }
+                }
+            }
+        }
         if (!compressed) {
             printf("Failed to compress\n");
             return -1;
         }
         std::string finalOutpath = std::format("{}__{}.bin", outpath, FormatLzmaProps(resultProps));
+        printf(
+            "Global best compression is: %zu bytes, %s\n", compressed->size(), finalOutpath.data());
         if (!HyoutaUtils::IO::WriteFileAtomic(
                 std::string_view(finalOutpath), compressed->data(), compressed->size())) {
             printf("Failed to write output\n");
