@@ -604,6 +604,7 @@ int FileCompressor_Function(int argc, char** argv) {
         std::vector<int8_t> litPosBits;
         std::vector<int16_t> numFastBytes;
         std::vector<MatchFinder> matchFinders;
+        bool runFinalExhaustionLoop = false;
 
         {
             int min = (mindict >= 0 && mindict <= 30 ? static_cast<int>(mindict) : 0);
@@ -626,6 +627,7 @@ int FileCompressor_Function(int argc, char** argv) {
                 litPosBits = {{0, 1, 2, 4}};
                 numFastBytes = {{16, 64, 128, 273}};
                 matchFinders = {{MatchFinder::Bt2, MatchFinder::Bt4}};
+                runFinalExhaustionLoop = true;
                 break;
             case Exhaustion::SemiExhaustive:
             case Exhaustion::Exhaustive: {
@@ -642,6 +644,7 @@ int FileCompressor_Function(int argc, char** argv) {
                                  MatchFinder::Bt3,
                                  MatchFinder::Bt4,
                                  MatchFinder::Bt5}};
+                runFinalExhaustionLoop = false;
                 break;
             }
             default: printf("invalid exhaustion\n"); return -1;
@@ -665,7 +668,7 @@ int FileCompressor_Function(int argc, char** argv) {
                                   litPosBits,
                                   numFastBytes,
                                   matchFinders,
-                                  false);
+                                  runFinalExhaustionLoop);
         } else {
             for (uint8_t d : dictionary) {
                 // larger dicts are typically better than small ones, so once we reach a run that
@@ -680,7 +683,7 @@ int FileCompressor_Function(int argc, char** argv) {
                                     litPosBits,
                                     numFastBytes,
                                     matchFinders,
-                                    true);
+                                    runFinalExhaustionLoop);
                 if (tmp) {
                     if (compressed) {
                         if (tmp->size() < compressed->size()) {
