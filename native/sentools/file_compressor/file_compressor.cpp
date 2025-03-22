@@ -187,55 +187,16 @@ static std::optional<std::vector<char>> CompressInternalLzma(std::span<const cha
 }
 
 static std::optional<std::vector<char>>
-    CompressInternalLzmaSemiOptimized(FileCompressorLzmaProps& resultProps,
-                                      std::span<const char> instream,
-                                      Exhaustion exhaustion,
-                                      int64_t mindict,
-                                      int64_t maxdict) {
-    std::vector<uint8_t> dictionary;
-    std::vector<int8_t> posStateBits;
-    std::vector<int8_t> litContextBits;
-    std::vector<int8_t> litPosBits;
-    std::vector<int16_t> numFastBytes;
-    MatchFinder mf = MatchFinder::Bt4;
-
-    {
-        int min = (mindict >= 0 && mindict <= 30 ? static_cast<int>(mindict) : 0);
-        int max = (maxdict >= 0 && maxdict <= 30 ? static_cast<int>(maxdict) : 30);
-        for (int i = min; i <= max; ++i) {
-            uint32_t dictsize = static_cast<uint32_t>(1) << i;
-            dictionary.push_back(static_cast<uint8_t>(i));
-            if (dictsize >= instream.size()) {
-                break;
-            }
-        }
-    }
-
-    switch (exhaustion) {
-        case Exhaustion::Standard:
-            posStateBits = {{0, 1, 2, 4}};
-            litContextBits = {{0, 1, 2, 3, 4, 8}};
-            litPosBits = {{0, 1, 2, 4}};
-            numFastBytes = {{16, 64, 128, 273}};
-            break;
-        case Exhaustion::SemiExhaustive:
-            posStateBits = {{0, 1, 2, 3, 4}};
-            litContextBits = {{0, 1, 2, 3, 4, 5, 6, 7, 8}};
-            litPosBits = {{0, 1, 2, 3, 4}};
-            numFastBytes = {{5, 16, 32, 64, 96, 128, 192, 273}};
-            break;
-        case Exhaustion::Exhaustive: {
-            posStateBits = {{0, 1, 2, 3, 4}};
-            litContextBits = {{0, 1, 2, 3, 4, 5, 6, 7, 8}};
-            litPosBits = {{0, 1, 2, 3, 4}};
-            for (int i = 5; i <= 273; ++i) {
-                numFastBytes.push_back(static_cast<int16_t>(i));
-            }
-            break;
-        }
-        default: printf("invalid exhaustion\n"); return std::nullopt;
-    }
-
+    CompressInternalLzmaTryAllCombinations(FileCompressorLzmaProps& resultProps,
+                                           std::span<const char> instream,
+                                           std::span<const uint8_t> dictionary,
+                                           std::span<const int8_t> algos,
+                                           std::span<const int8_t> posStateBits,
+                                           std::span<const int8_t> litContextBits,
+                                           std::span<const int8_t> litPosBits,
+                                           std::span<const int16_t> numFastBytes,
+                                           std::span<const MatchFinder> matchFinders,
+                                           bool exhaustFastbytes) {
     std::optional<std::vector<char>> best = std::nullopt;
     FileCompressorLzmaProps bestprops;
 
@@ -245,7 +206,8 @@ static std::optional<std::vector<char>>
                                  int8_t pb,
                                  int8_t lc,
                                  int8_t lp,
-                                 int16_t fb) {
+                                 int16_t fb,
+                                 MatchFinder mf) {
         if (!best.has_value() || best->size() > tmp.size()) {
             best.emplace(std::move(tmp));
             bestprops.mf = mf;
@@ -267,7 +229,7 @@ static std::optional<std::vector<char>>
     };
 
     for (uint8_t d : dictionary) {
-        for (int8_t algo = 0; algo < 2; ++algo) {
+        for (int8_t algo : algos) {
             for (int8_t pb : posStateBits) {
                 printf("Reached d%u algo%d pb%d.\n",
                        static_cast<unsigned int>(d),
@@ -276,20 +238,22 @@ static std::optional<std::vector<char>>
                 for (int8_t lc : litContextBits) {
                     for (int8_t lp : litPosBits) {
                         for (int16_t fb : numFastBytes) {
-                            auto tmp = CompressInternalLzma(instream,
-                                                            algo,
-                                                            static_cast<uint32_t>(1) << d,
-                                                            pb,
-                                                            lc,
-                                                            lp,
-                                                            fb,
-                                                            GetBtMode(mf),
-                                                            GetNumHashBytes(mf));
-                            if (!tmp) {
-                                printf("compression error\n");
-                                return std::nullopt;
+                            for (MatchFinder mf : matchFinders) {
+                                auto tmp = CompressInternalLzma(instream,
+                                                                algo,
+                                                                static_cast<uint32_t>(1) << d,
+                                                                pb,
+                                                                lc,
+                                                                lp,
+                                                                fb,
+                                                                GetBtMode(mf),
+                                                                GetNumHashBytes(mf));
+                                if (!tmp) {
+                                    printf("compression error\n");
+                                    return std::nullopt;
+                                }
+                                update_best(*tmp, algo, d, pb, lc, lp, fb, mf);
                             }
-                            update_best(*tmp, algo, d, pb, lc, lp, fb);
                         }
                     }
                 }
@@ -297,7 +261,11 @@ static std::optional<std::vector<char>>
         }
     }
 
-    if (exhaustion != Exhaustion::Exhaustive) {
+    if (!best.has_value()) {
+        return std::nullopt;
+    }
+
+    if (exhaustFastbytes) {
         // one final exhaustive fastbytes loop
         printf("Exhausting fastbytes with current best values...\n");
         for (int fbb = 5; fbb <= 273; ++fbb) {
@@ -308,8 +276,8 @@ static std::optional<std::vector<char>>
                                             bestprops.lc,
                                             bestprops.lp,
                                             fbb,
-                                            GetBtMode(mf),
-                                            GetNumHashBytes(mf));
+                                            GetBtMode(bestprops.mf),
+                                            GetNumHashBytes(bestprops.mf));
             if (!tmp) {
                 printf("compression error\n");
                 return std::nullopt;
@@ -320,7 +288,8 @@ static std::optional<std::vector<char>>
                         bestprops.pb,
                         bestprops.lc,
                         bestprops.lp,
-                        static_cast<int16_t>(fbb));
+                        static_cast<int16_t>(fbb),
+                        bestprops.mf);
         }
     }
 
@@ -338,9 +307,14 @@ static uint32_t CalculateCRC32(const char* data, size_t length) {
 static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& resultProps,
                                                  std::span<const char> instream,
                                                  Prefilter filter,
-                                                 Exhaustion exhaustion,
-                                                 int64_t mindict,
-                                                 int64_t maxdict) {
+                                                 std::span<const uint8_t> dictionary,
+                                                 std::span<const int8_t> algos,
+                                                 std::span<const int8_t> posStateBits,
+                                                 std::span<const int8_t> litContextBits,
+                                                 std::span<const int8_t> litPosBits,
+                                                 std::span<const int16_t> numFastBytes,
+                                                 std::span<const MatchFinder> matchFinders,
+                                                 bool exhaustFastbytes) {
     using namespace HyoutaUtils::MemRead;
     using namespace HyoutaUtils::MemWrite;
     using namespace HyoutaUtils::EndianUtils;
@@ -357,8 +331,16 @@ static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& result
     };
 
     if (filter == Prefilter::None) {
-        auto compressed =
-            CompressInternalLzmaSemiOptimized(resultProps, instream, exhaustion, mindict, maxdict);
+        auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
+                                                                 instream,
+                                                                 dictionary,
+                                                                 algos,
+                                                                 posStateBits,
+                                                                 litContextBits,
+                                                                 litPosBits,
+                                                                 numFastBytes,
+                                                                 matchFinders,
+                                                                 exhaustFastbytes);
         if (!compressed) {
             return std::nullopt;
         }
@@ -384,8 +366,16 @@ static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& result
             pos += 2;
         }
 
-        auto compressed = CompressInternalLzmaSemiOptimized(
-            resultProps, filteredstream, exhaustion, mindict, maxdict);
+        auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
+                                                                 filteredstream,
+                                                                 dictionary,
+                                                                 algos,
+                                                                 posStateBits,
+                                                                 litContextBits,
+                                                                 litPosBits,
+                                                                 numFastBytes,
+                                                                 matchFinders,
+                                                                 exhaustFastbytes);
         if (!compressed) {
             return std::nullopt;
         }
@@ -411,8 +401,16 @@ static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& result
             pos += 4;
         }
 
-        auto compressed = CompressInternalLzmaSemiOptimized(
-            resultProps, filteredstream, exhaustion, mindict, maxdict);
+        auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
+                                                                 filteredstream,
+                                                                 dictionary,
+                                                                 algos,
+                                                                 posStateBits,
+                                                                 litContextBits,
+                                                                 litPosBits,
+                                                                 numFastBytes,
+                                                                 matchFinders,
+                                                                 exhaustFastbytes);
         if (!compressed) {
             return std::nullopt;
         }
@@ -453,8 +451,16 @@ static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& result
             outpos += 2;
         }
 
-        auto compressed = CompressInternalLzmaSemiOptimized(
-            resultProps, filteredstream, exhaustion, mindict, maxdict);
+        auto compressed = CompressInternalLzmaTryAllCombinations(resultProps,
+                                                                 filteredstream,
+                                                                 dictionary,
+                                                                 algos,
+                                                                 posStateBits,
+                                                                 litContextBits,
+                                                                 litPosBits,
+                                                                 numFastBytes,
+                                                                 matchFinders,
+                                                                 exhaustFastbytes);
         if (!compressed) {
             return std::nullopt;
         }
@@ -608,13 +614,69 @@ int FileCompressor_Function(int argc, char** argv) {
         }
         printf("Generating: %s\n", outpath.c_str());
 
+        std::vector<uint8_t> dictionary;
+        std::vector<int8_t> algos;
+        std::vector<int8_t> posStateBits;
+        std::vector<int8_t> litContextBits;
+        std::vector<int8_t> litPosBits;
+        std::vector<int16_t> numFastBytes;
+        std::vector<MatchFinder> matchFinders;
+
+        {
+            int min = (mindict >= 0 && mindict <= 30 ? static_cast<int>(mindict) : 0);
+            int max = (maxdict >= 0 && maxdict <= 30 ? static_cast<int>(maxdict) : 30);
+            for (int i = min; i <= max; ++i) {
+                uint32_t dictsize = static_cast<uint32_t>(1) << i;
+                dictionary.push_back(static_cast<uint8_t>(i));
+                if (dictsize >= bufferSize) {
+                    break;
+                }
+            }
+        }
+
+        switch (exhaustion) {
+            case Exhaustion::Standard:
+                algos = {{0, 1}};
+                posStateBits = {{0, 1, 2, 4}};
+                litContextBits = {{0, 1, 2, 3, 4, 8}};
+                litPosBits = {{0, 1, 2, 4}};
+                numFastBytes = {{16, 64, 128, 273}};
+                matchFinders = {{MatchFinder::Bt4}};
+                break;
+            case Exhaustion::SemiExhaustive:
+                algos = {{0, 1}};
+                posStateBits = {{0, 1, 2, 3, 4}};
+                litContextBits = {{0, 1, 2, 3, 4, 5, 6, 7, 8}};
+                litPosBits = {{0, 1, 2, 3, 4}};
+                numFastBytes = {{5, 16, 32, 64, 96, 128, 192, 273}};
+                matchFinders = {{MatchFinder::Bt4}};
+                break;
+            case Exhaustion::Exhaustive: {
+                algos = {{0, 1}};
+                posStateBits = {{0, 1, 2, 3, 4}};
+                litContextBits = {{0, 1, 2, 3, 4, 5, 6, 7, 8}};
+                litPosBits = {{0, 1, 2, 3, 4}};
+                for (int i = 5; i <= 273; ++i) {
+                    numFastBytes.push_back(static_cast<int16_t>(i));
+                }
+                matchFinders = {{MatchFinder::Bt4}};
+                break;
+            }
+            default: printf("invalid exhaustion\n"); return -1;
+        }
+
         FileCompressorLzmaProps resultProps;
         auto compressed = Compress(resultProps,
                                    std::span<const char>(buffer.get(), bufferSize),
                                    filter,
-                                   exhaustion,
-                                   mindict,
-                                   maxdict);
+                                   dictionary,
+                                   algos,
+                                   posStateBits,
+                                   litContextBits,
+                                   litPosBits,
+                                   numFastBytes,
+                                   matchFinders,
+                                   exhaustion != Exhaustion::Exhaustive);
         if (!compressed) {
             printf("Failed to compress\n");
             return -1;
