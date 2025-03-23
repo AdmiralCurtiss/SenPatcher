@@ -113,9 +113,30 @@ DECLARE_STANDARD_FIX(voice_opus_ps4_103)
 DECLARE_STANDARD_FIX(voice_opus_v00e0441)
 DECLARE_STANDARD_FIX(voice_opus_v00s2728)
 
-DECLARE_PKA_FIX(M_T0010_pkg)
-DECLARE_PKA_FIX(M_T1200_pkg)
+DECLARE_PKA_FIX(M_C0000_pkg)
+DECLARE_PKA_FIX(M_C0200_pkg)
+DECLARE_PKA_FIX(M_C2020_pkg)
+DECLARE_PKA_FIX(M_C2600_O_C26HOU04_O_C26OBJ04_pkg)
+DECLARE_PKA_FIX(M_T0010_M_A2003_O_T00HOU01_pkg)
+DECLARE_PKA_FIX(M_T0020_M_C2010_pkg)
+DECLARE_PKA_FIX(M_T0030_M_T1020_M_T2010_M_T3410_pkg)
+DECLARE_PKA_FIX(M_T0210_M_T0230_M_T0240_M_T0250_M_T0260_pkg)
+DECLARE_PKA_FIX(M_T1000_pkg)
+DECLARE_PKA_FIX(M_T1200_M_T1220_pkg)
+DECLARE_PKA_FIX(O_C02OBJ04_pkg)
 DECLARE_PKA_FIX(O_C04OBJ01_pkg)
+DECLARE_PKA_FIX(O_C08OBJ06_pkg)
+DECLARE_PKA_FIX(O_R00OBJ10_O_R00OBJ11_O_R00OBJ12_O_R00OBJ13_pkg)
+DECLARE_PKA_FIX(O_R12DOR00_pkg)
+DECLARE_PKA_FIX(O_R14OBJ01_pkg)
+DECLARE_PKA_FIX(O_R30OBJ10_O_R30OBJ11_pkg)
+DECLARE_PKA_FIX(O_R42OBJ10_O_R42OBJ11_pkg)
+DECLARE_PKA_FIX(O_S50OBJ11_pkg)
+DECLARE_PKA_FIX(O_T02EVT16_pkg)
+DECLARE_PKA_FIX(O_T02OBJ07_pkg)
+DECLARE_PKA_FIX(O_T10OBJ02_pkg)
+DECLARE_PKA_FIX(O_T10OBJ05_pkg)
+DECLARE_PKA_FIX(O_T40OBJ01_pkg)
 DECLARE_PKA_FIX(O_V80TNK00_pkg)
 
 namespace SenLib::Sen3::FileFixes::t_text {
@@ -263,9 +284,37 @@ static bool CollectPkaAssets(HyoutaUtils::Logger& logger,
                              std::vector<SenPatcher::P3APackFile>& packFiles,
                              SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
                              const SenPatcher::GetCheckedFileCallback& callbackPkaStub) {
-    TRY_APPLY(M_T0010_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
-    TRY_APPLY(M_T1200_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_C0000_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_C0200_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_C2020_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_C2600_O_C26HOU04_O_C26OBJ04_pkg,
+              TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_T0010_M_A2003_O_T00HOU01_pkg,
+              TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_T0020_M_C2010_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_T0030_M_T1020_M_T2010_M_T3410_pkg,
+              TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_T0210_M_T0230_M_T0240_M_T0250_M_T0260_pkg,
+              TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_T1000_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(M_T1200_M_T1220_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_C02OBJ04_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
     TRY_APPLY(O_C04OBJ01_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_C08OBJ06_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_R00OBJ10_O_R00OBJ11_O_R00OBJ12_O_R00OBJ13_pkg,
+              TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_R12DOR00_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_R14OBJ01_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_R30OBJ10_O_R30OBJ11_pkg,
+              TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_R42OBJ10_O_R42OBJ11_pkg,
+              TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_S50OBJ11_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_T02EVT16_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_T02OBJ07_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_T10OBJ02_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_T10OBJ05_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
+    TRY_APPLY(O_T40OBJ01_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
     TRY_APPLY(O_V80TNK00_pkg, TryApply(callback, packFiles, vanillaPKAs, callbackPkaStub));
 
     for (auto& f : packFiles) {

@@ -17,10 +17,14 @@ __declspec(dllexport) char SenPatcherFix_8_O_C04OBJ01[] =
 }
 
 namespace {
-static constexpr char PatchData[] = {
+static constexpr char PatchDataEn[] = {
 #include "embed_sen3_0sign003.h"
 };
-static constexpr size_t PatchLength = sizeof(PatchData);
+static constexpr size_t PatchLengthEn = sizeof(PatchDataEn);
+static constexpr char PatchDataJp[] = {
+#include "embed_sen3_0sign003_jp.h"
+};
+static constexpr size_t PatchLengthJp = sizeof(PatchDataJp);
 } // namespace
 
 namespace SenLib::Sen3::FileFixes::O_C04OBJ01_pkg {
@@ -29,37 +33,59 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
               const SenPatcher::GetCheckedFileCallback& getCheckedFilePkaStub) {
     try {
-        // first try to get this as a pka-referencing pkg
-        std::optional<SenPatcher::CheckedFileResult> file = getCheckedFilePkaStub(
-            "data/asset/D3D11/O_C04OBJ01.pkg",
-            680,
-            HyoutaUtils::Hash::SHA1FromHexString("ffe4149578dc62ac6d95a7889adf58ff05966bde"));
-        if (!file) {
-            // try the full pkg instead, this is less optimal filesize-wise but more compatible
-            // since it also works if eg. the user has extracted the .pka and only has the .pkgs
-            // lying around for modding purposes
-            file = getCheckedFile(
-                "data/asset/D3D11/O_C04OBJ01.pkg",
-                215278,
-                HyoutaUtils::Hash::SHA1FromHexString("33519219ed647067bc8a52a9e2ebc850cb9821fd"));
-        }
-        if (!file) {
+        auto patchEn = DecompressFromBuffer(PatchDataEn, PatchLengthEn);
+        if (!patchEn) {
             return false;
         }
-        auto patch = DecompressFromBuffer(PatchData, PatchLength);
-        if (!patch) {
+        auto patchJp = DecompressFromBuffer(PatchDataJp, PatchLengthJp);
+        if (!patchJp) {
             return false;
         }
 
-        auto& bin = file->Data;
-        auto tex = PatchSingleFileInPkg(
-            bin.data(), bin.size(), patch->data(), patch->size(), 6, 1, &vanillaPKAs);
-
-        result.emplace_back(std::move(tex),
-                            // this fix should not apply when playing in Japanese
-                            SenPatcher::InitializeP3AFilename("data/asset/D3D11_us/O_C04OBJ01.pkg"),
-                            SenPatcher::P3ACompressionType::None);
-
+        {
+            std::array<SingleFilePatchInfo, 1> patches{
+                {SingleFilePatchInfo{.PatchData = patchEn->data(),
+                                     .PatchLength = patchEn->size(),
+                                     .FileIndexToPatch = 1}}};
+            if (!TryApplyPkgPatches(getCheckedFile,
+                                    result,
+                                    vanillaPKAs,
+                                    getCheckedFilePkaStub,
+                                    "data/asset/D3D11/O_C04OBJ01.pkg",
+                                    "data/asset/D3D11_us/O_C04OBJ01.pkg",
+                                    680,
+                                    HyoutaUtils::Hash::SHA1FromHexString(
+                                        "ffe4149578dc62ac6d95a7889adf58ff05966bde"),
+                                    215278,
+                                    HyoutaUtils::Hash::SHA1FromHexString(
+                                        "33519219ed647067bc8a52a9e2ebc850cb9821fd"),
+                                    6,
+                                    patches)) {
+                return false;
+            }
+        }
+        {
+            std::array<SingleFilePatchInfo, 1> patches{
+                {SingleFilePatchInfo{.PatchData = patchJp->data(),
+                                     .PatchLength = patchJp->size(),
+                                     .FileIndexToPatch = 1}}};
+            if (!TryApplyPkgPatches(getCheckedFile,
+                                    result,
+                                    vanillaPKAs,
+                                    getCheckedFilePkaStub,
+                                    "data/asset/D3D11/O_C04OBJ01.pkg",
+                                    "data/asset/D3D11/O_C04OBJ01.pkg",
+                                    680,
+                                    HyoutaUtils::Hash::SHA1FromHexString(
+                                        "ffe4149578dc62ac6d95a7889adf58ff05966bde"),
+                                    215278,
+                                    HyoutaUtils::Hash::SHA1FromHexString(
+                                        "33519219ed647067bc8a52a9e2ebc850cb9821fd"),
+                                    6,
+                                    patches)) {
+                return false;
+            }
+        }
         return true;
     } catch (...) {
         return false;

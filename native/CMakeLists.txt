@@ -616,16 +616,56 @@ if (SENPATCHER_BUILD_CS1HOOK OR SENPATCHER_BUILD_CS1TEST)
 endif()
 if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/0sign003.bin" "embed_sen3_0sign003.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/0sign003_jp.bin" "embed_sen3_0sign003_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/0sign018_jp.bin" "embed_sen3_0sign018_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/0view022b_jp.bin" "embed_sen3_0view022b_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/0view022d_jp.bin" "embed_sen3_0view022d_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/1t00hou14_jp.bin" "embed_sen3_1t00hou14_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/1t00hou14_n_jp.bin" "embed_sen3_1t00hou14_n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/1t02evt16_jp.bin" "embed_sen3_1t02evt16_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/1t02obj07_jp.bin" "embed_sen3_1t02obj07_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/2r00po00_jp.bin" "embed_sen3_2r00po00_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/2r00po00n_jp.bin" "embed_sen3_2r00po00n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/2r30po00_jp.bin" "embed_sen3_2r30po00_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/2r30po00n_jp.bin" "embed_sen3_2r30po00n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/2r42po00_jp.bin" "embed_sen3_2r42po00_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/3c26ob04_jp.bin" "embed_sen3_3c26ob04_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/3c26ob04n_jp.bin" "embed_sen3_3c26ob04n_jp.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/5vCrest01.bin" "embed_sen3_5vCrest01.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7r12obj00_1_jp.bin" "embed_sen3_7r12obj00_1_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7r12obj00_1n_jp.bin" "embed_sen3_7r12obj00_1n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7r14obj01_jp.bin" "embed_sen3_7r14obj01_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t10obj02_jp.bin" "embed_sen3_7t10obj02_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t10obj02n_jp.bin" "embed_sen3_7t10obj02n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t10obj05_jp.bin" "embed_sen3_7t10obj05_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t10obj05n_jp.bin" "embed_sen3_7t10obj05n_jp.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t12hou23.bin" "embed_sen3_7t12hou23.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t12hou23n.bin" "embed_sen3_7t12hou23n.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t12hou28_jp.bin" "embed_sen3_7t12hou28_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/7t12hou28n_jp.bin" "embed_sen3_7t12hou28n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/8c08sign05_jp.bin" "embed_sen3_8c08sign05_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/8c20ce_sign_jp.bin" "embed_sen3_8c20ce_sign_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/9_c02obj04_jp.bin" "embed_sen3_9_c02obj04_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/9_c02obj04_n_jp.bin" "embed_sen3_9_c02obj04_n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/9c2010menu_jp.bin" "embed_sen3_9c2010menu_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/9c2010stname_jp.bin" "embed_sen3_9c2010stname_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/9c2010stname_n_jp.bin" "embed_sen3_9c2010stname_n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/ac2020shield01_jp.bin" "embed_sen3_ac2020shield01_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/ac2020shield01_n_jp.bin" "embed_sen3_ac2020shield01_n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/at1020komono04_jp.bin" "embed_sen3_at1020komono04_jp.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis0061.bin" "embed_sen3_cvis0061.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/cvis1008.bin" "embed_sen3_cvis1008.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_05.bin" "embed_sen3_insa_05.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_08.bin" "embed_sen3_insa_08.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/insa_09.bin" "embed_sen3_insa_09.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/jump009.bin" "embed_sen3_jump009.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/p_8c00st_sign_jp.bin" "embed_sen3_p_8c00st_sign_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/sign07_jp.bin" "embed_sen3_sign07_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/sign07_n_jp.bin" "embed_sen3_sign07_n_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/sign08_jp.bin" "embed_sen3_sign08_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/sign08_n_jp.bin" "embed_sen3_sign08_n_jp.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/sign09.bin" "embed_sen3_sign09.h")
+	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/sign09_jp.bin" "embed_sen3_sign09_jp.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/t0250_dat.bin" "embed_sen3_t0250_dat.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0427.bin" "embed_sen3_v00_e0427.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v00_e0441.bin" "embed_sen3_v00_e0441.h")
@@ -807,8 +847,16 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/insa05.cpp
 	sen3/file_fixes/insa08.cpp
 	sen3/file_fixes/insa09.cpp
-	sen3/file_fixes/M_T0010_pkg.cpp
-	sen3/file_fixes/M_T1200_pkg.cpp
+	sen3/file_fixes/M_C0000_pkg.cpp
+	sen3/file_fixes/M_C0200_pkg.cpp
+	sen3/file_fixes/M_C2020_pkg.cpp
+	sen3/file_fixes/M_C2600_O_C26HOU04_O_C26OBJ04_pkg.cpp
+	sen3/file_fixes/M_T0010_M_A2003_O_T00HOU01_pkg.cpp
+	sen3/file_fixes/M_T0020_M_C2010_pkg.cpp
+	sen3/file_fixes/M_T0030_M_T1020_M_T2010_M_T3410_pkg.cpp
+	sen3/file_fixes/M_T0210_M_T0230_M_T0240_M_T0250_M_T0260_pkg.cpp
+	sen3/file_fixes/M_T1000_pkg.cpp
+	sen3/file_fixes/M_T1200_M_T1220_pkg.cpp
 	sen3/file_fixes/m0000_dat.cpp
 	sen3/file_fixes/m0100_dat.cpp
 	sen3/file_fixes/m0300_dat.cpp
@@ -817,7 +865,20 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/m3420_dat.cpp
 	sen3/file_fixes/m3430_dat.cpp
 	sen3/file_fixes/m4004_dat.cpp
+	sen3/file_fixes/O_C02OBJ04_pkg.cpp
 	sen3/file_fixes/O_C04OBJ01_pkg.cpp
+	sen3/file_fixes/O_C08OBJ06_pkg.cpp
+	sen3/file_fixes/O_R00OBJ10_O_R00OBJ11_O_R00OBJ12_O_R00OBJ13_pkg.cpp
+	sen3/file_fixes/O_R12DOR00_pkg.cpp
+	sen3/file_fixes/O_R14OBJ01_pkg.cpp
+	sen3/file_fixes/O_R30OBJ10_O_R30OBJ11_pkg.cpp
+	sen3/file_fixes/O_R42OBJ10_O_R42OBJ11_pkg.cpp
+	sen3/file_fixes/O_S50OBJ11_pkg.cpp
+	sen3/file_fixes/O_T02EVT16_pkg.cpp
+	sen3/file_fixes/O_T02OBJ07_pkg.cpp
+	sen3/file_fixes/O_T10OBJ02_pkg.cpp
+	sen3/file_fixes/O_T10OBJ05_pkg.cpp
+	sen3/file_fixes/O_T40OBJ01_pkg.cpp
 	sen3/file_fixes/O_V80TNK00_pkg.cpp
 	sen3/file_fixes/r0210_dat.cpp
 	sen3/file_fixes/r2290_dat.cpp

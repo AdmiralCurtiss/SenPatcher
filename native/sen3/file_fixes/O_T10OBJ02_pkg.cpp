@@ -9,22 +9,19 @@
 #include "sen3/patch_pkg.h"
 #include "util/hash/sha1.h"
 
-extern "C" {
-__declspec(dllexport) char SenPatcherFix_8_M_T1200[] = "Fix Chamber's Orbal Factory sign texture.";
-}
-
 namespace {
+// Saint-Arkh airport sign + normals
 static constexpr char PatchData[] = {
-#include "embed_sen3_7t12hou23.h"
+#include "embed_sen3_7t10obj02_jp.h"
 };
 static constexpr size_t PatchLength = sizeof(PatchData);
 static constexpr char PatchNormalData[] = {
-#include "embed_sen3_7t12hou23n.h"
+#include "embed_sen3_7t10obj02n_jp.h"
 };
 static constexpr size_t PatchNormalLength = sizeof(PatchNormalData);
 } // namespace
 
-namespace SenLib::Sen3::FileFixes::M_T1200_pkg {
+namespace SenLib::Sen3::FileFixes::O_T10OBJ02_pkg {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result,
               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
@@ -40,27 +37,20 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         {
-            std::array<SingleFilePatchInfo, 2> patches{
-                {SingleFilePatchInfo{.PatchData = patch->data(),
-                                     .PatchLength = patch->size(),
-                                     .FileIndexToPatch = 28},
-                 SingleFilePatchInfo{.PatchData = patchNormal->data(),
-                                     .PatchLength = patchNormal->size(),
-                                     .FileIndexToPatch = 29}}};
             if (!TryApplyPkgPatches(getCheckedFile,
                                     result,
                                     vanillaPKAs,
                                     getCheckedFilePkaStub,
-                                    "data/asset/D3D11/M_T1200.pkg",
-                                    "data/asset/D3D11_us/M_T1200.pkg",
-                                    8968,
+                                    "data/asset/D3D11/O_T10OBJ02.pkg",
+                                    "data/asset/D3D11_us/O_T10OBJ02.pkg",
+                                    1464,
                                     HyoutaUtils::Hash::SHA1FromHexString(
-                                        "39109f0a086195c3447421b4e3830ca859d52fe0"),
-                                    83433757,
+                                        "a1f3dd05ad1dabc5017c7bf19170c33691fa8794"),
+                                    2301413,
                                     HyoutaUtils::Hash::SHA1FromHexString(
-                                        "d33eb48e6fcf0774134c1f226d62f4eb46c91e83"),
-                                    80,
-                                    patches)) {
+                                        "a68da9f2e551e0898cf96973ea1de8a67984e3b3"),
+                                    13,
+                                    {})) {
                 return false;
             }
         }
@@ -68,23 +58,23 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             std::array<SingleFilePatchInfo, 2> patches{
                 {SingleFilePatchInfo{.PatchData = patch->data(),
                                      .PatchLength = patch->size(),
-                                     .FileIndexToPatch = 59},
+                                     .FileIndexToPatch = 3},
                  SingleFilePatchInfo{.PatchData = patchNormal->data(),
                                      .PatchLength = patchNormal->size(),
-                                     .FileIndexToPatch = 60}}};
+                                     .FileIndexToPatch = 4}}};
             if (!TryApplyPkgPatches(getCheckedFile,
                                     result,
                                     vanillaPKAs,
                                     getCheckedFilePkaStub,
-                                    "data/asset/D3D11/M_T1220.pkg",
-                                    "data/asset/D3D11_us/M_T1220.pkg",
-                                    17480,
+                                    "data/asset/D3D11/O_T10OBJ02.pkg",
+                                    "data/asset/D3D11/O_T10OBJ02.pkg",
+                                    1464,
                                     HyoutaUtils::Hash::SHA1FromHexString(
-                                        "b4fa071b7cc215047671e7ea087ff1e8e32d20c6"),
-                                    89991513,
+                                        "a1f3dd05ad1dabc5017c7bf19170c33691fa8794"),
+                                    2301413,
                                     HyoutaUtils::Hash::SHA1FromHexString(
-                                        "0e7467719689168886cd3be80be5dda337d118e0"),
-                                    156,
+                                        "a68da9f2e551e0898cf96973ea1de8a67984e3b3"),
+                                    13,
                                     patches)) {
                 return false;
             }
@@ -94,4 +84,4 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         return false;
     }
 }
-} // namespace SenLib::Sen3::FileFixes::M_T1200_pkg
+} // namespace SenLib::Sen3::FileFixes::O_T10OBJ02_pkg
