@@ -1,16 +1,26 @@
 #include "patch_pkg.h"
 
+#include <array>
+#include <cstddef>
 #include <memory>
 #include <mutex>
+#include <optional>
+#include <span>
+#include <string_view>
 #include <vector>
 
 #include "modload/loaded_pka.h"
+#include "p3a/pack.h"
+#include "p3a/structs.h"
+#include "p3a/util.h"
+#include "sen/file_getter.h"
 #include "sen/pka.h"
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
 #include "sen/pkg_extract.h"
 #include "util/bps.h"
 #include "util/endian.h"
+#include "util/hash/sha1.h"
 #include "util/stream.h"
 
 namespace SenLib::Sen3 {
@@ -108,5 +118,55 @@ std::vector<char> PatchSingleFileInPkg(const char* file,
     }
 
     return ms;
+}
+
+bool TryApplyPkgPatches(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
+                        std::vector<SenPatcher::P3APackFile>& result,
+                        SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
+                        const SenPatcher::GetCheckedFileCallback& getCheckedFilePkaStub,
+                        std::string_view inpath,
+                        std::string_view outpath,
+                        size_t stubsize,
+                        const HyoutaUtils::Hash::SHA1& stubhash,
+                        size_t realsize,
+                        const HyoutaUtils::Hash::SHA1& realhash,
+                        size_t expectedFileCount,
+                        std::span<const SingleFilePatchInfo> patches) {
+    try {
+        // first try to get this as a pka-referencing pkg
+        std::optional<SenPatcher::CheckedFileResult> file =
+            getCheckedFilePkaStub(inpath, stubsize, stubhash);
+        if (!file) {
+            // try the full pkg instead, this is less optimal filesize-wise but more compatible
+            // since it also works if eg. the user has extracted the .pka and only has the .pkgs
+            // lying around for modding purposes
+            file = getCheckedFile(inpath, realsize, realhash);
+        }
+        if (!file) {
+            return false;
+        }
+
+        std::vector<char> bin = std::move(file->Data);
+        for (const SingleFilePatchInfo& patch : patches) {
+            auto tex = PatchSingleFileInPkg(bin.data(),
+                                            bin.size(),
+                                            patch.PatchData,
+                                            patch.PatchLength,
+                                            expectedFileCount,
+                                            patch.FileIndexToPatch,
+                                            &vanillaPKAs);
+            bin = std::move(tex);
+        }
+
+        std::array<char, 0x100> p3aFileName;
+        if (!SenPatcher::CopyToP3AFilename(p3aFileName, outpath)) {
+            return false;
+        }
+        result.emplace_back(std::move(bin), p3aFileName, SenPatcher::P3ACompressionType::None);
+
+        return true;
+    } catch (...) {
+        return false;
+    }
 }
 } // namespace SenLib::Sen3
