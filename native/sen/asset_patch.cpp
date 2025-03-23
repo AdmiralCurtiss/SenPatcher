@@ -18,6 +18,7 @@
 #include "util/logger.h"
 #include "util/memread.h"
 #include "util/memwrite.h"
+#include "util/text.h"
 
 #include "modload/loaded_mods.h"
 #include "modload/loaded_pka.h"
@@ -111,6 +112,7 @@ bool CreateArchiveIfNeeded(
     SenPatcher::P3APackData packData;
     packData.SetVersion(SenPatcher::P3AHighestSupportedVersion);
     packData.SetAlignment(0x10);
+    packData.SetAllowUppercaseInFilenames(true);
     if (!collectAssets(packData)) {
         logger.Log("Collecting failed.\n");
         newArchive.Delete();
@@ -120,16 +122,20 @@ bool CreateArchiveIfNeeded(
 
     auto& packFiles = packData.GetMutableFiles();
     for (auto& pf : packFiles) {
-        auto normalized = SenPatcher::NormalizeP3AFilename(pf.GetFilename());
+        auto normalized = SenPatcher::NormalizeP3AFilename(pf.GetFilename(), true);
         pf.SetFilename(normalized);
     }
-    std::stable_sort(packFiles.begin(),
-                     packFiles.end(),
-                     [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
-                         const auto& l = lhs.GetFilename();
-                         const auto& r = rhs.GetFilename();
-                         return memcmp(l.data(), r.data(), l.size()) < 0;
-                     });
+    std::stable_sort(
+        packFiles.begin(),
+        packFiles.end(),
+        [](const SenPatcher::P3APackFile& lhs, const SenPatcher::P3APackFile& rhs) {
+            const auto& lhsName = lhs.GetFilename();
+            const auto& rhsName = rhs.GetFilename();
+            return HyoutaUtils::TextUtils::CaseInsensitiveCompare(
+                       std::string_view(lhsName.data(), lhsName.data() + lhsName.size()),
+                       std::string_view(rhsName.data(), rhsName.data() + rhsName.size()))
+                   < 0;
+        });
     if (!SenPatcher::PackP3A(newArchive, packData, 1)) {
         logger.Log("Packing failed.\n");
         newArchive.Delete();
