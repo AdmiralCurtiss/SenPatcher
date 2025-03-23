@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <type_traits>
 #include <vector>
 
 #include "util/endian.h"
@@ -14,12 +15,16 @@ struct PkaFileHashData {
     std::array<char, 0x40> Filename;
     std::array<char, 0x20> Hash;
 };
+static_assert(sizeof(PkaFileHashData) == 0x60);
+static_assert(std::is_trivially_copyable_v<PkaFileHashData>);
 
 struct PkaPkgToHashData {
     std::array<char, 0x20> PkgName;
     uint32_t FileOffset; // index to first file in PkgFiles in header
     uint32_t FileCount;
 };
+static_assert(sizeof(PkaPkgToHashData) == 0x28);
+static_assert(std::is_trivially_copyable_v<PkaPkgToHashData>);
 
 struct PkaHashToFileData {
     std::array<char, 0x20> Hash;

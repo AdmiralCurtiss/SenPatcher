@@ -5,6 +5,8 @@
 #include <string_view>
 #include <vector>
 
+#include "zstd/common/xxhash.h"
+
 #include "modload/loaded_pka.h"
 #include "p3a/pack.h"
 #include "p3a/structs.h"
@@ -296,8 +298,17 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
     std::string_view versionString(SENPATCHER_VERSION, sizeof(SENPATCHER_VERSION) - 1);
     std::string versionStringWithSettings =
         std::format("{}:{}", versionString, allowSwitchToNightmare ? 1 : 0);
-    std::string versionStringWithPka = std::format(
-        "{}:{}/{}", versionString, pkgsOfPrefix0File0.PkgCount, pkgsOfPrefix0File0.PkgFileCount);
+    std::string versionStringWithPka =
+        std::format("{}:{}/{:x}/{}/{:x}",
+                    versionString,
+                    pkgsOfPrefix0File0.PkgCount,
+                    XXH64(pkgsOfPrefix0File0.Pkgs.get(),
+                          pkgsOfPrefix0File0.PkgCount * sizeof(SenLib::PkaPkgToHashData),
+                          0),
+                    pkgsOfPrefix0File0.PkgFileCount,
+                    XXH64(pkgsOfPrefix0File0.PkgFiles.get(),
+                          pkgsOfPrefix0File0.PkgFileCount * sizeof(SenLib::PkaFileHashData),
+                          0));
 
     const SenPatcher::GetCheckedFileCallback callback =
         [&](std::string_view path,
