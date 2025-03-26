@@ -259,6 +259,320 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // True/Radiant Wings: The HP recovery is over time, not instant.
+        {
+            auto& e = tbl_en.Entries[114];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 72, " (4 turns)");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[119];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 73, " (4 turns)");
+            e.Data = m.ToBinary();
+        }
+
+        // Cross Break: Power is C+, not C++
+        {
+            auto& e = tbl_en.Entries[196];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 23, 1);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[207];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 23, 1);
+            e.Data = m.ToBinary();
+        }
+
+        // Twilit Blades: Power E, not D
+        {
+            auto& e = tbl_en.Entries[215];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 20, 1, "E");
+            e.Data = m.ToBinary();
+        }
+
+        // Tempest Edge: Power A+, not S
+        {
+            auto& e = tbl_en.Entries[217];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 21, 1, "A+");
+            e.Data = m.ToBinary();
+        }
+
+        // Summon Kestrel 2: Power SSS+, not SS
+        {
+            auto& e = tbl_en.Entries[247];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 23, "S+");
+            e.Data = m.ToBinary();
+        }
+
+        // Rumbling Smash: Faint is 20%, not 30%
+        {
+            auto& e = tbl_en.Entries[249];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 105, 1, "2");
+            e.Data = m.ToBinary();
+        }
+
+        // Reaper's Whirlwind 2: Typo, "(60)%" should be "(60%)"
+        {
+            auto& e = tbl_en.Entries[257];
+            MagicData m(e.Data.data(), e.Data.size());
+            std::swap(m.desc[108], m.desc[109]);
+            e.Data = m.ToBinary();
+        }
+
+        // Requiem Shot: Extra linebreak.
+        {
+            auto& e = tbl_en.Entries[279];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 171, 1, " ");
+            e.Data = m.ToBinary();
+        }
+
+        // Happy Trigger: Extra linebreak.
+        {
+            auto& e = tbl_en.Entries[281];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 121, 1, " ");
+            e.Data = m.ToBinary();
+        }
+
+        // Akashic Star: Extra linebreak.
+        {
+            auto& e = tbl_en.Entries[282];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 136, 1, " ");
+            e.Data = m.ToBinary();
+        }
+
+        // Umbral Butterflies: Dash is colored wrong.
+        {
+            auto& e = tbl_en.Entries[270];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 108, 3, "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
+
+        // Mortal Mirage: Stats are wrong.
+        {
+            auto& e = tbl_en.Entries[265];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 49, 2, "30");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 34, 2, "D");
+            e.Data = m.ToBinary();
+        }
+
+        // Frigid Rain: Stats are wrong.
+        {
+            auto& e = tbl_en.Entries[266];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 47, 3, "Yes");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 33, 2, "A");
+            e.Data = m.ToBinary();
+        }
+
+        // Kaleido Force: Stats are wrong.
+        {
+            auto& e = tbl_en.Entries[267];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 34, 2, "D");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 21, 1, "SSS+");
+            e.Data = m.ToBinary();
+        }
+
+        // Laevateinn: Stats are wrong.
+        {
+            auto& e = tbl_en.Entries[276];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 48, 2, "+30%");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 34, 2, "B");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 21, 1, "A");
+            e.Data = m.ToBinary();
+        }
+
+        // Spell Card: Extra linebreak.
+        {
+            auto& e = tbl_en.Entries[277];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 62, 1, " ");
+            e.Data = m.ToBinary();
+        }
+
+        // Rubrum Knight: Extra linebreak. Stats are wrong.
+        {
+            auto& e = tbl_en.Entries[278];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 169, 1, " ");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 34, 2, "D");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 21, 1, "SSS+");
+            e.Data = m.ToBinary();
+        }
+
+        // Southern Cross: Autogenerated weirdly formatted description, manually write it out.
+        {
+            auto& e = tbl_en.Entries[559];
+            auto& e2 = tbl_en.Entries[568];
+            MagicData m(e.Data.data(), e.Data.size());
+            MagicData m2(e2.Data.data(), e2.Data.size());
+            m.flags += 'Z';
+            m.desc = m2.desc.substr(0, 71) + m.desc;
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(
+                m.desc, 53, 10, "Restores 30% HP/EP#0C - #11CCP+30");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 39, 1, "7");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 13, 1, "8");
+            e.Data = m.ToBinary();
+        }
+
+        // Cold Nail: Missing (Set) for area.
+        {
+            auto& e = tbl_en.Entries[296];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 66, " (Set)");
+            e.Data = m.ToBinary();
+        }
+
+        // Piercing Blitz: Stats are wrong.
+        {
+            auto& e = tbl_en.Entries[297];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 49, 2, "+20%");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 35, 2, "D");
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 22, 1);
+            e.Data = m.ToBinary();
+        }
+
+        // Javelin Throw: Claims (Set) but isn't.
+        {
+            auto& e = tbl_en.Entries[353];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 69, 6);
+            e.Data = m.ToBinary();
+        }
+
+        // Brutal Spin: Claims (Set) but isn't.
+        {
+            auto& e = tbl_en.Entries[355];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 67, 6);
+            e.Data = m.ToBinary();
+        }
+
+        // Destructive Buster: Claims 4B+ power, not sure how that got here...
+        {
+            auto& e = tbl_en.Entries[356];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 21, 1);
+            e.Data = m.ToBinary();
+        }
+
+        // The 5 existing dis-orders all have descriptions and 4 of them are wrong lol, and all of
+        // them call them Anti-Order instead of Dis-Order. I don't think this actually matters, I
+        // don't think you can ever see these naturally, but might as well fix them...
+        {
+            auto& e = tbl_en.Entries[581];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, m.desc.size() - 10, 4, "Dis");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 35, 1, "1");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[582];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, m.desc.size() - 10, 4, "Dis");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 40, 1, "1");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[583];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, m.desc.size() - 10, 4, "Dis");
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 34, " ");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[584];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, m.desc.size() - 10, 4, "Dis");
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 35, 1);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[585];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, m.desc.size() - 10, 4, "Dis");
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 40, 1);
+            e.Data = m.ToBinary();
+        }
+
+        // Gale, Arcane Gale, Howling Heavens, True Howling Heavens: These have autogenerated
+        // descriptions and they're *technically* fine, but I want to add a space for "Delay+2" and
+        // similar so we need to write them out.
+        {
+            auto& e = tbl_en.Entries[71];
+            auto& e2 = tbl_en.Entries[84];
+            MagicData m(e.Data.data(), e.Data.size());
+            MagicData m2(e2.Data.data(), e2.Data.size());
+            m.flags += 'Z';
+            m.desc = m2.desc.substr(0, 120) + m.desc;
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 95, 20);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 91, 1, "2");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 49, 2, "5");
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 35, 1);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 21, 1, "B+");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[77];
+            auto& e2 = tbl_en.Entries[84];
+            MagicData m(e.Data.data(), e.Data.size());
+            MagicData m2(e2.Data.data(), e2.Data.size());
+            m.flags += 'Z';
+            m.desc = m2.desc.substr(0, 120) + m.desc;
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 95, 20);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 91, 1, "2");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 49, 2, "5");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 21, 1, "D+");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[161];
+            auto& e2 = tbl_en.Entries[84];
+            MagicData m(e.Data.data(), e.Data.size());
+            MagicData m2(e2.Data.data(), e2.Data.size());
+            m.flags += 'Z';
+            m.desc = m2.desc.substr(0, 120) + m.desc;
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 95, 20);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 91, 1, "8");
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 85, "Absolute ");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 64, 11, "ll");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 48, 4, "No");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 34, 2, "D");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 21, 1, "4S");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[166];
+            auto& e2 = tbl_en.Entries[84];
+            MagicData m(e.Data.data(), e.Data.size());
+            MagicData m2(e2.Data.data(), e2.Data.size());
+            m.flags += 'Z';
+            m.desc = m2.desc.substr(0, 120) + m.desc;
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 95, 20);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 91, 1, "12");
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 85, "Absolute ");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 64, 11, "ll");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 48, 4, "No");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 34, 2, "D");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 21, 1, "4S+");
+            e.Data = m.ToBinary();
+        }
+
 
         // remove Z flag to compare with autogenerated descriptions
         // for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
