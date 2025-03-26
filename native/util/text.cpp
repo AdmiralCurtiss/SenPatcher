@@ -8,6 +8,8 @@
 #include <string_view>
 #include <vector>
 
+#include "util/vector.h"
+
 #ifdef BUILD_FOR_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -308,6 +310,18 @@ std::string ReplaceSubstring(std::string_view a,
     s += b.substr(offsetb, lengthb);
     s += a.substr(offseta + lengtha);
     return s;
+}
+
+std::string MoveSubstring(std::string_view input,
+                          size_t sourceLocation,
+                          size_t targetLocation,
+                          size_t length) {
+    std::string result(input);
+    HyoutaUtils::Vector::ShiftData(std::span<char>(result.data(), result.data() + result.size()),
+                                   sourceLocation,
+                                   targetLocation,
+                                   length);
+    return result;
 }
 
 std::string Remove(std::string_view input, size_t offset, size_t length) {

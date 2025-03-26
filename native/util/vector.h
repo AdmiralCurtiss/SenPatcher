@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <span>
 #include <vector>
@@ -42,8 +43,5 @@ inline std::vector<char> GetVector(std::span<const char> data, size_t offset, si
 
 // Moves data from [sourceLocation, sourceLocation + length) to targetLocation, shifting all
 // data in between to the side. Effectively cutting out some data and pasting it elsewhere.
-bool ShiftData(std::span<char> data,
-               uint32_t sourceLocation,
-               uint32_t targetLocation,
-               uint32_t length);
+bool ShiftData(std::span<char> data, size_t sourceLocation, size_t targetLocation, size_t length);
 } // namespace HyoutaUtils::Vector

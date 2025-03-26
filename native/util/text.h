@@ -53,6 +53,10 @@ std::string ReplaceSubstring(std::string_view a,
                              std::string_view b,
                              size_t offsetb,
                              size_t lengthb);
+std::string MoveSubstring(std::string_view input,
+                          size_t sourceLocation,
+                          size_t targetLocation,
+                          size_t length);
 std::string Remove(std::string_view input, size_t offset, size_t length);
 std::string Insert(std::string_view input, size_t offset, std::string_view insert);
 

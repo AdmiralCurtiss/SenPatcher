@@ -4,10 +4,7 @@
 #include <vector>
 
 namespace HyoutaUtils::Vector {
-bool ShiftData(std::span<char> data,
-               uint32_t sourceLocation,
-               uint32_t targetLocation,
-               uint32_t length) {
+bool ShiftData(std::span<char> data, size_t sourceLocation, size_t targetLocation, size_t length) {
     // bounds checks
     if (sourceLocation >= data.size() || length > data.size()
         || sourceLocation > (data.size() - length) || targetLocation > data.size()) {
