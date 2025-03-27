@@ -195,9 +195,9 @@ ItemHelpData::ItemHelpData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     str = stream.ReadUTF8Nullterm();
-    const size_t dlen = dataLength - stream.GetPosition();
-    d.resize(dlen);
-    stream.Read(d.data(), dlen);
+    d1 = stream.ReadUInt16();
+    d2 = stream.ReadArray<7>();
+    assert(dataLength == stream.GetPosition());
 }
 
 std::vector<char> ItemHelpData::ToBinary() const {
@@ -206,7 +206,8 @@ std::vector<char> ItemHelpData::ToBinary() const {
         HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUTF8Nullterm(str);
-        ms.Write(d.data(), d.size());
+        ms.WriteUInt16(d1);
+        ms.Write(d2.data(), d2.size());
     }
     return rv;
 }

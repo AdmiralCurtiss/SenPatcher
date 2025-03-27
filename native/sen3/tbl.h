@@ -79,7 +79,8 @@ struct ItemData {
 struct ItemHelpData {
     uint16_t idx;
     std::string str;
-    std::vector<char> d;
+    uint16_t d1;
+    std::array<char, 7> d2;
 
     ItemHelpData(const char* data, size_t dataLength);
 
