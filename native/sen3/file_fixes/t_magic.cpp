@@ -229,6 +229,16 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Morning Moon: Manually write this out so we can replace the One with Self.
+        {
+            auto& e = tbl_en.Entries[239];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.flags += 'Z';
+            m.desc =
+                "[ #11CSelf#0C - #11C100% chance to evade and counter one attack#0C ]\n" + m.desc;
+            e.Data = m.ToBinary();
+        }
+
         // Detector-alpha: Miscolored dash.
         {
             auto& e = tbl_en.Entries[81];
@@ -242,6 +252,47 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             auto& e = tbl_en.Entries[48];
             MagicData m(e.Data.data(), e.Data.size());
             m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 59, 3, "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
+
+        // Chrono Break: Miscolored dash.
+        {
+            auto& e = tbl_en.Entries[50];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 46, 3, "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
+
+        // Radiant Spin: Miscolored dashes.
+        {
+            auto& e = tbl_en.Entries[87];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 85, 3, "#0C - #11C");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 75, 3, "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
+
+        // Chrono Break: Miscolored dash.
+        {
+            auto& e = tbl_en.Entries[90];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 66, 3, "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
+
+        // Detector-beta: Miscolored dash.
+        {
+            auto& e = tbl_en.Entries[95];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 69, 3, "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
+
+        // Southern Cross: Miscolored dash.
+        {
+            auto& e = tbl_en.Entries[331];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 71, 3, "#0C - #11C");
             e.Data = m.ToBinary();
         }
 
@@ -263,6 +314,51 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 72, 1, "-");
             m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 68, " (3 turns)");
             m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 53, " (3 turns)");
+
+            // This is actually a bit too long to fit into the textbox, so as an exception to the
+            // typical formatting combine the HP and CP terms...
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 54, 19, "& ");
+
+            e.Data = m.ToBinary();
+        }
+
+        // Impassion: "Restores XX CP" is inconsistent with the usual phrasing of "CP+XX".
+        {
+            auto& e = tbl_en.Entries[35];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 36, 14, "CP+30");
+            e.Data = m.ToBinary();
+        }
+
+        // Heat Up: "Restores XX CP" is inconsistent with the usual phrasing of "CP+XX".
+        // Also has "Stats Down" which is wrong, otherwise written as "Stat Down".
+        {
+            auto& e = tbl_en.Entries[38];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 61, 1);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 36, 14, "CP+20");
+            e.Data = m.ToBinary();
+        }
+
+        // Remedy Fantasia: Like CS4 the 200 CP effect is formatted very strangely, improve that.
+        {
+            auto& e = tbl_en.Entries[85];
+            MagicData m(e.Data.data(), e.Data.size());
+            std::string color = m.desc.substr(20, 10);
+            std::string effect = m.desc.substr(70, 27);
+            effect = HyoutaUtils::TextUtils::Insert(effect, 25, " ");
+            effect = HyoutaUtils::TextUtils::Remove(effect, 14, 5);
+            effect = "Restores " + HyoutaUtils::TextUtils::Insert(effect, 3, " HP");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 65, 33, color + effect);
+            e.Data = m.ToBinary();
+        }
+
+        // Palace of Eregion: Formatting consistency with CS4.
+        {
+            auto& e = tbl_en.Entries[99];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 73, " ");
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 62, 5);
             e.Data = m.ToBinary();
         }
 
@@ -307,14 +403,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             auto& e = tbl_en.Entries[321];
             MagicData m(e.Data.data(), e.Data.size());
             m.flags += 'Z';
-            m.desc = "[ Strike (#11C10 turns#0C/#11CCritical +50%#0C) - #11CCP+80#0C ]" + m.desc;
+            m.desc = "[ Strike (#11C10 turns#0C/#11CCritical +50%#0C) - #11CCP+80#0C ]\n" + m.desc;
             e.Data = m.ToBinary();
         }
         {
             auto& e = tbl_en.Entries[326];
             MagicData m(e.Data.data(), e.Data.size());
             m.flags += 'Z';
-            m.desc = "[ Special (#11C4 turns#0C/#11CAbsolute Reflect#0C) - #11CCP+80#0C ]" + m.desc;
+            m.desc =
+                "[ Special (#11C4 turns#0C/#11CAbsolute Reflect#0C) - #11CCP+80#0C ]\n" + m.desc;
             e.Data = m.ToBinary();
         }
         {
@@ -322,7 +419,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             MagicData m(e.Data.data(), e.Data.size());
             m.flags += 'Z';
             m.desc =
-                "[ Strike (#11C4 turns#0C/#11CCritical +30%#0C) - #11CAccelerate#0C ]" + m.desc;
+                "[ Strike (#11C4 turns#0C/#11CCritical +30%#0C) - #11CAccelerate#0C ]\n" + m.desc;
             e.Data = m.ToBinary();
         }
 
@@ -338,14 +435,16 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         // Merge cases like "Poison (50%) Petrify (50%)" to "Poison/Petrify (50%)" like Reverie
-        for (int idx : {14, 32, 78, 83, 98, 135, 145, 149, 152, 167}) {
+        for (int idx : {14, 32, 78, 83, 98, 135, 143, 145, 149, 152, 167}) {
             auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
             MagicData m(e.Data.data(), e.Data.size());
             auto firstPercentage = m.desc.find("%)");
             if (firstPercentage != std::string::npos) {
                 auto next = std::string_view(m.desc).substr(firstPercentage + 2);
                 size_t drop = 0;
-                if (next.starts_with("#0C #11C")) {
+                if (next.starts_with("#0C - #11C")) {
+                    drop = 10;
+                } else if (next.starts_with("#0C #11C")) {
                     drop = 8;
                 } else if (next.starts_with(" ")) {
                     drop = 1;
@@ -363,7 +462,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         // Split cases like "Impede (100%) Burn (20%)" to "Impede (100%) - Burn (20%)" like Reverie
-        for (int idx : {65, 71, 77, 91, 110, 124, 129, 133, 148, 186}) {
+        for (int idx : {65, 71, 77, 91, 110, 119, 124, 129, 133, 148, 186}) {
             auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
             MagicData m(e.Data.data(), e.Data.size());
             auto firstPercentage = m.desc.find("%)");
