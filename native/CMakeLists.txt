@@ -430,6 +430,12 @@ if (SENPATCHER_BUILD_TOOLS)
 		sen1/system_data.h
 		sen2/system_data.cpp
 		sen2/system_data.h
+		sen3/tbl.cpp
+		sen3/tbl.h
+		sen4/tbl.cpp
+		sen4/tbl.h
+		sen5/tbl.cpp
+		sen5/tbl.h
 
 		dirtree/entry.h
 		dirtree/init_dirtree_from_buffer.cpp

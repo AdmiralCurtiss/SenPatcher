@@ -707,6 +707,29 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Heat Up: "Restores XX CP" is inconsistent with the usual phrasing of "CP+XX".
+        {
+            auto& e = tbl_en.Entries[38];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 36, 14, "CP+20");
+            e.Data = m.ToBinary();
+        }
+
+        // Military Might: Miscolored dash
+        {
+            auto& e = tbl_en.Entries[295];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 50, 3, "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
+
+        // Supreme Military Might: Miscolored dash
+        {
+            auto& e = tbl_en.Entries[297];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 50, 3, "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
 
         // "Ailments" is capitalized in these, which is inconsistent with some other entries as well
         // as all of CS3 and CS4. One could argue that it should be capitalized everywhere instead

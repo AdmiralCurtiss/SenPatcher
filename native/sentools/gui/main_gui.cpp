@@ -22,6 +22,10 @@
 
 // #define HOOK_MAGIC_DESCRIPTION_GENERATOR
 #ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+#include <memory>
+
+#include "sen5/tbl.h"
+
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
@@ -30,7 +34,12 @@
 
 namespace SenTools {
 #ifdef HOOK_MAGIC_DESCRIPTION_GENERATOR
+uint32_t s_SelectedMagicIndex;
 void* s_memory;
+std::unique_ptr<SenLib::Sen5::Tbl> s_LoadedTbl;
+std::string s_SelectedMagicFlags;
+std::string s_SelectedMagicName;
+std::string s_SelectedMagicDesc;
 #endif
 
 static bool RenderFrame(ImGuiIO& io, GuiState& state) {
@@ -58,17 +67,43 @@ static bool RenderFrame(ImGuiIO& io, GuiState& state) {
             bool b = (*trigger != 0);
             ImGui::Checkbox("Enable Override", &b);
             *trigger = b ? 1 : 0;
-            uint32_t* value = (trigger + 1);
             const float drag_speed = 0.2f;
+            uint32_t value = s_SelectedMagicIndex;
             if (ImGui::Button("-")) {
-                --(*value);
+                --value;
             }
             ImGui::SameLine();
-            ImGui::DragScalar("", ImGuiDataType_U32, value, drag_speed, NULL, NULL, "%u");
+            ImGui::DragScalar(
+                "##ValueOverride", ImGuiDataType_U32, &value, drag_speed, NULL, NULL, "%u");
             ImGui::SameLine();
             if (ImGui::Button("+")) {
-                ++(*value);
+                ++value;
             }
+
+            if (value != s_SelectedMagicIndex) {
+                s_SelectedMagicIndex = value;
+                s_SelectedMagicFlags.clear();
+                s_SelectedMagicName.clear();
+                s_SelectedMagicDesc.clear();
+                if (s_LoadedTbl) {
+                    if (value < s_LoadedTbl->Entries.size()) {
+                        auto& e = s_LoadedTbl->Entries[value];
+                        if (e.Name == "magic") {
+                            SenLib::Sen5::MagicData m(e.Data.data(), e.Data.size());
+                            value = m.idx;
+                            s_SelectedMagicFlags = std::move(m.flags);
+                            s_SelectedMagicName = std::move(m.name);
+                            s_SelectedMagicDesc = std::move(m.desc);
+                        }
+                    }
+                }
+                *(trigger + 1) = value;
+            }
+
+            ImGui::Text("Current ID: %u", *(trigger + 1));
+            ImGui::Text("%s", s_SelectedMagicFlags.c_str());
+            ImGui::Text("%s", s_SelectedMagicName.c_str());
+            ImGui::Text("%s", s_SelectedMagicDesc.c_str());
         }
         ImGui::End();
     }
@@ -85,6 +120,22 @@ int RunGui(int argc, char** argvUtf8) {
         void* memory = MapViewOfFileEx(handle, FILE_MAP_ALL_ACCESS, 0, 0, 0x1000, nullptr);
         if (memory != nullptr) {
             s_memory = memory;
+        }
+
+        HyoutaUtils::IO::File f(
+            std::string_view("g:\\SteamLibrary\\steamapps\\common\\The Legend of Heroes Trails "
+                             "into Reverie\\dev\\data\\text\\dat_en\\t_magic.tbl"),
+            HyoutaUtils::IO::OpenMode::Read);
+        if (f.IsOpen()) {
+            auto len = f.GetLength();
+            if (len) {
+                auto buffer = std::make_unique<char[]>(*len);
+                if (buffer) {
+                    if (f.Read(buffer.get(), *len) == *len) {
+                        s_LoadedTbl = std::make_unique<SenLib::Sen5::Tbl>(buffer.get(), *len);
+                    }
+                }
+            }
         }
     }
 #endif
