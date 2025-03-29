@@ -25,10 +25,10 @@ static void HookMagicDescriptionGenerator(PatchExecData& execData) {
 
     using namespace SenPatcher::x64;
 
-    char* const entryPointSystemMenu =
-        GetCodeAddressEn(version, textRegion, Addresses{.En114 = 0x1403fd5aa, .En115 = 0});
-    char* const entryPointDivineKnightBattle =
-        GetCodeAddressEn(version, textRegion, Addresses{.En114 = 0x1400c881f, .En115 = 0});
+    char* const entryPointSystemMenu = GetCodeAddressEn(
+        version, textRegion, Addresses{.En114 = 0x1403fd5aa, .En115 = 0x1403fad6a});
+    char* const entryPointDivineKnightBattle = GetCodeAddressEn(
+        version, textRegion, Addresses{.En114 = 0x1400c881f, .En115 = 0x1400c8a9f});
 
     void* handle = CreateFileMappingW(
         INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, 0x1000, L"SenMagicDescGenHook");

@@ -15,6 +15,14 @@ namespace SenPatcherCli.Hajimari {
 		LinkAbList,
 		LinkAbText,
 		magic,
+		btcalc,
+		replace_ex_craft,
+		item,
+		item_e,
+		item_q,
+		TextTableData,
+		QSCook,
+		QSCoolVoice,
 	}
 
 	public class TblDumper {
@@ -96,6 +104,175 @@ namespace SenPatcherCli.Hajimari {
 						}
 						sb.Append("\n");
 						sb.Append("\n");
+						sb.Append("\n");
+						break;
+					}
+					case TblType.TextTableData: {
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						List<string> postprint = new List<string>();
+						sb.AppendFormat(" ID {0:x4}:", stream.ReadUInt16());
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						while (true) {
+							int b = stream.ReadByte();
+							if (b == -1)
+								break;
+							sb.AppendFormat(" {0:x2}", b);
+						}
+						foreach (string s in postprint) {
+							sb.AppendFormat(" {0}", s);
+						}
+						sb.Append("\n");
+						break;
+					}
+					case TblType.item:
+					case TblType.item_e:
+					case TblType.item_q: {
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						List<string> postprint = new List<string>();
+						sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16()); // usable by who
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.Append("\n");
+						// effects when used/equipped, in groups?
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						// stats when equipped?
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.Append("\n");
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x4}", stream.ReadUInt16());
+						sb.AppendFormat(" {0:x2}", stream.ReadUInt8());
+						sb.Append("\n");
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						while (true) {
+							int b = stream.ReadByte();
+							if (b == -1)
+								break;
+							sb.AppendFormat(" {0:x2}", b);
+						}
+						foreach (string s in postprint) {
+							sb.AppendFormat("\n{0}", s);
+						}
+						sb.Append("\n\n");
+						break;
+					}
+					case TblType.QSCook: {
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						List<string> postprint = new List<string>();
+						postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						sb.AppendFormat(" Idx {0:x4}", stream.ReadUInt16());
+						for (int j = 0; j < 8; ++j) {
+							sb.AppendFormat(" ReqItem {0:x4}", stream.ReadUInt16());
+							sb.AppendFormat(" Qty {0:x4}", stream.ReadUInt16());
+						}
+						for (int j = 0; j < 3; ++j) {
+							sb.AppendFormat(" ProducedItem {0:x4}", stream.ReadUInt16());
+							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+							postprint.Add(stream.ReadUTF8Nullterm().Replace("\n", "{n}"));
+						}
+						while (true) {
+							// the rest is probably flags for who is good/bad at cooking this
+							int b = stream.ReadByte();
+							if (b == -1)
+								break;
+							sb.AppendFormat(" {0:x2}", b);
+						}
+						foreach (string s in postprint) {
+							sb.AppendFormat("\n{0}", s);
+						}
+						sb.Append("\n");
+						break;
+					}
+					default: {
+						sb.Append("[").Append(i).Append("] ");
+						sb.Append(tbl.BaseTbl.Entries[i].Name).Append(":");
+						stream = new DuplicatableByteArrayStream(tbl.BaseTbl.Entries[i].Data);
+						while (true) {
+							int b = stream.ReadByte();
+							if (b == -1)
+								break;
+							sb.AppendFormat(" {0:x2}", b);
+						}
 						sb.Append("\n");
 						break;
 					}

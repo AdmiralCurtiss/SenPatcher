@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <format>
 #include <string>
 #include <string_view>
@@ -747,6 +748,183 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Ebon Dragon: Listed as "Strike" but should be "Critical"
+        {
+            auto& e = tbl_en.Entries[734];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 2, 6, "Critical");
+            e.Data = m.ToBinary();
+        }
+
+        // Draupnir Guard, Dark Requiem, Fanciful Spell, Testament Cross:
+        // Listed as "Arts" but should be "Magic"
+        for (int idx : {757, 761, 764, 767}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 2, 4, "Magic");
+            e.Data = m.ToBinary();
+        }
+
+        // Seraphic Ring: "Restores All HP" -> "Restores all HP" for consistency
+        {
+            auto& e = tbl_en.Entries[57];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 46, 1, "a");
+            e.Data = m.ToBinary();
+        }
+
+        // Leanan's Kiss: The "for 3 turns" belongs to the stat up, not the charm.
+        {
+            auto& e = tbl_en.Entries[65];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::MoveSubstring(m.desc, 101, 88, 12);
+            e.Data = m.ToBinary();
+        }
+
+        const auto find_for_x_turns =
+            [](std::string_view s, size_t offset, size_t& out_pos, size_t& out_len) -> bool {
+            for (size_t i = offset; i < s.size(); ++i) {
+                if (!s.substr(i).starts_with("for ")) {
+                    continue;
+                }
+                auto p = s.find(" ", i + 4);
+                if (p == std::string_view::npos || p == (i + 4)) {
+                    continue;
+                }
+                std::string_view turncount = s.substr(i + 4, p - (i + 4));
+                if (turncount == "1") {
+                    if (!s.substr(p).starts_with(" turn")) {
+                        continue;
+                    }
+                    out_pos = i;
+                    out_len = (p + 5) - i;
+                    return true;
+                } else {
+                    if (!std::all_of(turncount.begin(), turncount.end(), [](char c) {
+                            return c >= '0' && c <= '9';
+                        })) {
+                        continue;
+                    }
+                    if (!s.substr(p).starts_with(" turns")) {
+                        continue;
+                    }
+                    out_pos = i;
+                    out_len = (p + 6) - i;
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Split unrelated effects like "Restores 20 CP/Cures Stat Down" to two separate ones
+        for (int idx :
+             {25, 26, 27, 29, 30, 38, 57, 62, 63, 113, 114, 302, 304, 350, 738, 742, 749}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto slash = m.desc.find('/');
+            if (slash != std::string::npos) {
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, slash, 1, "#0C - #11C");
+                e.Data = m.ToBinary();
+            }
+        }
+        for (int idx : {99, 99, 102, 102, 117, 144, 222}) { // duplicates intentional
+            // these also need to copy the next "for X turns"
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto slash = m.desc.find('/');
+            size_t turnpos;
+            size_t turnlen;
+            if (slash != std::string::npos && find_for_x_turns(m.desc, slash, turnpos, turnlen)) {
+                std::string turncount = m.desc.substr(turnpos, turnlen);
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(
+                    m.desc, slash, 1, " " + turncount + "#0C - #11C");
+                e.Data = m.ToBinary();
+            }
+        }
+        for (int idx : {64, 65, 66}) {
+            // these need the first slash after a colon instead of just the first slash
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto colon = m.desc.find(':');
+            if (colon != std::string::npos) {
+                auto slash = m.desc.find('/', colon);
+                if (slash != std::string::npos) {
+                    m.desc =
+                        HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, slash, 1, "#0C - #11C");
+                    e.Data = m.ToBinary();
+                }
+            }
+        }
+
+        // Make the orders consistent with how they're written in CS3/4, which IMO makes more sense.
+        // Lead with the "N turns/permanent effect" in parenthesis and list the immediate effects
+        // afterwards with dashes.
+        for (int idx = 714; idx <= 771; ++idx) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            if (m.flags.find('Z') == std::string::npos) {
+                continue;
+            }
+            auto end = m.desc.find(" ]");
+            if (end == std::string::npos || end == 0) {
+                continue;
+            }
+            auto start = m.desc.rfind(" - ", end);
+            if (start == std::string::npos || start == 0 || (start + 3) >= end) {
+                continue;
+            }
+
+            size_t permStart = start + 3;
+            size_t permLen = end - (start + 3);
+            size_t immStart = 0;
+            size_t immLen = 0;
+            bool hasImm = false;
+            if (m.desc[start - 1] == ')') {
+                // has an immediate effect
+                auto tmp = m.desc.find('(');
+                if (tmp == std::string::npos || tmp >= (start - 1)) {
+                    continue;
+                }
+
+                hasImm = true;
+                immStart = tmp + 1;
+                immLen = (start - 1) - (tmp + 1);
+            }
+
+            std::string permanent = m.desc.substr(permStart, permLen);
+            size_t turnsStart = 0;
+            size_t turnsLen = 0;
+            if (!find_for_x_turns(permanent, 1, turnsStart, turnsLen)) {
+                continue;
+            }
+
+            std::string turnCount = permanent.substr(turnsStart + 4, turnsLen - 4);
+            permanent = HyoutaUtils::TextUtils::Remove(permanent, turnsStart - 1, turnsLen + 1);
+            permanent = "#11C" + turnCount + "#0C/" + permanent;
+
+            if (hasImm) {
+                std::string immediate = m.desc.substr(immStart, immLen);
+                m.desc =
+                    HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, permStart, permLen, immediate);
+                m.desc =
+                    HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, immStart, immLen, permanent);
+            } else {
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(
+                    m.desc, permStart - 3, permLen + 3, " (" + permanent + ")");
+            }
+            e.Data = m.ToBinary();
+        }
+
+        // replace the separator dot between STR/DEF etc. with a slightly smaller one that's used by
+        // the autogenerator, which looks a bit better and is consistent with the autogenerator.
+        for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
+            auto& e = tbl_en.Entries[i];
+            if (e.Name == "magic") {
+                MagicData m(e.Data.data(), e.Data.size());
+                m.desc = HyoutaUtils::TextUtils::Replace(m.desc, "\xE3\x83\xBB", "\xEF\xBD\xA5");
+                e.Data = m.ToBinary();
+            }
+        }
 
         // remove Z flag to compare with autogenerated descriptions
         // for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {

@@ -28,12 +28,6 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         Tbl tbl_en(bin.data(), bin.size(), HyoutaUtils::EndianUtils::Endianness::LittleEndian);
 
-        std::vector<TextTableData> tmp;
-        for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
-            auto& e = tbl_en.Entries[i];
-            tmp.emplace_back(e.Data.data(), e.Data.size());
-        }
-
         // the 1.1.4 update improves these lines to "%s is currently using this main/sub master
         // quartz", which is *better* than the previous line because it's no longer nonsense but
         // it's still wrong; it's the *slot* that's main/sub, not the quartz. so just apply our

@@ -81,9 +81,7 @@ TextTableData::TextTableData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     idx = stream.ReadUInt16();
     str = stream.ReadUTF8Nullterm();
-    const size_t dlen = dataLength - stream.GetPosition();
-    d.resize(dlen);
-    stream.Read(d.data(), dlen);
+    assert(dataLength == stream.GetPosition());
 }
 
 std::vector<char> TextTableData::ToBinary() const {
@@ -92,7 +90,75 @@ std::vector<char> TextTableData::ToBinary() const {
         HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUInt16(idx);
         ms.WriteUTF8Nullterm(str);
-        ms.Write(d.data(), d.size());
+    }
+    return rv;
+}
+
+static void ReadItemData(ItemData& d, HyoutaUtils::Stream::DuplicatableByteArrayStream& stream) {
+    d.idx = stream.ReadUInt16();
+    d.character = stream.ReadUInt16();
+    d.flags = stream.ReadUTF8Nullterm();
+    d.d1 = stream.ReadArray<141>();
+    d.name = stream.ReadUTF8Nullterm();
+    d.desc = stream.ReadUTF8Nullterm();
+}
+
+static void WriteItemData(const ItemData& d, HyoutaUtils::Stream::MemoryStream& ms) {
+    ms.WriteUInt16(d.idx);
+    ms.WriteUInt16(d.character);
+    ms.WriteUTF8Nullterm(d.flags);
+    ms.Write(d.d1.data(), d.d1.size());
+    ms.WriteUTF8Nullterm(d.name);
+    ms.WriteUTF8Nullterm(d.desc);
+}
+
+ItemData::ItemData() {}
+
+ItemData::ItemData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    ReadItemData(*this, stream);
+    assert(dataLength == stream.GetPosition());
+}
+
+std::vector<char> ItemData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        WriteItemData(*this, ms);
+    }
+    return rv;
+}
+
+ItemEData::ItemEData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    ReadItemData(this->item, stream);
+    this->e = stream.ReadArray<10>();
+    assert(dataLength == stream.GetPosition());
+}
+
+std::vector<char> ItemEData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        WriteItemData(this->item, ms);
+        ms.Write(this->e.data(), this->e.size());
+    }
+    return rv;
+}
+
+ItemQData::ItemQData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    ReadItemData(this->item, stream);
+    this->q = stream.ReadArray<22>();
+    assert(dataLength == stream.GetPosition());
+}
+
+std::vector<char> ItemQData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        WriteItemData(this->item, ms);
+        ms.Write(this->q.data(), this->q.size());
     }
     return rv;
 }
@@ -135,6 +201,44 @@ std::vector<char> MagicData::ToBinary() const {
         ms.WriteUTF8Nullterm(animation);
         ms.WriteUTF8Nullterm(name);
         ms.WriteUTF8Nullterm(desc);
+    }
+    return rv;
+}
+
+CookData::CookData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    name = stream.ReadUTF8Nullterm();
+    d1 = stream.ReadArray<0x22>();
+    item1 = stream.ReadUInt16();
+    item1line1 = stream.ReadUTF8Nullterm();
+    item1line2 = stream.ReadUTF8Nullterm();
+    item2 = stream.ReadUInt16();
+    item2line1 = stream.ReadUTF8Nullterm();
+    item2line2 = stream.ReadUTF8Nullterm();
+    item3 = stream.ReadUInt16();
+    item3line1 = stream.ReadUTF8Nullterm();
+    item3line2 = stream.ReadUTF8Nullterm();
+    d2 = stream.ReadArray<0x30>();
+
+    assert(dataLength == stream.GetPosition());
+}
+
+std::vector<char> CookData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUTF8Nullterm(name);
+        ms.Write(d1.data(), d1.size());
+        ms.WriteUInt16(item1);
+        ms.WriteUTF8Nullterm(item1line1);
+        ms.WriteUTF8Nullterm(item1line2);
+        ms.WriteUInt16(item2);
+        ms.WriteUTF8Nullterm(item2line1);
+        ms.WriteUTF8Nullterm(item2line2);
+        ms.WriteUInt16(item3);
+        ms.WriteUTF8Nullterm(item3line1);
+        ms.WriteUTF8Nullterm(item3line2);
+        ms.Write(d2.data(), d2.size());
     }
     return rv;
 }

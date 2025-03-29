@@ -47,9 +47,40 @@ private:
 struct TextTableData {
     uint16_t idx;
     std::string str;
-    std::vector<char> d;
 
     TextTableData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct ItemData {
+    uint16_t idx;
+    uint16_t character;
+    std::string flags;
+    std::array<char, 141> d1;
+    std::string name;
+    std::string desc;
+
+    ItemData();
+    ItemData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct ItemEData {
+    ItemData item;
+    std::array<char, 10> e;
+
+    ItemEData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct ItemQData {
+    ItemData item;
+    std::array<char, 22> q;
+
+    ItemQData(const char* data, size_t dataLength);
 
     std::vector<char> ToBinary() const;
 };
@@ -71,6 +102,25 @@ struct MagicData {
     std::string desc;
 
     MagicData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct CookData {
+    std::string name;
+    std::array<char, 0x22> d1;
+    uint16_t item1;
+    std::string item1line1;
+    std::string item1line2;
+    uint16_t item2;
+    std::string item2line1;
+    std::string item2line2;
+    uint16_t item3;
+    std::string item3line1;
+    std::string item3line2;
+    std::array<char, 0x30> d2;
+
+    CookData(const char* data, size_t dataLength);
 
     std::vector<char> ToBinary() const;
 };

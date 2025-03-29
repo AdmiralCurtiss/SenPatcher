@@ -432,6 +432,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Gold Dragon, Crazy Hunt, Golden Aura, Ebon Dragon, Perfect Order:
+        // Listed as "Strike" but should be "Critical" (consistency with CS4/Reverie)
+        for (int idx : {305, 319, 321, 323, 328}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 2, 6, "Critical");
+            e.Data = m.ToBinary();
+        }
+
         // Split unrelated effects like "Restores 20 CP/Cures Stat Down" to two separate ones
         for (int idx : {25, 26, 27, 29, 30, 38, 56, 57, 62, 63, 282, 283}) {
             auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
