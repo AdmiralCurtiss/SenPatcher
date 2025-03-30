@@ -1058,6 +1058,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // TODO: Item descriptions really need a readability pass. Some of eg. the cooking
+        // descriptions are really non-obvious to parse, stuff like
+        // "Restores 2000 HP/200 EP/STR/DEF UP (L) (2 turns)"
+        // is just a mess. Compare Reverie, those are *much* more readable.
+
         // sync the magic descriptions onto the base quartzes that give that magic
         struct ItemMagicSync {
             uint16_t Item;
@@ -1386,10 +1391,19 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // }
         // for (size_t i = 0; i < tbl_item_en.Entries.size(); ++i) {
         //     auto& e = tbl_item_en.Entries[i];
-        //     if (e.Name == "item" || e.Name == "item_q") {
+        //     if (e.Name == "item") {
         //         ItemData m(e.Data.data(), e.Data.size());
-        //         m.flags = Replace(m.flags, "Z", "");
-        //         m.desc = Replace(m.desc, "\n", " ");
+        //         auto pos = m.flags.find('Z');
+        //         if (pos != std::string::npos) {
+        //             m.flags.erase(m.flags.begin() + pos);
+        //         }
+        //         e.Data = m.ToBinary();
+        //     } else if (e.Name == "item_q") {
+        //         ItemQData m(e.Data.data(), e.Data.size());
+        //         auto pos = m.item.flags.find('Z');
+        //         if (pos != std::string::npos) {
+        //             m.item.flags.erase(m.item.flags.begin() + pos);
+        //         }
         //         e.Data = m.ToBinary();
         //     }
         // }

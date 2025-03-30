@@ -1,5 +1,6 @@
 #include "tbl.h"
 
+#include <bit>
 #include <cassert>
 #include <cstdint>
 #include <string>
@@ -147,46 +148,94 @@ static void WriteUInt16Array(HyoutaUtils::Stream::MemoryStream& s,
     }
 }
 
+static void ReadItemData(ItemData& d, HyoutaUtils::Stream::DuplicatableByteArrayStream& stream) {
+    d.idx = stream.ReadUInt16();
+    d.character = stream.ReadUInt16();
+    d.flags = stream.ReadUTF8Nullterm();
+    d.effect0 = ReadUInt16Array<7>(stream);
+    d.effect1 = ReadUInt16Array<7>(stream);
+    d.effect2 = ReadUInt16Array<7>(stream);
+    d.effect3 = ReadUInt16Array<7>(stream);
+    d.effect4 = ReadUInt16Array<7>(stream);
+    d.effect5 = ReadUInt16Array<7>(stream);
+    d.effect6 = ReadUInt16Array<7>(stream);
+    d.STR = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.DEF = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.ATS = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.ADF = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.ACC = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.EVA = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.SPD = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.MOV = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.HP = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.EP = std::bit_cast<int16_t>(stream.ReadUInt16());
+    d.d3 = stream.ReadArray<9>();
+    d.name = stream.ReadUTF8Nullterm();
+    d.desc = stream.ReadUTF8Nullterm();
+    d.d4 = stream.ReadArray<8>();
+}
+
+static void WriteItemData(const ItemData& d, HyoutaUtils::Stream::MemoryStream& ms) {
+    ms.WriteUInt16(d.idx);
+    ms.WriteUInt16(d.character);
+    ms.WriteUTF8Nullterm(d.flags);
+    WriteUInt16Array(ms, d.effect0.data(), d.effect0.size());
+    WriteUInt16Array(ms, d.effect1.data(), d.effect1.size());
+    WriteUInt16Array(ms, d.effect2.data(), d.effect2.size());
+    WriteUInt16Array(ms, d.effect3.data(), d.effect3.size());
+    WriteUInt16Array(ms, d.effect4.data(), d.effect4.size());
+    WriteUInt16Array(ms, d.effect5.data(), d.effect5.size());
+    WriteUInt16Array(ms, d.effect6.data(), d.effect6.size());
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.STR));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.DEF));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.ATS));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.ADF));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.ACC));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.EVA));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.SPD));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.MOV));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.HP));
+    ms.WriteUInt16(std::bit_cast<int16_t>(d.EP));
+    ms.Write(d.d3.data(), d.d3.size());
+    ms.WriteUTF8Nullterm(d.name);
+    ms.WriteUTF8Nullterm(d.desc);
+    ms.Write(d.d4.data(), d.d4.size());
+}
+
+ItemData::ItemData() {}
+
 ItemData::ItemData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
-    idx = stream.ReadUInt16();
-    character = stream.ReadUInt16();
-    flags = stream.ReadUTF8Nullterm();
-    effect0 = ReadUInt16Array<7>(stream);
-    effect1 = ReadUInt16Array<7>(stream);
-    effect2 = ReadUInt16Array<7>(stream);
-    effect3 = ReadUInt16Array<7>(stream);
-    effect4 = ReadUInt16Array<7>(stream);
-    effect5 = ReadUInt16Array<7>(stream);
-    effect6 = ReadUInt16Array<7>(stream);
-    stats = ReadUInt16Array<10>(stream);
-    d1 = stream.ReadArray<9>();
-    name = stream.ReadUTF8Nullterm();
-    desc = stream.ReadUTF8Nullterm();
-    const size_t dlen = dataLength - stream.GetPosition();
-    d2.resize(dlen);
-    stream.Read(d2.data(), dlen);
+    ReadItemData(*this, stream);
+    assert(dataLength == stream.GetPosition());
 }
 
 std::vector<char> ItemData::ToBinary() const {
     std::vector<char> rv;
     {
         HyoutaUtils::Stream::MemoryStream ms(rv);
-        ms.WriteUInt16(idx);
-        ms.WriteUInt16(character);
-        ms.WriteUTF8Nullterm(flags);
-        WriteUInt16Array(ms, effect0.data(), effect0.size());
-        WriteUInt16Array(ms, effect1.data(), effect1.size());
-        WriteUInt16Array(ms, effect2.data(), effect2.size());
-        WriteUInt16Array(ms, effect3.data(), effect3.size());
-        WriteUInt16Array(ms, effect4.data(), effect4.size());
-        WriteUInt16Array(ms, effect5.data(), effect5.size());
-        WriteUInt16Array(ms, effect6.data(), effect6.size());
-        WriteUInt16Array(ms, stats.data(), stats.size());
-        ms.Write(d1.data(), d1.size());
-        ms.WriteUTF8Nullterm(name);
-        ms.WriteUTF8Nullterm(desc);
-        ms.Write(d2.data(), d2.size());
+        WriteItemData(*this, ms);
+    }
+    return rv;
+}
+
+ItemQData::ItemQData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    ReadItemData(this->item, stream);
+    for (size_t i = 0; i < this->arts.size(); ++i) {
+        this->arts[i] = stream.ReadUInt16();
+    }
+    assert(dataLength == stream.GetPosition());
+}
+
+std::vector<char> ItemQData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        WriteItemData(this->item, ms);
+        for (size_t i = 0; i < this->arts.size(); ++i) {
+            ms.WriteUInt16(this->arts[i]);
+        }
     }
     return rv;
 }

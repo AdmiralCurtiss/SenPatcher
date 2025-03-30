@@ -65,13 +65,32 @@ struct ItemData {
     std::array<uint16_t, 7> effect4;
     std::array<uint16_t, 7> effect5;
     std::array<uint16_t, 7> effect6;
-    std::array<uint16_t, 10> stats;
-    std::array<char, 9> d1;
+    int16_t STR;
+    int16_t DEF;
+    int16_t ATS;
+    int16_t ADF;
+    int16_t ACC;
+    int16_t EVA;
+    int16_t SPD;
+    int16_t MOV;
+    int16_t HP;
+    int16_t EP;
+    std::array<char, 9> d3;
     std::string name;
     std::string desc;
-    std::vector<char> d2;
+    std::array<char, 8> d4;
 
+    ItemData();
     ItemData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct ItemQData {
+    ItemData item;
+    std::array<uint16_t, 6> arts;
+
+    ItemQData(const char* data, size_t dataLength);
 
     std::vector<char> ToBinary() const;
 };
