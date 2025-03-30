@@ -58,12 +58,24 @@ struct ItemData {
     uint16_t idx;
     uint16_t character;
     std::string flags;
-    std::array<char, 0x96> d1;
+    std::array<char, 2> d1;
+    uint8_t category;
+    std::array<char, 0x93> d2;
     std::string name;
     std::string desc;
-    std::vector<char> d2;
+    std::array<char, 8> d3;
 
+    ItemData();
     ItemData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
+struct ItemQData {
+    ItemData item;
+    std::array<uint16_t, 6> arts;
+
+    ItemQData(const char* data, size_t dataLength);
 
     std::vector<char> ToBinary() const;
 };

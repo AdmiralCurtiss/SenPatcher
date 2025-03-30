@@ -110,30 +110,64 @@ std::vector<char> TextTableData::ToBinary() const {
     return rv;
 }
 
+static void ReadItemData(ItemData& d, HyoutaUtils::Stream::DuplicatableByteArrayStream& stream) {
+    d.idx = stream.ReadUInt16();
+    d.character = stream.ReadUInt16();
+    d.flags = stream.ReadUTF8Nullterm();
+    d.d1 = stream.ReadArray<2>();
+    d.category = stream.ReadUInt8();
+    d.d2 = stream.ReadArray<0x93>();
+    d.name = stream.ReadUTF8Nullterm();
+    d.desc = stream.ReadUTF8Nullterm();
+    d.d3 = stream.ReadArray<8>();
+}
+
+static void WriteItemData(const ItemData& d, HyoutaUtils::Stream::MemoryStream& ms) {
+    ms.WriteUInt16(d.idx);
+    ms.WriteUInt16(d.character);
+    ms.WriteUTF8Nullterm(d.flags);
+    ms.Write(d.d1.data(), d.d1.size());
+    ms.WriteUInt8(d.category);
+    ms.Write(d.d2.data(), d.d2.size());
+    ms.WriteUTF8Nullterm(d.name);
+    ms.WriteUTF8Nullterm(d.desc);
+    ms.Write(d.d3.data(), d.d3.size());
+}
+
+ItemData::ItemData() {}
+
 ItemData::ItemData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
-    idx = stream.ReadUInt16();
-    character = stream.ReadUInt16();
-    flags = stream.ReadUTF8Nullterm();
-    d1 = stream.ReadArray<0x96>();
-    name = stream.ReadUTF8Nullterm();
-    desc = stream.ReadUTF8Nullterm();
-    const size_t dlen = dataLength - stream.GetPosition();
-    d2.resize(dlen);
-    stream.Read(d2.data(), dlen);
+    ReadItemData(*this, stream);
+    assert(dataLength == stream.GetPosition());
 }
 
 std::vector<char> ItemData::ToBinary() const {
     std::vector<char> rv;
     {
         HyoutaUtils::Stream::MemoryStream ms(rv);
-        ms.WriteUInt16(idx);
-        ms.WriteUInt16(character);
-        ms.WriteUTF8Nullterm(flags);
-        ms.Write(d1.data(), d1.size());
-        ms.WriteUTF8Nullterm(name);
-        ms.WriteUTF8Nullterm(desc);
-        ms.Write(d2.data(), d2.size());
+        WriteItemData(*this, ms);
+    }
+    return rv;
+}
+
+ItemQData::ItemQData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    ReadItemData(this->item, stream);
+    for (size_t i = 0; i < this->arts.size(); ++i) {
+        this->arts[i] = stream.ReadUInt16();
+    }
+    assert(dataLength == stream.GetPosition());
+}
+
+std::vector<char> ItemQData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        WriteItemData(this->item, ms);
+        for (size_t i = 0; i < this->arts.size(); ++i) {
+            ms.WriteUInt16(this->arts[i]);
+        }
     }
     return rv;
 }

@@ -17,6 +17,45 @@ __declspec(dllexport) char SenPatcherFix_0_magic[] = "Fix errors in craft descri
 }
 
 namespace SenLib::Sen4::FileFixes::t_item_magic {
+static bool AdjustSpacingForBracketed(std::string& s) {
+    // does this start with a '['?
+    bool shouldAdjust = !s.empty() && s[0] == '[';
+    if (!shouldAdjust) {
+        return false;
+    }
+
+    std::string out;
+
+    size_t idx = 0;
+    while (idx < s.size()) {
+        if (s[idx] == '\n') {
+            // go to next line
+            out += "\n  ";
+
+            ++idx;
+            while (idx < s.size()) {
+                if (s[idx] == ' ') {
+                    ++idx;
+                } else {
+                    break;
+                }
+            }
+
+            // resume standard text handling
+        } else {
+            out += s[idx];
+            ++idx;
+        }
+    }
+
+    if (out == s) {
+        return false;
+    }
+
+    s = std::move(out);
+    return true;
+}
+
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
@@ -951,6 +990,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             }
         }
 
+        // normalize newlines
+        for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
+            auto& e = tbl_en.Entries[i];
+            if (e.Name == "magic") {
+                MagicData m(e.Data.data(), e.Data.size());
+                if (AdjustSpacingForBracketed(m.desc)) {
+                    e.Data = m.ToBinary();
+                }
+            }
+        }
+
         // =============== magic done, item next ===============
 
         // Tasty Potato Chowder
@@ -965,36 +1015,38 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // Seraph
         {
             auto& e = tbl_item_en.Entries[1211];
-            ItemData m(e.Data.data(), e.Data.size());
+            ItemQData m(e.Data.data(), e.Data.size());
             // inconsistent formatting
-            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 61, 1);
-            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 112, 2, "/", 0, 1);
-            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 127, 1);
+            m.item.desc = HyoutaUtils::TextUtils::Remove(m.item.desc, 61, 1);
+            m.item.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.item.desc, 112, 2, "/", 0, 1);
+            m.item.desc = HyoutaUtils::TextUtils::Remove(m.item.desc, 127, 1);
             e.Data = m.ToBinary();
         }
 
         // Luck
         {
             auto& e = tbl_item_en.Entries[1198];
-            ItemData m(e.Data.data(), e.Data.size());
+            ItemQData m(e.Data.data(), e.Data.size());
             // inconsistent formatting
-            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 59, 1);
+            m.item.desc = HyoutaUtils::TextUtils::Remove(m.item.desc, 59, 1);
             e.Data = m.ToBinary();
         }
 
         // Bluster
         {
             auto& e = tbl_item_en.Entries[1118];
-            ItemData m(e.Data.data(), e.Data.size());
-            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 97, 1); // 1 more turns -> 1 more turn
+            ItemQData m(e.Data.data(), e.Data.size());
+            m.item.desc =
+                HyoutaUtils::TextUtils::Remove(m.item.desc, 97, 1); // 1 more turns -> 1 more turn
             e.Data = m.ToBinary();
         }
 
         // Aeolus Gem
         {
             auto& e = tbl_item_en.Entries[1134];
-            ItemData m(e.Data.data(), e.Data.size());
-            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 125, 1); // 1 more turns -> 1 more turn
+            ItemQData m(e.Data.data(), e.Data.size());
+            m.item.desc =
+                HyoutaUtils::TextUtils::Remove(m.item.desc, 125, 1); // 1 more turns -> 1 more turn
             e.Data = m.ToBinary();
         }
 
@@ -1004,6 +1056,22 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             ItemData m(e.Data.data(), e.Data.size());
             m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 25, " "); // missing space before parens
             e.Data = m.ToBinary();
+        }
+
+        // normalize newlines
+        for (size_t i = 0; i < tbl_item_en.Entries.size(); ++i) {
+            auto& e = tbl_item_en.Entries[i];
+            if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                if (m.category != 0xc5 && AdjustSpacingForBracketed(m.desc)) {
+                    e.Data = m.ToBinary();
+                }
+            } else if (e.Name == "item_q") {
+                ItemQData m(e.Data.data(), e.Data.size());
+                if (AdjustSpacingForBracketed(m.item.desc)) {
+                    e.Data = m.ToBinary();
+                }
+            }
         }
 
         // =============== finalize ===============
