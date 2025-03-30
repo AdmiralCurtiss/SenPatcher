@@ -836,6 +836,28 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Breath, Holy Breath: "Heals HP" -> "Restores HP" (consistency)
+        {
+            auto& e = tbl_en.Entries[43];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 40, 5, "Restores");
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_en.Entries[44];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 40, 5, "Restores");
+            e.Data = m.ToBinary();
+        }
+
+        // Frozen Epoch: Power is 5S, not 5S+
+        {
+            auto& e = tbl_en.Entries[67];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 50, 1);
+            e.Data = m.ToBinary();
+        }
+
         // Galion Fort: "(4 turns)" instead of "for 4 turns" like all the other Reverie descriptions
         {
             auto& e = tbl_en.Entries[59];
@@ -918,6 +940,108 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Morning Moon: Sync formatting with CS4
+        {
+            auto& e = tbl_en.Entries[630];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 54, 1, "e");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 60, 3, "and c");
+            m.desc = HyoutaUtils::TextUtils::MoveSubstring(m.desc, 26, 39, 6);
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 34, "from one ");
+            e.Data = m.ToBinary();
+        }
+
+        // Supreme Twilit Blades: Missing spaces.
+        {
+            auto& e = tbl_en.Entries[229];
+            MagicData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 101, " ");
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 89, " ");
+            e.Data = m.ToBinary();
+        }
+
+        // "Random Ailment" -> "Random abnormality" for consistency
+        for (int idx : {423, 426, 509, 510}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto pos = m.desc.find("Ailment");
+            if (pos != std::string::npos) {
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, pos, 7, "abnormality");
+            }
+            e.Data = m.ToBinary();
+        }
+
+        // "Removes Positive Effects" -> "Removes positive effects" for consistency
+        for (int idx : {93, 96, 511, 518, 522, 524, 525, 526, 529, 531, 532}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto pos = m.desc.find("Pos");
+            if (pos != std::string::npos) {
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, pos, 1, "p");
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, pos + 9, 1, "e");
+            }
+            e.Data = m.ToBinary();
+        }
+
+        // "Removes Positive Stats" -> "Removes positive effects" for consistency
+        for (int idx : {436, 437}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto pos = m.desc.find("Pos");
+            if (pos != std::string::npos) {
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, pos, 1, "p");
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, pos + 9, 5, "effects");
+            }
+            e.Data = m.ToBinary();
+        }
+
+        // Heavenly Gift 2/3, Celestia Rain: Squish description because it's pretty long
+        for (int idx : {99, 102, 411}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto pos = m.desc.find('\n');
+            if (pos != std::string::npos) {
+                m.desc = HyoutaUtils::TextUtils::Insert(m.desc, pos + 1, "#0L");
+            }
+            m.desc = "#90L" + m.desc;
+            e.Data = m.ToBinary();
+        }
+
+        // Aura Rain: Needs more squish.
+        for (int idx : {410}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto pos = m.desc.find('\n');
+            if (pos != std::string::npos) {
+                m.desc = HyoutaUtils::TextUtils::Insert(m.desc, pos + 1, "#0L");
+            }
+            m.desc = "#80L" + m.desc;
+            e.Data = m.ToBinary();
+        }
+
+        // Rosetta Arrow/2, : Needs less squish
+        for (int idx : {97, 100}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto pos = m.desc.find('\n');
+            if (pos != std::string::npos) {
+                m.desc = HyoutaUtils::TextUtils::Insert(m.desc, pos + 1, "#0L");
+            }
+            m.desc = "#95L" + m.desc;
+            e.Data = m.ToBinary();
+        }
+
+        // Remedy Fantasia 2/3: These are already squished but not enough
+        for (int idx : {113, 114}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            size_t where = 1;
+            if (TryParseLengthCode(m.desc, where)) {
+                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 1, where - 2, "85");
+                e.Data = m.ToBinary();
+            }
+        }
+
         const auto find_for_x_turns =
             [](std::string_view s, size_t offset, size_t& out_pos, size_t& out_len) -> bool {
             for (size_t i = offset; i < s.size(); ++i) {
@@ -988,6 +1112,39 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                 if (slash != std::string::npos) {
                     m.desc =
                         HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, slash, 1, "#0C - #11C");
+                    e.Data = m.ToBinary();
+                }
+            }
+        }
+
+        // Split cases like "Impede/Burn (100%)" to "Impede (100%) - Burn (100%)"
+        for (int idx : {145, 164, 225}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto slash = m.desc.find('/');
+            if (slash != std::string::npos) {
+                m.desc =
+                    HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, slash, 1, " (100%)#0C - #11C");
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // Split cases like "Impede (100%) Burn (20%)" to "Impede (100%) - Burn (20%)"
+        for (int idx : {160, 229, 453}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            MagicData m(e.Data.data(), e.Data.size());
+            auto firstPercentage = m.desc.find("%)");
+            if (firstPercentage != std::string::npos) {
+                auto next = std::string_view(m.desc).substr(firstPercentage + 2);
+                size_t drop = 0;
+                if (next.starts_with("#0C #11C")) {
+                    drop = 8;
+                } else if (next.starts_with(" ")) {
+                    drop = 1;
+                }
+                if (drop > 0) {
+                    m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(
+                        m.desc, firstPercentage + 2, drop, "#0C - #11C");
                     e.Data = m.ToBinary();
                 }
             }
