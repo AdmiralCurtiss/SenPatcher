@@ -57,7 +57,20 @@ struct ItemData {
     uint16_t idx;
     uint16_t character;
     std::string flags;
-    std::array<char, 141> d1;
+    std::array<char, 3> d1;
+    uint8_t rarity;
+    std::array<char, 85> d2;
+    int32_t STR;
+    int32_t DEF;
+    int32_t ATS;
+    int32_t ADF;
+    int32_t ACC;
+    int32_t EVA;
+    int32_t SPD;
+    int32_t MOV;
+    int32_t HP;
+    int32_t EP;
+    std::array<char, 12> d3;
     std::string name;
     std::string desc;
 
@@ -78,7 +91,8 @@ struct ItemEData {
 
 struct ItemQData {
     ItemData item;
-    std::array<char, 22> q;
+    std::array<char, 10> q;
+    std::array<uint16_t, 6> arts;
 
     ItemQData(const char* data, size_t dataLength);
 

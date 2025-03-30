@@ -1,5 +1,6 @@
 #include "tbl.h"
 
+#include <bit>
 #include <cassert>
 #include <cstdint>
 #include <string>
@@ -98,7 +99,20 @@ static void ReadItemData(ItemData& d, HyoutaUtils::Stream::DuplicatableByteArray
     d.idx = stream.ReadUInt16();
     d.character = stream.ReadUInt16();
     d.flags = stream.ReadUTF8Nullterm();
-    d.d1 = stream.ReadArray<141>();
+    d.d1 = stream.ReadArray<3>();
+    d.rarity = stream.ReadUInt8();
+    d.d2 = stream.ReadArray<85>();
+    d.STR = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.DEF = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.ATS = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.ADF = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.ACC = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.EVA = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.SPD = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.MOV = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.HP = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.EP = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.d3 = stream.ReadArray<12>();
     d.name = stream.ReadUTF8Nullterm();
     d.desc = stream.ReadUTF8Nullterm();
 }
@@ -108,6 +122,19 @@ static void WriteItemData(const ItemData& d, HyoutaUtils::Stream::MemoryStream& 
     ms.WriteUInt16(d.character);
     ms.WriteUTF8Nullterm(d.flags);
     ms.Write(d.d1.data(), d.d1.size());
+    ms.WriteUInt8(d.rarity);
+    ms.Write(d.d2.data(), d.d2.size());
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.STR));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.DEF));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.ATS));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.ADF));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.ACC));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.EVA));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.SPD));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.MOV));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.HP));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.EP));
+    ms.Write(d.d3.data(), d.d3.size());
     ms.WriteUTF8Nullterm(d.name);
     ms.WriteUTF8Nullterm(d.desc);
 }
@@ -149,7 +176,10 @@ std::vector<char> ItemEData::ToBinary() const {
 ItemQData::ItemQData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     ReadItemData(this->item, stream);
-    this->q = stream.ReadArray<22>();
+    this->q = stream.ReadArray<10>();
+    for (size_t i = 0; i < this->arts.size(); ++i) {
+        this->arts[i] = stream.ReadUInt16();
+    }
     assert(dataLength == stream.GetPosition());
 }
 
@@ -159,6 +189,9 @@ std::vector<char> ItemQData::ToBinary() const {
         HyoutaUtils::Stream::MemoryStream ms(rv);
         WriteItemData(this->item, ms);
         ms.Write(this->q.data(), this->q.size());
+        for (size_t i = 0; i < this->arts.size(); ++i) {
+            ms.WriteUInt16(this->arts[i]);
+        }
     }
     return rv;
 }

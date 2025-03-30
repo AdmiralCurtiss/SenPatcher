@@ -956,8 +956,7 @@ set(SOURCES_CS4_FIXES
 )
 
 set(SOURCES_REVERIE_FIXES
-	sen5/file_fixes/t_item.cpp
-	sen5/file_fixes/t_magic.cpp
+	sen5/file_fixes/t_item_magic.cpp
 	sen5/file_fixes/t_notecook.cpp
 	sen5/file_fixes/t_text.cpp
 	sen5/file_fixes.cpp
