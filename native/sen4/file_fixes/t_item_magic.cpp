@@ -1058,6 +1058,302 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // sync the magic descriptions onto the base quartzes that give that magic
+        struct ItemMagicSync {
+            uint16_t Item;
+            uint16_t Magic;
+        };
+        // for (size_t i = 0; i < tbl_item_en.Entries.size(); ++i) {
+        //     auto& e = tbl_item_en.Entries[i];
+        //     if (e.Name == "item_q") {
+        //         ItemQData m(e.Data.data(), e.Data.size());
+        //         if (m.arts[0] != 0xffffu && m.arts[1] == 0xffffu && m.arts[2] == 0xffffu
+        //             && m.arts[3] == 0xffffu && m.arts[4] == 0xffffu && m.arts[5] == 0xffffu) {
+        //             for (size_t j = 0; j < tbl_en.Entries.size(); ++j) {
+        //                 auto& e2 = tbl_en.Entries[j];
+        //                 if (e2.Name == "magic") {
+        //                     MagicData m2(e2.Data.data(), e2.Data.size());
+        //                     if (m2.idx == m.arts[0]) {
+        //                         printf("ItemMagicSync{.Item = %zu, .Magic = %zu}, // %s / %s\n",
+        //                                i,
+        //                                j,
+        //                                m.item.name.c_str(),
+        //                                m2.name.c_str());
+        //                         break;
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        static constexpr std::array syncArray = {
+            ItemMagicSync{.Item = 942, .Magic = 13},  // Needle Shoot / Needle Shoot
+            ItemMagicSync{.Item = 943, .Magic = 14},  // Ivy Nail / Ivy Nail
+            ItemMagicSync{.Item = 944, .Magic = 15},  // Megalith Fall / Megalith Fall
+            ItemMagicSync{.Item = 945, .Magic = 16},  // Gravion Hammer / Gravion Hammer
+            ItemMagicSync{.Item = 946, .Magic = 18},  // Crest / Crest
+            ItemMagicSync{.Item = 947, .Magic = 19},  // La Crest / La Crest
+            ItemMagicSync{.Item = 948, .Magic = 17},  // Earth Pulse / Earth Pulse
+            ItemMagicSync{.Item = 949, .Magic = 20},  // Adamantine Shield / Adamantine Shield
+            ItemMagicSync{.Item = 955, .Magic = 13},  // Needle Shoot R / Needle Shoot
+            ItemMagicSync{.Item = 956, .Magic = 14},  // Ivy Nail R / Ivy Nail
+            ItemMagicSync{.Item = 957, .Magic = 15},  // Megalith Fall R / Megalith Fall
+            ItemMagicSync{.Item = 958, .Magic = 16},  // Gravion Hammer R / Gravion Hammer
+            ItemMagicSync{.Item = 959, .Magic = 18},  // Crest R / Crest
+            ItemMagicSync{.Item = 960, .Magic = 19},  // La Crest R / La Crest
+            ItemMagicSync{.Item = 961, .Magic = 17},  // Earth Pulse R / Earth Pulse
+            ItemMagicSync{.Item = 962, .Magic = 20},  // Adamantine Shield R / Adamantine Shield
+            ItemMagicSync{.Item = 971, .Magic = 13},  // Needle Shoot SR / Needle Shoot
+            ItemMagicSync{.Item = 972, .Magic = 14},  // Ivy Nail SR / Ivy Nail
+            ItemMagicSync{.Item = 973, .Magic = 15},  // Megalith Fall SR / Megalith Fall
+            ItemMagicSync{.Item = 974, .Magic = 16},  // Gravion Hammer SR / Gravion Hammer
+            ItemMagicSync{.Item = 975, .Magic = 18},  // Crest SR / Crest
+            ItemMagicSync{.Item = 976, .Magic = 19},  // La Crest SR / La Crest
+            ItemMagicSync{.Item = 977, .Magic = 17},  // Earth Pulse SR / Earth Pulse
+            ItemMagicSync{.Item = 978, .Magic = 20},  // Adamantine Shield SR / Adamantine Shield
+            ItemMagicSync{.Item = 990, .Magic = 21},  // Aqua Bleed / Aqua Bleed
+            ItemMagicSync{.Item = 991, .Magic = 22},  // Crystal Edge / Crystal Edge
+            ItemMagicSync{.Item = 992, .Magic = 23},  // Blue Ascension / Blue Ascension
+            ItemMagicSync{.Item = 993, .Magic = 24},  // Diamond Nova / Diamond Nova
+            ItemMagicSync{.Item = 994, .Magic = 25},  // Tear / Tear
+            ItemMagicSync{.Item = 995, .Magic = 26},  // Teara / Teara
+            ItemMagicSync{.Item = 996, .Magic = 27},  // Tearal / Tearal
+            ItemMagicSync{.Item = 997, .Magic = 28},  // Curia / Curia
+            ItemMagicSync{.Item = 998, .Magic = 29},  // Thelas / Thelas
+            ItemMagicSync{.Item = 999, .Magic = 30},  // Athelas / Athelas
+            ItemMagicSync{.Item = 1005, .Magic = 21}, // Aqua Bleed R / Aqua Bleed
+            ItemMagicSync{.Item = 1006, .Magic = 22}, // Crystal Edge R / Crystal Edge
+            ItemMagicSync{.Item = 1007, .Magic = 23}, // Blue Ascension R / Blue Ascension
+            ItemMagicSync{.Item = 1008, .Magic = 24}, // Diamond Nova R / Diamond Nova
+            ItemMagicSync{.Item = 1009, .Magic = 25}, // Tear R / Tear
+            ItemMagicSync{.Item = 1010, .Magic = 26}, // Teara R / Teara
+            ItemMagicSync{.Item = 1011, .Magic = 27}, // Tearal R / Tearal
+            ItemMagicSync{.Item = 1012, .Magic = 28}, // Curia R / Curia
+            ItemMagicSync{.Item = 1013, .Magic = 29}, // Thelas R / Thelas
+            ItemMagicSync{.Item = 1014, .Magic = 30}, // Athelas R / Athelas
+            ItemMagicSync{.Item = 1023, .Magic = 21}, // Aqua Bleed SR / Aqua Bleed
+            ItemMagicSync{.Item = 1024, .Magic = 22}, // Crystal Edge SR / Crystal Edge
+            ItemMagicSync{.Item = 1025, .Magic = 23}, // Blue Ascension SR / Blue Ascension
+            ItemMagicSync{.Item = 1026, .Magic = 24}, // Diamond Nova SR / Diamond Nova
+            ItemMagicSync{.Item = 1027, .Magic = 25}, // Tear SR / Tear
+            ItemMagicSync{.Item = 1028, .Magic = 26}, // Teara SR / Teara
+            ItemMagicSync{.Item = 1029, .Magic = 27}, // Tearal SR / Tearal
+            ItemMagicSync{.Item = 1030, .Magic = 28}, // Curia SR / Curia
+            ItemMagicSync{.Item = 1031, .Magic = 29}, // Thelas SR / Thelas
+            ItemMagicSync{.Item = 1032, .Magic = 30}, // Athelas SR / Athelas
+            ItemMagicSync{.Item = 1044, .Magic = 31}, // Fire Bolt / Fire Bolt
+            ItemMagicSync{.Item = 1045, .Magic = 32}, // Venom Flame / Venom Flame
+            ItemMagicSync{.Item = 1046, .Magic = 33}, // Flare Butterfly / Flare Butterfly
+            ItemMagicSync{.Item = 1047, .Magic = 34}, // Zeruel Cannon / Zeruel Cannon
+            ItemMagicSync{.Item = 1048, .Magic = 36}, // Forte / Forte
+            ItemMagicSync{.Item = 1049, .Magic = 37}, // La Forte / La Forte
+            ItemMagicSync{.Item = 1050, .Magic = 38}, // Heat Up / Heat Up
+            ItemMagicSync{.Item = 1051, .Magic = 35}, // Impassion / Impassion
+            ItemMagicSync{.Item = 1057, .Magic = 31}, // Fire Bolt R / Fire Bolt
+            ItemMagicSync{.Item = 1058, .Magic = 32}, // Venom Flame R / Venom Flame
+            ItemMagicSync{.Item = 1059, .Magic = 33}, // Flare Butterfly R / Flare Butterfly
+            ItemMagicSync{.Item = 1060, .Magic = 34}, // Zeruel Cannon R / Zeruel Cannon
+            ItemMagicSync{.Item = 1061, .Magic = 36}, // Forte R / Forte
+            ItemMagicSync{.Item = 1062, .Magic = 37}, // La Forte R / La Forte
+            ItemMagicSync{.Item = 1063, .Magic = 38}, // Heat Up R / Heat Up
+            ItemMagicSync{.Item = 1064, .Magic = 35}, // Impassion R / Impassion
+            ItemMagicSync{.Item = 1073, .Magic = 31}, // Fire Bolt SR / Fire Bolt
+            ItemMagicSync{.Item = 1074, .Magic = 32}, // Venom Flame SR / Venom Flame
+            ItemMagicSync{.Item = 1075, .Magic = 33}, // Flare Butterfly SR / Flare Butterfly
+            ItemMagicSync{.Item = 1076, .Magic = 34}, // Zeruel Cannon SR / Zeruel Cannon
+            ItemMagicSync{.Item = 1077, .Magic = 36}, // Forte SR / Forte
+            ItemMagicSync{.Item = 1078, .Magic = 37}, // La Forte SR / La Forte
+            ItemMagicSync{.Item = 1079, .Magic = 38}, // Heat Up SR / Heat Up
+            ItemMagicSync{.Item = 1080, .Magic = 35}, // Impassion SR / Impassion
+            ItemMagicSync{.Item = 1092, .Magic = 39}, // Air Strike / Air Strike
+            ItemMagicSync{.Item = 1093, .Magic = 40}, // Nemesis Arrow / Nemesis Arrow
+            ItemMagicSync{.Item = 1094, .Magic = 41}, // Aerial Dust / Aerial Dust
+            ItemMagicSync{.Item = 1095, .Magic = 42}, // Ixion Volt / Ixion Volt
+            ItemMagicSync{.Item = 1096, .Magic = 43}, // Breath / Breath
+            ItemMagicSync{.Item = 1097, .Magic = 44}, // Holy Breath / Holy Breath
+            ItemMagicSync{.Item = 1098, .Magic = 45}, // Recuria / Recuria
+            ItemMagicSync{.Item = 1104, .Magic = 39}, // Air Strike R / Air Strike
+            ItemMagicSync{.Item = 1105, .Magic = 40}, // Nemesis Arrow R / Nemesis Arrow
+            ItemMagicSync{.Item = 1106, .Magic = 41}, // Aerial Dust R / Aerial Dust
+            ItemMagicSync{.Item = 1107, .Magic = 42}, // Ixion Volt R / Ixion Volt
+            ItemMagicSync{.Item = 1108, .Magic = 43}, // Breath R / Breath
+            ItemMagicSync{.Item = 1109, .Magic = 44}, // Holy Breath R / Holy Breath
+            ItemMagicSync{.Item = 1110, .Magic = 45}, // Recuria R / Recuria
+            ItemMagicSync{.Item = 1119, .Magic = 39}, // Air Strike SR / Air Strike
+            ItemMagicSync{.Item = 1120, .Magic = 40}, // Nemesis Arrow SR / Nemesis Arrow
+            ItemMagicSync{.Item = 1121, .Magic = 41}, // Aerial Dust SR / Aerial Dust
+            ItemMagicSync{.Item = 1122, .Magic = 42}, // Ixion Volt SR / Ixion Volt
+            ItemMagicSync{.Item = 1123, .Magic = 43}, // Breath SR / Breath
+            ItemMagicSync{.Item = 1124, .Magic = 44}, // Holy Breath SR / Holy Breath
+            ItemMagicSync{.Item = 1125, .Magic = 45}, // Recuria SR / Recuria
+            ItemMagicSync{.Item = 1137, .Magic = 46}, // Soul Blur / Soul Blur
+            ItemMagicSync{.Item = 1138, .Magic = 47}, // Calvary Edge / Calvary Edge
+            ItemMagicSync{.Item = 1139, .Magic = 48}, // Lost Genesis / Lost Genesis
+            ItemMagicSync{.Item = 1140, .Magic = 49}, // Chrono Drive / Chrono Drive
+            ItemMagicSync{.Item = 1141, .Magic = 50}, // Chrono Break / Chrono Break
+            ItemMagicSync{.Item = 1142, .Magic = 51}, // Chrono Burst / Chrono Burst
+            ItemMagicSync{.Item = 1147, .Magic = 46}, // Soul Blur R / Soul Blur
+            ItemMagicSync{.Item = 1148, .Magic = 47}, // Calvary Edge R / Calvary Edge
+            ItemMagicSync{.Item = 1149, .Magic = 48}, // Lost Genesis R / Lost Genesis
+            ItemMagicSync{.Item = 1150, .Magic = 49}, // Chrono Drive R / Chrono Drive
+            ItemMagicSync{.Item = 1151, .Magic = 50}, // Chrono Break R / Chrono Break
+            ItemMagicSync{.Item = 1152, .Magic = 51}, // Chrono Burst R / Chrono Burst
+            ItemMagicSync{.Item = 1160, .Magic = 46}, // Soul Blur SR / Soul Blur
+            ItemMagicSync{.Item = 1161, .Magic = 47}, // Calvary Edge SR / Calvary Edge
+            ItemMagicSync{.Item = 1162, .Magic = 48}, // Lost Genesis SR / Lost Genesis
+            ItemMagicSync{.Item = 1163, .Magic = 49}, // Chrono Drive SR / Chrono Drive
+            ItemMagicSync{.Item = 1164, .Magic = 50}, // Chrono Break SR / Chrono Break
+            ItemMagicSync{.Item = 1165, .Magic = 51}, // Chrono Burst SR / Chrono Burst
+            ItemMagicSync{.Item = 1176, .Magic = 52}, // Golden Sphere / Golden Sphere
+            ItemMagicSync{.Item = 1177, .Magic = 53}, // Cross Crusade / Cross Crusade
+            ItemMagicSync{.Item = 1178, .Magic = 54}, // Seventh Caliber / Seventh Caliber
+            ItemMagicSync{.Item = 1179, .Magic = 55}, // Fortuna / Fortuna
+            ItemMagicSync{.Item = 1180, .Magic = 56}, // Shining / Shining
+            ItemMagicSync{.Item = 1181, .Magic = 57}, // Seraphic Ring / Seraphic Ring
+            ItemMagicSync{.Item = 1186, .Magic = 52}, // Golden Sphere R / Golden Sphere
+            ItemMagicSync{.Item = 1187, .Magic = 53}, // Cross Crusade R / Cross Crusade
+            ItemMagicSync{.Item = 1188, .Magic = 54}, // Seventh Caliber R / Seventh Caliber
+            ItemMagicSync{.Item = 1189, .Magic = 55}, // Fortuna R / Fortuna
+            ItemMagicSync{.Item = 1190, .Magic = 56}, // Shining R / Shining
+            ItemMagicSync{.Item = 1191, .Magic = 57}, // Seraphic Ring R / Seraphic Ring
+            ItemMagicSync{.Item = 1199, .Magic = 52}, // Golden Sphere SR / Golden Sphere
+            ItemMagicSync{.Item = 1200, .Magic = 53}, // Cross Crusade SR / Cross Crusade
+            ItemMagicSync{.Item = 1201, .Magic = 54}, // Seventh Caliber SR / Seventh Caliber
+            ItemMagicSync{.Item = 1202, .Magic = 55}, // Fortuna SR / Fortuna
+            ItemMagicSync{.Item = 1203, .Magic = 56}, // Shining SR / Shining
+            ItemMagicSync{.Item = 1204, .Magic = 57}, // Seraphic Ring SR / Seraphic Ring
+            ItemMagicSync{.Item = 1216, .Magic = 58}, // Silver Thorn / Silver Thorn
+            ItemMagicSync{.Item = 1217, .Magic = 59}, // Galion Fort / Galion Fort
+            ItemMagicSync{.Item = 1218, .Magic = 60}, // Albion Wolf / Albion Wolf
+            ItemMagicSync{.Item = 1219, .Magic = 61}, // Analyze / Analyze
+            ItemMagicSync{.Item = 1220, .Magic = 62}, // Saintly Force / Saintly Force
+            ItemMagicSync{.Item = 1221, .Magic = 63}, // Crescent Mirror / Crescent Mirror
+            ItemMagicSync{.Item = 1226, .Magic = 58}, // Silver Thorn R / Silver Thorn
+            ItemMagicSync{.Item = 1227, .Magic = 59}, // Galion Fort R / Galion Fort
+            ItemMagicSync{.Item = 1228, .Magic = 60}, // Albion Wolf R / Albion Wolf
+            ItemMagicSync{.Item = 1229, .Magic = 61}, // Analyze R / Analyze
+            ItemMagicSync{.Item = 1230, .Magic = 62}, // Saintly Force R / Saintly Force
+            ItemMagicSync{.Item = 1231, .Magic = 63}, // Crescent Mirror R / Crescent Mirror
+            ItemMagicSync{.Item = 1240, .Magic = 58}, // Silver Thorn SR / Silver Thorn
+            ItemMagicSync{.Item = 1241, .Magic = 59}, // Galion Fort SR / Galion Fort
+            ItemMagicSync{.Item = 1242, .Magic = 60}, // Albion Wolf SR / Albion Wolf
+            ItemMagicSync{.Item = 1243, .Magic = 61}, // Analyze SR / Analyze
+            ItemMagicSync{.Item = 1244, .Magic = 62}, // Saintly Force SR / Saintly Force
+            ItemMagicSync{.Item = 1245, .Magic = 63}, // Crescent Mirror SR / Crescent Mirror
+            ItemMagicSync{.Item = 1257, .Magic = 64}, // Prominence Nova / Prominence Nova
+            ItemMagicSync{.Item = 1258, .Magic = 65}, // Leanan's Kiss / Leanan's Kiss
+            ItemMagicSync{.Item = 1259, .Magic = 66}, // Grail Thelas / Grail Thelas
+            ItemMagicSync{.Item = 1260, .Magic = 67}, // Frozen Epoch / Frozen Epoch
+            ItemMagicSync{.Item = 1261, .Magic = 68}, // Aeonian Emperor / Aeonian Emperor
+        };
+        for (const ItemMagicSync& info : syncArray) {
+            auto& e = tbl_en.Entries[info.Magic];
+            auto& e2 = tbl_item_en.Entries[info.Item];
+            MagicData m(e.Data.data(), e.Data.size());
+            ItemQData m2(e2.Data.data(), e2.Data.size());
+
+            std::string desc = m.desc;
+            // not sure what designates rarity in CS4 so just use the name...
+            if (m2.item.name.ends_with(" R") || m2.item.name.ends_with(" SR")) {
+                auto img = desc.find('I');
+                if (img == std::string::npos) {
+                    continue;
+                }
+                desc = HyoutaUtils::TextUtils::Insert(
+                    desc, img + 1, m2.item.name.ends_with(" R") ? "(R)" : "(SR)");
+            }
+            if (m2.item.HP != 0 || m2.item.EP != 0 || m2.item.STR != 0 || m2.item.DEF != 0
+                || m2.item.ATS != 0 || m2.item.ADF != 0 || m2.item.SPD != 0 || m2.item.MOV != 0
+                || m2.item.ACC != 0 || m2.item.EVA != 0) {
+                auto newline = desc.find('\n');
+                if (newline == std::string::npos) {
+                    continue;
+                }
+                std::array<int32_t, 10> statArray{m2.item.HP,
+                                                  m2.item.EP,
+                                                  m2.item.STR,
+                                                  m2.item.DEF,
+                                                  m2.item.ATS,
+                                                  m2.item.ADF,
+                                                  m2.item.SPD,
+                                                  m2.item.MOV,
+                                                  m2.item.ACC,
+                                                  m2.item.EVA};
+                static constexpr std::array<const char*, 10> statNames{
+                    "HP", "EP", "STR", "DEF", "ATS", "ADF", "SPD", "MOV", "ACC", "EVA"};
+
+                bool first = true;
+                std::string stats = "(";
+                // HP+EP may combine
+                for (size_t i = 0; i < 2; ++i) {
+                    if (statArray[i] != 0) {
+                        if (!first) {
+                            stats += "/";
+                        }
+                        stats += statNames[i];
+                        // vanilla CS4 doesn't combine here
+                        // for (size_t j = i + 1; j < 2; ++j) {
+                        //     if (statArray[i] == statArray[j]) {
+                        //         stats += "\xEF\xBD\xA5";
+                        //         stats += statNames[j];
+                        //         statArray[j] = 0;
+                        //     }
+                        // }
+                        stats += "+";
+                        stats += std::to_string(statArray[i]);
+                        first = false;
+                    }
+                }
+                // STR+DEF+ATS+ADF+SPD+MOV may combine
+                for (size_t i = 2; i < 8; ++i) {
+                    if (statArray[i] != 0) {
+                        if (!first) {
+                            stats += "/";
+                        }
+                        stats += statNames[i];
+                        // vanilla CS4 doesn't combine here
+                        // for (size_t j = i + 1; j < 8; ++j) {
+                        //     if (statArray[i] == statArray[j]) {
+                        //         stats += "\xEF\xBD\xA5";
+                        //         stats += statNames[j];
+                        //         statArray[j] = 0;
+                        //     }
+                        // }
+                        stats += "+";
+                        stats += std::to_string(statArray[i]);
+                        first = false;
+                    }
+                }
+                for (size_t i = 8; i < 10; ++i) {
+                    if (statArray[i] != 0) {
+                        if (!first) {
+                            stats += "/";
+                        }
+                        stats += statNames[i];
+                        stats += "+";
+                        stats += std::to_string(statArray[i]);
+                        stats += "%";
+                        first = false;
+                    }
+                }
+                stats += ") ";
+
+                // find best place to insert
+                size_t insertPos = newline + 1;
+                while (insertPos < desc.size()) {
+                    if (desc[insertPos] == ' ') {
+                        ++insertPos;
+                    } else {
+                        break;
+                    }
+                }
+                desc = HyoutaUtils::TextUtils::Insert(desc, insertPos, stats);
+            }
+
+            m2.item.desc = std::move(desc);
+            e2.Data = m2.ToBinary();
+        }
+
         // normalize newlines
         for (size_t i = 0; i < tbl_item_en.Entries.size(); ++i) {
             auto& e = tbl_item_en.Entries[i];

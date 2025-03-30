@@ -60,10 +60,21 @@ struct ItemData {
     std::string flags;
     std::array<char, 2> d1;
     uint8_t category;
-    std::array<char, 0x93> d2;
+    std::array<char, 0x61> d2;
+    int32_t STR;
+    int32_t DEF;
+    int32_t ATS;
+    int32_t ADF;
+    int32_t ACC;
+    int32_t EVA;
+    int32_t SPD;
+    int32_t MOV;
+    int32_t HP;
+    int32_t EP;
+    std::array<char, 10> d3;
     std::string name;
     std::string desc;
-    std::array<char, 8> d3;
+    std::array<char, 8> d4;
 
     ItemData();
     ItemData(const char* data, size_t dataLength);

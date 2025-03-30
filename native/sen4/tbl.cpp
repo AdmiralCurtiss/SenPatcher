@@ -1,5 +1,6 @@
 #include "tbl.h"
 
+#include <bit>
 #include <cassert>
 #include <cstdint>
 #include <string>
@@ -116,10 +117,21 @@ static void ReadItemData(ItemData& d, HyoutaUtils::Stream::DuplicatableByteArray
     d.flags = stream.ReadUTF8Nullterm();
     d.d1 = stream.ReadArray<2>();
     d.category = stream.ReadUInt8();
-    d.d2 = stream.ReadArray<0x93>();
+    d.d2 = stream.ReadArray<0x61>();
+    d.STR = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.DEF = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.ATS = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.ADF = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.ACC = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.EVA = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.SPD = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.MOV = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.HP = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.EP = std::bit_cast<int32_t>(stream.ReadUInt32());
+    d.d3 = stream.ReadArray<10>();
     d.name = stream.ReadUTF8Nullterm();
     d.desc = stream.ReadUTF8Nullterm();
-    d.d3 = stream.ReadArray<8>();
+    d.d4 = stream.ReadArray<8>();
 }
 
 static void WriteItemData(const ItemData& d, HyoutaUtils::Stream::MemoryStream& ms) {
@@ -129,9 +141,20 @@ static void WriteItemData(const ItemData& d, HyoutaUtils::Stream::MemoryStream& 
     ms.Write(d.d1.data(), d.d1.size());
     ms.WriteUInt8(d.category);
     ms.Write(d.d2.data(), d.d2.size());
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.STR));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.DEF));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.ATS));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.ADF));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.ACC));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.EVA));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.SPD));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.MOV));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.HP));
+    ms.WriteUInt32(std::bit_cast<int32_t>(d.EP));
+    ms.Write(d.d3.data(), d.d3.size());
     ms.WriteUTF8Nullterm(d.name);
     ms.WriteUTF8Nullterm(d.desc);
-    ms.Write(d.d3.data(), d.d3.size());
+    ms.Write(d.d4.data(), d.d4.size());
 }
 
 ItemData::ItemData() {}
