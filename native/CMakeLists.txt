@@ -943,8 +943,7 @@ set(SOURCES_CS3_FIXES
 set(SOURCES_CS4_FIXES
 	sen4/file_fixes/f4200_dat.cpp
 	sen4/file_fixes/m9031_dat.cpp
-	sen4/file_fixes/t_item.cpp
-	sen4/file_fixes/t_magic.cpp
+	sen4/file_fixes/t_item_magic.cpp
 	sen4/file_fixes/t_mstqrt.cpp
 	sen4/file_fixes/t_text.cpp
 	sen4/file_fixes/t3600_dat.cpp

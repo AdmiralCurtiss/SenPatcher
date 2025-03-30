@@ -25,8 +25,7 @@ static constexpr size_t Length_SenpatcherModIniDefault = sizeof(Data_SenpatcherM
 
 DECLARE_STANDARD_FIX(f4200_dat)
 DECLARE_STANDARD_FIX(m9031_dat)
-DECLARE_STANDARD_FIX(t_item)
-DECLARE_STANDARD_FIX(t_magic)
+DECLARE_STANDARD_FIX(t_item_magic)
 DECLARE_STANDARD_FIX(t_mstqrt)
 DECLARE_STANDARD_FIX(t3600_dat)
 
@@ -60,8 +59,7 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
 
     TRY_APPLY(f4200_dat, TryApply(callback, packFiles));
     TRY_APPLY(m9031_dat, TryApply(callback, packFiles));
-    TRY_APPLY(t_item, TryApply(callback, packFiles));
-    TRY_APPLY(t_magic, TryApply(callback, packFiles));
+    TRY_APPLY(t_item_magic, TryApply(callback, packFiles));
     TRY_APPLY(t_mstqrt, TryApply(callback, packFiles));
     TRY_APPLY(t_text, TryApply(callback, packFiles, allowSwitchToNightmare));
     TRY_APPLY(t3600_dat, TryApply(callback, packFiles));
