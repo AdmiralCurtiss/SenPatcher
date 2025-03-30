@@ -1233,6 +1233,22 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // =============== magic done, item next ===============
 
+        // Battle Scope: Claims All target but is One.
+        {
+            auto& e = tbl_item.Entries[31];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 16, 3, "One");
+            e.Data = m.ToBinary();
+        }
+
+        // Trinity Fizz: Claims 50 CP but is 30 CP.
+        {
+            auto& e = tbl_item.Entries[3255];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 57, 1, "3");
+            e.Data = m.ToBinary();
+        }
+
         // replace the separator dot between STR/DEF etc. with a slightly smaller one that's used by
         // the autogenerator, which looks a bit better and is consistent with the autogenerator.
         for (size_t i = 0; i < tbl_item.Entries.size(); ++i) {
@@ -1653,6 +1669,31 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         //         auto pos = m.flags.find('Z');
         //         if (pos != std::string::npos) {
         //             m.flags.erase(m.flags.begin() + pos);
+        //         }
+        //         e.Data = m.ToBinary();
+        //     }
+        // }
+        // for (size_t i = 0; i < tbl_item.Entries.size(); ++i) {
+        //     auto& e = tbl_item.Entries[i];
+        //     if (e.Name == "item") {
+        //         ItemData m(e.Data.data(), e.Data.size());
+        //         auto pos = m.flags.find('Z');
+        //         if (pos != std::string::npos) {
+        //             m.flags.erase(m.flags.begin() + pos);
+        //         }
+        //         e.Data = m.ToBinary();
+        //     } else if (e.Name == "item_q") {
+        //         ItemQData m(e.Data.data(), e.Data.size());
+        //         auto pos = m.item.flags.find('Z');
+        //         if (pos != std::string::npos) {
+        //             m.item.flags.erase(m.item.flags.begin() + pos);
+        //         }
+        //         e.Data = m.ToBinary();
+        //     } else if (e.Name == "item_e") {
+        //         ItemEData m(e.Data.data(), e.Data.size());
+        //         auto pos = m.item.flags.find('Z');
+        //         if (pos != std::string::npos) {
+        //             m.item.flags.erase(m.item.flags.begin() + pos);
         //         }
         //         e.Data = m.ToBinary();
         //     }
