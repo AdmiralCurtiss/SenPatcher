@@ -75,10 +75,9 @@ DECLARE_STANDARD_FIX(r3200_dat)
 DECLARE_STANDARD_FIX(r3430_dat)
 DECLARE_STANDARD_FIX(r4200_dat)
 DECLARE_STANDARD_FIX(r4290_dat)
-DECLARE_STANDARD_FIX(t_item)
+DECLARE_STANDARD_FIX(t_item_magic)
 DECLARE_STANDARD_FIX(t_itemhelp)
 DECLARE_STANDARD_FIX(t_jump)
-DECLARE_STANDARD_FIX(t_magic)
 DECLARE_STANDARD_FIX(t_mons)
 DECLARE_STANDARD_FIX(t_mstqrt)
 DECLARE_STANDARD_FIX(t_name)
@@ -219,10 +218,9 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(r3430_dat, TryApply(callback, packFiles));
     TRY_APPLY(r4200_dat, TryApply(callback, packFiles));
     TRY_APPLY(r4290_dat, TryApply(callback, packFiles));
-    TRY_APPLY(t_item, TryApply(callback, packFiles));
+    TRY_APPLY(t_item_magic, TryApply(callback, packFiles));
     TRY_APPLY(t_itemhelp, TryApply(callback, packFiles));
     TRY_APPLY(t_jump, TryApply(callback, packFiles));
-    TRY_APPLY(t_magic, TryApply(callback, packFiles));
     TRY_APPLY(t_mons, TryApply(callback, packFiles));
     TRY_APPLY(t_mstqrt, TryApply(callback, packFiles));
     TRY_APPLY(t_name, TryApply(callback, packFiles));

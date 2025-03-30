@@ -348,39 +348,6 @@ std::string UInt32ToString(uint32_t value) {
     return std::string(std::string_view(str.data(), ptr));
 }
 
-std::string AdjustNewlinesToTwoSpaces(std::string desc) {
-    size_t idx = 0;
-    std::string s = std::move(desc);
-    while (true) {
-        size_t nidx = s.find_first_of('\n', idx);
-        if (nidx == std::string::npos) {
-            break;
-        }
-
-        size_t spaces = 0;
-        size_t i = nidx + 1;
-        while (i < s.size()) {
-            if (s[i] == ' ') {
-                ++i;
-                ++spaces;
-            } else {
-                break;
-            }
-        }
-
-        if (spaces != 2) {
-            if (spaces < 2) {
-                s = InsertSubstring(s, nidx + 1, "  ", 0, 2 - spaces);
-            } else {
-                s = Remove(s, nidx + 1, spaces - 2);
-            }
-        }
-
-        idx = nidx + 1;
-    }
-    return s;
-}
-
 static bool IsWhitespace(char c) {
     return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v';
 }

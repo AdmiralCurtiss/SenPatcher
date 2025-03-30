@@ -15,6 +15,39 @@ __declspec(dllexport) char SenPatcherFix_0_item[] = "Text fixes in item names an
 }
 
 namespace SenLib::TX::FileFixesSw::t_item {
+static std::string AdjustNewlinesToTwoSpaces(std::string desc) {
+    size_t idx = 0;
+    std::string s = std::move(desc);
+    while (true) {
+        size_t nidx = s.find_first_of('\n', idx);
+        if (nidx == std::string::npos) {
+            break;
+        }
+
+        size_t spaces = 0;
+        size_t i = nidx + 1;
+        while (i < s.size()) {
+            if (s[i] == ' ') {
+                ++i;
+                ++spaces;
+            } else {
+                break;
+            }
+        }
+
+        if (spaces != 2) {
+            if (spaces < 2) {
+                s = HyoutaUtils::TextUtils::InsertSubstring(s, nidx + 1, "  ", 0, 2 - spaces);
+            } else {
+                s = HyoutaUtils::TextUtils::Remove(s, nidx + 1, spaces - 2);
+            }
+        }
+
+        idx = nidx + 1;
+    }
+    return s;
+}
+
 static std::string AdjustNewlinesForQuartz(std::string desc) {
     size_t idx = 0;
     std::string s = std::move(desc);
@@ -56,8 +89,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                         || m.Description.starts_with("["))
                     && m.Flags.find_first_of('0') == std::string::npos
                     && m.Description.find_first_of('\n') != std::string::npos) {
-                    m.Description =
-                        HyoutaUtils::TextUtils::AdjustNewlinesToTwoSpaces(std::move(m.Description));
+                    m.Description = AdjustNewlinesToTwoSpaces(std::move(m.Description));
                     e.Data = m.ToBinary();
                 }
             } else if (e.Name == "item_q") {

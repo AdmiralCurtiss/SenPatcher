@@ -894,10 +894,9 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/r3430_dat.cpp
 	sen3/file_fixes/r4200_dat.cpp
 	sen3/file_fixes/r4290_dat.cpp
-	sen3/file_fixes/t_item.cpp
+	sen3/file_fixes/t_item_magic.cpp
 	sen3/file_fixes/t_itemhelp.cpp
 	sen3/file_fixes/t_jump.cpp
-	sen3/file_fixes/t_magic.cpp
 	sen3/file_fixes/t_mons.cpp
 	sen3/file_fixes/t_mstqrt.cpp
 	sen3/file_fixes/t_name.cpp
