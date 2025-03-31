@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <charconv>
 #include <format>
 #include <string>
@@ -1247,6 +1248,66 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             ItemData m(e.Data.data(), e.Data.size());
             m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 57, 1, "3");
             e.Data = m.ToBinary();
+        }
+
+        // Tri-Color Onigiri: Uses a dot where all other descriptions use a slash.
+        // Also while we're here remove the text squish, it's not needed here.
+        {
+            auto& e = tbl_item.Entries[3182];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 78, 4);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 46, 3, "/");
+            e.Data = m.ToBinary();
+        }
+
+        // Several items have "Restores CP+XX" which is an inconsistent phrasing.
+        for (int idx : {3189, 3206, 3220, 3251, 3268}) {
+            auto& e = tbl_item.Entries[static_cast<size_t>(idx)];
+            ItemData m(e.Data.data(), e.Data.size());
+            auto cp = m.desc.find("CP");
+            if (cp != std::string::npos && cp >= 9) {
+                m.desc = HyoutaUtils::TextUtils::Remove(m.desc, cp - 9, 9);
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // A few food items have "EP+XX" for recovery which is an inconsistent phrasing.
+        for (int idx : {3201, 3209, 3217}) {
+            auto& e = tbl_item.Entries[static_cast<size_t>(idx)];
+            ItemData m(e.Data.data(), e.Data.size());
+            auto ep = m.desc.find("EP+");
+            if (ep != std::string::npos) {
+                m.desc = HyoutaUtils::TextUtils::Remove(m.desc, ep, 3);
+                m.desc = HyoutaUtils::TextUtils::Insert(m.desc, ep + 3, " EP");
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // Like crafts we have several instances of uppercase "Ailments" where it usually is not
+        // capitalized.
+        // clang-format off
+        for (int idx : {28,   29,   45,   82,   1777, 1778, 1779, 1816, 3182,
+                        3191, 3205, 3209, 3236, 3240, 3244, 3253, 3267, 3271}) {
+            // clang-format on
+            auto& e = tbl_item.Entries[static_cast<size_t>(idx)];
+            if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                auto pos = m.desc.find("Ailments");
+                if (pos != std::string::npos) {
+                    m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, pos, 1, "a");
+                    e.Data = m.ToBinary();
+                }
+            } else if (e.Name == "item_e") {
+                ItemEData m(e.Data.data(), e.Data.size());
+                auto pos = m.item.desc.find("Ailments");
+                if (pos != std::string::npos) {
+                    m.item.desc =
+                        HyoutaUtils::TextUtils::ReplaceSubstring(m.item.desc, pos, 1, "a");
+                    e.Data = m.ToBinary();
+                }
+            } else {
+                assert(0);
+            }
         }
 
         // replace the separator dot between STR/DEF etc. with a slightly smaller one that's used by

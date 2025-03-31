@@ -1,5 +1,6 @@
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "p3a/pack.h"
@@ -32,14 +33,112 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[1];
             CookData m(e.Data.data(), e.Data.size());
-            m.item2line2 = HyoutaUtils::TextUtils::Remove(m.item2line2, 12, 1);
+            m.items[1].lines[1] = HyoutaUtils::TextUtils::Remove(m.items[1].lines[1], 12, 1);
             e.Data = m.ToBinary();
         }
         {
             auto& e = tbl_en.Entries[4];
             CookData m(e.Data.data(), e.Data.size());
-            m.item2line2 = HyoutaUtils::TextUtils::Remove(m.item2line2, 12, 1);
+            m.items[1].lines[0] = HyoutaUtils::TextUtils::Remove(m.items[1].lines[0], 21, 1);
+            m.items[1].lines[0] = HyoutaUtils::TextUtils::Remove(m.items[1].lines[0], 19, 1);
+            m.items[1].lines[1] = HyoutaUtils::TextUtils::Remove(m.items[1].lines[1], 12, 1);
             e.Data = m.ToBinary();
+        }
+
+        // Tri-Color Onigiri: Uses a dot where all other descriptions use a slash.
+        {
+            auto& e = tbl_en.Entries[3];
+            CookData m(e.Data.data(), e.Data.size());
+            m.items[1].lines[0] =
+                HyoutaUtils::TextUtils::ReplaceSubstring(m.items[1].lines[0], 16, 3, "/");
+            e.Data = m.ToBinary();
+        }
+
+        // All the attack items are missing their Power rating.
+        for (const auto& p : {std::pair<int, const char*>(2, "B"),
+                              std::pair<int, const char*>(6, "B+"),
+                              std::pair<int, const char*>(14, "A"),
+                              std::pair<int, const char*>(22, "A+"),
+                              std::pair<int, const char*>(27, "S")}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(p.first)];
+            if (e.Name == "QSCook") {
+                CookData m(e.Data.data(), e.Data.size());
+                auto& item = m.items[2];
+                auto& line = item.lines[0];
+                std::string tmp;
+                tmp += "Attack (Power ";
+                tmp += p.second;
+                tmp += ")-";
+                line = tmp + line;
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // Several items have "Restores CP+XX" which is an inconsistent phrasing.
+        for (int idx : {10, 27}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            if (e.Name == "QSCook") {
+                CookData m(e.Data.data(), e.Data.size());
+                for (auto& item : m.items) {
+                    auto& line = item.lines[1];
+                    auto cp = line.find("CP");
+                    if (cp != std::string::npos && cp >= 9) {
+                        line = HyoutaUtils::TextUtils::Remove(line, cp - 9, 9);
+                    }
+                }
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // A few food items have "EP+XX" for recovery which is an inconsistent phrasing.
+        for (int idx : {7, 22, 30}) {
+            auto& e = tbl_en.Entries[static_cast<size_t>(idx)];
+            if (e.Name == "QSCook") {
+                CookData m(e.Data.data(), e.Data.size());
+                for (auto& item : m.items) {
+                    for (auto& line : item.lines) {
+                        auto ep = line.find("EP+");
+                        if (ep != std::string::npos) {
+                            line = HyoutaUtils::TextUtils::Remove(line, ep, 3);
+                            line = HyoutaUtils::TextUtils::Insert(line, ep + 3, " EP");
+                            e.Data = m.ToBinary();
+                        }
+                    }
+                }
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // Like crafts we have several instances of uppercase "Ailments" where it usually is not
+        // capitalized.
+        for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
+            auto& e = tbl_en.Entries[i];
+            if (e.Name == "QSCook") {
+                CookData m(e.Data.data(), e.Data.size());
+                for (auto& item : m.items) {
+                    for (auto& line : item.lines) {
+                        auto pos = line.find("Ailments");
+                        if (pos != std::string::npos) {
+                            line = HyoutaUtils::TextUtils::ReplaceSubstring(line, pos, 1, "a");
+                        }
+                    }
+                }
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // Add a space to the "-", it looks terrible without it.
+        for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
+            auto& e = tbl_en.Entries[i];
+            if (e.Name == "QSCook") {
+                CookData m(e.Data.data(), e.Data.size());
+                for (auto& item : m.items) {
+                    for (auto& line : item.lines) {
+                        line = HyoutaUtils::TextUtils::Replace(line, "-", " - ");
+                    }
+                }
+                e.Data = m.ToBinary();
+            }
         }
 
         // replace the separator dot between STR/DEF etc. with a slightly smaller one that's used by
@@ -48,18 +147,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             auto& e = tbl_en.Entries[i];
             if (e.Name == "QSCook") {
                 CookData m(e.Data.data(), e.Data.size());
-                m.item1line1 =
-                    HyoutaUtils::TextUtils::Replace(m.item1line1, "\xE3\x83\xBB", "\xEF\xBD\xA5");
-                m.item1line2 =
-                    HyoutaUtils::TextUtils::Replace(m.item1line2, "\xE3\x83\xBB", "\xEF\xBD\xA5");
-                m.item2line1 =
-                    HyoutaUtils::TextUtils::Replace(m.item2line1, "\xE3\x83\xBB", "\xEF\xBD\xA5");
-                m.item2line2 =
-                    HyoutaUtils::TextUtils::Replace(m.item2line2, "\xE3\x83\xBB", "\xEF\xBD\xA5");
-                m.item3line1 =
-                    HyoutaUtils::TextUtils::Replace(m.item3line1, "\xE3\x83\xBB", "\xEF\xBD\xA5");
-                m.item3line2 =
-                    HyoutaUtils::TextUtils::Replace(m.item3line2, "\xE3\x83\xBB", "\xEF\xBD\xA5");
+                for (auto& item : m.items) {
+                    for (auto& line : item.lines) {
+                        line =
+                            HyoutaUtils::TextUtils::Replace(line, "\xE3\x83\xBB", "\xEF\xBD\xA5");
+                    }
+                }
                 e.Data = m.ToBinary();
             }
         }
