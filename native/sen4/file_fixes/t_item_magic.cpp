@@ -1058,6 +1058,63 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // A few items have "CP +XX", that's inconsistent as usually that space isn't there.
+        for (int idx : {1514, 1523, 1529}) {
+            auto& e = tbl_item_en.Entries[static_cast<size_t>(idx)];
+            if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                auto& line = m.desc;
+                auto cp = line.find("CP +");
+                if (cp != std::string::npos) {
+                    line = HyoutaUtils::TextUtils::Remove(line, cp + 2, 1);
+                    e.Data = m.ToBinary();
+                }
+            }
+        }
+
+        // Practically every stat up effect in cooking item descriptions has extra spaces around the
+        // up arrow, fix that.
+        for (size_t i = 1444; i < 1540; ++i) {
+            auto& e = tbl_item_en.Entries[i];
+            if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                auto& line = m.desc;
+                auto up = line.find("\xE2\x86\x91");
+                if (up != std::string::npos) {
+                    size_t right = up + 2;
+                    while (right < (line.size() - 1) && line[right + 1] == ' ') {
+                        ++right;
+                    }
+                    if (right != (up + 2)) {
+                        line = HyoutaUtils::TextUtils::Remove(line, up + 3, right - (up + 2));
+                    }
+                    size_t left = up;
+                    while (left > 0 && line[left - 1] == ' ') {
+                        --left;
+                    }
+                    if (left != up) {
+                        line = HyoutaUtils::TextUtils::Remove(line, left, up - left);
+                    }
+                    e.Data = m.ToBinary();
+                }
+            }
+        }
+
+        // Split effects here because "Restores X HP/CP+Y (Z turns)" is really unclear (it recovers
+        // HP immediately and then you have a gradual CP recovery)...
+        for (int idx : {1514, 1523, 1529}) {
+            auto& e = tbl_item_en.Entries[static_cast<size_t>(idx)];
+            if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                auto slash = m.desc.find('/');
+                if (slash != std::string::npos) {
+                    m.desc =
+                        HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, slash, 1, "#0C - #11C");
+                    e.Data = m.ToBinary();
+                }
+            }
+        }
+
         // TODO: Item descriptions really need a readability pass. Some of eg. the cooking
         // descriptions are really non-obvious to parse, stuff like
         // "Restores 2000 HP/200 EP/STR/DEF UP (L) (2 turns)"

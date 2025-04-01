@@ -27,6 +27,7 @@ DECLARE_STANDARD_FIX(f4200_dat)
 DECLARE_STANDARD_FIX(m9031_dat)
 DECLARE_STANDARD_FIX(t_item_magic)
 DECLARE_STANDARD_FIX(t_mstqrt)
+DECLARE_STANDARD_FIX(t_notecook)
 DECLARE_STANDARD_FIX(t3600_dat)
 
 namespace SenLib::Sen4::FileFixes::t_text {
@@ -61,6 +62,7 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(m9031_dat, TryApply(callback, packFiles));
     TRY_APPLY(t_item_magic, TryApply(callback, packFiles));
     TRY_APPLY(t_mstqrt, TryApply(callback, packFiles));
+    TRY_APPLY(t_notecook, TryApply(callback, packFiles));
     TRY_APPLY(t_text, TryApply(callback, packFiles, allowSwitchToNightmare));
     TRY_APPLY(t3600_dat, TryApply(callback, packFiles));
     return true;

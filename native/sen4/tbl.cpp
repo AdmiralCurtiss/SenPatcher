@@ -254,4 +254,36 @@ std::vector<char> MagicData::ToBinary() const {
     }
     return rv;
 }
+
+CookData::CookData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    name = stream.ReadUTF8Nullterm();
+    d1 = stream.ReadArray<0x22>();
+    for (size_t i = 0; i < items.size(); ++i) {
+        items[i].id = stream.ReadUInt16();
+        for (size_t j = 0; j < items[i].lines.size(); ++j) {
+            items[i].lines[j] = stream.ReadUTF8Nullterm();
+        }
+    }
+    d2 = stream.ReadArray<0x30>();
+
+    assert(dataLength == stream.GetPosition());
+}
+
+std::vector<char> CookData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUTF8Nullterm(name);
+        ms.Write(d1.data(), d1.size());
+        for (size_t i = 0; i < items.size(); ++i) {
+            ms.WriteUInt16(items[i].id);
+            for (size_t j = 0; j < items[i].lines.size(); ++j) {
+                ms.WriteUTF8Nullterm(items[i].lines[j]);
+            }
+        }
+        ms.Write(d2.data(), d2.size());
+    }
+    return rv;
+}
 } // namespace SenLib::Sen4

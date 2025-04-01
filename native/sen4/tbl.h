@@ -121,4 +121,20 @@ struct MagicData {
 
     std::vector<char> ToBinary() const;
 };
+
+struct CookDataItem {
+    uint16_t id;
+    std::array<std::string, 2> lines;
+};
+
+struct CookData {
+    std::string name;
+    std::array<char, 0x22> d1;
+    std::array<CookDataItem, 4> items;
+    std::array<char, 0x30> d2;
+
+    CookData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
 } // namespace SenLib::Sen4
