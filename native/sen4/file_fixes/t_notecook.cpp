@@ -46,6 +46,30 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             }
         }
 
+        // "Sleep (30%)/Nightmare (30%)" -> "Sleep/Nightmare (30%)"
+        {
+            auto& e = tbl_en.Entries[16];
+            if (e.Name == "QSCook") {
+                CookData m(e.Data.data(), e.Data.size());
+                auto& item = m.items[2];
+                auto& line = item.lines[1];
+                line = HyoutaUtils::TextUtils::Remove(line, 5, 6);
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // "K.O. (30%)/Nightmare (30%)" -> "K.O./Nightmare (30%)"
+        {
+            auto& e = tbl_en.Entries[21];
+            if (e.Name == "QSCook") {
+                CookData m(e.Data.data(), e.Data.size());
+                auto& item = m.items[2];
+                auto& line = item.lines[1];
+                line = HyoutaUtils::TextUtils::Remove(line, 4, 6);
+                e.Data = m.ToBinary();
+            }
+        }
+
         // All the attack items are missing their Area. They also list the Power as 'Class'.
         for (const auto& p : {std::pair<int, const char*>(3, "S"),
                               std::pair<int, const char*>(7, "S"),
