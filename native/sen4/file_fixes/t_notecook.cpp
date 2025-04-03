@@ -126,6 +126,54 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             }
         }
 
+        // "(X turns)" -> "for X turns"
+        for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
+            auto& e = tbl_en.Entries[i];
+            const auto apply = [&](CookData& m) -> bool {
+                bool modified = false;
+                for (auto& item : m.items) {
+                    for (auto& line : item.lines) {
+                        size_t endpos = std::string::npos;
+                        while (true) {
+                            auto nextCloseParens = line.find_last_of(')', endpos);
+                            if (nextCloseParens == std::string::npos) {
+                                break;
+                            }
+                            auto nextOpenParens = line.find_last_of('(', nextCloseParens);
+                            if (nextOpenParens == std::string::npos) {
+                                break;
+                            }
+
+                            auto parensContent = std::string_view(line).substr(
+                                nextOpenParens + 1, nextCloseParens - (nextOpenParens + 1));
+                            if (!parensContent.empty() && parensContent[0] >= '0'
+                                && parensContent[0] <= '9'
+                                && (parensContent.ends_with("turn")
+                                    || parensContent.ends_with("turns"))) {
+                                std::string f = "for ";
+                                f += parensContent;
+                                line = HyoutaUtils::TextUtils::ReplaceSubstring(
+                                    line,
+                                    nextOpenParens,
+                                    (nextCloseParens + 1) - nextOpenParens,
+                                    f);
+                                modified = true;
+                            }
+
+                            endpos = nextOpenParens;
+                        }
+                    }
+                }
+                return modified;
+            };
+            if (e.Name == "QSCook") {
+                CookData m(e.Data.data(), e.Data.size());
+                if (apply(m)) {
+                    e.Data = m.ToBinary();
+                }
+            }
+        }
+
         std::vector<char> result_en_vec;
         HyoutaUtils::Stream::MemoryStream result_en(result_en_vec);
         tbl_en.WriteToStream(result_en, HyoutaUtils::EndianUtils::Endianness::LittleEndian);

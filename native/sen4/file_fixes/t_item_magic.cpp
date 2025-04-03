@@ -1132,6 +1132,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Angler God Badge: Missing space
+        {
+            auto& e = tbl_item_en.Entries[704];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 34, " ");
+            e.Data = m.ToBinary();
+        }
+
         // Zeram Powder, Zeram Capsule: Weird order of effects, lists KO cure before CP recovery
         // when usually HP/EP/CP are all at the start. Swap that around.
         for (int idx : {11, 12}) {
@@ -1653,6 +1661,59 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
             m2.item.desc = std::move(desc);
             e2.Data = m2.ToBinary();
+        }
+
+        // "(X turns)" -> "for X turns"
+        for (size_t i = 0; i < tbl_item_en.Entries.size(); ++i) {
+            auto& e = tbl_item_en.Entries[i];
+            const auto apply = [&](ItemData& m) -> bool {
+                bool modified = false;
+                if (m.flags.find('Z') != std::string::npos) {
+                    auto endpos = m.desc.find("]");
+                    if (endpos != std::string::npos && endpos > 0) {
+                        while (true) {
+                            auto nextCloseParens = m.desc.find_last_of(')', endpos);
+                            if (nextCloseParens == std::string::npos) {
+                                break;
+                            }
+                            auto nextOpenParens = m.desc.find_last_of('(', nextCloseParens);
+                            if (nextOpenParens == std::string::npos) {
+                                break;
+                            }
+
+                            auto parensContent = std::string_view(m.desc).substr(
+                                nextOpenParens + 1, nextCloseParens - (nextOpenParens + 1));
+                            if (!parensContent.empty() && parensContent[0] >= '0'
+                                && parensContent[0] <= '9'
+                                && (parensContent.ends_with("turn")
+                                    || parensContent.ends_with("turns"))) {
+                                std::string f = "for ";
+                                f += parensContent;
+                                m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(
+                                    m.desc,
+                                    nextOpenParens,
+                                    (nextCloseParens + 1) - nextOpenParens,
+                                    f);
+                                modified = true;
+                            }
+
+                            endpos = nextOpenParens;
+                        }
+                    }
+                }
+                return modified;
+            };
+            if (e.Name == "item_q") {
+                ItemQData m(e.Data.data(), e.Data.size());
+                if (apply(m.item)) {
+                    e.Data = m.ToBinary();
+                }
+            } else if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                if (apply(m)) {
+                    e.Data = m.ToBinary();
+                }
+            }
         }
 
         // normalize newlines
