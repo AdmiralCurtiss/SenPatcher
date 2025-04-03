@@ -152,7 +152,8 @@ static void ReadItemData(ItemData& d, HyoutaUtils::Stream::DuplicatableByteArray
     d.idx = stream.ReadUInt16();
     d.character = stream.ReadUInt16();
     d.flags = stream.ReadUTF8Nullterm();
-    d.effect0 = ReadUInt16Array<7>(stream);
+    d.category = stream.ReadUInt8();
+    d.d2 = stream.ReadArray<13>();
     d.effect1 = ReadUInt16Array<7>(stream);
     d.effect2 = ReadUInt16Array<7>(stream);
     d.effect3 = ReadUInt16Array<7>(stream);
@@ -179,7 +180,8 @@ static void WriteItemData(const ItemData& d, HyoutaUtils::Stream::MemoryStream& 
     ms.WriteUInt16(d.idx);
     ms.WriteUInt16(d.character);
     ms.WriteUTF8Nullterm(d.flags);
-    WriteUInt16Array(ms, d.effect0.data(), d.effect0.size());
+    ms.WriteUInt8(d.category);
+    ms.Write(d.d2.data(), d.d2.size());
     WriteUInt16Array(ms, d.effect1.data(), d.effect1.size());
     WriteUInt16Array(ms, d.effect2.data(), d.effect2.size());
     WriteUInt16Array(ms, d.effect3.data(), d.effect3.size());

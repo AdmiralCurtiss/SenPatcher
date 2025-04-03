@@ -58,7 +58,8 @@ struct ItemData {
     uint16_t idx;
     uint16_t character;
     std::string flags;
-    std::array<uint16_t, 7> effect0;
+    uint8_t category;
+    std::array<char, 13> d2;
     std::array<uint16_t, 7> effect1;
     std::array<uint16_t, 7> effect2;
     std::array<uint16_t, 7> effect3;

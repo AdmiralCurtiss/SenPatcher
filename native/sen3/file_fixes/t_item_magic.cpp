@@ -17,37 +17,43 @@ __declspec(dllexport) char SenPatcherFix_0_magic[] =
 }
 
 namespace SenLib::Sen3::FileFixes::t_item_magic {
-static std::string AdjustNewlinesToTwoSpaces(std::string desc) {
-    size_t idx = 0;
-    std::string s = std::move(desc);
-    while (true) {
-        size_t nidx = s.find_first_of('\n', idx);
-        if (nidx == std::string::npos) {
-            break;
-        }
-
-        size_t spaces = 0;
-        size_t i = nidx + 1;
-        while (i < s.size()) {
-            if (s[i] == ' ') {
-                ++i;
-                ++spaces;
-            } else {
-                break;
-            }
-        }
-
-        if (spaces != 2) {
-            if (spaces < 2) {
-                s = HyoutaUtils::TextUtils::InsertSubstring(s, nidx + 1, "  ", 0, 2 - spaces);
-            } else {
-                s = HyoutaUtils::TextUtils::Remove(s, nidx + 1, spaces - 2);
-            }
-        }
-
-        idx = nidx + 1;
+static bool AdjustSpacingForBracketed(std::string& s) {
+    // does this start with a '['?
+    bool shouldAdjust = !s.empty() && s[0] == '[';
+    if (!shouldAdjust) {
+        return false;
     }
-    return s;
+
+    std::string out;
+
+    size_t idx = 0;
+    while (idx < s.size()) {
+        if (s[idx] == '\n') {
+            // go to next line
+            out += "\n  ";
+
+            ++idx;
+            while (idx < s.size()) {
+                if (s[idx] == ' ') {
+                    ++idx;
+                } else {
+                    break;
+                }
+            }
+
+            // resume standard text handling
+        } else {
+            out += s[idx];
+            ++idx;
+        }
+    }
+
+    if (out == s) {
+        return false;
+    }
+
+    s = std::move(out);
+    return true;
 }
 
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
@@ -659,9 +665,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             auto& e = tbl_en.Entries[i];
             if (e.Name == "magic") {
                 MagicData m(e.Data.data(), e.Data.size());
-                if (m.desc.starts_with("[") && m.flags.find_first_of('Z') != std::string::npos
-                    && m.desc.find_first_of('\n') != std::string::npos) {
-                    m.desc = AdjustNewlinesToTwoSpaces(std::move(m.desc));
+                if (AdjustSpacingForBracketed(m.desc)) {
                     e.Data = m.ToBinary();
                 }
             }
@@ -1362,17 +1366,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             auto& e = tbl_item_en.Entries[i];
             if (e.Name == "item") {
                 ItemData m(e.Data.data(), e.Data.size());
-                if (m.desc.starts_with("[") && m.flags.find_first_of('Z') != std::string::npos
-                    && m.desc.find_first_of('\n') != std::string::npos) {
-                    m.desc = AdjustNewlinesToTwoSpaces(m.desc);
+                if (m.category != 0xc5 && AdjustSpacingForBracketed(m.desc)) {
                     e.Data = m.ToBinary();
                 }
             } else if (e.Name == "item_q") {
                 ItemQData m(e.Data.data(), e.Data.size());
-                if (m.item.desc.starts_with("[")
-                    && m.item.flags.find_first_of('Z') != std::string::npos
-                    && m.item.desc.find_first_of('\n') != std::string::npos) {
-                    m.item.desc = AdjustNewlinesToTwoSpaces(m.item.desc);
+                if (AdjustSpacingForBracketed(m.item.desc)) {
                     e.Data = m.ToBinary();
                 }
             }
