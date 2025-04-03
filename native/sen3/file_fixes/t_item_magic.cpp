@@ -1013,6 +1013,55 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             }
         }
 
+        // merge adjacent "Recovers 100 HP/Recovers 10 EP" to "Recovers 100 HP/10 EP"
+        for (size_t i = 0; i < tbl_item_en.Entries.size(); ++i) {
+            auto& e = tbl_item_en.Entries[i];
+            const auto apply = [&](ItemData& m) -> bool {
+                bool modified = false;
+                if (m.flags.find('Z') != std::string::npos) {
+                    auto endpos = m.desc.find("]");
+                    if (endpos != std::string::npos && endpos > 0) {
+                        while (true) {
+                            auto nextEndTag = m.desc.rfind("#0C", endpos);
+                            if (nextEndTag == std::string::npos) {
+                                break;
+                            }
+                            auto nextStartTag = m.desc.rfind("#11C", nextEndTag);
+                            if (nextStartTag == std::string::npos) {
+                                break;
+                            }
+
+                            auto content = std::string_view(m.desc).substr(
+                                nextStartTag + 4, nextEndTag - (nextStartTag + 4));
+                            while (content.starts_with("Restores ")
+                                   && content.find("/Restores ") != std::string_view::npos) {
+                                size_t where = content.find("/Restores ") + nextStartTag + 5;
+                                m.desc = HyoutaUtils::TextUtils::Remove(m.desc, where, 9);
+                                nextEndTag -= 9;
+                                content = std::string_view(m.desc).substr(
+                                    nextStartTag + 4, nextEndTag - (nextStartTag + 4));
+                                modified = true;
+                            }
+
+                            endpos = nextStartTag;
+                        }
+                    }
+                }
+                return modified;
+            };
+            if (e.Name == "item_q") {
+                ItemQData m(e.Data.data(), e.Data.size());
+                if (apply(m.item)) {
+                    e.Data = m.ToBinary();
+                }
+            } else if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                if (apply(m)) {
+                    e.Data = m.ToBinary();
+                }
+            }
+        }
+
 
         // sync the magic descriptions onto the base quartzes that give that magic
         struct ItemMagicSync {
