@@ -300,15 +300,26 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                 if (effect0 && effect1) {
                     m.items[2].lines[0] =
                         " " + GenerateAttackItemLine1(*item3, tbl_text_en, tbl_itemhelp_en);
-                    m.items[2].lines[1] =
-                        " "
-                        + Replace(Replace(effect0->str, "%d", UInt32ToString(item3->effect3[1])),
-                                  "%%",
-                                  "%")
-                        + "/"
-                        + Replace(Replace(effect1->str, "%d", UInt32ToString(item3->effect4[1])),
-                                  "%%",
-                                  "%");
+                    if (item3->effect3[1] == item3->effect4[1]) {
+                        m.items[2].lines[1] =
+                            " " + Replace(effect0->str, " (%d%%)", "") + "/"
+                            + Replace(
+                                Replace(effect1->str, "%d", UInt32ToString(item3->effect4[1])),
+                                "%%",
+                                "%");
+                    } else {
+                        m.items[2].lines[1] =
+                            " "
+                            + Replace(
+                                Replace(effect0->str, "%d", UInt32ToString(item3->effect3[1])),
+                                "%%",
+                                "%")
+                            + "/"
+                            + Replace(
+                                Replace(effect1->str, "%d", UInt32ToString(item3->effect4[1])),
+                                "%%",
+                                "%");
+                    }
                     e.Data = m.ToBinary();
                 }
             }
@@ -350,15 +361,26 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                 if (effect0 && effect1) {
                     m.items[2].lines[0] =
                         " " + GenerateAttackItemLine1(*item3, tbl_text_en, tbl_itemhelp_en);
-                    m.items[2].lines[1] =
-                        " "
-                        + Replace(Replace(effect0->str, "%d", UInt32ToString(item3->effect3[1])),
-                                  "%%",
-                                  "%")
-                        + "/"
-                        + Replace(Replace(effect1->str, "%d", UInt32ToString(item3->effect4[1])),
-                                  "%%",
-                                  "%");
+                    if (item3->effect3[1] == item3->effect4[1]) {
+                        m.items[2].lines[1] =
+                            " " + Replace(effect0->str, " (%d%%)", "") + "/"
+                            + Replace(
+                                Replace(effect1->str, "%d", UInt32ToString(item3->effect4[1])),
+                                "%%",
+                                "%");
+                    } else {
+                        m.items[2].lines[1] =
+                            " "
+                            + Replace(
+                                Replace(effect0->str, "%d", UInt32ToString(item3->effect3[1])),
+                                "%%",
+                                "%")
+                            + "/"
+                            + Replace(
+                                Replace(effect1->str, "%d", UInt32ToString(item3->effect4[1])),
+                                "%%",
+                                "%");
+                    }
                     e.Data = m.ToBinary();
                 }
             }

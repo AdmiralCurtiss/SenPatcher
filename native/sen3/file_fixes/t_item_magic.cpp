@@ -781,6 +781,234 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             e.Data = m.ToBinary();
         }
 
+        // Explosive Snowball, Devil Burger: Prettify by removing the extra (30%), needs to be
+        // manually written out.
+        {
+            auto& e = tbl_item_en.Entries[983];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.flags += 'Z';
+            m.desc =
+                "[ Physical (#11C#240IA#0C#11C#242INo#0C#11C#244INo#0C) - #11CArea M (Set)#0C - "
+                "#11CConfuse/Freeze (30%)#0C ]\n"
+                + m.desc;
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_item_en.Entries[984];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.flags += 'Z';
+            m.desc =
+                "[ Physical (#11C#240IS#0C#11C#242INo#0C#11C#244INo#0C) - #11CArea M (Set)#0C - "
+                "#11CK.O./Nightmare (30%)#0C ]\n"
+                + m.desc;
+            e.Data = m.ToBinary();
+        }
+
+        // Zeram Powder, Zeram Capsule: Weird order of effects, lists KO cure before CP recovery
+        // when usually HP/EP/CP are all at the start. Swap that around.
+        for (int idx : {11, 12}) {
+            auto& e = tbl_item_en.Entries[static_cast<size_t>(idx)];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::MoveSubstring(m.desc, 45, 72, 11);
+            e.Data = m.ToBinary();
+        }
+
+        // Item descriptions readability pass. See CS4.
+        // TODO: Equipment could use this too
+        struct SlashToDash {
+            uint16_t Item;
+            std::array<uint8_t, 6> Dashes;
+
+            constexpr SlashToDash(uint16_t item,
+                                  uint8_t d0,
+                                  uint8_t d1 = 0,
+                                  uint8_t d2 = 0,
+                                  uint8_t d3 = 0,
+                                  uint8_t d4 = 0,
+                                  uint8_t d5 = 0)
+              : Item(item), Dashes{{d0, d1, d2, d3, d4, d5}} {}
+        };
+        // for (size_t i = 0; i < tbl_item_en.Entries.size(); ++i) {
+        //     auto& e = tbl_item_en.Entries[i];
+        //     auto a = [&](std::string_view name, std::string_view desc) {
+        //         if (desc.find('/') != std::string_view::npos) {
+        //             std::string s;
+        //             s += "// ";
+        //             s += HyoutaUtils::TextUtils::Replace(desc, "\n", "{n}");
+        //             s += "\n";
+        //             s += "SlashToDash(";
+        //             s += std::to_string(i);
+        //             size_t j = 1;
+        //             while (desc.find('/') != std::string_view::npos) {
+        //                 s += ", ";
+        //                 s += std::to_string(j);
+        //                 ++j;
+        //                 desc = desc.substr(desc.find('/') + 1);
+        //             }
+        //             s += "), // ";
+        //             s += name;
+        //             printf("%s\n", s.c_str());
+        //         }
+        //     };
+        //     if (e.Name == "item_q") {
+        //         ItemQData m(e.Data.data(), e.Data.size());
+        //         a(m.item.name, m.item.desc);
+        //     } else if (e.Name == "item") {
+        //         ItemData m(e.Data.data(), e.Data.size());
+        //         a(m.name, m.desc);
+        //     }
+        // }
+        static constexpr std::array slashArray = {
+            SlashToDash(8, 1),     // Reviving Balm
+            SlashToDash(9, 1),     // Celestial Balm
+            SlashToDash(10, 1),    // Celestial Balm EX
+            SlashToDash(11, 2),    // Zeram Powder
+            SlashToDash(12, 2),    // Zeram Capsule
+            SlashToDash(15, 2),    // Spirit Incense
+            SlashToDash(16, 2),    // Dragon Incense
+            SlashToDash(30, 2, 3), // Power Potion
+            SlashToDash(31, 3, 4), // Shield Potion
+            SlashToDash(32, 2, 3), // Mind Potion
+            SlashToDash(33, 2, 3), // Power Potion II
+            SlashToDash(34, 3, 4), // Shield Potion II
+            SlashToDash(35, 2, 3), // Mind Potion II
+            SlashToDash(37, 1),    // Canned Coffee
+            SlashToDash(39, 1),    // Kinako Pecky
+            SlashToDash(40, 1),    // Raspberry Pecky
+            SlashToDash(41, 1),    // Lemon Pecky
+            SlashToDash(42, 1),    // Matcha Pecky
+            SlashToDash(43, 1),    // Honey Pecky
+            SlashToDash(44, 1),    // Sea Salt Pecky
+            SlashToDash(45, 1),    // Red Hot Pecky
+            SlashToDash(46, 1),    // Rose Pecky
+            SlashToDash(47, 1),    // Energy Pecky
+            SlashToDash(48, 1),    // Cocoa Pecky
+            SlashToDash(49, 1),    // Tropical Pecky
+            SlashToDash(50, 1),    // Wasabi Pecky
+            SlashToDash(55, 1),    // Apple Juice
+            SlashToDash(56, 1),    // Orange Juice
+            SlashToDash(57, 1),    // Grape Juice
+            SlashToDash(58, 1),    // Peach Fizz
+            SlashToDash(71, 1),    // Freddy Special A
+            SlashToDash(72, 1),    // Freddy Special B
+            SlashToDash(74, 1),    // Freddy Special D
+            SlashToDash(84, 1),    // Repair Stone
+            SlashToDash(985, 1),   // Chunky Potato Salad
+            SlashToDash(986, 1),   // Piled Onion Rings
+            SlashToDash(987, 1),   // Fluffy Chiffon Cake
+            SlashToDash(988, 2),   // Southern Punch
+            SlashToDash(989, 1),   // Hearty White Stew
+            SlashToDash(990, 1),   // Juicy Ham Sandwich
+            SlashToDash(991, 2),   // Fresh Tomato Noodles
+            SlashToDash(992, 1),   // Dragon Fried Rice
+            SlashToDash(993, 2),   // Cafe Macchiato
+            SlashToDash(994, 2),   // Honey Bagel
+            SlashToDash(995, 1),   // Thick Hamburger Steak
+            SlashToDash(996, 2),   // Colorful Bouillabaisse
+            SlashToDash(997, 1),   // Fisherman's Paella
+            SlashToDash(998, 1),   // Purple Hearts
+            SlashToDash(999, 1),   // Heavy Meat Pie
+            SlashToDash(1000, 2),  // Aquamarine Ice Cream
+            SlashToDash(1001, 1),  // Pasta Pepperoncino
+            SlashToDash(1002, 2),  // Tomato Curry
+            SlashToDash(1003, 1),  // White Velvet Shortcake
+            SlashToDash(1004, 1),  // Croquette Burger
+            SlashToDash(1005, 1),  // Septetto Tea
+            SlashToDash(1006, 2),  // Hearty Kebab
+            SlashToDash(1007, 1),  // Shield Chips
+            SlashToDash(1008, 1),  // Hollow Cake
+            SlashToDash(1009, 2),  // Orange Liquid
+            SlashToDash(1010, 1),  // Cold Stew
+            SlashToDash(1011, 2),  // Scorched Noodles
+            SlashToDash(1012, 1),  // Brown Liquid
+            SlashToDash(1016, 1),  // Abominable Rice
+            SlashToDash(1017, 2),  // Purple Liquid
+            SlashToDash(1018, 1),  // Salty Vongole
+            SlashToDash(1019, 2),  // Ultra Curry
+            SlashToDash(1020, 1),  // Hard Cake
+            SlashToDash(1021, 1),  // Iridescent Liquid
+            SlashToDash(1022, 2),  // Sword Grill
+            SlashToDash(1023, 1),  // Pillowy Mashed Potatoes
+            SlashToDash(1024, 1),  // Glistening Onion Rings
+            SlashToDash(1025, 1),  // Summertime Fruit Cake
+            SlashToDash(1026, 2),  // Sunshine Punch
+            SlashToDash(1027, 1),  // Silky White Stew
+            SlashToDash(1028, 1),  // Nostalgic Sandwich
+            SlashToDash(1029, 2),  // Champion Noodles
+            SlashToDash(1030, 1),  // Heavenly Rice
+            SlashToDash(1031, 2),  // Special Macchiato
+            SlashToDash(1032, 2),  // Golden Bagel
+            SlashToDash(1033, 1),  // Artisan Hamburger
+            SlashToDash(1034, 2),  // Passionate Hotpot
+            SlashToDash(1035, 1),  // Seafood Boil
+            SlashToDash(1036, 1),  // Violet Cloudbank
+            SlashToDash(1037, 1),  // Virtuoso Meat Pie
+            SlashToDash(1038, 2),  // Grand Blue Gelato
+            SlashToDash(1039, 1),  // Shining Pepperoncino
+            SlashToDash(1040, 2),  // Special Tomato Curry
+            SlashToDash(1041, 1),  // Supreme Shortcake
+            SlashToDash(1042, 1),  // Angel Burger
+            SlashToDash(1043, 1),  // Ambrosial Nectar
+            SlashToDash(1044, 2),  // Dynast Grill
+            SlashToDash(1045, 1),  // Crunchy Potato Croquette
+            SlashToDash(1046, 3),  // Onion Trio
+            SlashToDash(1047, 1),  // Airy Meringue Cookie
+            SlashToDash(1048, 2),  // Yuzu Honey Soda
+            SlashToDash(1049, 1),  // Regal Beef Stew
+            SlashToDash(1050, 2),  // Croque Vander
+            SlashToDash(1051, 2),  // Rainbow Veggie Noodles
+            SlashToDash(1052, 1),  // Special Garlic Rice
+            SlashToDash(1053, 3),  // Rich Chocolate Parfait
+            SlashToDash(1054, 2),  // House of Sweets
+            SlashToDash(1055, 1),  // Spicy Loco Moco
+            SlashToDash(1056, 1),  // Special Yogurt Chowder
+            SlashToDash(1057, 2),  // Spicy Jambalaya
+            SlashToDash(1058, 2),  // Esmelas Rain
+            SlashToDash(1059, 1),  // Lovely Apple Pie
+            SlashToDash(1060, 2),  // Elegant Shaved Ice
+            SlashToDash(1061, 1),  // Hunter Carbonara
+            SlashToDash(1062, 3),  // Shrimp Curry
+            SlashToDash(1064, 1),  // Wild Steak Burger
+            SlashToDash(1065, 1),  // Harmonious Earl Grey
+            SlashToDash(1066, 2),  // Nord-style Kebab
+        };
+        for (const auto& slashData : slashArray) {
+            auto& e = tbl_item_en.Entries[slashData.Item];
+            auto apply = [&](std::string& desc) {
+                size_t i = 0;
+                size_t slashNum = 0;
+                size_t arrayIdx = 0;
+                while (i < desc.size()) {
+                    if (desc[i] == '/') {
+                        ++slashNum;
+                        if (slashData.Dashes[arrayIdx] == slashNum) {
+                            desc =
+                                HyoutaUtils::TextUtils::ReplaceSubstring(desc, i, 1, "#0C - #11C");
+                            i += 10;
+                            ++arrayIdx;
+                            if (arrayIdx >= slashData.Dashes.size()
+                                || slashData.Dashes[arrayIdx] == 0) {
+                                break;
+                            }
+                        } else {
+                            ++i;
+                        }
+                    } else {
+                        ++i;
+                    }
+                }
+            };
+            if (e.Name == "item_q") {
+                ItemQData m(e.Data.data(), e.Data.size());
+                apply(m.item.desc);
+                e.Data = m.ToBinary();
+            } else if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                apply(m.desc);
+                e.Data = m.ToBinary();
+            }
+        }
+
 
         // sync the magic descriptions onto the base quartzes that give that magic
         struct ItemMagicSync {
