@@ -401,21 +401,14 @@ CookData::CookData(const char* data, size_t dataLength) {
     HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
     name = stream.ReadUTF8Nullterm();
     d1 = stream.ReadArray<0x22>();
-    item1 = stream.ReadUInt16();
-    item1line1 = stream.ReadUTF8Nullterm();
-    item1line2 = stream.ReadUTF8Nullterm();
-    item2 = stream.ReadUInt16();
-    item2line1 = stream.ReadUTF8Nullterm();
-    item2line2 = stream.ReadUTF8Nullterm();
-    item3 = stream.ReadUInt16();
-    item3line1 = stream.ReadUTF8Nullterm();
-    item3line2 = stream.ReadUTF8Nullterm();
-    item4 = stream.ReadUInt16();
-    item4line1 = stream.ReadUTF8Nullterm();
-    item4line2 = stream.ReadUTF8Nullterm();
-    const size_t dlen = dataLength - stream.GetPosition();
-    d2.resize(dlen);
-    stream.Read(d2.data(), dlen);
+    for (size_t i = 0; i < items.size(); ++i) {
+        items[i].id = stream.ReadUInt16();
+        for (size_t j = 0; j < items[i].lines.size(); ++j) {
+            items[i].lines[j] = stream.ReadUTF8Nullterm();
+        }
+    }
+    d2 = stream.ReadArray<0x30>();
+    assert(dataLength == stream.GetPosition());
 }
 
 std::vector<char> CookData::ToBinary() const {
@@ -424,18 +417,12 @@ std::vector<char> CookData::ToBinary() const {
         HyoutaUtils::Stream::MemoryStream ms(rv);
         ms.WriteUTF8Nullterm(name);
         ms.Write(d1.data(), d1.size());
-        ms.WriteUInt16(item1);
-        ms.WriteUTF8Nullterm(item1line1);
-        ms.WriteUTF8Nullterm(item1line2);
-        ms.WriteUInt16(item2);
-        ms.WriteUTF8Nullterm(item2line1);
-        ms.WriteUTF8Nullterm(item2line2);
-        ms.WriteUInt16(item3);
-        ms.WriteUTF8Nullterm(item3line1);
-        ms.WriteUTF8Nullterm(item3line2);
-        ms.WriteUInt16(item4);
-        ms.WriteUTF8Nullterm(item4line1);
-        ms.WriteUTF8Nullterm(item4line2);
+        for (size_t i = 0; i < items.size(); ++i) {
+            ms.WriteUInt16(items[i].id);
+            for (size_t j = 0; j < items[i].lines.size(); ++j) {
+                ms.WriteUTF8Nullterm(items[i].lines[j]);
+            }
+        }
         ms.Write(d2.data(), d2.size());
     }
     return rv;

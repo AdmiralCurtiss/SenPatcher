@@ -103,14 +103,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         //     auto& e = tbl_en.Entries[i];
         //     if (e.Name == "QSCook") {
         //         CookData m(e.Data.data(), e.Data.size());
-        //         m.item1line1 = "";
-        //         m.item1line2 = "";
-        //         m.item2line1 = "";
-        //         m.item2line2 = "";
-        //         m.item3line1 = "";
-        //         m.item3line2 = "";
-        //         m.item4line1 = "";
-        //         m.item4line2 = "";
+        //         m.items[0].lines[0] = "";
+        //         m.items[0].lines[1] = "";
+        //         m.items[1].lines[0] = "";
+        //         m.items[1].lines[1] = "";
+        //         m.items[2].lines[0] = "";
+        //         m.items[2].lines[1] = "";
+        //         m.items[3].lines[0] = "";
+        //         m.items[3].lines[1] = "";
         //         e.Data = m.ToBinary();
         //     }
         // }
@@ -119,23 +119,25 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[2];
             CookData m(e.Data.data(), e.Data.size());
-            size_t slashpos = m.item4line2.find_first_of('/');
+            size_t slashpos = m.items[3].lines[1].find_first_of('/');
             if (slashpos != std::string::npos) {
-                m.item4line1 = m.item4line1 + "/"
-                               + std::string(std::string_view(m.item4line2.begin(),
-                                                              m.item4line2.begin() + slashpos)
-                                                 .substr(10));
-                auto i4l2 = " "
-                            + std::string(std::string_view(m.item4line2.begin() + slashpos + 1,
-                                                           m.item4line2.end()));
-                m.item4line2 = std::move(i4l2);
-                auto item3 = FindItem(m.item3, tbl_item_en);
+                m.items[3].lines[0] =
+                    m.items[3].lines[0] + "/"
+                    + std::string(std::string_view(m.items[3].lines[1].begin(),
+                                                   m.items[3].lines[1].begin() + slashpos)
+                                      .substr(10));
+                std::string i4l2 =
+                    " "
+                    + std::string(std::string_view(m.items[3].lines[1].begin() + slashpos + 1,
+                                                   m.items[3].lines[1].end()));
+                m.items[3].lines[1] = std::move(i4l2);
+                auto item3 = FindItem(m.items[2].id, tbl_item_en);
                 if (item3) {
                     auto effect = FindItemHelp(item3->effect3[0], tbl_itemhelp_en);
                     if (effect) {
-                        m.item3line1 =
+                        m.items[2].lines[0] =
                             " " + GenerateAttackItemLine1(*item3, tbl_text_en, tbl_itemhelp_en);
-                        m.item3line2 =
+                        m.items[2].lines[1] =
                             " "
                             + Replace(Replace(effect->str, "%d", UInt32ToString(item3->effect3[1])),
                                       "%%",
@@ -150,9 +152,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[4];
             CookData m(e.Data.data(), e.Data.size());
-            m.item1line1 = Replace(m.item1line1, "EP", "CP");
-            m.item2line1 = Replace(m.item2line1, "EP", "CP");
-            m.item4line1 = Replace(m.item4line1, "EP", "CP");
+            m.items[0].lines[0] = Replace(m.items[0].lines[0], "EP", "CP");
+            m.items[1].lines[0] = Replace(m.items[1].lines[0], "EP", "CP");
+            m.items[3].lines[0] = Replace(m.items[3].lines[0], "EP", "CP");
             e.Data = m.ToBinary();
         }
 
@@ -160,13 +162,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[6];
             CookData m(e.Data.data(), e.Data.size());
-            auto item3 = FindItem(m.item3, tbl_item_en);
+            auto item3 = FindItem(m.items[2].id, tbl_item_en);
             if (item3) {
                 auto effect = FindItemHelp(item3->effect3[0], tbl_itemhelp_en);
                 if (effect) {
-                    m.item3line1 =
+                    m.items[2].lines[0] =
                         " " + GenerateAttackItemLine1(*item3, tbl_text_en, tbl_itemhelp_en);
-                    m.item3line2 =
+                    m.items[2].lines[1] =
                         " "
                         + Replace(Replace(effect->str, "%d", UInt32ToString(item3->effect3[1])),
                                   "%%",
@@ -180,9 +182,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[7];
             CookData m(e.Data.data(), e.Data.size());
-            m.item1line1 = Replace(m.item1line1, "EP", "CP");
-            m.item2line1 = Replace(m.item2line1, "EP", "CP");
-            m.item4line1 = Replace(m.item4line1, "EP", "CP");
+            m.items[0].lines[0] = Replace(m.items[0].lines[0], "EP", "CP");
+            m.items[1].lines[0] = Replace(m.items[1].lines[0], "EP", "CP");
+            m.items[3].lines[0] = Replace(m.items[3].lines[0], "EP", "CP");
             e.Data = m.ToBinary();
         }
 
@@ -190,23 +192,24 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[8];
             CookData m(e.Data.data(), e.Data.size());
-            size_t slashpos = m.item1line1.find_first_of('/');
+            size_t slashpos = m.items[0].lines[0].find_first_of('/');
             if (slashpos != std::string::npos) {
-                auto i1l1 = std::string(
-                    std::string_view(m.item1line1.begin(), m.item1line1.begin() + slashpos));
-                auto i1l2 = " "
-                            + std::string(std::string_view(m.item1line1.begin() + slashpos + 1,
-                                                           m.item1line1.end()))
-                            + "/" + m.item1line2.substr(1);
-                m.item1line1 = std::move(i1l1);
-                m.item1line2 = std::move(i1l2);
-                auto item3 = FindItem(m.item3, tbl_item_en);
+                auto i1l1 = std::string(std::string_view(m.items[0].lines[0].begin(),
+                                                         m.items[0].lines[0].begin() + slashpos));
+                auto i1l2 =
+                    " "
+                    + std::string(std::string_view(m.items[0].lines[0].begin() + slashpos + 1,
+                                                   m.items[0].lines[0].end()))
+                    + "/" + m.items[0].lines[1].substr(1);
+                m.items[0].lines[0] = std::move(i1l1);
+                m.items[0].lines[1] = std::move(i1l2);
+                auto item3 = FindItem(m.items[2].id, tbl_item_en);
                 if (item3) {
                     auto effect = FindItemHelp(item3->effect3[0], tbl_itemhelp_en);
                     if (effect) {
-                        m.item3line1 =
+                        m.items[2].lines[0] =
                             " " + GenerateAttackItemLine1(*item3, tbl_text_en, tbl_itemhelp_en);
-                        m.item3line2 =
+                        m.items[2].lines[1] =
                             " "
                             + Replace(Replace(effect->str, "%d", UInt32ToString(item3->effect3[1])),
                                       "%%",
@@ -221,12 +224,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[10];
             CookData m(e.Data.data(), e.Data.size());
-            auto item3 = FindItem(m.item3, tbl_item_en);
+            auto item3 = FindItem(m.items[2].id, tbl_item_en);
             if (item3) {
                 auto effect = FindItemHelp(item3->effect2[0], tbl_itemhelp_en);
                 if (effect) {
-                    m.item3line1 = " ";
-                    m.item3line2 = " " + effect->str;
+                    m.items[2].lines[0] = " ";
+                    m.items[2].lines[1] = " " + effect->str;
                     e.Data = m.ToBinary();
                 }
             }
@@ -236,12 +239,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[11];
             CookData m(e.Data.data(), e.Data.size());
-            auto item3 = FindItem(m.item3, tbl_item_en);
+            auto item3 = FindItem(m.items[2].id, tbl_item_en);
             if (item3) {
                 auto effect = FindItemHelp(item3->effect2[0], tbl_itemhelp_en);
                 if (effect) {
-                    m.item3line1 = " ";
-                    m.item3line2 = " " + effect->str;
+                    m.items[2].lines[0] = " ";
+                    m.items[2].lines[1] = " " + effect->str;
                     e.Data = m.ToBinary();
                 }
             }
@@ -251,10 +254,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[12];
             CookData m(e.Data.data(), e.Data.size());
-            m.item1line1 = Replace(m.item1line1, "EP", "CP");
-            m.item2line1 = Replace(m.item2line1, "EP", "CP");
-            m.item3line2 = Replace(m.item3line1, "EP", "CP");
-            m.item3line1 = " ";
+            m.items[0].lines[0] = Replace(m.items[0].lines[0], "EP", "CP");
+            m.items[1].lines[0] = Replace(m.items[1].lines[0], "EP", "CP");
+            m.items[2].lines[1] = Replace(m.items[2].lines[0], "EP", "CP");
+            m.items[2].lines[0] = " ";
             e.Data = m.ToBinary();
         }
 
@@ -262,7 +265,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[13];
             CookData m(e.Data.data(), e.Data.size());
-            m.item4line1 = Replace(m.item4line1, "EP", "CP");
+            m.items[3].lines[0] = Replace(m.items[3].lines[0], "EP", "CP");
             e.Data = m.ToBinary();
         }
 
@@ -270,13 +273,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[15];
             CookData m(e.Data.data(), e.Data.size());
-            auto item3 = FindItem(m.item3, tbl_item_en);
+            auto item3 = FindItem(m.items[2].id, tbl_item_en);
             if (item3) {
                 auto effect = FindItemHelp(item3->effect3[0], tbl_itemhelp_en);
                 if (effect) {
-                    m.item3line1 =
+                    m.items[2].lines[0] =
                         " " + GenerateAttackItemLine1(*item3, tbl_text_en, tbl_itemhelp_en);
-                    m.item3line2 =
+                    m.items[2].lines[1] =
                         " "
                         + Replace(Replace(effect->str, "%d", UInt32ToString(item3->effect3[1])),
                                   "%%",
@@ -290,14 +293,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[16];
             CookData m(e.Data.data(), e.Data.size());
-            auto item3 = FindItem(m.item3, tbl_item_en);
+            auto item3 = FindItem(m.items[2].id, tbl_item_en);
             if (item3) {
                 auto effect0 = FindItemHelp(item3->effect3[0], tbl_itemhelp_en);
                 auto effect1 = FindItemHelp(item3->effect4[0], tbl_itemhelp_en);
                 if (effect0 && effect1) {
-                    m.item3line1 =
+                    m.items[2].lines[0] =
                         " " + GenerateAttackItemLine1(*item3, tbl_text_en, tbl_itemhelp_en);
-                    m.item3line2 =
+                    m.items[2].lines[1] =
                         " "
                         + Replace(Replace(effect0->str, "%d", UInt32ToString(item3->effect3[1])),
                                   "%%",
@@ -315,9 +318,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[18];
             CookData m(e.Data.data(), e.Data.size());
-            m.item1line1 = Replace(m.item1line1, "EP", "CP");
-            m.item2line1 = Replace(m.item2line1, "EP", "CP");
-            m.item3line1 = Replace(m.item3line1, "EP", "CP");
+            m.items[0].lines[0] = Replace(m.items[0].lines[0], "EP", "CP");
+            m.items[1].lines[0] = Replace(m.items[1].lines[0], "EP", "CP");
+            m.items[2].lines[0] = Replace(m.items[2].lines[0], "EP", "CP");
             e.Data = m.ToBinary();
         }
 
@@ -325,12 +328,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[19];
             CookData m(e.Data.data(), e.Data.size());
-            auto item4 = FindItem(m.item4, tbl_item_en);
+            auto item4 = FindItem(m.items[3].id, tbl_item_en);
             if (item4) {
                 auto effect = FindItemHelp(item4->effect2[0], tbl_itemhelp_en);
                 if (effect) {
-                    m.item4line1 = " ";
-                    m.item4line2 = " " + effect->str;
+                    m.items[3].lines[0] = " ";
+                    m.items[3].lines[1] = " " + effect->str;
                     e.Data = m.ToBinary();
                 }
             }
@@ -340,14 +343,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[20];
             CookData m(e.Data.data(), e.Data.size());
-            auto item3 = FindItem(m.item3, tbl_item_en);
+            auto item3 = FindItem(m.items[2].id, tbl_item_en);
             if (item3) {
                 auto effect0 = FindItemHelp(item3->effect3[0], tbl_itemhelp_en);
                 auto effect1 = FindItemHelp(item3->effect4[0], tbl_itemhelp_en);
                 if (effect0 && effect1) {
-                    m.item3line1 =
+                    m.items[2].lines[0] =
                         " " + GenerateAttackItemLine1(*item3, tbl_text_en, tbl_itemhelp_en);
-                    m.item3line2 =
+                    m.items[2].lines[1] =
                         " "
                         + Replace(Replace(effect0->str, "%d", UInt32ToString(item3->effect3[1])),
                                   "%%",
@@ -365,10 +368,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& e = tbl_en.Entries[22];
             CookData m(e.Data.data(), e.Data.size());
-            m.item1line1 = Replace(m.item1line1, "EP", "CP");
-            m.item2line1 = Replace(m.item2line1, "EP", "CP");
-            m.item3line1 = Replace(m.item3line1, "EP", "CP");
-            m.item4line1 = Replace(m.item4line1, "EP", "CP");
+            m.items[0].lines[0] = Replace(m.items[0].lines[0], "EP", "CP");
+            m.items[1].lines[0] = Replace(m.items[1].lines[0], "EP", "CP");
+            m.items[2].lines[0] = Replace(m.items[2].lines[0], "EP", "CP");
+            m.items[3].lines[0] = Replace(m.items[3].lines[0], "EP", "CP");
             e.Data = m.ToBinary();
         }
 

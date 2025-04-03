@@ -176,22 +176,16 @@ struct NameData {
     std::vector<char> ToBinary() const;
 };
 
+struct CookDataItem {
+    uint16_t id;
+    std::array<std::string, 2> lines;
+};
+
 struct CookData {
     std::string name;
     std::array<char, 0x22> d1;
-    uint16_t item1;
-    std::string item1line1;
-    std::string item1line2;
-    uint16_t item2;
-    std::string item2line1;
-    std::string item2line2;
-    uint16_t item3;
-    std::string item3line1;
-    std::string item3line2;
-    uint16_t item4;
-    std::string item4line1;
-    std::string item4line2;
-    std::vector<char> d2;
+    std::array<CookDataItem, 4> items;
+    std::array<char, 0x30> d2;
 
     CookData(const char* data, size_t dataLength);
 
