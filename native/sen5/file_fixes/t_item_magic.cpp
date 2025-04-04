@@ -1310,6 +1310,91 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             }
         }
 
+        // Azure Droplet, Azure Divine Water: Needs a space at the end because the "Current Limit:
+        // Lv. X" string is appended by the game automatically. Also reduce squish on the latter.
+        {
+            auto& e = tbl_item.Entries[33];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc += ' ';
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_item.Entries[34];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc += ' ';
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 1, 1, "9");
+            e.Data = m.ToBinary();
+        }
+
+        // Fortuitous Divine Water: Remove the very slight squish, the neighboring items don't have
+        // it and the string is practically the same length.
+        {
+            auto& e = tbl_item.Entries[42];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 0, 4);
+            e.Data = m.ToBinary();
+        }
+
+        // Soleil Ice Cream: Has slash between stat ups, should be a dot.
+        {
+            auto& e = tbl_item.Entries[77];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 84, 1, "\xE3\x83\xBB");
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 80, 1, "\xE3\x83\xBB");
+            e.Data = m.ToBinary();
+        }
+
+        // Zeram Powder, Zeram Capsule, Spirit Incense, Dragon Incense, Midnight Fizz:
+        // The order of effects is inconsistent here with everything else.
+        {
+            auto& e = tbl_item.Entries[11];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::MoveSubstring(m.desc, 45, 63, 11);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_item.Entries[12];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::MoveSubstring(m.desc, 45, 63, 11);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_item.Entries[15];
+            ItemData m(e.Data.data(), e.Data.size());
+            std::string effect = m.desc.substr(20, 20);
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 30, 11);
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 48, effect);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_item.Entries[16];
+            ItemData m(e.Data.data(), e.Data.size());
+            std::string effect = m.desc.substr(20, 20);
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 30, 11);
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 48, effect);
+            e.Data = m.ToBinary();
+        }
+        {
+            auto& e = tbl_item.Entries[78];
+            ItemData m(e.Data.data(), e.Data.size());
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 0, 1); // leading space for some reason
+            std::string effect = m.desc.substr(20, 20);
+            m.desc = HyoutaUtils::TextUtils::Remove(m.desc, 30, 11);
+            m.desc = HyoutaUtils::TextUtils::Insert(m.desc, 46, effect);
+            e.Data = m.ToBinary();
+        }
+
+        // Devil's Food Cornet: This has a somewhat oddly combined "DEF↓(S)/Insight for 2 turns",
+        // split that.
+        {
+            auto& e = tbl_item.Entries[3191];
+            ItemData m(e.Data.data(), e.Data.size());
+            std::string turns = m.desc.substr(93, 12);
+            m.desc = HyoutaUtils::TextUtils::ReplaceSubstring(m.desc, 85, 1, turns + "#0C - #11C");
+            e.Data = m.ToBinary();
+        }
+
+
         // replace the separator dot between STR/DEF etc. with a slightly smaller one that's used by
         // the autogenerator, which looks a bit better and is consistent with the autogenerator.
         for (size_t i = 0; i < tbl_item.Entries.size(); ++i) {
@@ -1327,6 +1412,161 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                 ItemQData m(e.Data.data(), e.Data.size());
                 m.item.desc =
                     HyoutaUtils::TextUtils::Replace(m.item.desc, "\xE3\x83\xBB", "\xEF\xBD\xA5");
+                e.Data = m.ToBinary();
+            }
+        }
+
+        // Item descriptions readability pass. See CS4. Reverie already mostly does this, it just
+        // doesn't split the HP/EP/CP Recovery and the Ailment cures.
+        // TODO: Equipment too?
+        struct SlashToDash {
+            uint16_t Item;
+            std::array<uint8_t, 6> Dashes;
+
+            constexpr SlashToDash(uint16_t item,
+                                  uint8_t d0,
+                                  uint8_t d1 = 0,
+                                  uint8_t d2 = 0,
+                                  uint8_t d3 = 0,
+                                  uint8_t d4 = 0,
+                                  uint8_t d5 = 0)
+              : Item(item), Dashes{{d0, d1, d2, d3, d4, d5}} {}
+        };
+        // for (size_t i = 0; i < tbl_item.Entries.size(); ++i) {
+        //     auto& e = tbl_item.Entries[i];
+        //     auto a = [&](std::string_view name, std::string_view desc) {
+        //         if (desc.find('/') != std::string_view::npos) {
+        //             std::string s;
+        //             s += "// ";
+        //             s += HyoutaUtils::TextUtils::Replace(desc, "\n", "{n}");
+        //             s += "\n";
+        //             s += "SlashToDash(";
+        //             s += std::to_string(i);
+        //             size_t j = 1;
+        //             while (desc.find('/') != std::string_view::npos) {
+        //                 s += ", ";
+        //                 s += std::to_string(j);
+        //                 ++j;
+        //                 desc = desc.substr(desc.find('/') + 1);
+        //             }
+        //             s += "), // ";
+        //             s += name;
+        //             printf("%s\n", s.c_str());
+        //         }
+        //     };
+        //     if (e.Name == "item") {
+        //         ItemData m(e.Data.data(), e.Data.size());
+        //         a(m.name, m.desc);
+        //     } else if (e.Name == "item_e") {
+        //         ItemEData m(e.Data.data(), e.Data.size());
+        //         a(m.item.name, m.item.desc);
+        //     } else if (e.Name == "item_q") {
+        //         ItemQData m(e.Data.data(), e.Data.size());
+        //         a(m.item.name, m.item.desc);
+        //     }
+        // }
+        static constexpr std::array slashArray = {
+            SlashToDash(8, 1),    // Reviving Balm
+            SlashToDash(9, 1),    // Celestial Balm
+            SlashToDash(10, 1),   // Celestial Balm EX
+            SlashToDash(11, 2),   // Zeram Powder
+            SlashToDash(12, 2),   // Zeram Capsule
+            SlashToDash(45, 1),   // Repair Stone
+            SlashToDash(48, 1),   // Resurrect Stone
+            SlashToDash(49, 2),   // Power Potion
+            SlashToDash(50, 3),   // Shield Potion
+            SlashToDash(51, 2),   // Mind Potion
+            SlashToDash(52, 2),   // Power Potion II
+            SlashToDash(53, 3),   // Shield Potion II
+            SlashToDash(54, 2),   // Mind Potion II
+            SlashToDash(55, 2),   // Power Potion Ω
+            SlashToDash(56, 3),   // Shield Potion Ω
+            SlashToDash(57, 2),   // Mind Potion Ω
+            SlashToDash(58, 1),   // Hot Chili Pecky
+            SlashToDash(59, 1),   // Melon Pecky
+            SlashToDash(60, 1),   // Salmon Pecky
+            SlashToDash(61, 1),   // Cheese Pecky
+            SlashToDash(62, 1),   // Herb Pecky
+            SlashToDash(63, 1),   // Orange Pecky
+            SlashToDash(68, 1),   // Orange Juice
+            SlashToDash(69, 1),   // Blended Coffee
+            SlashToDash(70, 1),   // Vingt-Sept Hamburg Steak
+            SlashToDash(71, 1),   // Vanilla Yubeshi
+            SlashToDash(72, 1),   // Dragon Fried Rice
+            SlashToDash(73, 1),   // Ozelle's Shio Ramen
+            SlashToDash(74, 1),   // Independence Roll
+            SlashToDash(75, 1),   // Os-Ben Special
+            SlashToDash(76, 1),   // Cosmic Cluster Ice Cream
+            SlashToDash(77, 1),   // Soleil Ice Cream
+            SlashToDash(80, 1),   // Imperial Tea
+            SlashToDash(81, 1),   // Prismatic Macarons
+            SlashToDash(82, 1),   // Foresta Soup
+            SlashToDash(83, 1),   // Strawberry Crepe
+            SlashToDash(84, 1),   // Tropical Lovers
+            SlashToDash(85, 1),   // Bubble Tea
+            SlashToDash(86, 1),   // Flowery Fizz
+            SlashToDash(3181, 1), // Impromptu Potato Salad
+            SlashToDash(3182, 2), // Tri-Color Onigiri
+            SlashToDash(3191, 1), // Devil's Food Cornet
+            SlashToDash(3193, 1), // Resurrection Jelly
+            SlashToDash(3199, 1), // Prison Food
+            SlashToDash(3207, 2), // Freddy's Shabu-Shabu
+            SlashToDash(3208, 2), // Iron Man Hot Pot
+            SlashToDash(3209, 2), // Premier Shortcake
+            SlashToDash(3210, 2), // Paradise Parfait
+            SlashToDash(3222, 1), // Singwich
+            SlashToDash(3230, 1), // Iron Plate
+            SlashToDash(3238, 2), // Meat Medley Hot Pot
+            SlashToDash(3239, 2), // Perplexing Extract
+            SlashToDash(3240, 2), // Convoluted Cake
+            SlashToDash(3241, 2), // Offbeat Ice Cream
+            SlashToDash(3243, 2), // Thick Bacon Potato
+            SlashToDash(3244, 2), // Piping Matcha Ochazuke
+            SlashToDash(3250, 2), // Rondo Bagel
+            SlashToDash(3255, 3), // Trinity Fizz
+            SlashToDash(3261, 1), // Golden Dish
+            SlashToDash(3269, 2), // Remiferian Pot-Au-Feu
+            SlashToDash(3270, 2), // Crimson Lotus Hot Pot
+            SlashToDash(3271, 2), // White Snow
+            SlashToDash(3272, 2), // Parfait du Royale
+        };
+        for (const auto& slashData : slashArray) {
+            auto& e = tbl_item.Entries[slashData.Item];
+            auto apply = [&](std::string& desc) {
+                size_t i = 0;
+                size_t slashNum = 0;
+                size_t arrayIdx = 0;
+                while (i < desc.size()) {
+                    if (desc[i] == '/') {
+                        ++slashNum;
+                        if (slashData.Dashes[arrayIdx] == slashNum) {
+                            desc =
+                                HyoutaUtils::TextUtils::ReplaceSubstring(desc, i, 1, "#0C - #11C");
+                            i += 10;
+                            ++arrayIdx;
+                            if (arrayIdx >= slashData.Dashes.size()
+                                || slashData.Dashes[arrayIdx] == 0) {
+                                break;
+                            }
+                        } else {
+                            ++i;
+                        }
+                    } else {
+                        ++i;
+                    }
+                }
+            };
+            if (e.Name == "item") {
+                ItemData m(e.Data.data(), e.Data.size());
+                apply(m.desc);
+                e.Data = m.ToBinary();
+            } else if (e.Name == "item_e") {
+                ItemEData m(e.Data.data(), e.Data.size());
+                apply(m.item.desc);
+                e.Data = m.ToBinary();
+            } else if (e.Name == "item_q") {
+                ItemQData m(e.Data.data(), e.Data.size());
+                apply(m.item.desc);
                 e.Data = m.ToBinary();
             }
         }

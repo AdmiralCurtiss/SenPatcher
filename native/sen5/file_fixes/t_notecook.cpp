@@ -127,6 +127,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             }
         }
 
+        // Devil's Food Cornet: This has a somewhat oddly combined "DEF↓(S)/Insight for 2 turns",
+        // split that.
+        {
+            auto& e = tbl_en.Entries[12];
+            CookData m(e.Data.data(), e.Data.size());
+            auto& line = m.items[1].lines[1];
+            std::string turns = line.substr(line.size() - 12);
+            line = HyoutaUtils::TextUtils::ReplaceSubstring(line, 9, 1, turns + '-');
+            e.Data = m.ToBinary();
+        }
+
         // Add a space to the "-", it looks terrible without it.
         for (size_t i = 0; i < tbl_en.Entries.size(); ++i) {
             auto& e = tbl_en.Entries[i];
