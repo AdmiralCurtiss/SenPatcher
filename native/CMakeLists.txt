@@ -1721,5 +1721,5 @@ if (SENPATCHER_BUILD_GTESTS)
 	target_link_libraries(tests PUBLIC GTest::gtest_main)
 
 	include(GoogleTest)
-	gtest_discover_tests(tests)
+	gtest_discover_tests(tests DISCOVERY_MODE PRE_TEST)
 endif()
