@@ -357,6 +357,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/pkg_pack/pkg_pack.cpp
 		sentools/pkg_pack/pkg_pack_main.h
 		sentools/pkg_repack/pkg_repack.cpp
+		sentools/pkg_repack/pkg_repack.h
 		sentools/pkg_repack/pkg_repack_main.h
 		sentools/save_checksum_fix/save_checksum_fix.cpp
 		sentools/save_checksum_fix/save_checksum_fix.h

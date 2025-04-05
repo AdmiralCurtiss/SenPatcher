@@ -1,10 +1,11 @@
-#include "pkg_repack_main.h"
+#include "pkg_repack.h"
 
 #include <array>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
+#include <format>
 #include <memory>
 #include <optional>
 #include <string>
@@ -14,7 +15,9 @@
 #include "cpp-optparse/OptionParser.h"
 
 #include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
 
+#include "pkg_repack_main.h"
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
 #include "util/endian.h"
@@ -100,30 +103,44 @@ int PKG_Repack_Function(int argc, char** argv) {
     std::string_view source(args[0]);
     std::string_view target(output_option->first_string());
 
+    auto result = RepackPkg(source, target);
+    if (result.IsError()) {
+        printf("%s\n", result.GetErrorValue().c_str());
+        return -1;
+    }
 
+    return 0;
+}
+
+HyoutaUtils::Result<RepackPkgResult, std::string> RepackPkg(std::string_view source,
+                                                            std::string_view target) {
     std::filesystem::path sourcepath = HyoutaUtils::IO::FilesystemPathFromUtf8(source);
     HyoutaUtils::IO::File f(sourcepath, HyoutaUtils::IO::OpenMode::Read);
     if (!f.IsOpen()) {
-        return -1;
+        return std::format("Failed to open {}", source);
     }
     auto length = f.GetLength();
     if (!length) {
-        return -1;
+        return std::format("Failed to get length of {}", source);
     }
     auto buffer = std::make_unique_for_overwrite<char[]>(*length);
     if (!buffer) {
-        return -1;
+        return std::format("Failed to allocate memory for {}", source);
     }
     if (f.Read(buffer.get(), *length) != *length) {
-        return -1;
+        return std::format("Failed to read {}", source);
     }
 
     rapidjson::Document json;
     json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag
                    | rapidjson::kParseCommentsFlag,
                rapidjson::UTF8<char>>(buffer.get(), *length);
-    if (json.HasParseError() || !json.IsObject()) {
-        return -1;
+    if (json.HasParseError()) {
+        return std::format("Failed to parse JSON: {}",
+                           rapidjson::GetParseError_En(json.GetParseError()));
+    }
+    if (!json.IsObject()) {
+        return std::string("JSON root is not an object");
     }
 
     const auto root = json.GetObject();
@@ -138,15 +155,21 @@ int PKG_Repack_Function(int argc, char** argv) {
             if (file.IsObject()) {
                 const auto fileobj = file.GetObject();
                 const auto nameInArchive = JsonReadString(file, "NameInArchive");
-                const auto pathOnDisk = JsonReadString(file, "PathOnDisk");
-                const auto flags = JsonReadUInt32(file, "Flags");
-                const auto isPkaRef = JsonReadBool(file, "IsPkaReference");
-                if (!nameInArchive || !pathOnDisk || !flags) {
-                    return -1;
+                if (!nameInArchive) {
+                    return std::string("JSON error: 'NameInArchive' missing or invalid");
                 }
+                const auto pathOnDisk = JsonReadString(file, "PathOnDisk");
+                if (!pathOnDisk) {
+                    return std::string("JSON error: 'PathOnDisk' missing or invalid");
+                }
+                const auto flags = JsonReadUInt32(file, "Flags");
+                if (!flags) {
+                    return std::string("JSON error: 'Flags' missing or invalid");
+                }
+                const auto isPkaRef = JsonReadBool(file, "IsPkaReference");
                 std::array<char, 0x40> fn{};
                 if (nameInArchive->size() > fn.size()) {
-                    return -1;
+                    return std::format("JSON error: 'NameInArchive' too long ({})", *nameInArchive);
                 }
                 std::memcpy(fn.data(), nameInArchive->data(), nameInArchive->size());
 
@@ -159,23 +182,19 @@ int PKG_Repack_Function(int argc, char** argv) {
                         ((const char8_t*)pathOnDisk->data()) + pathOnDisk->size())),
                     HyoutaUtils::IO::OpenMode::Read);
                 if (!infile.IsOpen()) {
-                    printf("Failed opening file.\n");
-                    return -1;
+                    return std::format("Failed opening {}", *pathOnDisk);
                 }
                 const auto uncompressedLength = infile.GetLength();
                 if (!uncompressedLength) {
-                    printf("Failed getting size of file.\n");
-                    return -1;
+                    return std::format("Failed getting size of {}", *pathOnDisk);
                 }
                 if (*uncompressedLength > UINT32_MAX) {
-                    printf("File too big to put into pkg.\n");
-                    return -1;
+                    return std::format("{} too big to put into pkg", *pathOnDisk);
                 }
                 auto uncompressedData = std::make_unique_for_overwrite<char[]>(*uncompressedLength);
                 if (infile.Read(uncompressedData.get(), *uncompressedLength)
                     != *uncompressedLength) {
-                    printf("Failed to read file.\n");
-                    return -1;
+                    return std::format("Failed to read {}", *pathOnDisk);
                 }
 
                 if (isPkaRef.has_value() && *isPkaRef) {
@@ -195,16 +214,15 @@ int PKG_Repack_Function(int argc, char** argv) {
                             static_cast<uint32_t>(*uncompressedLength),
                             *flags,
                             HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-                        printf("Failed adding file to pkg.\n");
-                        return -1;
+                        return std::string("Failed adding file to pkg");
                     }
                 }
             } else {
-                return -1;
+                return std::string("JSON error: File is not a JSON object");
             }
         }
     } else {
-        return -1;
+        return std::string("JSON error: 'Files' not found or not an array");
     }
 
     std::unique_ptr<char[]> ms;
@@ -215,21 +233,18 @@ int PKG_Repack_Function(int argc, char** argv) {
                                    static_cast<uint32_t>(fileinfos.size()),
                                    unknownValue,
                                    HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
-        printf("Failed to create pkg.\n");
-        return -1;
+        return std::string("Failed to create pkg");
     }
 
     HyoutaUtils::IO::File outfile(target, HyoutaUtils::IO::OpenMode::Write);
     if (!outfile.IsOpen()) {
-        printf("Failed to open output file.\n");
-        return -1;
+        return std::string("Failed to open output file");
     }
 
     if (outfile.Write(ms.get(), msSize) != msSize) {
-        printf("Failed to write to output file.\n");
-        return -1;
+        return std::string("Failed to write to output file");
     }
 
-    return 0;
+    return RepackPkgResult::Success;
 }
 } // namespace SenTools
