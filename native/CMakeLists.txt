@@ -699,6 +699,11 @@ if (SENPATCHER_BUILD_CS3HOOK OR SENPATCHER_BUILD_CS3TEST)
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v72_e0012.bin" "embed_sen3_v72_e0012.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen3/FileFixes/v93_e0300.bin" "embed_sen3_v93_e0300.h")
 endif()
+if (SENPATCHER_BUILD_TXHOOK OR SENPATCHER_BUILD_TXTEST)
+	senpatcher_generate_embeddable_file("../SenLib/TX/FileFixes/efobj078a_jp.bin" "embed_tx_efobj078a_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/TX/FileFixes/efobj079a_jp.bin" "embed_tx_efobj079a_jp.h")
+	senpatcher_generate_embeddable_file("../SenLib/TX/FileFixes/efobj080a_jp.bin" "embed_tx_efobj080a_jp.h")
+endif()
 if (SENPATCHER_BUILD_TOOLS)
 	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82j142.bin" "embed_sen2_ed82j142.h")
 	senpatcher_generate_embeddable_file("../SenLib/Sen2/FileFixes/ed82u142j.bin" "embed_sen2_ed82u142j.h")
@@ -966,8 +971,13 @@ set(SOURCES_REVERIE_FIXES
 
 set(SOURCES_TX_FIXES
 	tx/file_fixes/a0000.cpp
+	tx/file_fixes/E_EFOBJ078.cpp
+	tx/file_fixes/E_EFOBJ079.cpp
+	tx/file_fixes/E_EFOBJ080.cpp
 	tx/file_fixes.cpp
 	tx/file_fixes.h
+	tx/patch_pkg.cpp
+	tx/patch_pkg.h
 	tx/tbl.cpp
 	tx/tbl.h
 )

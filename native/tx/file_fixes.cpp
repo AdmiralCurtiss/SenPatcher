@@ -23,6 +23,9 @@
 static constexpr char Data_SenpatcherModIniEnglish[] =
     "[TXMod]\nMinFeatureLevel=0\nLanguage=English";
 static constexpr size_t Length_SenpatcherModIniEnglish = sizeof(Data_SenpatcherModIniEnglish) - 1;
+static constexpr char Data_SenpatcherModIniJapanese[] =
+    "[TXMod]\nMinFeatureLevel=0\nLanguage=Japanese";
+static constexpr size_t Length_SenpatcherModIniJapanese = sizeof(Data_SenpatcherModIniJapanese) - 1;
 
 #define DECLARE_STANDARD_FIX(name)                                              \
     namespace SenLib::TX::FileFixes::##name {                                   \
@@ -30,6 +33,9 @@ static constexpr size_t Length_SenpatcherModIniEnglish = sizeof(Data_SenpatcherM
                       std::vector<SenPatcher::P3APackFile>& result);            \
     }
 DECLARE_STANDARD_FIX(a0000)
+DECLARE_STANDARD_FIX(E_EFOBJ078)
+DECLARE_STANDARD_FIX(E_EFOBJ079)
+DECLARE_STANDARD_FIX(E_EFOBJ080)
 
 #define TRY_APPLY(asset, apply)                       \
     do {                                              \
@@ -56,11 +62,27 @@ static bool CollectAssetsEnglish(HyoutaUtils::Logger& logger,
     return true;
 }
 
+static bool CollectAssetsJapanese(HyoutaUtils::Logger& logger,
+                                  const SenPatcher::GetCheckedFileCallback& callback,
+                                  std::vector<SenPatcher::P3APackFile>& packFiles) {
+    packFiles.emplace_back(
+        std::vector<char>(Data_SenpatcherModIniJapanese,
+                          Data_SenpatcherModIniJapanese + Length_SenpatcherModIniJapanese),
+        SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
+        SenPatcher::P3ACompressionType::None);
+
+    TRY_APPLY(E_EFOBJ078, TryApply(callback, packFiles));
+    TRY_APPLY(E_EFOBJ079, TryApply(callback, packFiles));
+    TRY_APPLY(E_EFOBJ080, TryApply(callback, packFiles));
+    return true;
+}
+
 bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
                               std::string_view baseDir,
                               SenLib::ModLoad::LoadedP3AData& vanillaP3As,
                               SenLib::ModLoad::LoadedPkaData& vanillaPKAs,
-                              std::span<const std::string_view> pkaPrefixes) {
+                              std::span<const std::string_view> pkaPrefixes,
+                              bool isJp) {
     std::string_view versionString(SENPATCHER_VERSION, sizeof(SENPATCHER_VERSION) - 1);
 
     // lazy init these so that they won't get inited if no one asks for a file
@@ -101,12 +123,13 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
         std::array<char, 0x60> tmp{};
         static_assert(sizeof(tmp) == sizeof(SenPatcher::BRAFileInfo::Path));
         std::memcpy(tmp.data(), path.data(), path.size());
+        SenLib::ModLoad::FilterP3APath(tmp.data(), tmp.size());
         for (size_t i = 0; i < bra.FileCount; ++i) {
             const auto& fi = bra.FileInfo[i];
             const uint32_t compressedSize = fi.CompressedSize;
             const uint32_t uncompressedSize = fi.UncompressedSize;
             if (uncompressedSize == size
-                && std::memcmp(tmp.data(), fi.Path.data(), tmp.size()) == 0) {
+                && std::strncmp(tmp.data(), fi.Path.data(), tmp.size()) == 0) {
                 auto r = [&]() -> std::optional<SenPatcher::CheckedFileResult> {
                     SenPatcher::CheckedFileResult result;
                     if (!SenPatcher::CopyToP3AFilename(result.Filename, path)) {
@@ -177,15 +200,28 @@ bool CreateAssetPatchIfNeeded(HyoutaUtils::Logger& logger,
             baseDir, vanillaP3As, vanillaPKAs, pkaPrefixes, nullptr, path, size, hash);
     };
 
-    return CreateArchiveIfNeeded(logger,
-                                 baseDir,
-                                 "mods/zzz_senpatcher_txenglish.p3a",
-                                 versionString,
-                                 [&](SenPatcher::P3APackData& packData) -> bool {
-                                     return CollectAssetsEnglish(
-                                         logger, callback, packData.GetMutableFiles());
-                                 });
-
-    return true;
+    bool success = true;
+    if (isJp) {
+        success = CreateArchiveIfNeeded(logger,
+                                        baseDir,
+                                        "mods/zzz_senpatcher_txjapanese.p3a",
+                                        versionString,
+                                        [&](SenPatcher::P3APackData& packData) -> bool {
+                                            return CollectAssetsJapanese(
+                                                logger, callback, packData.GetMutableFiles());
+                                        })
+                  && success;
+    } else {
+        success = CreateArchiveIfNeeded(logger,
+                                        baseDir,
+                                        "mods/zzz_senpatcher_txenglish.p3a",
+                                        versionString,
+                                        [&](SenPatcher::P3APackData& packData) -> bool {
+                                            return CollectAssetsEnglish(
+                                                logger, callback, packData.GetMutableFiles());
+                                        })
+                  && success;
+    }
+    return success;
 }
 } // namespace SenLib::TX

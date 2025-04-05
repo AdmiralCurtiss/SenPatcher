@@ -973,8 +973,12 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
 
     bool assetCreationSuccess = true;
     if (assetFixes) {
-        assetCreationSuccess = SenLib::TX::CreateAssetPatchIfNeeded(
-            logger, baseDirUtf8, s_LoadedVanillaP3As, s_LoadedPkaData, s_PkaGroupPrefixes);
+        assetCreationSuccess = SenLib::TX::CreateAssetPatchIfNeeded(logger,
+                                                                    baseDirUtf8,
+                                                                    s_LoadedVanillaP3As,
+                                                                    s_LoadedPkaData,
+                                                                    s_PkaGroupPrefixes,
+                                                                    useJapaneseLanguage);
     }
 
     LoadModP3As(logger,

@@ -79,7 +79,7 @@ int InternalMain(int argc, char** argv) {
 
     SenLib::ModLoad::CreateModDirectory(baseDirUtf8);
     SenLib::TX::CreateAssetPatchIfNeeded(
-        logger, baseDirUtf8, vanillaP3As, vanillaPKAs, s_PkaGroupPrefixes);
+        logger, baseDirUtf8, vanillaP3As, vanillaPKAs, s_PkaGroupPrefixes, useJapaneseLanguage);
     if (generateSwitchScripts) {
         SenLib::TX::CreateSwitchScriptArchive(
             logger, baseDirSwitch + "/data", baseDirUtf8, vanillaP3As, vanillaPKAs, {});
