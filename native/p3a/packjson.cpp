@@ -101,7 +101,8 @@ std::optional<SenPatcher::P3APackData>
     }
 
     rapidjson::Document json;
-    json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag,
+    json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag
+                   | rapidjson::kParseCommentsFlag,
                rapidjson::UTF8<char>>(buffer.get(), *length);
     if (json.HasParseError() || !json.IsObject()) {
         return std::nullopt;

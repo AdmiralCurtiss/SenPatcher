@@ -119,7 +119,8 @@ int PKG_Repack_Function(int argc, char** argv) {
     }
 
     rapidjson::Document json;
-    json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag,
+    json.Parse<rapidjson::kParseFullPrecisionFlag | rapidjson::kParseNanAndInfFlag
+                   | rapidjson::kParseCommentsFlag,
                rapidjson::UTF8<char>>(buffer.get(), *length);
     if (json.HasParseError() || !json.IsObject()) {
         return -1;
