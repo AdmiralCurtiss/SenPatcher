@@ -179,6 +179,7 @@ HyoutaUtils::Result<SaveChecksumFixResult, std::string>
             sumOffset = 12;
             break;
         case SaveFileType::Daybreak_GameData:
+        case SaveFileType::Daybreak2_GameData:
             initialCrcValue = static_cast<uint32_t>(szlen - 12);
             sumDataStartOffset = 12;
             sumDataLength = szlen - 12;

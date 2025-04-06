@@ -333,6 +333,9 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/daybreak_save_convert/daybreak_save_convert.cpp
 		sentools/daybreak_save_convert/daybreak_save_convert.h
 		sentools/daybreak_save_convert/daybreak_save_convert_main.h
+		sentools/daybreak2_save_convert/daybreak2_save_convert.cpp
+		sentools/daybreak2_save_convert/daybreak2_save_convert.h
+		sentools/daybreak2_save_convert/daybreak2_save_convert_main.h
 		sentools/dirtree_create/dirtree_create.cpp
 		sentools/dirtree_create/dirtree_create_main.h
 		sentools/file_compressor/file_compressor.cpp

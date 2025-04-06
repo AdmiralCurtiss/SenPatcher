@@ -14,6 +14,7 @@ enum class SaveFileType {
     Reverie_SystemData,
     Reverie_GameData,
     Daybreak_GameData,
+    Daybreak2_GameData,
 };
 
 HyoutaUtils::Result<SaveChecksumFixResult, std::string>

@@ -10,6 +10,7 @@
 #include "cli_tool.h"
 
 #include "bra_extract/bra_extract_main.h"
+#include "daybreak2_save_convert/daybreak2_save_convert_main.h"
 #include "daybreak_save_convert/daybreak_save_convert_main.h"
 #include "dirtree_create/dirtree_create_main.h"
 #include "file_compressor/file_compressor_main.h"
@@ -88,6 +89,10 @@ static constexpr auto CliTools = {
     CliTool{.Name = Daybreak_Save_Convert_Name,
             .ShortDescription = Daybreak_Save_Convert_ShortDescription,
             .Function = Daybreak_Save_Convert_Function,
+            .Hidden = true},
+    CliTool{.Name = Daybreak2_Save_Convert_Name,
+            .ShortDescription = Daybreak2_Save_Convert_ShortDescription,
+            .Function = Daybreak2_Save_Convert_Function,
             .Hidden = true},
     CliTool{.Name = FileCompressor_Name,
             .ShortDescription = FileCompressor_ShortDescription,
