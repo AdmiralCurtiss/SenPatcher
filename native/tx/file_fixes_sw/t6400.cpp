@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t6400.dat",
-            76625,
-            HyoutaUtils::Hash::SHA1FromHexString("f9775075b71c3c7f47095fdde0598f529e5b3d52"));
+            76641,
+            HyoutaUtils::Hash::SHA1FromHexString("7a9b023caaff5d47924e46736bd92948f2d1a774"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -29,15 +29,23 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#4S#800WGood, then bring it on,#5W\x01#1000W#6SShio!"
+        // harmless
+        // (EV_03_01_00)
         // patcher.ReplacePartialCommand(0x4694, 0x3c, 0x46c5, 0x8, "");
 
         // "#2P#500WSo I'll ask you one more time:#15W\x01#1000W#5SPlease let us through."
+        // harmless
+        // (EV_03_11_00, Sora in party)
         // patcher.ReplacePartialCommand(0x6e6a, 0x55, 0x6ea3, 0x19, "");
 
         // "#2P#500WWhat?#14W\x01#1000W#5SYou got a problem with that?"
+        // harmless
+        // (EV_03_11_00)
         // patcher.ReplacePartialCommand(0x889a, 0x42, 0x88ba, 0x1f, "");
 
         // "#2K#F#0T...Takahane's underboss?!#10W\x01#1000W(No wonder he was so terrifying...)"
+        // harmless
+        // (EV_03_15_00)
         // patcher.ReplacePartialCommand(0xabd6, 0x59, 0xac04, 0x29, "");
 
         fileSw->SetVectorData(std::move(bin));

@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t4300.dat",
-            104433,
-            HyoutaUtils::Hash::SHA1FromHexString("514c40c1df4fc8f7055dd657b838a770971b9fc6"));
+            104417,
+            HyoutaUtils::Hash::SHA1FromHexString("4f7c3e52104a2fbe48f843b28fa689866bd4766f"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,25 +28,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "So a greed different from the phantom\x01hands has appeared in the fog"
-        // missing period at the end
-        patcher.ExtendPartialCommand(0x108a5, 0x96, 0x108fa, {{0x2e}});
+        // fix the "About Attachments" tip not losing its 'new' icon after reading it
+        patcher.RemovePartialCommand(0x572d, 0x1c, 0x5741, 0x5);
 
-        // fix the "About Attachments" tip not losing it's 'new' icon after reading it
-        patcher.RemovePartialCommand(0x572a, 0x1c, 0x573e, 0x5);
-
-        // TODO: there's also a ton of text color issues in the tips...
-
-        // "Fair. You ready to start now?"
-        // this is the first line of a conversation, so remove the "Fair."
-        patcher.RemovePartialCommand(0x114e8, 0x64, 0x114ed, 0x6);
-
-        // "Don't get cocky, but, with your strength, I trust you can take it down"
-        // missing period
-        patcher.ExtendPartialCommand(0x3f01, 0x77, 0x3f4c, {{0x2e}});
+        // text colors all look fixed in Switch v1.0.1, yay
 
         // linebreaks
-        std::swap(bin[0x12732], bin[0x12735]);
+        // "#E_8#M_9Gonna be meeting everyone\x01at night, but that's it, really."
+        std::swap(bin[0x12726], bin[0x12729]);
 
 
         fileSw->SetVectorData(std::move(bin));

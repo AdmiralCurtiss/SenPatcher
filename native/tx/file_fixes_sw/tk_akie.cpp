@@ -19,20 +19,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/talk/dat/tk_akie.dat",
-            10306,
-            HyoutaUtils::Hash::SHA1FromHexString("0add3f39da328f134022969871f6e8111906c5ca"));
+            10274,
+            HyoutaUtils::Hash::SHA1FromHexString("d960a70f4ffb8503b418612f09e20800bc2c5e48"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
 
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
-
-        // "I heard they're having an anniversary concert today."
-        // Wrong timeframe. It wasn't 'today' when I got this text, and the JP is not specific about
-        // the time, so let's just change that to 'soon'.
-        patcher.ReplacePartialCommand(0x122d, 0x134, 0x133a, 0x5, {{0x73, 0x6f, 0x6f, 0x6e}});
-        patcher.ReplacePartialCommand(0x137a, 0x94, 0x13e2, 0x5, {{0x73, 0x6f, 0x6f, 0x6e}});
 
         fileSw->SetVectorData(std::move(bin));
         return true;

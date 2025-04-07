@@ -95,8 +95,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "text/dat/t_main.tbl",
-            95830,
-            HyoutaUtils::Hash::SHA1FromHexString("75d195bcb7e5d492bdd5f95b55dc9959337ee568"));
+            95848,
+            HyoutaUtils::Hash::SHA1FromHexString("193751e5af906163543e4cc335764029a45d4c3f"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -124,6 +124,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             }
 
             m.Text = Join(lines, "\n");
+            entry.Data = m.ToBinary();
+        }
+
+        // Uncapitalized 'k' in "Intermediate Karate" item name in Chapter 2 Shop Info
+        {
+            auto& entry = tbl.Entries[16];
+            QSText m(entry.Data.data(), entry.Data.size());
+            m.Text[185] = 'K';
             entry.Data = m.ToBinary();
         }
 
@@ -294,8 +302,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "text/dat/t_quest.tbl",
-            41229,
-            HyoutaUtils::Hash::SHA1FromHexString("e4a13e38c39ee6c704f4c0a8b24e8de354256f8d"));
+            41258,
+            HyoutaUtils::Hash::SHA1FromHexString("69678b0e57fe0a386dcf82c3923c27759ef85ccd"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -346,11 +354,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             entry.Data = m.ToBinary();
         }
 
-        // this uses the wrong unicode e for cafe
+        // entry 127 has a typo and is missing the period at the end
+        // "Aat least we managed to survive the interview"
         {
-            auto& entry = tbl.Entries[266];
+            auto& entry = tbl.Entries[127];
             QSText m(entry.Data.data(), entry.Data.size());
-            m.Text[0xf2] = (char)0xa9;
+            m.Text = Remove(m.Text, 187, 1) + ".";
             entry.Data = m.ToBinary();
         }
 

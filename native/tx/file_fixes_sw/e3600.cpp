@@ -29,6 +29,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
 
+        // Ryuta -> Ryouta
+        patcher.ExtendPartialCommand(0x1818, 0xb, 0x181D, {{'o'}});
+        patcher.ExtendPartialCommand(0x1c38, 0xb, 0x1C3D, {{'o'}});
+
+        // "Wish☆Wing" -> "Wish★Wing"
+        bin[0xCA3] = '\x85';
+
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

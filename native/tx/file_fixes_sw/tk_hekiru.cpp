@@ -20,8 +20,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/talk/dat/tk_hekiru.dat",
-            18081,
-            HyoutaUtils::Hash::SHA1FromHexString("101c9596244d04e16be2bdaaa1f67b21dba7d44e"));
+            18075,
+            HyoutaUtils::Hash::SHA1FromHexString("1f3be3024f80b7a0cadd1522f5ebfa4c3150e7e8"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -29,8 +29,6 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "journalismclub" -> "journalism club"
-        patcher.ExtendPartialCommand(0x3915, 0x99, 0x39a3, {{0x20}});
 
         fileSw->SetVectorData(std::move(bin));
         return true;

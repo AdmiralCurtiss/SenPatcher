@@ -21,7 +21,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/m5319.dat",
             15673,
-            HyoutaUtils::Hash::SHA1FromHexString("51da8bb05afd0b8cd1c72cfacfb369534ed7ba91"));
+            HyoutaUtils::Hash::SHA1FromHexString("cb2ecd6875d7ca3c8c30fc7af5ce6118a63150be"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -30,12 +30,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
 
-        // Two instances of the speaker name being left in Japanese -- should just be 'Voice'.
-        patcher.ReplacePartialCommand(0x24bf, 0x7, 0x24c0, 0x3, {{0x56, 0x6f, 0x69, 0x63, 0x65}});
-        patcher.ReplacePartialCommand(0x24f6, 0x7, 0x24f7, 0x3, {{0x56, 0x6f, 0x69, 0x63, 0x65}});
+        // The left-in-Japanese "Voice" name tag was fixed in Switch v1.0.1
 
         // While we're here, improve a linebreak.
-        std::swap(bin[0x3502], bin[0x350d]);
+        // "#4KUnderstood. You can leave\x01everything to us, then."
+        // (EV_04_26_00)
+        std::swap(bin[0x3505], bin[0x3510]);
 
 
         fileSw->SetVectorData(std::move(bin));

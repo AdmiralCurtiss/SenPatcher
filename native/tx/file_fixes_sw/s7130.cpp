@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/s7130.dat",
-            60353,
-            HyoutaUtils::Hash::SHA1FromHexString("80e1d0eaa80d62342c9b466b6269cf0d7dba06a5"));
+            60369,
+            HyoutaUtils::Hash::SHA1FromHexString("eb36a01754415e701e8cc72eca2cfa95d8573538"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,12 +28,16 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "You've always been a hardworker,"
-        // missing space
-        patcher.ExtendPartialCommand(0x91a9, 0xb4, 0x9207, {{0x20}});
+        // "#E_4#M_9Now that I think about it, I think\x01there are outdoor baths are in
+        // the\x01detached annex, too."
+        // there's an 'are' too much here
+        // (EV_05_01_04)
+        patcher.RemovePartialCommand(0x4865, 0x8b, 0x48CF, 4);
 
         // "#3C#0T#3S#3CDamn it, I can't reach#15W...\x01#1000W#5SWHOA!"
-        // patcher.ReplacePartialCommand(0x447d, 0x43, 0x44b5, 0x8, "");
+        // surprisingly okay already
+        // (EV_05_01_04)
+        // patcher.ReplacePartialCommand(0x447c, 0x43, 0x44b4, 0x8, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

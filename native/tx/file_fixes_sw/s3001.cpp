@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/s3001.dat",
-            127209,
-            HyoutaUtils::Hash::SHA1FromHexString("922f8fa5f3ce32a952e06b17a493c5e3c6af58a8"));
+            127033,
+            HyoutaUtils::Hash::SHA1FromHexString("5e4eee3f8882232b3d635b6f631e9b1bb5b02a3f"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -29,10 +29,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#K#0T#5S#800WGramps#20W?!\x01#1000W#4STowa and Ryouta, too?!"
-        // patcher.ReplacePartialCommand(0xe1de, 0x43, 0xe206, 0x19, "");
+        // shift the '#20W' between the '?!' so it works as intended
+        // (EV_08_22_03)
+        // patcher.ReplacePartialCommand(0xe152, 0x43, 0xe17a, 0x19, "");
+        patcher.ShiftData(0xE171, 0xE16D, 1);
 
         // "#2C#5S#500W#2CFirst#40W, #500Wsecond#40W, #500Wand third binding spells... Release!"
-        // patcher.ReplacePartialCommand(0x14a7a, 0x5e, 0x14aac, 0x29, "");
+        // surprisingly, this one's fine!
+        // (EV_08_22_07)
+        // patcher.ReplacePartialCommand(0x149c6, 0x5e, 0x149f8, 0x29, "");
 
 
         fileSw->SetVectorData(std::move(bin));

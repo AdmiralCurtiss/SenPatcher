@@ -20,7 +20,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/t6010.dat",
             43065,
-            HyoutaUtils::Hash::SHA1FromHexString("4a896bbd0b91322dae88c7979225bf9d0c4fc6a2"));
+            HyoutaUtils::Hash::SHA1FromHexString("aecd6624258896072ac1d1c273876e9fddd95c8b"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,8 +28,16 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "As a precaution, Kou contacted Asuka and Sora via NiAR."
+        // This is wrong, you can be either with Sora or with Yuuki for this scene and the
+        // other one is with Asuka. We'll just drop the "and Sora" part.
+        // (EV_03_10_01)
+        patcher.RemovePartialCommand(0x1b27, 0x3d, 0x1B50, 9);
+
         // "#2P#4S#3C#F#800W#3CHeeheehee...#10W...\x01#6S#1000WAHAHAHA!"
-        // patcher.ReplacePartialCommand(0x4ec3, 0x72, 0x4ef5, 0xe, "");
+        // drop '#10W...'
+        // (EV_03_11_01)
+        patcher.RemovePartialCommand(0x4ebb, 0x72, 0x4EE2, 7);
 
         fileSw->SetVectorData(std::move(bin));
         return true;

@@ -20,7 +20,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/m8390.dat",
             49601,
-            HyoutaUtils::Hash::SHA1FromHexString("3abea04b7a0c555b8b5367810a365766f84849c3"));
+            HyoutaUtils::Hash::SHA1FromHexString("44d93d6a90252c57cc1e84dcf51b6a1b41a0b6e2"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -30,10 +30,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "#E_6#M_0#2P#800WShiori's been there with us this\x01whole time. And I won't let
         // you\x01deny it any longer!"
-        // patcher.ReplacePartialCommand(0x72b1, 0x6e, 0x72c4, 0x59, "");
+        // harmless
+        // (EV_08_27_01)
+        // patcher.ReplacePartialCommand(0x72a6, 0x6e, 0x72b9, 0x59, "");
 
-        // "#1P#800WEveryone#15W...#1000W#5SLend me your strength!"
-        // patcher.ReplacePartialCommand(0x88b0, 0x40, 0x88d5, 0x19, "");
+        // "#1P#800WEveryone…\x01#1000W#5SLend me your strength!"
+        // tags are harmless, but the ellipsis needs to be dots
+        // (EV_08_27_01)
+        // patcher.ReplacePartialCommand(0x88a5, 0x3d, 0x88c7, 0x19, "");
+        bin[0x88BD] = '.';
+        bin[0x88BE] = '.';
+        bin[0x88BF] = '.';
 
         fileSw->SetVectorData(std::move(bin));
         return true;

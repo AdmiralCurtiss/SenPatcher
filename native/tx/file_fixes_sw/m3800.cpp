@@ -32,13 +32,19 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "#E[11111111111111111111116]#M_AWithout Tokisaka and the rest here...\x01#9W#1000WThere's
         // no need to hold back."
+        // harmless
+        // (EV_12_02_03)
         // patcher.ReplacePartialCommand(0x24d1, 0x75, 0x2521, 0x23, "");
 
         // "#2P#2C#5S#2CFirst binding spell, release!"
+        // why did I put this here again?
+        // (EV_12_02_03)
         // patcher.ReplacePartialCommand(0x29aa, 0x34, 0x29bb, 0x20, "");
 
         // "#8P#F#2C#5S#F#0T#2CThis is Asuka Hiiragi, the\x01Astral Blade. #10W#1000WCommencing
         // mission!"
+        // harmless
+        // (EV_12_02_03)
         // patcher.ReplacePartialCommand(0x3287, 0x63, 0x32cf, 0x19, "");
 
         fileSw->SetVectorData(std::move(bin));

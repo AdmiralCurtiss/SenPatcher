@@ -43,7 +43,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& entry = tbl.Entries[35];
             QSStage m(entry.Data.data(), entry.Data.size());
-            m.Name = (DUNGEON_NAME_m8310 + m.Name.substr(m.Name.size() - 2));
+            m.Name = DUNGEON_NAME_m8310;
             entry.Data = m.ToBinary();
         }
 
@@ -51,7 +51,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         {
             auto& entry = tbl.Entries[36];
             QSStage m(entry.Data.data(), entry.Data.size());
-            m.Name = (DUNGEON_NAME_m8320 + m.Name.substr(m.Name.size() - 2));
+            m.Name = DUNGEON_NAME_m8320;
             entry.Data = m.ToBinary();
         }
 

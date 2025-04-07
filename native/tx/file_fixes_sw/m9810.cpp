@@ -22,7 +22,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/m9810.dat",
             33257,
-            HyoutaUtils::Hash::SHA1FromHexString("6db5233e94d3ee1e23849dec61ce238c259a4ea2"));
+            HyoutaUtils::Hash::SHA1FromHexString("ed1d437c3ad5f27d55252a31300db0548469f49b"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -30,15 +30,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "#E[M]#M_B#e[B]#5S#0T#FBack off#7W, #1000W#6SASSHOLE!"
-        // again, this *almost* works!
-        // patcher.ReplacePartialCommand(0x4b47, 0x3f, 0x4b78, 0xb, "");
+        // "#E[M]#M_B#e[B]#5S#0T#FDon't you lay a finger on her,\x01#1000W#6SASSHOLE!"
+        // patcher.ReplacePartialCommand(0x4b47, 0x51, 0x4b8a, 0xb, "");
 
-        // "#K#F...! #1000W#5SI won't back down either!"
-        // patcher.ReplacePartialCommand(0x52be, 0x35, 0x52d5, 0x1c, "");
+        // "#K#F#5SI won't back down, either!"
+        // patcher.ReplacePartialCommand(0x52d0, 0x2b, 0x52dc, 0x1d, "");
 
         // "#2PWe will surely win with everyone here!\x01#8W#1000W#5SCome on!"
-        // patcher.ReplacePartialCommand(0x5de9, 0x48, 0x5e24, 0xb, "");
+        // patcher.ReplacePartialCommand(0x5df1, 0x48, 0x5e2c, 0xb, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

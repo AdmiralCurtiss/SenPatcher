@@ -12,6 +12,8 @@ extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_t1110[] = "Text fixes in school 1F.";
 }
 
+#define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
+
 namespace SenLib::TX::FileFixesSw::t1110 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
@@ -19,8 +21,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t1110.dat",
-            219665,
-            HyoutaUtils::Hash::SHA1FromHexString("a9236029f29357d0f794daef614ef77d92c09838"));
+            219681,
+            HyoutaUtils::Hash::SHA1FromHexString("a3f12bdf8954f235dab36b03ad374cac57f3bdfe"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,8 +30,24 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "No matter how far apart we may be-#1000W\x01Even if we never see each other again..."
-        // patcher.ReplacePartialCommand(0x201fa, 0x5d, 0x20226, 0x2f, "");
+        // Match 3 lines in Jun Memories Menu version to real version:
+
+        // "#4K#F...But, what?"
+        // remove comma
+        patcher.RemovePartialCommand(0x2ee7d, 0x1c, 0x2EE90, 1);
+
+        // "#E[1]#M_0The days we spent together\x01the real deal. The real us."
+        // -> 'are the real deal'
+        patcher.ExtendPartialCommand(0x2f6a8, 0x7b, 0x2F705, STR_SPAN(" are"));
+
+        // "#2PMy duty will always remain\x01the same as Seal Knight."
+        // -> 'as a Seal Knight'
+        patcher.ExtendPartialCommand(0x2f944, 0x40, 0x2F975, STR_SPAN(" a"));
+
+        // "No matter how far apart we may be─#1000W\x01Even if we never see each other again..."
+        // this is After Story, near the beginning when you run into Gorou at school
+        // broken text speed, harmless
+        // patcher.ReplacePartialCommand(0x201f2, 0x5d, 0x2021e, 0x2f, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

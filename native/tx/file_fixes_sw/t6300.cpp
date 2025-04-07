@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t6300.dat",
-            76513,
-            HyoutaUtils::Hash::SHA1FromHexString("4cc5800815da11c9a3aa7d71740d48008055f960"));
+            76529,
+            HyoutaUtils::Hash::SHA1FromHexString("bbeb4ff305743355052bc3047c948c1f7641d50d"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }

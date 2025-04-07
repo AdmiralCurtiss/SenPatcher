@@ -23,8 +23,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t3100.dat",
-            110721,
-            HyoutaUtils::Hash::SHA1FromHexString("63fcba615c3111ce302665f97595eeb0841c3bfe"));
+            110673,
+            HyoutaUtils::Hash::SHA1FromHexString("1495f4d5f96c84762cc02aa59f7c18ecf995351d"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -32,51 +32,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "...#14WWhat is going on\x01between you and Kou, Asuka?"
-        // that #14W is a command to reduce the speed at which the text is printed, it's a leftover
-        // from the JP script which only sets it for one character and then back to the standard
-        // speed in order to add a delay mid-dialogue to, probably, match the voice acting.
-        // remove it. also move the linebreak.
-        std::swap(bin[0xeda1], bin[0xeda9]);
-        patcher.RemovePartialCommand(0xed82, 0x3d, 0xed8d, 0x4);
-
-        // "I ain't exactly pining fer him if that's\x01what yer insinuat-#1000WOops, I mean..."
-        // patcher.ReplacePartialCommand(0xf86a, 0x5c, 0xf8af, 0x15, "");
-
-        // "protecting themselves from any sort of arm" -> "[...] any sort of harm"
-        patcher.ExtendPartialCommand(0xa4c9, 0x122, 0xa5e5, {{0x68}});
-
-        // "But I DID promise my parents that I'd focus on my schoolwork, too.."
-        // extra period
-        patcher.RemovePartialCommand(0x4379, 0xd2, 0x43fd, 0x1);
-
-        // "By the way, it seems like you've changed a bit lately, Asuka. Not like you've grown soft
-        // or anything like that, but kind of like...you've just matured."
-        // NPC dialogue from Mayu... unfortunately, she says this when your party is just Kou,
-        // without Asuka, so this should not be in second person.
-        {
-            static constexpr size_t offset = 0x4a69;
-            static constexpr size_t size = 0xd2;
-            std::vector<char> tmp;
-            tmp.resize(size);
-            std::memcpy(tmp.data(), &bin[offset], size);
-
-            tmp.erase(tmp.begin() + 0x49, tmp.begin() + 0xa2);
-            tmp.erase(tmp.begin() + 0x5, tmp.begin() + 0x42);
-
-            static constexpr auto line1 = STR_SPAN(
-                "It seems like Asuka has changed\x01"
-                "a bit lately.");
-            static constexpr auto line2 = STR_SPAN(
-                "It's not that she's grown soft or\x01"
-                "anything like that, but more like...\x01"
-                "she's just matured.");
-
-            tmp.insert(tmp.begin() + 0xc, line2.begin(), line2.end());
-            tmp.insert(tmp.begin() + 0x5, line1.begin(), line1.end());
-
-            patcher.ReplaceCommand(offset, size, tmp);
-        }
+        // "I ain't exactly pining fer him if that's\x01what yer insinuat─#1000WOops, I mean..."
+        // Chapter 2 Side story (EV_11_02_01)
+        // harmless
+        // patcher.ReplacePartialCommand(0xf84e, 0x5c, 0xf893, 0x15, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/s6100.dat",
-            37713,
-            HyoutaUtils::Hash::SHA1FromHexString("40b3ea35854b41540e4efe590b2a7bfc2e629302"));
+            37697,
+            HyoutaUtils::Hash::SHA1FromHexString("4dc4b74fb57448f7f8c8131276bd6bbb37a10541"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -30,7 +30,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "#1P#1000WTh-This shouldn't be happening!#7W\x01#5S#1000WEverything was going
         // according\x01to plan!"
-        // patcher.ReplacePartialCommand(0x3f57, 0x66, 0x3f8e, 0x2d, "");
+        // harmless
+        // (EV_06_20_02)
+        // patcher.ReplacePartialCommand(0x3f53, 0x66, 0x3f8a, 0x2d, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

@@ -20,8 +20,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/talk/dat/tk_nodoka.dat",
-            15313,
-            HyoutaUtils::Hash::SHA1FromHexString("12842e90324b4167bfd7fe2d23e9ecb29623e488"));
+            15306,
+            HyoutaUtils::Hash::SHA1FromHexString("c4c1ed0c779a223ac5af1d3f4056adbeda79fbe3"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -31,11 +31,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "if it's for my dearest Mitsuki,"
         // uncapitalized start of sentence
-        bin[0x8f7] = 0x49;
+        // bin[0x8f7] = 0x49;
 
         // linebreaks
-        std::swap(bin[0x1bd], bin[0x1c3]);
-        std::swap(bin[0x1d9], bin[0x1de]);
+        // std::swap(bin[0x1bd], bin[0x1c3]);
+        // std::swap(bin[0x1d9], bin[0x1de]);
 
         fileSw->SetVectorData(std::move(bin));
         return true;

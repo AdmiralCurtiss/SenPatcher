@@ -9,18 +9,18 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_s7110[] = "Text fixes in hot springs conference room.";
+__declspec(dllexport) char SenPatcherFix_1_m2090[] = "Text fixes in Amber Labyrinth (boss room).";
 }
 
-namespace SenLib::TX::FileFixesSw::s7110 {
+namespace SenLib::TX::FileFixesSw::m2090 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
         auto fileSw = FindAlreadyPackedFile(
             result,
-            "scripts/scena/dat/s7110.dat",
-            29545,
-            HyoutaUtils::Hash::SHA1FromHexString("599b58a4c873dbedfcd7f6f333b0153b1aa7ac16"));
+            "scripts/scena/dat/m2090.dat",
+            13345,
+            HyoutaUtils::Hash::SHA1FromHexString("514bb70e4ecf17bad5f14a9077a61b84fe0401ca"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -29,10 +29,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
 
+        // TODO: fix button mappings for PC:
+        // #1C#1CGo to the #170I mini map screen and press #168I to warp.
+        // patcher.ReplacePartialCommand(0x2a15, 0x103, 0x2b08, 0xe, "");
+
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {
         return false;
     }
 }
-} // namespace SenLib::TX::FileFixesSw::s7110
+} // namespace SenLib::TX::FileFixesSw::m2090

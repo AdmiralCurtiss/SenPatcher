@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/e6000.dat",
-            11921,
-            HyoutaUtils::Hash::SHA1FromHexString("c2f498b314bee445e3ffd40e11c4b8d227e92922"));
+            11905,
+            HyoutaUtils::Hash::SHA1FromHexString("218dc9eb3938f42c6a8e930bce68f23edfc32f68"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }

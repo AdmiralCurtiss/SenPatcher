@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/s7200.dat",
-            44617,
-            HyoutaUtils::Hash::SHA1FromHexString("ef73cab5dc57f0c68430ec8442a110fc03495f59"));
+            44633,
+            HyoutaUtils::Hash::SHA1FromHexString("64b63f7a13f6aba6b8134fc6119a66c9011432f8"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,8 +28,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "#K#0TLet's see... My family moved there just\nafter I finished elementary school."
         // \n instead of actual newline... curious how this happened
-        patcher.ReplacePartialCommand(0x740a, 0xe6, 0x7439, 0x2, {{0x01}});
+        patcher.ReplacePartialCommand(0x7406, 0xe6, 0x7435, 0x2, {{0x01}});
 
 
         fileSw->SetVectorData(std::move(bin));

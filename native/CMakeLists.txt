@@ -1252,6 +1252,8 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/e6000.cpp
 		tx/file_fixes_sw/e9100.cpp
 		tx/file_fixes_sw/m1100.cpp
+		tx/file_fixes_sw/m2090.cpp
+		tx/file_fixes_sw/m2100.cpp
 		tx/file_fixes_sw/m2190.cpp
 		tx/file_fixes_sw/m3190.cpp
 		tx/file_fixes_sw/m3800.cpp
@@ -1261,6 +1263,7 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/m5800.cpp
 		tx/file_fixes_sw/m5801.cpp
 		tx/file_fixes_sw/m6309.cpp
+		tx/file_fixes_sw/m7320.cpp
 		tx/file_fixes_sw/m8209.cpp
 		tx/file_fixes_sw/m8300.cpp
 		tx/file_fixes_sw/m8331.cpp
@@ -1309,6 +1312,7 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t_jump.cpp
 		tx/file_fixes_sw/t_magic.cpp
 		tx/file_fixes_sw/t_main_quest.cpp
+		tx/file_fixes_sw/t_name.cpp
 		tx/file_fixes_sw/t_notechar.cpp
 		tx/file_fixes_sw/t_notehelp.cpp
 		tx/file_fixes_sw/t_notemons.cpp
@@ -1352,9 +1356,14 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t6600.cpp
 		tx/file_fixes_sw/t6700.cpp
 		tx/file_fixes_sw/tk_akie.cpp
+		tx/file_fixes_sw/tk_ayumi.cpp
 		tx/file_fixes_sw/tk_gorou.cpp
 		tx/file_fixes_sw/tk_haruhiko.cpp
 		tx/file_fixes_sw/tk_hekiru.cpp
+		tx/file_fixes_sw/tk_jun.cpp
+		tx/file_fixes_sw/tk_kaoru.cpp
+		tx/file_fixes_sw/tk_mai.cpp
+		tx/file_fixes_sw/tk_mitsuki.cpp
 		tx/file_fixes_sw/tk_nodoka.cpp
 		tx/file_fixes_sw/tk_rion.cpp
 

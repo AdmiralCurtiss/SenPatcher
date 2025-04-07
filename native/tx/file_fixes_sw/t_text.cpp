@@ -27,8 +27,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenPatcher::P3APackFile* fileSw = FindAlreadyPackedFile(
             result,
             "text/dat/t_text.tbl",
-            32085,
-            HyoutaUtils::Hash::SHA1FromHexString("95384717aad30034185d429f7dd2827425d85284"));
+            32079,
+            HyoutaUtils::Hash::SHA1FromHexString("298c265762d5ef233fc999aa04261619a869ee46"));
         if (!filePc || !fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -94,14 +94,6 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             auto& entry = tblSw.Entries[idx];
             TextTableData m(entry.Data.data(), entry.Data.size());
             m.Str = (" " + m.Str);
-            entry.Data = m.ToBinary();
-        }
-
-        // "Koucannot change party members." -> "Kou cannot switch teams."
-        {
-            auto& entry = tblSw.Entries[152];
-            TextTableData m(entry.Data.data(), entry.Data.size());
-            m.Str = (m.Str.substr(0, 5) + " cannot switch teams.");
             entry.Data = m.ToBinary();
         }
 

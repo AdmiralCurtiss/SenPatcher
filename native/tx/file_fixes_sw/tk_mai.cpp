@@ -1,3 +1,4 @@
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -9,18 +10,20 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_s7110[] = "Text fixes in hot springs conference room.";
+__declspec(dllexport) char SenPatcherFix_1_ztk_mai[] = "Text fixes in conversations with Mai.";
 }
 
-namespace SenLib::TX::FileFixesSw::s7110 {
+#define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
+
+namespace SenLib::TX::FileFixesSw::tk_mai {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
         auto fileSw = FindAlreadyPackedFile(
             result,
-            "scripts/scena/dat/s7110.dat",
-            29545,
-            HyoutaUtils::Hash::SHA1FromHexString("599b58a4c873dbedfcd7f6f333b0153b1aa7ac16"));
+            "scripts/talk/dat/tk_mai.dat",
+            9886,
+            HyoutaUtils::Hash::SHA1FromHexString("4d7a345c586c9d634235f0849dbd51ef07c1bb8d"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,6 +31,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "#K#0T(Maybe the face that they're both\x01the best in their respective areas\x01gives
+        // them some common ground.)"
+        // face -> fact
+        // patcher.ReplacePartialCommand(0x1c2c, 0x6e, 0x1c31, 0x67, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;
@@ -35,4 +42,4 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         return false;
     }
 }
-} // namespace SenLib::TX::FileFixesSw::s7110
+} // namespace SenLib::TX::FileFixesSw::tk_mai

@@ -21,17 +21,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/talk/dat/tk_haruhiko.dat",
             12241,
-            HyoutaUtils::Hash::SHA1FromHexString("cd6693f80d2648d864d82e1a03c9ef9ec9f0a9c8"));
+            HyoutaUtils::Hash::SHA1FromHexString("171de9f5355a85c6a7d2594289f166c8542af32b"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
 
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
-
-        // "I don't want to be a fake,]; I want to be better. To be a real man."
-        // keyboard typo that no one caught
-        patcher.RemovePartialCommand(0xccb, 0xdc, 0xd2a, 0x2);
 
 
         fileSw->SetVectorData(std::move(bin));

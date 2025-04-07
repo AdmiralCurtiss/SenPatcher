@@ -20,7 +20,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/s7000.dat",
             46913,
-            HyoutaUtils::Hash::SHA1FromHexString("caac42a365e4f0517a0048a81d0f5c39a1cf0d55"));
+            HyoutaUtils::Hash::SHA1FromHexString("22d5ca04a5aee7cb39d7f8f9e96ee2540a46d264"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,9 +28,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "All right, thanks." -> "All right."
-        // the person he's thanking has already left
-        patcher.RemovePartialCommand(0xa07e, 0x37, 0xa08d, 0x8);
+        // "##2P#FYup! He'll probably be back at\x01
+        // school tomorrow, teaching like\x01
+        // nothing happened!"
+        // the double ## at the start breaks the tag parsing, remove one of them
+        patcher.RemovePartialCommand(0x3276, 0x5f, 0x327F, 1);
+
+        // "Due to your bonds having grown stronger, your max\x01"
+        // "Strike Points have increased to 2, and your max EX Points have increased to 3."
+        // wide text box with second line overhang, move linebreak to make it better
+        // patcher.ReplacePartialCommand(0xa4b2, 0x10d, 0xa4b5, 0x81, "");
+        std::swap(bin[0xA4E7], bin[0xA4F5]);
 
         fileSw->SetVectorData(std::move(bin));
         return true;

@@ -11,8 +11,8 @@
 #include "dungeon_names.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_m3801[] = "Text fixes in " DUNGEON_NAME_m3800
-                                                     " (boss room).";
+__declspec(dllexport) char SenPatcherFix_1_m3801[] =
+    "Text fixes in " DUNGEON_NAME_m3800 " (boss room).";
 }
 
 namespace SenLib::TX::FileFixesSw::m3801 {
@@ -32,6 +32,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#1P#2C#F#2CThe labyrinth master!\x01#18W#1000W#5SYou fall here!"
+        // harmless
+        // (EV_12_03_00)
         // patcher.ReplacePartialCommand(0x164d, 0x46, 0x1680, 0x11, "");
 
         fileSw->SetVectorData(std::move(bin));

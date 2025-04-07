@@ -14,6 +14,8 @@ extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_t5120[] = "Text fixes in Nanahoshi Mall 2F.";
 }
 
+#define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
+
 namespace SenLib::TX::FileFixesSw::t5120 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
@@ -21,8 +23,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t5120.dat",
-            159001,
-            HyoutaUtils::Hash::SHA1FromHexString("91333c9b239f775ca81cdfa233d8a9c227ebd211"));
+            159017,
+            HyoutaUtils::Hash::SHA1FromHexString("974dd2e756523414e07e058319ac3f6206d55cbb"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -31,10 +33,20 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
         using HyoutaUtils::Vector::ShiftData;
 
-        // the magical alisa gatcha list of figures needs a few fixes
+        // TODO: I have no idea where to find this line.
+        // "Heehee. She's a customer who's\x01been coming and really stands out."
+        // something is wrong here
+        // patcher.ReplacePartialCommand(0x9753, 0xf6, 0x9756, 0x41, "");
+
+        // "#K#0TNo clue what that is"
+        // missing period
+        // (EV_06_03_00, Shio in party)
+        patcher.ExtendPartialCommand(0x13a12, 0x1e, 0x13A2E, {{'.'}});
+
+        // the magical alisa gacha list of figures needs a few fixes
         {
-            static constexpr size_t offsetSeries1 = 0x252c1;
-            static constexpr size_t offsetSeries2 = 0x25198;
+            static constexpr size_t offsetSeries1 = 0x252cc;
+            static constexpr size_t offsetSeries2 = 0x251a3;
             static constexpr size_t sizeSeries1 = 0xa1;
             static constexpr size_t sizeSeries2 = 0x109;
             std::vector<char> onlySeries1;
@@ -66,27 +78,25 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             patcher.ReplaceCommand(offsetSeries2, sizeSeries2, withSeries2);
         }
 
-        // double period after 'Obtained X' when getting the 2nd series secret figure
-        patcher.RemovePartialCommand(0x24c11, 0x20, 0x24c2d, 0x1);
-
         // "Five base figures and a secret one..."
         // wrong, it's five in total, one of which is secret. just change to four + secret...
-        bin[0x24133] = 0x6f;
-        bin[0x24134] = 0x75;
-        bin[0x24135] = 0x72;
+        bin[0x2413F] = 'o';
+        bin[0x24140] = 'u';
+        bin[0x24141] = 'r';
 
         // "There's five base figures and a secret one."
         // same thing here
-        bin[0x240cd] = 0x6f;
-        bin[0x240ce] = 0x75;
-        bin[0x240cf] = 0x72;
-
-        // backslashes instead of newlines
-        bin[0x677a] = 0x01;
-        bin[0x1bf2e] = 0x01;
+        bin[0x240D9] = 'o';
+        bin[0x240DA] = 'u';
+        bin[0x240DB] = 'r';
 
         // "#500W#3C#1P#3CHow frustrating...#20W\x01#300WHow sad...#15W\x01#600W...How fun."
-        // patcher.ReplacePartialCommand(0x160e2, 0x53, 0x16123, 0x10, "");
+        // harmless
+        // (EV_17_16_01)
+        // patcher.ReplacePartialCommand(0x160fa, 0x53, 0x1613b, 0x10, "");
+
+        // "Mechanical Voice" -> "Robotic Voice" for the Horus line in EV_17_16_01 for consistency
+        patcher.ReplacePartialCommand(0x17938, 0x14, 0x17939, 0xa, STR_SPAN("Robotic"));
 
         fileSw->SetVectorData(std::move(bin));
         return true;

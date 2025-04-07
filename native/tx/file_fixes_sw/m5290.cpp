@@ -29,6 +29,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#3K#F#5S#0T#800WLet's go...\x01Ecthelion Hearts!"
+        // harmless
+        // (EV_04_23_01)
         // patcher.ReplacePartialCommand(0x3e68, 0x38, 0x3e7b, 0x22, "");
 
         fileSw->SetVectorData(std::move(bin));

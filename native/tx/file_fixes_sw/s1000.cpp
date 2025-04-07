@@ -12,6 +12,8 @@ extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_s1000[] = "Text fixes in Kokonoe Shrine (outside).";
 }
 
+#define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
+
 namespace SenLib::TX::FileFixesSw::s1000 {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
@@ -19,8 +21,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/s1000.dat",
-            137145,
-            HyoutaUtils::Hash::SHA1FromHexString("5a124a8350ea02590071344aead519d0f1105e7e"));
+            137113,
+            HyoutaUtils::Hash::SHA1FromHexString("b9c1b1a7d7b6a860f08316058b11c24231825783"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -29,7 +31,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#1P...!#10W\x01#1000W#5SWhat is THAT?!"
+        // harmless
+        // (EV_08_00_01)
         // patcher.ReplacePartialCommand(0x13609, 0x2d, 0x13623, 0x11, "");
+
+        // "I'll protect, Grandma!"
+        // add a 'you'
+        // (before entering Pandora, small kid in the corner)
+        patcher.ExtendPartialCommand(0xdc79, 0x63, 0xDCD0, STR_SPAN(" you"));
 
         fileSw->SetVectorData(std::move(bin));
         return true;

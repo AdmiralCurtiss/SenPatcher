@@ -20,7 +20,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/t3200.dat",
             104225,
-            HyoutaUtils::Hash::SHA1FromHexString("d6f92eb40476cdd6a003c045c5827fc49cab3557"));
+            HyoutaUtils::Hash::SHA1FromHexString("4127f845019f3f806e0deaa57c7379ecec101d33"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -30,6 +30,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "Kou, Shio, and Sora.."
         // add another period for ellipsis
+        // In early Chapter 7, when investigating the 'slashing incident' at Yanagi's (EV_07_03_01).
+        // Must have Sora in the party.
         patcher.ExtendPartialCommand(0x7eb5, 0x1a, 0x7ecb, {{0x2e}});
 
 

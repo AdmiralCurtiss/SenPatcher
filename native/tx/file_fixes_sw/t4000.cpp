@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t4000.dat",
-            321313,
-            HyoutaUtils::Hash::SHA1FromHexString("a3f92b5e719ed89aefd289ed539cc971ac67d669"));
+            321377,
+            HyoutaUtils::Hash::SHA1FromHexString("7805471fda9c253233472ff4e38c8e5fb8c751b6"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,15 +28,25 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "(Only place I can think of that fits that description)"
-        // missing period
-        patcher.ExtendPartialCommand(0x27d90, 0xc5, 0x27e24, {{0x2e}});
-
-        // "Something must've dumped it here..." -> Someone
-        patcher.ReplacePartialCommand(0x3f45f, 0x81, 0x3f469, 0x5, {{0x6f, 0x6e, 0x65}});
+        // "But they would'v made the atmosphere\x01ominous and oppressive, so we\x01canned the
+        // idea."
+        // -> "would've"
+        // (Nemoto in Chapter 6 on 6/27, after talking to Spika at the Acros Theater about Rion's
+        // illness)
+        patcher.ExtendPartialCommand(0xcb82, 0xb0, 0xCBED, {{'e'}});
 
         // "#E[3]#M_A#3K#800WWhat are you even doing here#12W,\x01#200WKugayama?"
-        // patcher.ReplacePartialCommand(0x1b9c9, 0x4b, 0x1ba04, 0xe, "");
+        // harmless. pretty good, actually.
+        // (EV_03_04_01)
+        // patcher.ReplacePartialCommand(0x1b9c7, 0x4b, 0x1ba02, 0xe, "");
+
+        // "#E[3]#M_0#2PI may have no clue WHY we're even here\x01in the first place…"
+        // ellipsis -> three dots
+        // (EV_17_20_03)
+        // patcher.ReplacePartialCommand(0x39412, 0x4d, 0x3941e, 0x3f, "");
+        bin[0x3945A] = '.';
+        bin[0x3945B] = '.';
+        bin[0x3945C] = '.';
 
 
         fileSw->SetVectorData(std::move(bin));

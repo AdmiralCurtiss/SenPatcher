@@ -21,7 +21,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/s3002.dat",
             25673,
-            HyoutaUtils::Hash::SHA1FromHexString("9e3b3d98faad02b91663f4b9828cee8fbc588099"));
+            HyoutaUtils::Hash::SHA1FromHexString("da9c84759ab505979f728b7347bc1fe3fad8bd04"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -29,8 +29,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "#7K#5SThis joke isn't a funny!"
+        // remove 'a'
+        // (EV_08_27_04)
+        patcher.RemovePartialCommand(0x2eeb, 0x28, 0x2F09, 2);
+
         // "#2P#800WY-You don't even have to ask!"
-        // patcher.ReplacePartialCommand(0x480f, 0x2f, 0x481a, 0x22, "");
+        // harmless
+        // (EV_08_27_04)
+        // patcher.ReplacePartialCommand(0x4806, 0x2f, 0x4811, 0x22, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

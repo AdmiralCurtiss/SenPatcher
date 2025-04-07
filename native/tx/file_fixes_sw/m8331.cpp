@@ -11,8 +11,8 @@
 #include "dungeon_names.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_m8331[] = "Text fixes in " DUNGEON_NAME_m8330
-                                                     " (miniboss room).";
+__declspec(dllexport) char SenPatcherFix_1_m8331[] =
+    "Text fixes in " DUNGEON_NAME_m8330 " (miniboss room).";
 }
 
 namespace SenLib::TX::FileFixesSw::m8331 {
@@ -22,8 +22,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/m8331.dat",
-            13641,
-            HyoutaUtils::Hash::SHA1FromHexString("4aa86fdf72c29e3d8aa38cfe25c6fd5c932587f8"));
+            13657,
+            HyoutaUtils::Hash::SHA1FromHexString("7dfff0ef6f4e701621cea565e77671f04915f7bd"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -31,6 +31,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "#E[1]#M_4The other should be wrapping things\x01up with their own paths around now."
+        // add an 's' to 'other'
+        // (EV_08_24_00, Yuuki must be in party)
+        patcher.ExtendPartialCommand(0x1330, 0x77, 0x1367, {{'s'}});
 
         fileSw->SetVectorData(std::move(bin));
         return true;

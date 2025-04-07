@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t3300.dat",
-            95425,
-            HyoutaUtils::Hash::SHA1FromHexString("c72dcdfa165473c3f22fc28e92e0df13c4becc0c"));
+            95457,
+            HyoutaUtils::Hash::SHA1FromHexString("aeb5cf65cf9765fd12bd14f5fbae8511eab1cff0"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -32,10 +32,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // Morimiya Academy."
         // This is the first line in a conversation, so the 'Speaking of which' makes no sense.
         // Just remove it.
-        bin[0x8144] = 0x46;
-        std::swap(bin[0x8152], bin[0x8162]);
-        std::swap(bin[0x8176], bin[0x8183]);
-        patcher.RemovePartialCommand(0x812e, 0x124, 0x8131, 0x13);
+        // (free time on 7/8 in Chapter 7, before going to Point Q, talk to Manami)
+        bin[0x8144 + 5] = 0x46;
+        std::swap(bin[0x8152 + 5], bin[0x8162 + 5]);
+        std::swap(bin[0x8176 + 5], bin[0x8183 + 5]);
+        patcher.RemovePartialCommand(0x812e + 5, 0x124, 0x8131 + 5, 0x13);
+
+        // "The show's host is famous and has\x01a busy schedule, so we don't have\x01a lot of time
+        // to work with her."
+        // Switch v1.0.1 changed the last 'her' from 'here'.
+        // I have no idea who the host is (is it actually a woman?) but this is probably okay as-is.
+        // patcher.ReplacePartialCommand(0xb9e3, 0xe2, 0xb9e6, 0x9b, "");
 
 
         fileSw->SetVectorData(std::move(bin));

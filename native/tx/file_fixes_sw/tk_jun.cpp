@@ -1,3 +1,4 @@
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -9,18 +10,20 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_s7110[] = "Text fixes in hot springs conference room.";
+__declspec(dllexport) char SenPatcherFix_1_ztk_jun[] = "Text fixes in conversations with Jun.";
 }
 
-namespace SenLib::TX::FileFixesSw::s7110 {
+#define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
+
+namespace SenLib::TX::FileFixesSw::tk_jun {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
         auto fileSw = FindAlreadyPackedFile(
             result,
-            "scripts/scena/dat/s7110.dat",
-            29545,
-            HyoutaUtils::Hash::SHA1FromHexString("599b58a4c873dbedfcd7f6f333b0153b1aa7ac16"));
+            "scripts/talk/dat/tk_jun.dat",
+            24433,
+            HyoutaUtils::Hash::SHA1FromHexString("76b0ef249c619e8ac004d5b23f056de2d2716e27"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,6 +31,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "#KThere goes Ryouta, off talking\x01to Kugayama's again."
+        // -> remove the "'s"
+        // patcher.ReplacePartialCommand(0x39cb, 0x83, 0x39ce, 0x35, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;
@@ -35,4 +41,4 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         return false;
     }
 }
-} // namespace SenLib::TX::FileFixesSw::s7110
+} // namespace SenLib::TX::FileFixesSw::tk_jun

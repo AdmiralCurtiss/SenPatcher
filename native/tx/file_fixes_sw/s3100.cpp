@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/s3100.dat",
-            93297,
-            HyoutaUtils::Hash::SHA1FromHexString("9ddbcac5af38e3244b1e4587b3abef13c745f3e3"));
+            93313,
+            HyoutaUtils::Hash::SHA1FromHexString("8d9da5b698e0410bf4d0707d116db7bb9f24a670"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,6 +28,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "Kinda of a bummer that it's so rainy\x01right now, but I figured I'd come\x01early
+        // before the show starts."
+        // Remove the 'a' from 'Kinda'
+        patcher.RemovePartialCommand(0xa2e8, 0xb2, 0xa2ef, 0x1);
 
         fileSw->SetVectorData(std::move(bin));
         return true;

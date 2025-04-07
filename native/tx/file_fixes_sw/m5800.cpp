@@ -29,6 +29,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#1P#5SLet's do this!#1000W\x01#5SYou got my back, Hokuto?!"
+        // harmless
+        // (EV_14_01_02)
         // patcher.ReplacePartialCommand(0x1c78, 0x3c, 0x1c96, 0x1c, "");
 
         fileSw->SetVectorData(std::move(bin));

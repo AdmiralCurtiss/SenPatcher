@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/talk/dat/tk_gorou.dat",
-            16249,
-            HyoutaUtils::Hash::SHA1FromHexString("928d229a3b98783260790a2b00acc0aa384e1826"));
+            16233,
+            HyoutaUtils::Hash::SHA1FromHexString("5273d4a8d1faf7992cd830abfe4444d41a0f2b19"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,9 +28,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // "Need anything? I'm on my break"
-        // missing period at the end
-        bin[0xbae] = 0x2e;
+        // "#E[1]#M_9You piqued my interest when you\x01said it was a model for hikking."
+        // hikking -> hiking
+        // patcher.ReplacePartialCommand(0xff0, 0x66, 0x1010, 0x44, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

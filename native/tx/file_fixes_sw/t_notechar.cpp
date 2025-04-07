@@ -8,6 +8,7 @@
 #include "tx/file_fixes_sw.h"
 #include "tx/tbl.h"
 #include "util/hash/sha1.h"
+#include "util/text.h"
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_0_notechar[] = "Text fixes in friend notes.";
@@ -20,8 +21,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "text/dat/t_notechar.tbl",
-            73887,
-            HyoutaUtils::Hash::SHA1FromHexString("886ce018e013ba3d9b5d6f52b2fa53d93d543ec8"));
+            73946,
+            HyoutaUtils::Hash::SHA1FromHexString("b36f664024b69fcd9752f8cd77c11fd261f94aa2"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -51,19 +52,32 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             entry.Data = m.ToBinary();
         }
 
-        // Ayato entry 2 escapes textbox
-        {
-            auto& entry = tbl.Entries[30];
+        // Switch v1.0.1 decapitalized 'karate team' in the headers, revert that
+        // also fix Sora's 'Karate Club' -> 'Karate Team'
+        for (int idx : {10, 23, 35, 45}) {
+            auto& entry = tbl.Entries[static_cast<size_t>(idx)];
             QSChar m(entry.Data.data(), entry.Data.size());
-            m.Strings[8][74] = '\n';
+            for (int sidx : {4, 5}) {
+                auto& s = m.Strings[static_cast<size_t>(sidx)];
+                s = HyoutaUtils::TextUtils::ReplaceSubstring(s, s.size() - 12, 12, "Karate Team)");
+            }
             entry.Data = m.ToBinary();
         }
 
-        // Shige entry 3 escapes textbox
+        // Ayato's 3rd entry has "His hard work culminated a now-second-nature fighting spirit that
+        // inspires others." This is missing a 'in' after 'culminated'.
         {
-            auto& entry = tbl.Entries[95];
+            auto& entry = tbl.Entries[30];
             QSChar m(entry.Data.data(), entry.Data.size());
-            std::swap(m.Strings[10][75], m.Strings[10][86]);
+            m.Strings[10] = HyoutaUtils::TextUtils::Insert(m.Strings[10], 0x18, " in");
+            entry.Data = m.ToBinary();
+        }
+
+        // Kasumi's 3rd entry is missing a space "shefrantically" -> "she frantically"
+        {
+            auto& entry = tbl.Entries[92];
+            QSChar m(entry.Data.data(), entry.Data.size());
+            m.Strings[10] = HyoutaUtils::TextUtils::Insert(m.Strings[10], 0x5b, " ");
             entry.Data = m.ToBinary();
         }
 

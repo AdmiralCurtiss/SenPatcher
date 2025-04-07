@@ -19,8 +19,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "scripts/scena/dat/t1001.dat",
-            18113,
-            HyoutaUtils::Hash::SHA1FromHexString("0496f7fc633ca9629789c4f076adbca11c8b164d"));
+            18145,
+            HyoutaUtils::Hash::SHA1FromHexString("e4ba0823b6818d1b93794b99ccba9df0ce2d028b"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,9 +28,16 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "Kou and his friends bid their farewells to Mayu, Yamaoka, and Mizuhara\x01
+        // before setting off."
+        // escapes textbox, move linebreak
+        // patcher.ReplacePartialCommand(0x32c0, 0x60, 0x32c3, 0x5b, "");
+        std::swap(bin[0x32FD], bin[0x330A]);
+
         // "#800WI can't get in contact with Shiori#15W,\x01#800WRyouta, Jun, or
         // Towa.\x01#10W#5S#800WDamn it!"
-        // patcher.ReplacePartialCommand(0x2369, 0x66, 0x23c0, 0xd, "");
+        // broken text speed, harmless
+        // patcher.ReplacePartialCommand(0x236a, 0x66, 0x23c1, 0xd, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;

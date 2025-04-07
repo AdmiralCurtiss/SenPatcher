@@ -20,7 +20,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/t1130.dat",
             134057,
-            HyoutaUtils::Hash::SHA1FromHexString("d806750741f25445b53f79b24456269c7835059f"));
+            HyoutaUtils::Hash::SHA1FromHexString("1586835210567bd64181a1d32d915f6e1a963c98"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }

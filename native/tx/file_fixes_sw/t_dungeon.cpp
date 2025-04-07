@@ -22,8 +22,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "text/dat/t_dungeon.tbl",
-            9536,
-            HyoutaUtils::Hash::SHA1FromHexString("4ac434996c0d504bc89d1cfa17acf510c007f884"));
+            9542,
+            HyoutaUtils::Hash::SHA1FromHexString("ad1c6d5dc145b8f31c7478ab28ee2a9049cdf3c8"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -31,27 +31,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto& bin = fileSw->GetVectorData();
         SenLib::TX::Tbl tbl(bin.data(), bin.size());
 
-        // Second Spirit Barrier -> Second Spiritron Barrier
-        {
-            auto& entry = tbl.Entries[4];
-            DungeonData m(entry.Data.data(), entry.Data.size());
-            m.Name = (m.Name.substr(0, 13) + "ron" + m.Name.substr(13));
-            entry.Data = m.ToBinary();
-        }
-
         // Seventh Spirit Barrier -> Seventh Spiritron Barrier
         {
             auto& entry = tbl.Entries[6];
             DungeonData m(entry.Data.data(), entry.Data.size());
             m.Name = (m.Name.substr(0, 14) + "ron" + m.Name.substr(14));
-            entry.Data = m.ToBinary();
-        }
-
-        // Fourth Spirit Barrier -> Fourth Spiritron Barrier
-        {
-            auto& entry = tbl.Entries[20];
-            DungeonData m(entry.Data.data(), entry.Data.size());
-            m.Name = (m.Name.substr(0, 13) + "ron" + m.Name.substr(13));
             entry.Data = m.ToBinary();
         }
 

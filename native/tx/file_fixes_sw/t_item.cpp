@@ -68,14 +68,31 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto fileSw = FindAlreadyPackedFile(
             result,
             "text/dat/t_item.tbl",
-            128976,
-            HyoutaUtils::Hash::SHA1FromHexString("30b862e3deea2a570f9caa5e73f3079826e64b03"));
+            128992,
+            HyoutaUtils::Hash::SHA1FromHexString("f3227f619cb17b1403c0de3ad24e816902e0aea5"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
 
         auto& bin = fileSw->GetVectorData();
         SenLib::TX::Tbl tbl(bin.data(), bin.size());
+
+        // An extra newline snuck into the start of Tyrannical Fang's description in Switch v1.0.1
+        {
+            auto& entry = tbl.Entries[71];
+            ItemData m(entry.Data.data(), entry.Data.size());
+            m.Description = m.Description.substr(1);
+            entry.Data = m.ToBinary();
+        }
+
+        // The Switch text has two separate items named Twilight Stone, change the rare one back to
+        // the old loc's Dusk Stone.
+        {
+            auto& entry = tbl.Entries[73];
+            ItemData m(entry.Data.data(), entry.Data.size());
+            m.Name = "Dusk Stone";
+            entry.Data = m.ToBinary();
+        }
 
         // normalize newlines, this is a pretty ugly heuristic to catch the right items since we
         // only want to adjust those that start their -- generated or not -- description with the

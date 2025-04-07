@@ -30,6 +30,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#2P#800WHold on just a little longer!#8W\x01#6S#1000WWe're coming to save you!"
+        // harmless
+        // (EV_02_16_00)
         // patcher.ReplacePartialCommand(0x2571, 0x55, 0x25a5, 0x1f, "");
 
         fileSw->SetVectorData(std::move(bin));

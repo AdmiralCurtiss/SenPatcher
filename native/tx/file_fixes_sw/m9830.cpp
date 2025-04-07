@@ -22,7 +22,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             result,
             "scripts/scena/dat/m9830.dat",
             58329,
-            HyoutaUtils::Hash::SHA1FromHexString("96117602af3df79cc1e8e65a5b85745c1766e646"));
+            HyoutaUtils::Hash::SHA1FromHexString("959655099f8a0a6679e73d80801eb0bb1c16ee04"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -36,7 +36,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // "#1P#5S#3C#600W#3CConsidering...#20WI died\x01#300WBECAUSE OF YOU!!!"
         // this one is even more broken than usual, the line doesn't even get to fully finish before
         // the game advances the textbox...
-        // patcher.ReplacePartialCommand(0x9b94, 0x4b, 0x9bc6, 0x16, "");
+        // patcher.ReplacePartialCommand(0x9b95, 0x4b, 0x9bc7, 0x16, "");
 
         fileSw->SetVectorData(std::move(bin));
         return true;
