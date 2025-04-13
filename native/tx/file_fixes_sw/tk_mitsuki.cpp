@@ -34,7 +34,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "#KAh... It's all right. It is a little\x01disappointing, though,I must admit."
         // missing space
-        // patcher.ReplacePartialCommand(0x1f19, 0x4f, 0x1f1c, 0x4a, "");
+        // (Intermission, after the big talk, talk to everyone, then after talking to Asuka but
+        // before going into the hot springs talk to Mitsuki again)
+        patcher.ExtendPartialCommand(0x1f19, 0x4f, 0x1F59, {{' '}});
 
         fileSw->SetVectorData(std::move(bin));
         return true;

@@ -34,7 +34,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // "#K#0T(Maybe the face that they're both\x01the best in their respective areas\x01gives
         // them some common ground.)"
         // face -> fact
+        // (Chapter 4, at night before leaving for the abandoned factory, Nanahoshi Mall 1F)
         // patcher.ReplacePartialCommand(0x1c2c, 0x6e, 0x1c31, 0x67, "");
+        bin[0x1C42] = 't';
 
         fileSw->SetVectorData(std::move(bin));
         return true;

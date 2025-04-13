@@ -33,7 +33,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "#KThere goes Ryouta, off talking\x01to Kugayama's again."
         // -> remove the "'s"
-        // patcher.ReplacePartialCommand(0x39cb, 0x83, 0x39ce, 0x35, "");
+        // (Chapter 5, 6/5, School 2F, talk to Jun three times)
+        patcher.RemovePartialCommand(0x39cb, 0x83, 0x39FA, 2);
 
         fileSw->SetVectorData(std::move(bin));
         return true;

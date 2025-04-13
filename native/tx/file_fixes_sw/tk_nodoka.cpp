@@ -31,11 +31,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "if it's for my dearest Mitsuki,"
         // uncapitalized start of sentence
-        // bin[0x8f7] = 0x49;
+        // (Epilogue, talk to her three times)
+        bin[0x8f7] = 0x49;
 
         // linebreaks
-        // std::swap(bin[0x1bd], bin[0x1c3]);
-        // std::swap(bin[0x1d9], bin[0x1de]);
+        // (After Story)
+        std::swap(bin[0x1bd], bin[0x1c3]);
+        std::swap(bin[0x1d9], bin[0x1de]);
 
         fileSw->SetVectorData(std::move(bin));
         return true;

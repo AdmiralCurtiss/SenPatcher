@@ -30,7 +30,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "#E[1]#M_9You piqued my interest when you\x01said it was a model for hikking."
         // hikking -> hiking
-        // patcher.ReplacePartialCommand(0xff0, 0x66, 0x1010, 0x44, "");
+        // (Chapter 6 Gorou bonding event, directly after accepting the prompt)
+        patcher.RemovePartialCommand(0xff0, 0x66, 0x104F, 1);
 
         fileSw->SetVectorData(std::move(bin));
         return true;

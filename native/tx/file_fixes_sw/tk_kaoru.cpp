@@ -33,7 +33,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "I've was thinking hard about what\x01I could do to help when it came to me."
         // -> remove the "'ve"
-        // patcher.ReplacePartialCommand(0x134b, 0x121, 0x134e, 0x93, "");
+        // (Final Chapter, right before entering Pandora)
+        patcher.RemovePartialCommand(0x134b, 0x121, 0x139A, 3);
 
         fileSw->SetVectorData(std::move(bin));
         return true;
