@@ -29,7 +29,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#2PYes, it would be impossible#10W...\x01#1000WUnder normal circumstances, that is."
-        // patcher.ReplacePartialCommand(0x63bc, 0x5a, 0x63ea, 0x2a, "");
+        // remove the '#10W'
+        // (EV_17_26_00)
+        patcher.RemovePartialCommand(0x63bc, 0x5a, 0x63E2, 4);
 
         fileSw->SetVectorData(std::move(bin));
         return true;

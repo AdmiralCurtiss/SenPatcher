@@ -31,12 +31,18 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#E[M]#M_B#e[B]#5S#0T#FDon't you lay a finger on her,\x01#1000W#6SASSHOLE!"
+        // harmless
+        // (EV_17_11_00)
         // patcher.ReplacePartialCommand(0x4b47, 0x51, 0x4b8a, 0xb, "");
 
         // "#K#F#5SI won't back down, either!"
+        // this doesn't even have a W tag anymore...
+        // (EV_17_11_00)
         // patcher.ReplacePartialCommand(0x52d0, 0x2b, 0x52dc, 0x1d, "");
 
         // "#2PWe will surely win with everyone here!\x01#8W#1000W#5SCome on!"
+        // harmless
+        // (EV_17_11_00)
         // patcher.ReplacePartialCommand(0x5df1, 0x48, 0x5e2c, 0xb, "");
 
         fileSw->SetVectorData(std::move(bin));

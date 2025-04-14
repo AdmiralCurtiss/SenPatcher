@@ -31,20 +31,25 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-        // unicode instead of ascii '&' in 'Kou & Ryouta' nametag
-        // patcher.ReplacePartialCommand(0x5187, 0x12, 0x518c, 0x3, {{0x26}});
+        // unicode '＆' instead of ascii '&' in 'Kou ＆ Ryouta' nametag
+        // (EV_17_06_01)
+        patcher.ReplacePartialCommand(0x5187, 0x12, 0x518c, 0x3, {{'&'}});
 
         // "#1PBeen a while since we've been to\x01the Otherworld. I'll be counting on\x01you,
         // Raging Gear!"
         // Japanese version of this line has a delay before the second sentence.
+        // We'll ignore this...
+        // (EV_17_06_01)
         // patcher.ReplacePartialCommand(0x2e6e, 0x63, 0x2ea9, 0x1, STR_SPAN("#11W #1000W"));
 
         // "#1C#2P#1CIn the name of our Holy Father...\x01#11W#1000W#5SCome forth!"
-        // broken text delay
+        // harmless
+        // (EV_17_06_01)
         // patcher.ReplacePartialCommand(0x30c5, 0x4e, 0x30f6, 0xc, STR_SPAN("#11W. #1000W\x01"));
 
         // "#0T#3S#300WOooooo...\x01#32W#1000W#5SOW!"
-        // broken text delay
+        // harmless
+        // (EV_17_06_01)
         // bin[0x387b] = '1';
         // bin[0x388a] = '4';
         // bin[0x388b] = '5';

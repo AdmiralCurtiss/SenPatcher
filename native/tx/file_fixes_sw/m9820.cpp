@@ -31,9 +31,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
 
         // "#0TGot it#20W!\x01#1000W#5SNOW!"
+        // fine as-is
+        // (EV_17_15_00)
         // patcher.ReplacePartialCommand(0x4818, 0x27, 0x4835, 0x7, "");
 
         // "#1PDamn it! No other way around it...\x01#1000W#5SStand back, Hokuto!"
+        // harmless
+        // (EV_17_15_00)
         // patcher.ReplacePartialCommand(0x61ff, 0x4c, 0x6233, 0x16, "");
 
         fileSw->SetVectorData(std::move(bin));

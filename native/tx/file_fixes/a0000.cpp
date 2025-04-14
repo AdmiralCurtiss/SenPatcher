@@ -965,7 +965,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x1762a, 0x42, 0x1762d + 10, 0x3c - 10, STR_SPAN(" Enter the Gate?"));
         patcher.ReplacePartialCommand(0x1766c, 0x42, 0x1766f + 10, 0x3c - 10, STR_SPAN(" Entering " DUNGEON_NAME_m9830));
         patcher.ReplacePartialCommand(0x176ae, 0x42, 0x176b1 + 10, 0x3c - 10, STR_SPAN(" Finding Gorou"));
-        patcher.ReplacePartialCommand(0x176f0, 0x42, 0x176f3 + 10, 0x3c - 10, STR_SPAN(" Miniboss fight"));
+        patcher.ReplacePartialCommand(0x176f0, 0x42, 0x176f3 + 10, 0x3c - 10, STR_SPAN(" Shadow Futaba, miniboss fight"));
         patcher.ReplacePartialCommand(0x17732, 0x42, 0x17735 + 10, 0x3c - 10, STR_SPAN(" After miniboss"));
         patcher.ReplacePartialCommand(0x17774, 0x42, 0x17777 + 10, 0x3c - 10, STR_SPAN(" Back in Brick Alley"));
         patcher.ReplacePartialCommand(0x177b6, 0x42, 0x177b9 + 10, 0x3c - 10, STR_SPAN(" Go to NDF base? (crashes game)"));
