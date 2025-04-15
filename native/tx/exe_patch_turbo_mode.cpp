@@ -694,6 +694,7 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
     change_button(ga(0x644a5d, 0x642f2d) + 1, Index_MenuAction1);       // trade shop, change item display
     change_button(ga(0x643a78, 0x641f48) + 1, Index_MenuAction1);       // upgrade grid/skills, change item display
     change_button(ga(0x56d03e, 0x56b67e) + 1, Index_MenuAction2);       // chapter 7 map selection, increase cursor speed
+    change_button(ga(0x5d6161, 0x5d4601) + 1, Index_SysAction2);        // blade minigame, show help
     // clang-format on
 
     // change some prompts that are hardcoded in the executable
