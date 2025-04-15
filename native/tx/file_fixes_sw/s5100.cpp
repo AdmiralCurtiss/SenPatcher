@@ -76,6 +76,24 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // (EV_06_09_02)
         // patcher.ReplacePartialCommand(0x9f20, 0xc5, 0x9fab, 0x38, "");
 
+        // "#E_6#M_ASo I…no, we need to set the \x01example for the future \x01generations of
+        // students!"
+        // ellipsis -> three dots
+        // (QS_0901_05, the second movie sidequest)
+        // patcher.ReplacePartialCommand(0x11b3b, 0x108, 0x11bee, 0x53, "");
+        bin[0x11BF6] = '.';
+        bin[0x11BF7] = '.';
+        bin[0x11BF8] = '.';
+
+        // "#E[5]#M_4So I…no, we need to set the\x01example for the future \x01generations of
+        // students!"
+        // ellipsis -> three dots
+        // (QS_0901_05, the second movie sidequest)
+        // patcher.ReplacePartialCommand(0x11d15, 0x119, 0x11dda, 0x52, "");
+        bin[0x11DE2] = '.';
+        bin[0x11DE3] = '.';
+        bin[0x11DE4] = '.';
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

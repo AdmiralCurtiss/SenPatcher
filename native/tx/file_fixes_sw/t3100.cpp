@@ -37,6 +37,21 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // harmless
         // patcher.ReplacePartialCommand(0xf84e, 0x5c, 0xf893, 0x15, "");
 
+        // "#E_0But I DID promise my parents\x01that I'd focus on my schoolwork,\x01too…"
+        // ellipsis -> three dots
+        // patcher.ReplacePartialCommand(0x4377, 0xd3, 0x43b5, 0x48, "");
+        bin[0x43FA] = '.';
+        bin[0x43FB] = '.';
+        bin[0x43FC] = '.';
+
+        // "#E[1]Not like she's grown soft or anything\x01like that, but kind of like…she's
+        // just\x01matured."
+        // ellipsis -> three dots
+        // patcher.ReplacePartialCommand(0x4a68, 0xca, 0x4aa6, 0x5c, "");
+        bin[0x4AEC] = '.';
+        bin[0x4AED] = '.';
+        bin[0x4AEE] = '.';
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

@@ -45,6 +45,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // patcher.ReplacePartialCommand(0x184ef, 0x4d, 0x184f2, 0x48, "");
         bin[0x1850A] = 's';
 
+        // "Let's see. A cute notebook, a pink\x01clock… Snagged some cheap nail\x01stickers,
+        // too..."
+        // ellipsis -> three dots
+        // patcher.ReplacePartialCommand(0x1060e, 0xbf, 0x10611, 0x54, "");
+        bin[0x10639] = '.';
+        bin[0x1063a] = '.';
+        bin[0x1063b] = '.';
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

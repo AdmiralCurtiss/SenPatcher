@@ -1,3 +1,4 @@
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -9,18 +10,21 @@
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_s3120[] = "Text fixes in Acros Tower Observation Deck.";
+__declspec(dllexport) char SenPatcherFix_1_ztk_hayato[] =
+    "Text fixes in conversations with Hayato.";
 }
 
-namespace SenLib::TX::FileFixesSw::s3120 {
+#define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
+
+namespace SenLib::TX::FileFixesSw::tk_hayato {
 bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
               std::vector<SenPatcher::P3APackFile>& result) {
     try {
         auto fileSw = FindAlreadyPackedFile(
             result,
-            "scripts/scena/dat/s3120.dat",
-            62129,
-            HyoutaUtils::Hash::SHA1FromHexString("d6ce5a7c431c6d0226b9ff389fe7d11802225acf"));
+            "scripts/talk/dat/tk_hayato.dat",
+            6615,
+            HyoutaUtils::Hash::SHA1FromHexString("1b158bb11188f856c69fc5d323151a26e59ea8d1"));
         if (!fileSw || !fileSw->HasVectorData()) {
             return false;
         }
@@ -28,15 +32,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
-
-        // "I'm getting the chills…"
+        // "Gah. Yuuji… Getting good grades doesn't mean you can then slack off\x01afterward."
         // ellipsis -> three dots
-        // (SB_04_01_00)
-        // patcher.ReplacePartialCommand(0xa634, 0x47, 0xa639, 0x40, "");
-        bin[0xA676] = '.';
-        bin[0xA677] = '.';
-        bin[0xA678] = '.';
-
+        // patcher.ReplacePartialCommand(0x9e, 0x102, 0xa1, 0x50, "");
+        bin[0xAB] = '.';
+        bin[0xAC] = '.';
+        bin[0xAD] = '.';
 
         fileSw->SetVectorData(std::move(bin));
         return true;
@@ -44,4 +45,4 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         return false;
     }
 }
-} // namespace SenLib::TX::FileFixesSw::s3120
+} // namespace SenLib::TX::FileFixesSw::tk_hayato

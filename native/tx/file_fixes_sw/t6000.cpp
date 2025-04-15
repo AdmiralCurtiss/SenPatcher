@@ -43,6 +43,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // (EV_06_14_00)
         // patcher.ReplacePartialCommand(0x1af2a, 0x31, 0x1af3f, 0x1a, "");
 
+        // "#3KHama! And Taizou, too…"
+        // ellipsis -> three dots
+        // patcher.ReplacePartialCommand(0x24b7a, 0x25, 0x24b82, 0x1b, "");
+        bin[0x24B9A] = '.';
+        bin[0x24B9B] = '.';
+        bin[0x24B9C] = '.';
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

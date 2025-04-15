@@ -94,6 +94,15 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // (NPC dialogue with Wakaba after the concert in the Epilogue)
         patcher.RemovePartialCommand(0x26c3e, 0xe2, 0x26CA7, 2);
 
+        // "It turned out to be a piece of glass. What a pane in the…"
+        // ellipsis -> three dots
+        // (QS_0504_02_D, that's the sidequest where you try to find something the kid lost)
+        // patcher.ReplacePartialCommand(0x4e96f, 0x41, 0x4e972, 0x3c, "");
+        bin[0x4E9AB] = '.';
+        bin[0x4E9AC] = '.';
+        bin[0x4E9AD] = '.';
+
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

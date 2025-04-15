@@ -28,6 +28,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto bin = fileSw->GetVectorData();
         SenScriptPatcher patcher(bin);
 
+        // "#K(That sure is a group… What the\x01hell are they even getting up to?)"
+        // ellipsis -> three dots
+        // patcher.ReplacePartialCommand(0x11cb, 0x4b, 0x11ce, 0x46, "");
+        bin[0x11E5] = '.';
+        bin[0x11E6] = '.';
+        bin[0x11E7] = '.';
 
         fileSw->SetVectorData(std::move(bin));
         return true;

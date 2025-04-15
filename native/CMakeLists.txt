@@ -1312,6 +1312,7 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/t_jump.cpp
 		tx/file_fixes_sw/t_magic.cpp
 		tx/file_fixes_sw/t_main_quest.cpp
+		tx/file_fixes_sw/t_mg04.cpp
 		tx/file_fixes_sw/t_name.cpp
 		tx/file_fixes_sw/t_notechar.cpp
 		tx/file_fixes_sw/t_notehelp.cpp
@@ -1359,13 +1360,16 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/tk_ayumi.cpp
 		tx/file_fixes_sw/tk_gorou.cpp
 		tx/file_fixes_sw/tk_haruhiko.cpp
+		tx/file_fixes_sw/tk_hayato.cpp
 		tx/file_fixes_sw/tk_hekiru.cpp
 		tx/file_fixes_sw/tk_jun.cpp
 		tx/file_fixes_sw/tk_kaoru.cpp
+		tx/file_fixes_sw/tk_karen.cpp
 		tx/file_fixes_sw/tk_mai.cpp
 		tx/file_fixes_sw/tk_mitsuki.cpp
 		tx/file_fixes_sw/tk_nodoka.cpp
 		tx/file_fixes_sw/tk_rion.cpp
+		tx/file_fixes_sw/tk_shio.cpp
 
 		${SOURCES_LZ4}
 		${SOURCES_ZSTD_BASE}

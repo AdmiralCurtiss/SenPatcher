@@ -93,6 +93,7 @@ DECLARE_STANDARD_FIXSW(t_itemhelp)
 DECLARE_STANDARD_FIXSW(t_jump)
 DECLARE_STANDARD_FIXSW(t_magic)
 DECLARE_STANDARD_FIXSW(t_main)
+DECLARE_STANDARD_FIXSW(t_mg04)
 DECLARE_STANDARD_FIXSW(t_name)
 DECLARE_STANDARD_FIXSW(t_notechar)
 DECLARE_STANDARD_FIXSW(t_notehelp)
@@ -141,13 +142,16 @@ DECLARE_STANDARD_FIXSW(tk_akie)
 DECLARE_STANDARD_FIXSW(tk_ayumi)
 DECLARE_STANDARD_FIXSW(tk_gorou)
 DECLARE_STANDARD_FIXSW(tk_haruhiko)
+DECLARE_STANDARD_FIXSW(tk_hayato)
 DECLARE_STANDARD_FIXSW(tk_hekiru)
 DECLARE_STANDARD_FIXSW(tk_jun)
 DECLARE_STANDARD_FIXSW(tk_kaoru)
+DECLARE_STANDARD_FIXSW(tk_karen)
 DECLARE_STANDARD_FIXSW(tk_mai)
 DECLARE_STANDARD_FIXSW(tk_mitsuki)
 DECLARE_STANDARD_FIXSW(tk_nodoka)
 DECLARE_STANDARD_FIXSW(tk_rion)
+DECLARE_STANDARD_FIXSW(tk_shio)
 
 #define TRY_APPLY_SW(asset, apply)                      \
     do {                                                \
@@ -340,6 +344,7 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(t_jump, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_magic, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_main, TryApply(callback, packFiles));
+    TRY_APPLY_SW(t_mg04, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_name, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notechar, TryApply(callback, packFiles));
     TRY_APPLY_SW(t_notehelp, TryApply(callback, packFiles));
@@ -388,13 +393,16 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(tk_ayumi, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_gorou, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_haruhiko, TryApply(callback, packFiles));
+    TRY_APPLY_SW(tk_hayato, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_hekiru, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_jun, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_kaoru, TryApply(callback, packFiles));
+    TRY_APPLY_SW(tk_karen, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_mai, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_mitsuki, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_nodoka, TryApply(callback, packFiles));
     TRY_APPLY_SW(tk_rion, TryApply(callback, packFiles));
+    TRY_APPLY_SW(tk_shio, TryApply(callback, packFiles));
     return true;
 }
 

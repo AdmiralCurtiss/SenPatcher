@@ -40,6 +40,13 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // (before entering Pandora, small kid in the corner)
         patcher.ExtendPartialCommand(0xdc79, 0x63, 0xDCD0, STR_SPAN(" you"));
 
+        // "(＂I hope I can score a date with the\x01girl standing next to me right now…＂)"
+        // ellipsis -> three dots
+        // patcher.ReplacePartialCommand(0xbeb6, 0x55, 0xbeb9, 0x50, "");
+        bin[0xBF02] = '.';
+        bin[0xBF03] = '.';
+        bin[0xBF04] = '.';
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {
