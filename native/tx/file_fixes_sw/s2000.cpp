@@ -36,11 +36,6 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(0x721c6, 0x23, 0x721e1, 6, STR_SPAN("Advanced"));
         patcher.ReplacePartialCommand(0x7223c, 0x23, 0x72257, 6, STR_SPAN("Advanced"));
 
-        // TODO
-        // "#K#0TLooks like everyone's here."
-        // Nonsense in context. This is during the concert quest in the epilogue.
-        // patcher.ReplacePartialCommand(0x567b8, 0x25, 0x567bd, 0x1e, "");
-
         // "#2P#F#5S...is going to be be..."
         // one 'be' too much (concert quest in the epilogue)
         patcher.RemovePartialCommand(0x5c140, 0x2a, 0x5C15F, 3);
@@ -70,7 +65,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // patcher.ReplacePartialCommand(0x4838b, 0x41, 0x4838e, 0x3c, "");
         bin[0x483AA] = 'i';
 
-        // "…I decided to do some personal\x01 training with Chiaki."
+        // "â€¦I decided to do some personal\x01 training with Chiaki."
         // unicode ellipsis and extra space
         // (EV_11_00_01)
         bin[0x48441] = '.';
@@ -94,13 +89,52 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // (NPC dialogue with Wakaba after the concert in the Epilogue)
         patcher.RemovePartialCommand(0x26c3e, 0xe2, 0x26CA7, 2);
 
-        // "It turned out to be a piece of glass. What a pane in the…"
+        // "It turned out to be a piece of glass. What a pane in theâ€¦"
         // ellipsis -> three dots
         // (QS_0504_02_D, that's the sidequest where you try to find something the kid lost)
         // patcher.ReplacePartialCommand(0x4e96f, 0x41, 0x4e972, 0x3c, "");
         bin[0x4E9AB] = '.';
         bin[0x4E9AC] = '.';
         bin[0x4E9AD] = '.';
+
+        // There's a super confusing phrasing in the Epilogue quest where you throw the concert in
+        // the park. After you've asked the three guests whether they want to be the backing band
+        // and come back here, you get this conversation:
+        //
+        // City Hall Employee: "#K#0THey, guys! I've been waiting for you!"
+        // City Hall Employee: "#E[9]#M_0SPiKA's manager called me earlier."
+        // City Hall Employee: "#E[5]So it's going to be SPiKA with a
+        //                      backing band of Morimiya locals.
+        //                      This is going to be awesome!"
+        // Rion: "#K#0THeh heh.\x01Right?!"
+        // Kou: "#K#0TLooks like everyone's here."
+        // Mitsuki: "#K#0TRight after we decided on the details,\x01I asked everyone to meet here."
+        // City Hall Employee: "#K#0TOh. Thank you!\x01I mean itâ”€thank you so, so much!"
+        // [...]
+        // Asuka: "#K#0TConsidering how long it takes to
+        //         set up and rehearse, the sooner we
+        //         meet up, the better."
+        // City Hall Employee: "#K#0TThe stage is all good to go.
+        //                      We're ready when you are."
+        // City Hall Employee: "#E_0#M_0Do you want some time to
+        //                      warm up?"
+        // > Get Ready
+        //   Hold Off
+        // Kou: "#K#0TYeah, we're good.\x01We'll reach out\x01to everyone now."
+        // Rion: "#K#0TYup! I'll let the rest of SPiKA know."
+        //
+        // I genuinely have no idea what's going on here. This conversation is trapped in a weird
+        // superposition where everyone is already here and also still needs to be contacted to come
+        // here. My *best guess* on what's going on here is that Kou's "Looks like everyone's here."
+        // actually means "Looks like SPiKA's all here already.", that way the rest kinda sorta
+        // makes sense I guess, even though visually nothing indicates that Spika is here? So let's
+        // change that line for lack of better ideas...
+        patcher.ReplacePartialCommand(0x567b8,
+                                      0x25,
+                                      0x567c0,
+                                      0x1b,
+                                      STR_SPAN("Looks like all of SPiKA\x01"
+                                               "is already here."));
 
 
         fileSw->SetVectorData(std::move(bin));

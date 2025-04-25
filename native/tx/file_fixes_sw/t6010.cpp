@@ -39,6 +39,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // (EV_03_11_01)
         patcher.RemovePartialCommand(0x4ebb, 0x72, 0x4EE2, 7);
 
+        // "#K#0TWh-What kind of power is this.?!"
+        // stray period
+        // (EV_03_11_01, Sora in party)
+        patcher.RemovePartialCommand(0x444b, 0x2f, 0x4475, 1);
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

@@ -47,6 +47,20 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         bin[0xBF03] = '.';
         bin[0xBF04] = '.';
 
+        // "#K#0TI see. That's the key, isn't it?"
+        // "the key" -> "a key"
+        // (Epilogue, the key from Sanae)
+        patcher.ReplacePartialCommand(0x1bc8f, 0x8a, 0x1BCA5, 3, {{'a'}});
+
+        // "Uh. Um, well... Do you have any\x01free time this weekend, Sanae?"
+        // "Hmm? Not really. I didn't\x01have anything planned."
+        // "R-Really?! Wh-What a coincidence!\x01I don't have any plans this weekend,\x01either!"
+        // this doesn't work, you can't answer 'not really' to 'do you have free time' if you mean
+        // 'yes i have free time'
+        // we're just gonna do "Not really." -> "I suppose."
+        // (Epilogue, the guy standing next to Sanae)
+        patcher.ReplacePartialCommand(0x8c1b, 0x35, 0x8C23, 10, STR_SPAN("I suppose"));
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

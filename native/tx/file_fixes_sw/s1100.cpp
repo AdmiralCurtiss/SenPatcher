@@ -44,6 +44,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         std::swap(bin[0x14109], bin[0x1410d]);
 
         // "I don't have time to be\x01scared of those monster...!"
+        // (Final Chapter right before Pandora, NPC conversation)
         patcher.ExtendPartialCommand(0x6f9d, 0x66, 0x6FFD, {{'s'}});
 
 

@@ -134,6 +134,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             entry.Data = m.ToBinary();
         }
 
+        // Epilogue -> Side/After Story for the option in the boss refight menu
+        {
+            auto& entry = tblSw.Entries[735];
+            TextTableData m(entry.Data.data(), entry.Data.size());
+            m.Str = m.Str.substr(0, 5) + "Side/After Story";
+            entry.Data = m.ToBinary();
+        }
+
         std::vector<char> bin2;
         HyoutaUtils::Stream::MemoryStream ms(bin2);
         tblSw.RecalcNumberOfEntries();

@@ -47,7 +47,11 @@ DECLARE_STANDARD_FIXSW(m6309)
 DECLARE_STANDARD_FIXSW(m7320)
 DECLARE_STANDARD_FIXSW(m8209)
 DECLARE_STANDARD_FIXSW(m8300)
+DECLARE_STANDARD_FIXSW(m8310)
+DECLARE_STANDARD_FIXSW(m8320)
+DECLARE_STANDARD_FIXSW(m8330)
 DECLARE_STANDARD_FIXSW(m8331)
+DECLARE_STANDARD_FIXSW(m8340)
 DECLARE_STANDARD_FIXSW(m8390)
 DECLARE_STANDARD_FIXSW(m9090)
 DECLARE_STANDARD_FIXSW(m9800)
@@ -298,7 +302,11 @@ static bool ApplyFixesSwitch(HyoutaUtils::Logger& logger,
     TRY_APPLY_SW(m7320, TryApply(callback, packFiles));
     TRY_APPLY_SW(m8209, TryApply(callback, packFiles));
     TRY_APPLY_SW(m8300, TryApply(callback, packFiles));
+    TRY_APPLY_SW(m8310, TryApply(callback, packFiles));
+    TRY_APPLY_SW(m8320, TryApply(callback, packFiles));
+    TRY_APPLY_SW(m8330, TryApply(callback, packFiles));
     TRY_APPLY_SW(m8331, TryApply(callback, packFiles));
+    TRY_APPLY_SW(m8340, TryApply(callback, packFiles));
     TRY_APPLY_SW(m8390, TryApply(callback, packFiles));
     TRY_APPLY_SW(m9090, TryApply(callback, packFiles));
     TRY_APPLY_SW(m9800, TryApply(callback, packFiles));

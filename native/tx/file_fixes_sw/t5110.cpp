@@ -53,6 +53,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         bin[0x1063a] = '.';
         bin[0x1063b] = '.';
 
+        // the "Obtained Biting Wolf Set x2" message is missing a space before the "x2"
+        patcher.ExtendPartialCommand(0x2c843, 0x1e, 0x2c858, {{' '}});
+
         fileSw->SetVectorData(std::move(bin));
         return true;
     } catch (...) {

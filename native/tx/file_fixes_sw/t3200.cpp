@@ -34,6 +34,8 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // Must have Sora in the party.
         patcher.ExtendPartialCommand(0x7eb5, 0x1a, 0x7ecb, {{0x2e}});
 
+        // the "Obtained Jack-o'-Lantern x2" message is missing a space before the "x2"
+        patcher.ExtendPartialCommand(0x15e58, 0x1e, 0x15e6d, {{' '}});
 
         fileSw->SetVectorData(std::move(bin));
         return true;

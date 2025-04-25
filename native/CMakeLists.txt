@@ -1266,7 +1266,11 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/file_fixes_sw/m7320.cpp
 		tx/file_fixes_sw/m8209.cpp
 		tx/file_fixes_sw/m8300.cpp
+		tx/file_fixes_sw/m8310.cpp
+		tx/file_fixes_sw/m8320.cpp
+		tx/file_fixes_sw/m8330.cpp
 		tx/file_fixes_sw/m8331.cpp
+		tx/file_fixes_sw/m8340.cpp
 		tx/file_fixes_sw/m8390.cpp
 		tx/file_fixes_sw/m9090.cpp
 		tx/file_fixes_sw/m9800.cpp

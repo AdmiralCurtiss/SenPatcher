@@ -94,6 +94,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             entry.Data = m.ToBinary();
         }
 
+        // Jack-o'-Lantern has a space and newline at the end of its name, for some reason?
+        {
+            auto& entry = tbl.Entries[341];
+            ItemData m(entry.Data.data(), entry.Data.size());
+            m.Name = m.Name.substr(0, m.Name.size() - 2);
+            entry.Data = m.ToBinary();
+        }
+
         // normalize newlines, this is a pretty ugly heuristic to catch the right items since we
         // only want to adjust those that start their -- generated or not -- description with the
         // [stats here] block

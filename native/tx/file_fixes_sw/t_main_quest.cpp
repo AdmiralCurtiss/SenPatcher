@@ -171,6 +171,18 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             entry.Data = m.ToBinary();
         }
 
+        // Chapter 2 "In Search of Aizawa"
+        {
+            auto& entry = tbl.Entries[61];
+            QSText m(entry.Data.data(), entry.Data.size());
+            // "If her emotions kept spiraling, she got spirited away by the Otherworld."
+            // this is nonsense, change that to
+            // "Her emotions kept spiraling, so she got spirited away by the Otherworld."
+            m.Text = Insert(m.Text, 140, "so ");
+            m.Text = ReplaceSubstring(m.Text, 108, 4, "H");
+            entry.Data = m.ToBinary();
+        }
+
         // "Location Q" -> "Point Q" to match the actual in-game dialogue and images
         {
             auto& entry = tbl.Entries[212];
