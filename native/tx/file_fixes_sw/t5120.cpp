@@ -33,14 +33,6 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         SenScriptPatcher patcher(bin);
         using HyoutaUtils::Vector::ShiftData;
 
-        // "Heehee. She's a customer who's\x01been coming and really stands out."
-        // This line is just nonsense. She's referring to Airi (who's standing in the shop but not
-        // directly talking to her) and as far as I can tell this is supposed to be something like
-        // 'this girl over there has been shopping here every once in a while and she really stands
-        // out', but as written the sentence just makes no sense.
-        // (Chapter 4, at night before leaving for the abandoned factory)
-        // patcher.ReplacePartialCommand(0x9753, 0xf6, 0x9756, 0x41, "");
-
         // "#K#0TNo clue what that is"
         // missing period
         // (EV_06_03_00, Shio in party)
@@ -100,6 +92,19 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // "Mechanical Voice" -> "Robotic Voice" for the Horus line in EV_17_16_01 for consistency
         patcher.ReplacePartialCommand(0x17938, 0x14, 0x17939, 0xa, STR_SPAN("Robotic"));
+
+        // "Heehee. She's a customer who's\x01been coming and really stands out."
+        // This line is just nonsense. She's referring to Airi (who's standing in the shop but not
+        // directly talking to her) and as far as I can tell this is supposed to be something like
+        // 'this girl over there has been shopping here every once in a while and she really stands
+        // out', but as written the sentence just makes no sense.
+        // (Chapter 4, at night before leaving for the abandoned factory)
+        patcher.ReplacePartialCommand(0x9753,
+                                      0xf6,
+                                      0x9756,
+                                      0x41,
+                                      STR_SPAN("That girl over there really\x01"
+                                               "stands out, doesn't she?"));
 
         fileSw->SetVectorData(std::move(bin));
         return true;
