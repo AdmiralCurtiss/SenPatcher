@@ -130,9 +130,6 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
     json.Key("Version");
     json.Uint(header.Version);
 
-    json.Key("Alignment");
-    json.Uint(0);
-
     auto fileinfos = std::make_unique_for_overwrite<P3AFileInfo[]>(header.FileCount);
     if (!fileinfos) {
         return std::string("Could not allocate memory for P3A file infos.");
@@ -172,6 +169,23 @@ HyoutaUtils::Result<UnpackP3AResult, std::string> UnpackP3A(std::string_view arc
                 }
             }
         }
+    }
+
+    // guess the alignment based on the file offsets, clamp at the default 0x40
+    {
+        uint32_t offsetLowBits = 0x40;
+        for (size_t i = 0; i < header.FileCount; ++i) {
+            offsetLowBits |= static_cast<uint32_t>(fileinfos[i].Offset & 0x3f);
+        }
+        uint32_t alignment = 0;
+        for (uint32_t i = 0; i < static_cast<uint32_t>(7); ++i) {
+            if ((offsetLowBits & (static_cast<uint32_t>(1) << i)) != 0) {
+                alignment = static_cast<uint32_t>(1) << i;
+                break;
+            }
+        }
+        json.Key("Alignment");
+        json.Uint(alignment);
     }
 
     ZSTD_DDict_UniquePtr ddict = nullptr;
