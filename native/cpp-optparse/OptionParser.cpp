@@ -29,6 +29,8 @@
 #include <variant>
 #include <vector>
 
+#include "util/number.h"
+
 #if defined(ENABLE_NLS) && ENABLE_NLS
 # include <libintl.h>
 # define _(s) gettext(s)
@@ -780,14 +782,13 @@ void Values::append(const std::string& key, Value value) {
 ////////// class Option { //////////
 Value Option::make_value_from_string(const std::string& opt, const OptionParser* parser, std::string_view val, bool set_by_user) const {
   if (type() == DataType::Int) {
-    int64_t t;
-    istringstream ss{std::string(val)};
-    if (!(ss >> t)) {
+    auto t = HyoutaUtils::NumberUtils::ParseInt64(val);
+    if (!t) {
       stringstream err;
       err << _("option") << " " << opt << ": " << _("invalid integer value") << ": '" << val << "'";
       parser->error(err.str());
     }
-    return Value(parser, t, set_by_user);
+    return Value(parser, *t, set_by_user);
   }
   else if (type() == DataType::Float) {
     double t;
