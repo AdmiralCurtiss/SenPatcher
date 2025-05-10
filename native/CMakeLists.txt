@@ -397,6 +397,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/ini_writer.h
 		util/memread.h
 		util/memwrite.h
+		util/number.cpp
+		util/number.h
 		util/result.h
 		util/scope.h
 		util/stream.cpp
@@ -1012,6 +1014,8 @@ set(SOURCES_BASE_FIXES
 	util/endian.h
 	util/memread.h
 	util/memwrite.h
+	util/number.cpp
+	util/number.h
 	util/result.h
 	util/stream.cpp
 	util/stream.h
@@ -1731,6 +1735,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/xorshift.h
 
 		test/ini_test.cpp
+		test/number_test.cpp
 		test/p3a_lookup_test.cpp
 		test/sen_script_patcher_test.cpp
 		test/sha1_test.cpp
