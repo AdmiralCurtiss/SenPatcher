@@ -46,89 +46,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IniFile.cs" />
     <Compile Include="ScriptReplaceHelperForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ScriptReplaceHelperForm.Designer.cs">
       <DependentUpon>ScriptReplaceHelperForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="GamePatchGuiLogic.cs" />
     <Compile Include="GamePaths.cs" />
-    <Compile Include="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Program.cs" />
-    <Compile Include="ProgressForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ProgressForm.Designer.cs">
-      <DependentUpon>ProgressForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sen1Form.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Sen1Form.Designer.cs">
-      <DependentUpon>Sen1Form.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Sen1SystemDataForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Sen1SystemDataForm.Designer.cs">
-      <DependentUpon>Sen1SystemDataForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="TXForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TXForm.Designer.cs">
-      <DependentUpon>TXForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Sen5Form.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Sen5Form.Designer.cs">
-      <DependentUpon>Sen5Form.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Sen4Form.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Sen4Form.Designer.cs">
-      <DependentUpon>Sen4Form.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Sen3Form.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Sen3Form.Designer.cs">
-      <DependentUpon>Sen3Form.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Sen2Form.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Sen2Form.Designer.cs">
-      <DependentUpon>Sen2Form.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Sen2SystemDataForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Sen2SystemDataForm.Designer.cs">
-      <DependentUpon>Sen2SystemDataForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="TextDisplayForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TextDisplayForm.Designer.cs">
-      <DependentUpon>TextDisplayForm.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressForm.resx">
-      <DependentUpon>ProgressForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -141,33 +67,6 @@
     </Compile>
     <EmbeddedResource Include="ScriptReplaceHelperForm.resx">
       <DependentUpon>ScriptReplaceHelperForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Sen1Form.resx">
-      <DependentUpon>Sen1Form.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Sen1SystemDataForm.resx">
-      <DependentUpon>Sen1SystemDataForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TXForm.resx">
-      <DependentUpon>TXForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Sen5Form.resx">
-      <DependentUpon>Sen5Form.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Sen4Form.resx">
-      <DependentUpon>Sen4Form.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Sen3Form.resx">
-      <DependentUpon>Sen3Form.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Sen2Form.resx">
-      <DependentUpon>Sen2Form.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Sen2SystemDataForm.resx">
-      <DependentUpon>Sen2SystemDataForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TextDisplayForm.resx">
-      <DependentUpon>TextDisplayForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

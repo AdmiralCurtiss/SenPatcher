@@ -40,12 +40,6 @@ Licensed under the MIT License
 Copyright (c) 2013-2019 Admiral H. Curtiss
 See the HyoutaUtils LICENSE file for details.
 
-== lz4-sharp ==
-Licensed under a BSD 2-Clause license
-LZ4 Copyright (c) 2011-2016, Yann Collet
-lz4-sharp (c) 2021 Admiral H. Curtiss
-See the lz4-sharp LICENSE file for details.
-
 == native/lz4 ==
 Licensed under a BSD 2-Clause license
 Copyright (c) 2011-2020, Yann Collet

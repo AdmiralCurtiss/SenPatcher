@@ -164,12 +164,6 @@
     <Compile Include="..\HyoutaUtils\HyoutaUtils\TimeUtils.cs">
       <Link>HyoutaUtils\TimeUtils.cs</Link>
     </Compile>
-    <Compile Include="..\lz4-sharp\lz4-sharp\lz4.cs">
-      <Link>lz4-sharp\lz4.cs</Link>
-    </Compile>
-    <Compile Include="..\lz4-sharp\lz4-sharp\utils.cs">
-      <Link>lz4-sharp\utils.cs</Link>
-    </Compile>
     <Compile Include="7zip\Common\CRC.cs" />
     <Compile Include="7zip\Compress\LZMA\LzmaBase.cs" />
     <Compile Include="7zip\Compress\LZMA\LzmaDecoder.cs" />
@@ -179,83 +173,22 @@
     <Compile Include="7zip\Compress\RangeCoder\RangeCoderBitTree.cs" />
     <Compile Include="7zip\ICoder.cs" />
     <Compile Include="BookTable.cs" />
-    <Compile Include="BranchHelper1Byte.cs" />
-    <Compile Include="BranchHelper4Byte.cs" />
     <Compile Include="CRC32Algorithm.cs" />
     <Compile Include="DecompressHelper.cs" />
-    <Compile Include="FileModExec.cs" />
-    <Compile Include="FileModInvert.cs" />
-    <Compile Include="FileModResult.cs" />
-    <Compile Include="FileMod.cs" />
-    <Compile Include="FilenameFix.cs" />
-    <Compile Include="FileStorage.cs" />
-    <Compile Include="KnownFile.cs" />
     <Compile Include="Logging.cs" />
-    <Compile Include="PatchResult.cs" />
-    <Compile Include="PeExe.cs" />
-    <Compile Include="Pka.cs" />
-    <Compile Include="Pkg.cs" />
-    <Compile Include="ProgressReporter.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="RegionHelper64.cs" />
-    <Compile Include="RegionHelper.cs" />
     <Compile Include="ScriptParser.cs" />
     <Compile Include="Sen1\MagicData.cs" />
-    <Compile Include="Sen1\Sen1SystemData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sen1\Sen1UnpatchData.cs" />
-    <Compile Include="Sen2\Sen2UnpatchData.cs" />
-    <Compile Include="Sen3\Sen3UnpatchData.cs" />
-    <Compile Include="Sen4\Sen4UnpatchData.cs" />
-    <Compile Include="UnpatchFile.cs" />
     <Compile Include="Sen1\Tbl.cs" />
     <Compile Include="Sen1\VoiceDataCS1.cs" />
-    <Compile Include="Sen2\Sen2SystemData.cs" />
     <Compile Include="Sen2\Tbl.cs" />
     <Compile Include="Sen3\VoiceDataCS3.cs" />
     <Compile Include="Sen4\Save.cs" />
     <Compile Include="Sen4\Tbl.cs" />
     <Compile Include="Sen4\VoiceDataCS4.cs" />
-    <Compile Include="SenCommonPaths.cs" />
-    <Compile Include="SenScriptPatcher.cs" />
-    <Compile Include="SenUtils.cs" />
-    <Compile Include="SHA256.cs" />
     <Compile Include="Sen3\Tbl.cs" />
     <Compile Include="TX\Tbl.cs" />
-    <Compile Include="UnpatchGame.cs" />
-    <Compile Include="Version.cs" />
     <Compile Include="VoiceTiming.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Sen1\senpatcher_settings.ini" />
-    <None Include="Sen2\FileFixes\ed82j142.bin" />
-    <None Include="Sen2\FileFixes\ed82u142j.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_data.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_header.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_rdata.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_rsrc.bin" />
-    <None Include="Sen2\FileFixes\ed82_j140_to_j142_text.bin" />
-    <None Include="Sen2\FileFixes\ed82_j142_to_u142_data.bin" />
-    <None Include="Sen2\FileFixes\ed82_j142_to_u142_header.bin" />
-    <None Include="Sen2\FileFixes\ed82_j142_to_u142_rsrc.bin" />
-    <None Include="Sen2\FileFixes\ed82_j142_to_u142_text.bin" />
-    <None Include="Sen2\FileFixes\ed82_u140j142_to_u142_rdata.bin" />
-    <None Include="Sen2\FileFixes\t1001_dat_to_tbl.bin" />
-    <None Include="Sen2\senpatcher_settings.ini" />
-    <None Include="Sen3\senpatcher_settings.ini" />
-    <None Include="Sen4\senpatcher_settings.ini" />
-    <None Include="Sen5\senpatcher_settings.ini" />
-    <None Include="TX\senpatcher_settings.ini" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

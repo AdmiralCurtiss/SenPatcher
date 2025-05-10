@@ -19,39 +19,6 @@ namespace SenPatcherCli {
 
 			int sengame;
 
-			if (args.Length >= 2 && args[0] == "--extract-pkg") {
-				string outpath = args.Length >= 3 ? args[2] : args[1] + ".ex";
-				Directory.CreateDirectory(outpath);
-				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1]))
-				using (var pkg = new Pkg(fs)) {
-					foreach (PkgFile file in pkg.Files) {
-						Console.WriteLine("Flags 0x{0:x2} for {1}", file.Flags, file.Filename);
-						using (var s = file.DataStream)
-						using (var outfs = new FileStream(Path.Combine(outpath, file.Filename), FileMode.Create)) {
-							StreamUtils.CopyStream(s, outfs);
-						}
-					}
-				}
-				return 0;
-			}
-
-			if (args.Length >= 2 && args[0] == "--extract-pka-to-pkg") {
-				string outpath = args.Length >= 3 ? args[2] : args[1] + ".ex";
-				Directory.CreateDirectory(outpath);
-				using (var fs = new HyoutaUtils.Streams.DuplicatableFileStream(args[1]))
-				using (var pka = new Pka(fs)) {
-					for (int i = 0; i < pka.PkgCount; ++i) {
-						string pkgName = pka.GetPkgName(i);
-						Console.WriteLine("Building {0}", pkgName);
-						using (var pkgStream = pka.BuildPkgToMemory(i))
-						using (var outfs = new FileStream(Path.Combine(outpath, pkgName), FileMode.Create)) {
-							StreamUtils.CopyStream(pkgStream, outfs);
-						}
-					}
-				}
-				return 0;
-			}
-
 			if (args.Length >= 2 && args[0] == "--parse-script") {
 				string inputfilename = args[1];
 				string outputfilename = inputfilename + ".txt";

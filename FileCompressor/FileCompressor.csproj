@@ -166,12 +166,6 @@
     <Compile Include="..\HyoutaUtils\HyoutaUtils\TimeUtils.cs">
       <Link>HyoutaUtils\TimeUtils.cs</Link>
     </Compile>
-    <Compile Include="..\lz4-sharp\lz4-sharp\lz4.cs">
-      <Link>lz4-sharp\lz4.cs</Link>
-    </Compile>
-    <Compile Include="..\lz4-sharp\lz4-sharp\utils.cs">
-      <Link>lz4-sharp\utils.cs</Link>
-    </Compile>
     <Compile Include="7zip\Common\CommandLineParser.cs" />
     <Compile Include="7zip\Common\CRC.cs" />
     <Compile Include="7zip\Common\InBuffer.cs" />

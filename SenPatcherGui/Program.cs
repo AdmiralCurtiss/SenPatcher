@@ -14,7 +14,7 @@ namespace SenPatcherGui {
 			SenLib.Logging.LogToFile = true;
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new MainForm());
+			Application.Run(new ScriptReplaceHelperForm());
 			SenLib.Logging.Flush();
 			try {
 				Properties.Settings.Default.Save();
