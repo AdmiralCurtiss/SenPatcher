@@ -56,6 +56,12 @@ int P3A_Pack_Function(int argc, char** argv) {
         .dest("no-deduplicate")
         .set_default(false)
         .help("Skip file deduplication.");
+    parser.add_option("--alignment")
+        .type(optparse::DataType::Int)
+        .dest("alignment")
+        .metavar("ALIGNMENT")
+        .set_default(0x40)
+        .help("Set the data alignment for the individual files packed into the archive.");
 
     const auto& options = parser.parse_args(argc, argv);
     const auto& args = parser.args();
@@ -133,6 +139,17 @@ int P3A_Pack_Function(int argc, char** argv) {
         noDeduplicate = noDeduplicate_option->flag();
     }
 
+    size_t alignment = 0x40;
+    auto* alignment_option = options.get("alignment");
+    if (alignment_option != nullptr) {
+        auto alignmentValue = alignment_option->first_integer();
+        if (alignmentValue < 0) {
+            parser.error("Invalid alignment, can't be negative.");
+            return -1;
+        }
+        alignment = static_cast<size_t>(alignmentValue);
+    }
+
     std::optional<SenPatcher::P3APackData> packData =
         SenPatcher::P3APackDataFromDirectory(HyoutaUtils::IO::FilesystemPathFromUtf8(source),
                                              archiveVersion,
@@ -143,6 +160,8 @@ int P3A_Pack_Function(int argc, char** argv) {
         printf("Failed to collect input files.\n");
         return -1;
     }
+
+    packData->SetAlignment(alignment);
 
     if (!noDeduplicate) {
         if (!SenPatcher::DeduplicateP3APackFiles(*packData)) {

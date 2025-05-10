@@ -154,6 +154,7 @@ std::optional<SenPatcher::P3APackData>
     }
 
     packData.SetAllowUppercaseInFilenames(allowUppercaseInFilenames);
+    packData.SetAlignment(0x40);
 
     return packData;
 }

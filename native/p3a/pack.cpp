@@ -1050,7 +1050,7 @@ bool PackP3A(HyoutaUtils::IO::File& file, const P3APackData& packData, size_t de
     }
 
     const size_t packDataAlignment = packData.GetAlignment();
-    const uint64_t alignment = packDataAlignment == 0 ? 0x40 : packDataAlignment;
+    const uint64_t alignment = packDataAlignment == 0 ? 1 : packDataAlignment;
     const auto& fileinfos = packData.GetFiles();
 
     uint64_t position = 0;
