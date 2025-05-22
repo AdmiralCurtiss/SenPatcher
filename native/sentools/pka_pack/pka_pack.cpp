@@ -314,9 +314,6 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
     // - threadCount worker threads, which do the actual decompression + hashing of the files
     // - 1 file reader thread, which reads the input files and hands them over to a worker thread
 
-    // TODO: This generally works, but uses more memory that it really needs to because the reader
-    // thread just reads all files as fast as it can.
-
     std::atomic<bool> encounteredError = false;
 
     struct alignas(64) WorkPacket {
@@ -327,7 +324,8 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
     };
     std::deque<WorkPacket> workQueue;
     std::mutex workQueueMutex;
-    std::condition_variable workQueueCondVar;
+    std::condition_variable workQueueDataAvailableCondVar;
+    std::condition_variable workQueueShouldPushMoreCondVar;
     size_t filesLeft = totalNumberOfFiles;
 
     const auto do_abort = [&]() -> void {
@@ -337,7 +335,8 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
         {
             std::unique_lock lock(workQueueMutex);
             filesLeft = 0;
-            workQueueCondVar.notify_all();
+            workQueueDataAvailableCondVar.notify_all();
+            workQueueShouldPushMoreCondVar.notify_all();
         }
     };
 
@@ -354,8 +353,8 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
                         return;
                     }
                     if (workQueue.empty()) {
-                        workQueueCondVar.wait(lock,
-                                              [&] { return filesLeft == 0 || !workQueue.empty(); });
+                        workQueueDataAvailableCondVar.wait(
+                            lock, [&] { return filesLeft == 0 || !workQueue.empty(); });
                         if (filesLeft == 0) {
                             return;
                         }
@@ -363,6 +362,8 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
                     workPacket = std::move(workQueue.front());
                     workQueue.pop_front();
                     --filesLeft;
+
+                    workQueueShouldPushMoreCondVar.notify_one();
                 }
 
                 // process work packet
@@ -378,6 +379,10 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
     // file reader thread
     std::thread fileReaderThread = std::thread([&]() -> void {
         for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
+            if (encounteredError.load(std::memory_order_relaxed)) {
+                return;
+            }
+
             auto& pkg = pkgPackFiles[i];
             auto& files = pkg.Files;
             for (size_t j = 0; j < files.size(); ++j) {
@@ -397,7 +402,16 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
                 {
                     std::unique_lock lock(workQueueMutex);
                     workQueue.emplace_back(std::move(wp));
-                    workQueueCondVar.notify_all();
+                    workQueueDataAvailableCondVar.notify_one();
+
+                    // no need to wait after last push
+                    if (i != (pkgPackFiles.size() - 1)) {
+                        // stall until some threads have consumed data to avoid massively filling
+                        // memory
+                        workQueueShouldPushMoreCondVar.wait(lock, [&] {
+                            return workQueue.size() < threadCount || encounteredError.load();
+                        });
+                    }
                 }
             }
         }
@@ -681,9 +695,6 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
     // - 1 file writer thread, which takes the output of the worker thread and writes them to the
     //   output file
 
-    // TODO: This generally works, but uses more memory that it really needs to because the reader
-    // thread just reads all files as fast as it can.
-
     std::atomic<bool> encounteredError = false;
 
     struct alignas(64) FileDataToWrite {
@@ -712,7 +723,8 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
     };
     std::deque<FileDataToCompress> fileDataToCompressQueue;
     std::mutex fileDataToCompressMutex;
-    std::condition_variable fileDataToCompressCondVar;
+    std::condition_variable fileDataToCompressDataAvailableCondVar;
+    std::condition_variable fileDataToCompressShouldPushMoreCondVar;
     size_t fileDataToCompressLeft = pkaConstructionData.FilesToWrite.size();
 
     const auto do_abort = [&]() -> void {
@@ -729,7 +741,8 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
         {
             std::unique_lock lock(fileDataToCompressMutex);
             fileDataToCompressLeft = 0;
-            fileDataToCompressCondVar.notify_all();
+            fileDataToCompressDataAvailableCondVar.notify_all();
+            fileDataToCompressShouldPushMoreCondVar.notify_all();
         }
     };
 
@@ -746,7 +759,7 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
                         return;
                     }
                     if (fileDataToCompressQueue.empty()) {
-                        fileDataToCompressCondVar.wait(lock, [&] {
+                        fileDataToCompressDataAvailableCondVar.wait(lock, [&] {
                             return fileDataToCompressLeft == 0 || !fileDataToCompressQueue.empty();
                         });
                         if (fileDataToCompressLeft == 0) {
@@ -756,6 +769,8 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
                     workPacket = std::move(fileDataToCompressQueue.front());
                     fileDataToCompressQueue.pop_front();
                     --fileDataToCompressLeft;
+
+                    fileDataToCompressShouldPushMoreCondVar.notify_one();
                 }
 
                 // process work packet
@@ -810,6 +825,10 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
     // file reader thread
     std::thread fileReaderThread = std::thread([&]() -> void {
         for (size_t i = 0; i < pkaConstructionData.FilesToWrite.size(); ++i) {
+            if (encounteredError.load(std::memory_order_relaxed)) {
+                return;
+            }
+
             const auto& ref = pkaConstructionData.FilesToWrite[i];
             PkgPackArchive& archive = pkgPackFiles[ref.ArchiveIndex];
             const PkgPackFile& file = archive.Files[ref.FileIndex];
@@ -845,7 +864,16 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
             {
                 std::unique_lock lock(fileDataToCompressMutex);
                 fileDataToCompressQueue.emplace_back(std::move(cdata));
-                fileDataToCompressCondVar.notify_all();
+                fileDataToCompressDataAvailableCondVar.notify_one();
+
+                // no need to wait after last push
+                if (i != (pkaConstructionData.FilesToWrite.size() - 1)) {
+                    // stall until some threads have consumed data to avoid massively filling memory
+                    fileDataToCompressShouldPushMoreCondVar.wait(lock, [&] {
+                        return fileDataToCompressQueue.size() < threadCount
+                               || encounteredError.load();
+                    });
+                }
             }
         }
     });
