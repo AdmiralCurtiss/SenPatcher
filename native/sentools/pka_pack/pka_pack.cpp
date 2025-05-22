@@ -1,3 +1,4 @@
+#include "pka_pack.h"
 #include "pka_pack_main.h"
 
 #include <algorithm>
@@ -10,6 +11,7 @@
 #include <cstring>
 #include <deque>
 #include <filesystem>
+#include <format>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -120,31 +122,14 @@ struct PkaConstructionData {
 };
 } // namespace
 
-static bool InitPkgPackArchive(std::vector<PkgPackArchive>& pkgPackFiles,
-                               const std::filesystem::path& rootDir,
-                               const std::filesystem::directory_entry& entry) {
-    std::error_code ec;
-    if (entry.is_directory()) {
-        return true;
-    }
-    const auto ext = entry.path().extension().generic_u8string();
-    if (!HyoutaUtils::TextUtils::CaseInsensitiveEquals(
-            ".pkg", std::string_view(reinterpret_cast<const char*>(ext.data()), ext.size()))) {
-        return true;
-    }
-
-    const auto relativePath = std::filesystem::relative(entry.path(), rootDir, ec);
-    if (relativePath.empty()) {
-        printf("Error while collecting files.\n");
-        return false;
-    }
-    const auto filename = relativePath.u8string();
-    const char8_t* filenameC = filename.c_str();
+static PkgPackArchive InitPkgPackArchive(const std::vector<PkgPackArchive>& pkgPackFiles,
+                                         const PackPkaPkgInfo& sourcePkg) {
+    const char* filenameC = sourcePkg.NameInPka.c_str();
 
     std::array<char, 0x20> fn{};
     const size_t filenameLength = [&]() -> size_t {
         for (size_t i = 0; i < fn.size() - 1; ++i) {
-            const char c = static_cast<char>(filenameC[i]);
+            const char c = filenameC[i];
             if (c == '\0') {
                 return i;
             }
@@ -166,13 +151,11 @@ static bool InitPkgPackArchive(std::vector<PkgPackArchive>& pkgPackFiles,
             filenameC);
     }
 
-    pkgPackFiles.emplace_back(PkgPackArchive{
-        .FileHandle = HyoutaUtils::IO::File(entry.path(), HyoutaUtils::IO::OpenMode::Read),
-        .PkgName = fn,
-        .PkgNameLength = filenameLength,
-        .IncludeInPka = !archiveExistsAlready});
-
-    return true;
+    return PkgPackArchive{.FileHandle = HyoutaUtils::IO::File(std::string_view(sourcePkg.Path),
+                                                              HyoutaUtils::IO::OpenMode::Read),
+                          .PkgName = fn,
+                          .PkgNameLength = filenameLength,
+                          .IncludeInPka = !archiveExistsAlready};
 }
 
 static bool LoadPkg(PkgPackArchive& fi) {
@@ -917,11 +900,6 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
 }
 
 int PKA_Pack_Function(int argc, char** argv) {
-    using HyoutaUtils::EndianUtils::ToEndian;
-    using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
-    using HyoutaUtils::MemWrite::WriteAdvUInt32;
-    using HyoutaUtils::MemWrite::WriteAdvUInt64;
-
     optparse::OptionParser parser;
     parser.description(PKA_Pack_ShortDescription);
 
@@ -990,26 +968,108 @@ int PKA_Pack_Function(int argc, char** argv) {
             desiredThreadCount = static_cast<size_t>(argThreadCount);
         }
     }
+
+    std::string_view target(output_option->first_string());
+    std::span<const std::string> referencedPkaPaths;
+    if (auto* referenced_pka_option = options.get("referenced-pka")) {
+        referencedPkaPaths = referenced_pka_option->strings();
+    }
+
+    std::vector<PackPkaPkgInfo> sourcePkgs;
+    for (size_t i = 0; i < args.size(); ++i) {
+        std::filesystem::path rootDir = HyoutaUtils::IO::FilesystemPathFromUtf8(args[i]);
+        std::error_code ec;
+        std::filesystem::directory_iterator iterator(rootDir, ec);
+        if (ec) {
+            printf("Failed to iterate over contents of %s\n", args[i].c_str());
+            return -1;
+        }
+        while (iterator != std::filesystem::directory_iterator()) {
+            auto& entry = *iterator;
+            if (!entry.is_directory()) {
+                const auto ext = entry.path().extension();
+#ifdef BUILD_FOR_WINDOWS
+                const auto extUtf8Optional =
+                    HyoutaUtils::TextUtils::WStringToUtf8(ext.native().data(), ext.native().size());
+                if (!extUtf8Optional) {
+                    printf("Internal error.\n");
+                    return -1;
+                }
+                const auto& extUtf8 = *extUtf8Optional;
+#else
+                const auto& extUtf8 = ext.native();
+#endif
+                if (HyoutaUtils::TextUtils::CaseInsensitiveEquals(".pkg", extUtf8)) {
+                    const auto& path = entry.path();
+                    const auto fn = path.filename();
+#ifdef BUILD_FOR_WINDOWS
+                    const auto pathUtf8Optional = HyoutaUtils::TextUtils::WStringToUtf8(
+                        path.native().data(), path.native().size());
+                    if (!pathUtf8Optional) {
+                        printf("Internal error.\n");
+                        return -1;
+                    }
+                    const auto fnUtf8Optional = HyoutaUtils::TextUtils::WStringToUtf8(
+                        fn.native().data(), fn.native().size());
+                    if (!fnUtf8Optional) {
+                        printf("Internal error.\n");
+                        return -1;
+                    }
+                    const auto& pathUtf8 = *pathUtf8Optional;
+                    const auto& fnUtf8 = *fnUtf8Optional;
+#else
+                    const auto& pathUtf8 = path.native();
+                    const auto& fnUtf8 = fn.native();
+#endif
+
+                    sourcePkgs.emplace_back(PackPkaPkgInfo{.Path = pathUtf8, .NameInPka = fnUtf8});
+                }
+            }
+
+            iterator.increment(ec);
+            if (ec) {
+                printf("Failed to iterate over contents of %s\n", args[i].c_str());
+                return -1;
+            }
+        }
+    }
+
+    auto result =
+        PackPka(target, sourcePkgs, referencedPkaPaths, recompressFlags, desiredThreadCount);
+    if (result.IsError()) {
+        printf("%s\n", result.GetErrorValue().c_str());
+        return -1;
+    }
+
+    return 0;
+}
+
+HyoutaUtils::Result<PackPkaResult, std::string>
+    PackPka(std::string_view target,
+            std::span<const PackPkaPkgInfo> sourcePkgs,
+            std::span<const std::string> existingPkaPaths,
+            std::optional<uint32_t> recompressFlags,
+            size_t desiredThreadCount) {
+    using HyoutaUtils::EndianUtils::ToEndian;
+    using HyoutaUtils::EndianUtils::Endianness::LittleEndian;
+    using HyoutaUtils::MemWrite::WriteAdvUInt32;
+    using HyoutaUtils::MemWrite::WriteAdvUInt64;
+
     const size_t threadCount =
         desiredThreadCount == 0 ? std::thread::hardware_concurrency() : desiredThreadCount;
 
-    std::string_view target(output_option->first_string());
-
     std::vector<SenLib::ReferencedPka> existingPkas;
-    if (auto* referenced_pka_option = options.get("referenced-pka")) {
-        const auto& existingPkaPaths = referenced_pka_option->strings();
+    {
         existingPkas.reserve(existingPkaPaths.size());
-        for (const auto& existingPkaPath : existingPkaPaths) {
+        for (const std::string& existingPkaPath : existingPkaPaths) {
             auto& existingPka = existingPkas.emplace_back();
             existingPka.PkaFile.Open(std::string_view(existingPkaPath),
                                      HyoutaUtils::IO::OpenMode::Read);
             if (!existingPka.PkaFile.IsOpen()) {
-                printf("Error opening existing pka.\n");
-                return -1;
+                return std::string("Error opening existing pka.");
             }
             if (!SenLib::ReadPkaFromFile(existingPka.PkaHeader, existingPka.PkaFile)) {
-                printf("Error reading existing pka.\n");
-                return -1;
+                return std::string("Error reading existing pka.");
             }
         }
     }
@@ -1017,27 +1077,14 @@ int PKA_Pack_Function(int argc, char** argv) {
     // first collect info about every file in every pkg
     std::vector<PkgPackArchive> pkgPackFiles;
     {
-        for (size_t i = 0; i < args.size(); ++i) {
-            std::filesystem::path rootDir = HyoutaUtils::IO::FilesystemPathFromUtf8(args[i]);
-            std::error_code ec;
-            std::filesystem::directory_iterator iterator(rootDir, ec);
-            if (ec) {
-                return -1;
-            }
-            while (iterator != std::filesystem::directory_iterator()) {
-                if (!InitPkgPackArchive(pkgPackFiles, rootDir, *iterator)) {
-                    return -1;
-                }
-                iterator.increment(ec);
-                if (ec) {
-                    return -1;
-                }
-            }
+        for (size_t i = 0; i < sourcePkgs.size(); ++i) {
+            PkgPackArchive archive = InitPkgPackArchive(pkgPackFiles, sourcePkgs[i]);
+            pkgPackFiles.emplace_back(std::move(archive));
         }
 
         for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
             if (!LoadPkg(pkgPackFiles[i])) {
-                return -1;
+                return std::format("Failed to load pkg at {}", sourcePkgs[i].Path);
             }
         }
 
@@ -1050,7 +1097,7 @@ int PKA_Pack_Function(int argc, char** argv) {
         if (filesToHashThreadCount >= 2) {
             if (!CalculateHashForPkgFilesMultithreaded(
                     pkgPackFiles, totalNumberOfFiles, filesToHashThreadCount)) {
-                return -1;
+                return std::string("Error during hash calculation.");
             }
         } else {
             for (size_t i = 0; i < pkgPackFiles.size(); ++i) {
@@ -1058,7 +1105,7 @@ int PKA_Pack_Function(int argc, char** argv) {
                 auto& files = pkg.Files;
                 for (size_t j = 0; j < files.size(); ++j) {
                     if (!CalculateHashForPkgFile(pkg, files[j])) {
-                        return -1;
+                        return std::string("Error during hash calculation.");
                     }
                 }
             }
@@ -1067,7 +1114,7 @@ int PKA_Pack_Function(int argc, char** argv) {
 
     auto pkaConstructionData = FindFilesToWriteAndGenerateHeader(pkgPackFiles, existingPkas);
     if (!pkaConstructionData) {
-        return -1;
+        return std::string("Error while building PKA header.");
     }
 
     // write PKA
@@ -1076,13 +1123,11 @@ int PKA_Pack_Function(int argc, char** argv) {
     HyoutaUtils::IO::File outfile(std::string_view(targetTmp), HyoutaUtils::IO::OpenMode::Write);
     auto outfileGuard = HyoutaUtils::MakeDisposableScopeGuard([&outfile]() { outfile.Delete(); });
     if (!outfile.IsOpen()) {
-        printf("Failed to open output file.\n");
-        return -1;
+        return std::string("Failed to open output file.");
     }
     if (outfile.Write(pkaConstructionData->PkaHeader.get(), pkaConstructionData->PkaHeaderLength)
         != pkaConstructionData->PkaHeaderLength) {
-        printf("Failed to write temp header to output file.\n");
-        return -1;
+        return std::string("Failed to write temp header to output file.");
     }
 
     const size_t fileToWriteThreadCount =
@@ -1093,6 +1138,7 @@ int PKA_Pack_Function(int argc, char** argv) {
                                      pkgPackFiles,
                                      *recompressFlags,
                                      fileToWriteThreadCount)) {
+            return std::string("Failed to write file data to PKA.");
         }
     } else {
         uint64_t fileOffset = pkaConstructionData->PkaHeaderLength;
@@ -1102,7 +1148,7 @@ int PKA_Pack_Function(int argc, char** argv) {
                             pkaConstructionData->FilesToWrite[i],
                             pkgPackFiles,
                             recompressFlags)) {
-                return -1;
+                return std::string("Failed to write file data to PKA.");
             }
         }
     }
@@ -1116,21 +1162,18 @@ int PKA_Pack_Function(int argc, char** argv) {
         WriteAdvUInt32(ptr, ToEndian(ref.PkgFlags, LittleEndian));
     }
     if (!outfile.SetPosition(0)) {
-        printf("Failed to seek in output file.\n");
-        return -1;
+        return std::string("Failed to seek in output file.");
     }
     if (outfile.Write(pkaConstructionData->PkaHeader.get(), pkaConstructionData->PkaHeaderLength)
         != pkaConstructionData->PkaHeaderLength) {
-        printf("Failed to write corrected header to output file.\n");
-        return -1;
+        return std::string("Failed to write corrected header to output file.");
     }
 
     outfileGuard.Dispose();
     if (!outfile.Rename(target)) {
-        printf("Failed to rename output file to correct filename.\n");
-        return -1;
+        return std::string("Failed to rename output file to correct filename.");
     }
 
-    return 0;
+    return PackPkaResult::Success;
 }
 } // namespace SenTools

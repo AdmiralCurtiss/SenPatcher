@@ -353,6 +353,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/pka_extract/pka_extract.h
 		sentools/pka_extract/pka_extract_main.h
 		sentools/pka_pack/pka_pack.cpp
+		sentools/pka_pack/pka_pack.h
 		sentools/pka_pack/pka_pack_main.h
 		sentools/pkg_extract/pkg_extract.cpp
 		sentools/pkg_extract/pkg_extract.h
