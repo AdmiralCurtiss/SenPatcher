@@ -4,8 +4,11 @@
 #include <memory>
 #include <string>
 
+#include "gui_background_task.h"
 #include "gui_file_browser.h"
 #include "gui_window.h"
+#include "sentools/pka_extract/pka_extract.h"
+#include "util/result.h"
 #include "window_id_management.h"
 
 namespace SenTools::GUI {
@@ -32,7 +35,7 @@ private:
     FileBrowser InputFileBrowser;
     FileBrowser OutputFileBrowser;
 
-    struct ExtractionThreadState;
-    std::unique_ptr<ExtractionThreadState> ExtractionThread;
+    BackgroundTask<HyoutaUtils::Result<ExtractPkaResult, std::string>, std::string, std::string>
+        ExtractionTask;
 };
 } // namespace SenTools::GUI

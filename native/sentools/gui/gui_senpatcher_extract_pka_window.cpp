@@ -1,9 +1,7 @@
 #include "gui_senpatcher_extract_pka_window.h"
 
-#include <atomic>
 #include <cstdio>
 #include <string>
-#include <thread>
 
 #include "imgui.h"
 
@@ -14,34 +12,14 @@
 #include "util/text.h"
 
 namespace SenTools::GUI {
-struct SenPatcherExtractPkaWindow::ExtractionThreadState {
-    std::string InputPath;
-    std::string OutputPath;
-
-    HyoutaUtils::Result<ExtractPkaResult, std::string> Result;
-    std::atomic_bool IsDone = false;
-
-    std::thread Thread;
-
-    ExtractionThreadState(std::string inputPath, std::string outputPath)
-      : InputPath(std::move(inputPath))
-      , OutputPath(std::move(outputPath))
-      , Result(ExtractPkaResult::Success)
-      , Thread([this]() -> void {
-          try {
-              Result = SenTools::ExtractPka(InputPath, OutputPath, {}, false);
-          } catch (...) {
-              Result = std::string("Unexpected error.");
-          }
-          IsDone.store(true);
-      }) {}
-
-    ~ExtractionThreadState() {
-        if (Thread.joinable()) {
-            Thread.join();
-        }
+static HyoutaUtils::Result<ExtractPkaResult, std::string>
+    RunExtractionTask(std::string inputPath, std::string outputPath) {
+    try {
+        return SenTools::ExtractPka(inputPath, outputPath, {}, false);
+    } catch (...) {
+        return std::string("Unexpected error.");
     }
-};
+}
 
 void SenPatcherExtractPkaWindow::Cleanup(GuiState& state) {
     state.WindowIdsExtractPKA.ReturnId(WindowId);
@@ -52,7 +30,8 @@ SenPatcherExtractPkaWindow::SenPatcherExtractPkaWindow(GuiState& state)
                               WindowIdString.data(),
                               WindowIdString.size(),
                               WindowTitle,
-                              sizeof(WindowTitle))) {}
+                              sizeof(WindowTitle)))
+  , ExtractionTask(RunExtractionTask) {}
 
 SenPatcherExtractPkaWindow::~SenPatcherExtractPkaWindow() = default;
 
@@ -62,12 +41,12 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
     bool visible = ImGui::Begin(WindowIdString.data(), &open, ImGuiWindowFlags_None);
     auto windowScope = HyoutaUtils::MakeScopeGuard([&]() { ImGui::End(); });
     if (!visible) {
-        return open || ExtractionThread;
+        return open || ExtractionTask.Engaged();
     }
 
     {
         auto configScope = HyoutaUtils::MakeDisposableScopeGuard([&]() { ImGui::EndDisabled(); });
-        if (ExtractionThread) {
+        if (ExtractionTask.Engaged()) {
             ImGui::BeginDisabled();
         } else {
             configScope.Dispose();
@@ -168,22 +147,20 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
             ImGui::EndTable();
         }
 
-        if (ImGuiUtils::ButtonFullWidth("Extract") && !ExtractionThread) {
+        if (ImGuiUtils::ButtonFullWidth("Extract") && !ExtractionTask.Engaged()) {
             StatusMessage = "Extracting...";
-            ExtractionThread = std::make_unique<SenPatcherExtractPkaWindow::ExtractionThreadState>(
-                std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),
-                std::string(HyoutaUtils::TextUtils::StripToNull(OutputPath)));
+            ExtractionTask.Engage(std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),
+                                  std::string(HyoutaUtils::TextUtils::StripToNull(OutputPath)));
         }
     }
 
-    if (ExtractionThread && ExtractionThread->IsDone.load()) {
-        ExtractionThread->Thread.join();
-        if (ExtractionThread->Result.IsError()) {
-            StatusMessage = ("Extraction failed: " + ExtractionThread->Result.GetErrorValue());
+    if (ExtractionTask.ResultAvailable()) {
+        auto result = ExtractionTask.FetchResultAndDisengage();
+        if (result.IsError()) {
+            StatusMessage = ("Extraction failed: " + result.GetErrorValue());
         } else {
             StatusMessage = "Extraction successful.";
         }
-        ExtractionThread.reset();
     }
 
     static constexpr char closeLabel[] = "Close";
@@ -199,7 +176,7 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
 
     {
         auto scope = HyoutaUtils::MakeDisposableScopeGuard([&]() { ImGui::EndDisabled(); });
-        if (ExtractionThread) {
+        if (ExtractionTask.Engaged()) {
             ImGui::BeginDisabled();
         } else {
             scope.Dispose();
@@ -211,6 +188,6 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
         }
     }
 
-    return open || ExtractionThread;
+    return open || ExtractionTask.Engaged();
 }
 } // namespace SenTools::GUI
