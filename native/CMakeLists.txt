@@ -522,6 +522,7 @@ if (SENPATCHER_BUILD_TOOLS)
 
 	if (SENPATCHER_WITH_IMGUI)
 		target_sources(sentools PRIVATE
+			sentools/gui/gui_background_task.h
 			sentools/gui/gui_file_browser.cpp
 			sentools/gui/gui_file_browser.h
 			sentools/gui/gui_fonts.cpp
