@@ -4,6 +4,8 @@
 
 #include "imgui.h"
 
+#include "util/scope.h"
+
 namespace ImGuiUtils {
 inline void TextUnformatted(std::string_view sv) {
     ImGui::TextUnformatted(sv.data(), sv.data() + sv.size());
@@ -77,5 +79,12 @@ inline void GamepadNavigableHelperTooltip(const char* id,
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+}
+
+inline auto ConditionallyDisabledScope(bool disabled) {
+    if (disabled) {
+        ImGui::BeginDisabled();
+    }
+    return HyoutaUtils::MakeDisposableScopeGuard([&]() { ImGui::EndDisabled(); }, !disabled);
 }
 } // namespace ImGuiUtils

@@ -28,7 +28,8 @@ private:
     bool Disposed = false;
 
 public:
-    DisposableScopeGuard(FuncT&& f) : Func(std::forward<FuncT>(f)) {}
+    DisposableScopeGuard(FuncT&& f, bool disposed = false)
+      : Func(std::forward<FuncT>(f)), Disposed(disposed) {}
 
     DisposableScopeGuard(const DisposableScopeGuard& other) = delete;
     DisposableScopeGuard(DisposableScopeGuard&& other) = delete;
@@ -52,7 +53,7 @@ ScopeGuard<FuncT> MakeScopeGuard(FuncT&& f) {
 };
 
 template<typename FuncT>
-DisposableScopeGuard<FuncT> MakeDisposableScopeGuard(FuncT&& f) {
-    return DisposableScopeGuard<FuncT>(std::forward<FuncT>(f));
+DisposableScopeGuard<FuncT> MakeDisposableScopeGuard(FuncT&& f, bool disposed = false) {
+    return DisposableScopeGuard<FuncT>(std::forward<FuncT>(f), disposed);
 };
 } // namespace HyoutaUtils
