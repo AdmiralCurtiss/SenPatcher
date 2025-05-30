@@ -45,12 +45,7 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
     }
 
     {
-        auto configScope = HyoutaUtils::MakeDisposableScopeGuard([&]() { ImGui::EndDisabled(); });
-        if (ExtractionTask.Engaged()) {
-            ImGui::BeginDisabled();
-        } else {
-            configScope.Dispose();
-        }
+        auto scope = ImGuiUtils::ConditionallyDisabledScope(ExtractionTask.Engaged());
 
         if (ImGui::BeginTable("Table", 3, ImGuiTableFlags_SizingFixedFit)) {
             ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
@@ -175,12 +170,7 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
     }
 
     {
-        auto scope = HyoutaUtils::MakeDisposableScopeGuard([&]() { ImGui::EndDisabled(); });
-        if (ExtractionTask.Engaged()) {
-            ImGui::BeginDisabled();
-        } else {
-            scope.Dispose();
-        }
+        auto scope = ImGuiUtils::ConditionallyDisabledScope(ExtractionTask.Engaged());
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x
                              - closeButtonWidth);
         if (ImGui::Button(closeLabel)) {
