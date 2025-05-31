@@ -4,6 +4,7 @@ bin
 obj
 *.csproj.user
 packages
+/native/.cache
 /native/.vs
 /native/build
 /native/out

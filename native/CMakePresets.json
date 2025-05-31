@@ -134,6 +134,7 @@
       "installDir": "${sourceDir}/out/linuxdebug64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "SENPATCHER_BUILD_TOOLS": "ON",
         "SENPATCHER_BUILD_CS1HOOK": "OFF",
         "SENPATCHER_BUILD_CS2HOOK": "OFF",
@@ -162,6 +163,7 @@
       "installDir": "${sourceDir}/out/linuxrelease64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "SENPATCHER_BUILD_TOOLS": "ON",
         "SENPATCHER_BUILD_CS1HOOK": "OFF",
         "SENPATCHER_BUILD_CS2HOOK": "OFF",
