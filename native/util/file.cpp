@@ -930,6 +930,23 @@ SplitPathData SplitPath(std::string_view path) {
     return result;
 }
 
+void AppendPathElement(std::string& path, std::string_view filename) {
+    const bool alreadyEndsInSeparator = !path.empty()
+                                        && (path.back() == '/'
+#ifdef BUILD_FOR_WINDOWS
+                                            || path.back() == '\\'
+#endif
+                                        );
+    if (!alreadyEndsInSeparator) {
+#ifdef BUILD_FOR_WINDOWS
+        path.push_back('\\');
+#else
+        path.push_back('/');
+#endif
+    }
+    path.append(filename);
+}
+
 bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noexcept {
     HyoutaUtils::IO::File outfile;
     if (!outfile.OpenWithTempFilename(path, HyoutaUtils::IO::OpenMode::Write)) {

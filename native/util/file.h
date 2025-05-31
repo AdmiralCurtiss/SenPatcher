@@ -103,6 +103,12 @@ struct SplitPathData {
 };
 SplitPathData SplitPath(std::string_view path);
 
+// Inverse of the above: Given a path and a filename, appends the filename to the path.
+// This does *not* resolve absolute paths. 'filename' should be a single element, not a full path.
+// Effectively a fancy "path += '/' + filename" that works correctly if 'path' already ends with a
+// separator and uses backslash on Windows.
+void AppendPathElement(std::string& path, std::string_view filename);
+
 // Simulates an atomic file write.
 // More specifically, opens a temp file, writes to it, then renames that temp file to the given path
 // if the write succeeds. The temp file is deleted if the write fails.
