@@ -15,6 +15,7 @@
 #include "sen/pkg.h"
 #include "sentools/task_cancellation.h"
 #include "sentools/task_reporting.h"
+#include "sentools/task_reporting_dummy.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/memread.h"
@@ -78,7 +79,7 @@ int PKA_Extract_Function(int argc, char** argv) {
     const bool asPkaRef = options["as-pka-reference"].flag();
 
     SenTools::TaskCancellation taskCancellation;
-    SenTools::DummyTaskReporting taskReporting;
+    SenTools::TaskReportingDummy taskReporting;
     auto result =
         ExtractPka(&taskCancellation, &taskReporting, source, target, referencedPkaPaths, asPkaRef);
     if (result.IsError()) {
@@ -112,6 +113,10 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
     {
         referencedPkas.reserve(referencedPkaPaths.size());
         for (const auto& referencedPkaPath : referencedPkaPaths) {
+            if (taskCancellation->IsCancellationRequested()) {
+                return ExtractPkaResult::Cancelled;
+            }
+
             auto& refPka = referencedPkas.emplace_back();
             refPka.PkaFile.Open(std::filesystem::path(referencedPkaPath),
                                 HyoutaUtils::IO::OpenMode::Read);
@@ -122,6 +127,10 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
                 return std::string("Error reading referenced pka.");
             }
         }
+    }
+
+    if (taskCancellation->IsCancellationRequested()) {
+        return ExtractPkaResult::Cancelled;
     }
 
     {
@@ -161,6 +170,10 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
         if (!SenLib::CreatePkgInMemory(
                 ms, msSize, pkg, HyoutaUtils::EndianUtils::Endianness::LittleEndian)) {
             return std::format("Failed to convert archive {} ({}) to pkg.", i, pkgNameSv);
+        }
+
+        if (taskCancellation->IsCancellationRequested()) {
+            return ExtractPkaResult::Cancelled;
         }
 
         HyoutaUtils::IO::File outfile(

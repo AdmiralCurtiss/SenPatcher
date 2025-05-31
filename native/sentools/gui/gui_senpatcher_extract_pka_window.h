@@ -9,6 +9,7 @@
 #include "sentools/pka_extract/pka_extract.h"
 #include "sentools/task_cancellation.h"
 #include "sentools/task_reporting.h"
+#include "sentools/task_reporting_from_thread.h"
 #include "util/result.h"
 #include "window_id_management.h"
 
@@ -43,6 +44,6 @@ private:
                    std::string>
         ExtractionTask;
     SenTools::TaskCancellation ExtractionTaskCancellation;
-    SenTools::ThreadTaskReporting ExtractionTaskReporting;
+    SenTools::TaskReportingFromThread ExtractionTaskReporting;
 };
 } // namespace SenTools::GUI

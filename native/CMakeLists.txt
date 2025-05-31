@@ -328,6 +328,10 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/rom_mapper.h
 		sentools/senpatcher_dll_loader.cpp
 		sentools/senpatcher_dll_loader.h
+		sentools/task_cancellation.h
+		sentools/task_reporting.h
+		sentools/task_reporting_dummy.h
+		sentools/task_reporting_from_thread.h
 		sentools/bra_extract/bra_extract.cpp
 		sentools/bra_extract/bra_extract_main.h
 		sentools/daybreak_save_convert/daybreak_save_convert.cpp

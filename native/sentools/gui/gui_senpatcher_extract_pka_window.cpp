@@ -174,8 +174,10 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
             StatusMessage = ("Extraction failed: " + result.GetErrorValue());
         } else if (result.GetSuccessValue() == SenTools::ExtractPkaResult::Cancelled) {
             StatusMessage = "Extraction cancelled.";
-        } else if (result.GetSuccessValue() == SenTools::ExtractPkaResult::Cancelled) {
+        } else if (result.GetSuccessValue() == SenTools::ExtractPkaResult::Success) {
             StatusMessage = "Extraction successful.";
+        } else {
+            StatusMessage = "Unexpected result.";
         }
     }
 
