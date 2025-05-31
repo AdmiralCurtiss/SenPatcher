@@ -1,6 +1,5 @@
 #include "gui_senpatcher_extract_pka_window.h"
 
-#include <cstdio>
 #include <string>
 
 #include "imgui.h"
@@ -13,9 +12,13 @@
 
 namespace SenTools::GUI {
 static HyoutaUtils::Result<ExtractPkaResult, std::string>
-    RunExtractionTask(std::string inputPath, std::string outputPath) {
+    RunExtractionTask(SenTools::TaskCancellation* taskCancellation,
+                      SenTools::TaskReporting* taskReporting,
+                      std::string inputPath,
+                      std::string outputPath) {
     try {
-        return SenTools::ExtractPka(inputPath, outputPath, {}, false);
+        return SenTools::ExtractPka(
+            taskCancellation, taskReporting, inputPath, outputPath, {}, false);
     } catch (...) {
         return std::string("Unexpected error.");
     }
@@ -44,8 +47,9 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
         return open || ExtractionTask.Engaged();
     }
 
+    const bool alreadyEngaged = ExtractionTask.Engaged();
     {
-        auto scope = ImGuiUtils::ConditionallyDisabledScope(ExtractionTask.Engaged());
+        auto scope = ImGuiUtils::ConditionallyDisabledScope(alreadyEngaged);
 
         if (ImGui::BeginTable("Table", 3, ImGuiTableFlags_SizingFixedFit)) {
             ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
@@ -141,19 +145,36 @@ bool SenPatcherExtractPkaWindow::RenderFrame(GuiState& state) {
 
             ImGui::EndTable();
         }
+    }
 
-        if (ImGuiUtils::ButtonFullWidth("Extract") && !ExtractionTask.Engaged()) {
-            StatusMessage = "Extracting...";
-            ExtractionTask.Engage(std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),
-                                  std::string(HyoutaUtils::TextUtils::StripToNull(OutputPath)));
+    if (!alreadyEngaged && ImGuiUtils::ButtonFullWidth("Extract")) {
+        StatusMessage = "Extracting...";
+        ExtractionTask.Engage(&ExtractionTaskCancellation,
+                              &ExtractionTaskReporting,
+                              std::string(HyoutaUtils::TextUtils::StripToNull(InputPath)),
+                              std::string(HyoutaUtils::TextUtils::StripToNull(OutputPath)));
+    }
+
+    if (alreadyEngaged && ImGuiUtils::ButtonFullWidth("Cancel")) {
+        ExtractionTaskCancellation.CancelTask();
+    }
+
+    if (ExtractionTask.Engaged()) {
+        auto msg = ExtractionTaskReporting.DrainAndGetLast();
+        if (msg.has_value()) {
+            StatusMessage = std::move(*msg);
         }
     }
 
     if (ExtractionTask.ResultAvailable()) {
         auto result = ExtractionTask.FetchResultAndDisengage();
+        ExtractionTaskCancellation.Reset();
+        ExtractionTaskReporting.Reset();
         if (result.IsError()) {
             StatusMessage = ("Extraction failed: " + result.GetErrorValue());
-        } else {
+        } else if (result.GetSuccessValue() == SenTools::ExtractPkaResult::Cancelled) {
+            StatusMessage = "Extraction cancelled.";
+        } else if (result.GetSuccessValue() == SenTools::ExtractPkaResult::Cancelled) {
             StatusMessage = "Extraction successful.";
         }
     }

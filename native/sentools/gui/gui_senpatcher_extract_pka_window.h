@@ -1,13 +1,14 @@
 #pragma once
 
 #include <array>
-#include <memory>
 #include <string>
 
 #include "gui_background_task.h"
 #include "gui_file_browser.h"
 #include "gui_window.h"
 #include "sentools/pka_extract/pka_extract.h"
+#include "sentools/task_cancellation.h"
+#include "sentools/task_reporting.h"
 #include "util/result.h"
 #include "window_id_management.h"
 
@@ -35,7 +36,13 @@ private:
     FileBrowser InputFileBrowser;
     FileBrowser OutputFileBrowser;
 
-    BackgroundTask<HyoutaUtils::Result<ExtractPkaResult, std::string>, std::string, std::string>
+    BackgroundTask<HyoutaUtils::Result<ExtractPkaResult, std::string>,
+                   SenTools::TaskCancellation*,
+                   SenTools::TaskReporting*,
+                   std::string,
+                   std::string>
         ExtractionTask;
+    SenTools::TaskCancellation ExtractionTaskCancellation;
+    SenTools::ThreadTaskReporting ExtractionTaskReporting;
 };
 } // namespace SenTools::GUI

@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <format>
 #include <memory>
-#include <optional>
 #include <string>
 #include <string_view>
 
@@ -14,6 +13,8 @@
 #include "sen/pka.h"
 #include "sen/pka_to_pkg.h"
 #include "sen/pkg.h"
+#include "sentools/task_cancellation.h"
+#include "sentools/task_reporting.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/memread.h"
@@ -76,7 +77,10 @@ int PKA_Extract_Function(int argc, char** argv) {
 
     const bool asPkaRef = options["as-pka-reference"].flag();
 
-    auto result = ExtractPka(source, target, referencedPkaPaths, asPkaRef);
+    SenTools::TaskCancellation taskCancellation;
+    SenTools::DummyTaskReporting taskReporting;
+    auto result =
+        ExtractPka(&taskCancellation, &taskReporting, source, target, referencedPkaPaths, asPkaRef);
     if (result.IsError()) {
         printf("%s\n", result.GetErrorValue().c_str());
         return -1;
@@ -86,7 +90,9 @@ int PKA_Extract_Function(int argc, char** argv) {
 }
 
 HyoutaUtils::Result<ExtractPkaResult, std::string>
-    ExtractPka(std::string_view source,
+    ExtractPka(SenTools::TaskCancellation* taskCancellation,
+               SenTools::TaskReporting* taskReporting,
+               std::string_view source,
                std::string_view target,
                std::span<const std::string> referencedPkaPaths,
                bool extractAsPkaReferenceStub) {
@@ -129,6 +135,12 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
     for (size_t i = 0; i < pkaHeader.PkgCount; ++i) {
         const auto& pkgName = pkaHeader.Pkgs[i].PkgName;
         std::string_view pkgNameSv = HyoutaUtils::TextUtils::StripToNull(pkgName);
+
+        if (taskCancellation->IsCancellationRequested()) {
+            return ExtractPkaResult::Cancelled;
+        }
+
+        taskReporting->ReportMessageFmt("Extracting {}...", pkgNameSv);
 
         SenLib::PkgHeader pkg;
         std::unique_ptr<char[]> buffer;
