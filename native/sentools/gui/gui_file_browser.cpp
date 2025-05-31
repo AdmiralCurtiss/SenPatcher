@@ -395,20 +395,19 @@ FileBrowserResult FileBrowser::RenderFrame(GuiState& state, std::string_view tit
             }
             while (it != std::filesystem::directory_iterator()) {
                 const bool isDirectory = it->is_directory(ec);
-                if (ec) {
-                    // not sure what we do here?
-                    return FileBrowserResult::Canceled;
-                }
-                std::string filename = HyoutaUtils::IO::FilesystemPathToUtf8(it->path().filename());
-                if (isDirectory || PImpl->CurrentFilter.empty()
-                    || HyoutaUtils::TextUtils::CaseInsensitiveGlobMatches(filename,
-                                                                          PImpl->CurrentFilter)) {
-                    auto& e = PImpl->FilesInCurrentDirectory->emplace_back();
-                    e.Filename = std::move(filename);
-                    e.Type = isDirectory ? FileEntryType::Directory : FileEntryType::File;
-                    e.Filesize = (e.Type == FileEntryType::File)
-                                     ? static_cast<uint64_t>(it->file_size(ec))
-                                     : static_cast<uint64_t>(0);
+                if (!ec) {
+                    std::string filename =
+                        HyoutaUtils::IO::FilesystemPathToUtf8(it->path().filename());
+                    if (isDirectory || PImpl->CurrentFilter.empty()
+                        || HyoutaUtils::TextUtils::CaseInsensitiveGlobMatches(
+                            filename, PImpl->CurrentFilter)) {
+                        auto& e = PImpl->FilesInCurrentDirectory->emplace_back();
+                        e.Filename = std::move(filename);
+                        e.Type = isDirectory ? FileEntryType::Directory : FileEntryType::File;
+                        e.Filesize = (e.Type == FileEntryType::File)
+                                         ? static_cast<uint64_t>(it->file_size(ec))
+                                         : static_cast<uint64_t>(0);
+                    }
                 }
                 it.increment(ec);
                 if (ec) {
