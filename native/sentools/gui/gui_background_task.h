@@ -41,7 +41,9 @@ struct BackgroundTask {
     // Start the task
     void Engage(ArgsT... args) {
         assert(!Engaged());
-        Data.emplace(*this, std::move(args)...);
+        Data.emplace();
+        Data->Thread =
+            std::thread(std::bind(&BackgroundTask::ThreadFunc, this, std::move(args)...));
     }
 
     // Fetches the result and returns to the un-engaged state.
@@ -65,11 +67,7 @@ private:
         std::future<ResultT> Future;
         std::thread Thread;
 
-        ThreadData(BackgroundTask& bgt, ArgsT... args)
-          : Done(false)
-          , Promise()
-          , Future(Promise.get_future())
-          , Thread(std::thread(std::bind(&BackgroundTask::ThreadFunc, &bgt, std::move(args)...))) {}
+        ThreadData() : Done(false), Promise(), Future(Promise.get_future()) {}
     };
     std::function<ResultT(ArgsT...)> WorkFunction;
     std::optional<ThreadData> Data;
