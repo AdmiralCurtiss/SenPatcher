@@ -97,34 +97,33 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
                std::string_view target,
                std::span<const std::string> referencedPkaPaths,
                bool extractAsPkaReferenceStub) {
-    std::filesystem::path sourcepath = HyoutaUtils::IO::FilesystemPathFromUtf8(source);
-    std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
-    HyoutaUtils::IO::File infile(sourcepath, HyoutaUtils::IO::OpenMode::Read);
+    HyoutaUtils::IO::File infile(source, HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
-        return std::string("Failed to open input file.");
+        return std::format("Failed to open input file '{}'.", source);
     }
 
     SenLib::PkaHeader pkaHeader;
     if (!SenLib::ReadPkaFromFile(pkaHeader, infile)) {
-        return std::string("Failed to read pka header.");
+        return std::format("Failed to read pka header from '{}'.", source);
     }
 
     std::vector<SenLib::ReferencedPka> referencedPkas;
     {
         referencedPkas.reserve(referencedPkaPaths.size());
-        for (const auto& referencedPkaPath : referencedPkaPaths) {
+        for (const std::string& referencedPkaPath : referencedPkaPaths) {
             if (taskCancellation->IsCancellationRequested()) {
                 return ExtractPkaResult::Cancelled;
             }
 
             auto& refPka = referencedPkas.emplace_back();
-            refPka.PkaFile.Open(std::filesystem::path(referencedPkaPath),
+            refPka.PkaFile.Open(std::string_view(referencedPkaPath),
                                 HyoutaUtils::IO::OpenMode::Read);
             if (!refPka.PkaFile.IsOpen()) {
-                return std::string("Error opening referenced pka.");
+                return std::format("Failed to open referenced pka '{}'.", referencedPkaPath);
             }
             if (!SenLib::ReadPkaFromFile(refPka.PkaHeader, refPka.PkaFile)) {
-                return std::string("Error reading referenced pka.");
+                return std::format("Failed to read pka header from referenced pka '{}'.",
+                                   referencedPkaPath);
             }
         }
     }
@@ -134,10 +133,11 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
     }
 
     {
+        std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
         std::error_code ec;
         std::filesystem::create_directories(targetpath, ec);
         if (ec) {
-            return std::string("Failed to create output directoy.");
+            return std::format("Failed to create output directory '{}'.", target);
         }
     }
 
@@ -176,17 +176,16 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
             return ExtractPkaResult::Cancelled;
         }
 
-        HyoutaUtils::IO::File outfile(
-            targetpath
-                / std::u8string_view(reinterpret_cast<const char8_t*>(pkgNameSv.data()),
-                                     pkgNameSv.size()),
-            HyoutaUtils::IO::OpenMode::Write);
+        std::string targetFilename(target);
+        HyoutaUtils::IO::AppendPathElement(targetFilename, pkgNameSv);
+        HyoutaUtils::IO::File outfile(std::string_view(targetFilename),
+                                      HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
-            return std::string("Failed to open output file.\n");
+            return std::format("Failed to open output file '{}'.\n", targetFilename);
         }
 
         if (outfile.Write(ms.get(), msSize) != msSize) {
-            return std::string("Failed to write to output file.\n");
+            return std::format("Failed to write to output file '{}'.\n", targetFilename);
         }
     }
 
