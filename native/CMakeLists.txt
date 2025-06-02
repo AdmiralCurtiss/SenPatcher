@@ -389,6 +389,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/hash/util.h
 		util/align.h
 		util/align.cpp
+		util/args.h
+		util/args.cpp
 		util/bps.h
 		util/bps.cpp
 		util/cpuid.cpp
