@@ -13,8 +13,9 @@
 namespace HyoutaUtils {
 enum class ArgTypes {
     Flag,
-    SignedInteger,
-    UnsignedInteger,
+    Int64,
+    UInt64,
+    Double,
     String,
     StringArray,
 };
@@ -33,6 +34,7 @@ struct EvaluatedArg {
                  bool,
                  int64_t,
                  uint64_t,
+                 double,
                  std::string_view,
                  std::vector<std::string_view>>
         Value;
@@ -42,6 +44,48 @@ struct EvaluatedArgs {
     std::vector<EvaluatedArg> EvaluatedArguments;
     std::vector<std::string_view> FreeArguments;
     std::string_view ProgramName;
+
+    const EvaluatedArg* FindFromArg(const Arg* arg) const;
+
+private:
+    template<typename T>
+    const T* TryGetValue(const Arg* arg) const {
+        const EvaluatedArg* ea = FindFromArg(arg);
+        if (ea == nullptr) {
+            return nullptr;
+        }
+        if (!std::holds_alternative<T>(ea->Value)) {
+            return nullptr;
+        }
+        return &std::get<T>(ea->Value);
+    }
+
+public:
+    bool IsFlagSet(const Arg* arg) const {
+        const EvaluatedArg* ea = FindFromArg(arg);
+        return ea != nullptr && std::holds_alternative<bool>(ea->Value)
+               && std::get<bool>(ea->Value);
+    }
+
+    const int64_t* TryGetInt64(const Arg* arg) const {
+        return TryGetValue<int64_t>(arg);
+    }
+
+    const uint64_t* TryGetUInt64(const Arg* arg) const {
+        return TryGetValue<uint64_t>(arg);
+    }
+
+    const double* TryGetDouble(const Arg* arg) const {
+        return TryGetValue<double>(arg);
+    }
+
+    const std::string_view* TryGetString(const Arg* arg) const {
+        return TryGetValue<std::string_view>(arg);
+    }
+
+    const std::vector<std::string_view>* TryGetStringArray(const Arg* arg) const {
+        return TryGetValue<std::vector<std::string_view>>(arg);
+    }
 };
 
 struct Args {
@@ -54,6 +98,8 @@ struct Args {
 
 
     HyoutaUtils::Result<EvaluatedArgs, std::string> Parse(int argc, char** argv) const;
+    HyoutaUtils::Result<EvaluatedArgs, std::string>
+        Parse(std::span<const std::string_view> args) const;
 
 private:
     std::string_view ProgramName;

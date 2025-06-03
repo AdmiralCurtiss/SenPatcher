@@ -19,4 +19,7 @@ std::optional<uint32_t> ParseUInt32(std::string_view str);
 std::optional<int64_t> ParseInt64(std::string_view str);
 std::optional<uint64_t> ParseUInt64(std::string_view str);
 std::optional<std::size_t> ParseSizeT(std::string_view str);
+
+std::optional<float> ParseFloat(std::string_view str);
+std::optional<double> ParseDouble(std::string_view str);
 } // namespace HyoutaUtils::NumberUtils

@@ -89,4 +89,24 @@ std::optional<uint64_t> ParseUInt64(std::string_view str) {
 std::optional<std::size_t> ParseSizeT(std::string_view str) {
     return ParseUnsignedInteger<std::size_t>(str);
 }
+
+template<typename T>
+static std::optional<T> ParseFloatingPoint(std::string_view str) {
+    static_assert(std::is_floating_point_v<T>);
+    const char* first = str.data();
+    const char* const last = first + str.size();
+    T t(0);
+    const auto [ptr, ec] = std::from_chars(first, last, t);
+    if (ec != std::errc() || ptr != last) {
+        return std::nullopt;
+    }
+    return t;
+}
+
+std::optional<float> ParseFloat(std::string_view str) {
+    return ParseFloatingPoint<float>(str);
+}
+std::optional<double> ParseDouble(std::string_view str) {
+    return ParseFloatingPoint<double>(str);
+}
 } // namespace HyoutaUtils::NumberUtils

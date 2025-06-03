@@ -1738,10 +1738,13 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/hash/sha256.h
 		util/hash/sha256.cpp
 		util/hash/util.h
+		util/args.cpp
+		util/args.h
 		util/text.cpp
 		util/text.h
 		util/xorshift.h
 
+		test/args_test.cpp
 		test/ini_test.cpp
 		test/number_test.cpp
 		test/p3a_lookup_test.cpp
