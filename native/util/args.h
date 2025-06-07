@@ -100,6 +100,7 @@ struct Args {
     HyoutaUtils::Result<EvaluatedArgs, std::string> Parse(int argc, char** argv) const;
     HyoutaUtils::Result<EvaluatedArgs, std::string>
         Parse(std::span<const std::string_view> args) const;
+    void PrintUsage() const;
 
 private:
     std::string_view ProgramName;

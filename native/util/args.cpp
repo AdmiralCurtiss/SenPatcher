@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdio>
 #include <format>
 #include <functional>
 #include <optional>
@@ -274,6 +275,98 @@ const EvaluatedArg* EvaluatedArgs::FindFromArg(const Arg* arg) const {
         } else {
             return middle;
         }
+    }
+}
+
+static void PrintArg(const Arg& arg) {
+    static constexpr size_t DESCRIPTION_INDENT = 20;
+    static constexpr size_t MAX_LINE_LENGTH = 79;
+    static_assert(MAX_LINE_LENGTH > DESCRIPTION_INDENT);
+    static constexpr size_t AFTER_INDENT_LINE_LENGTH = MAX_LINE_LENGTH - DESCRIPTION_INDENT;
+
+    size_t length = 0;
+    if (!arg.ShortKey.empty() && !arg.LongKey.empty()) {
+        printf(" -%.*s/--%.*s",
+               static_cast<int>(arg.ShortKey.size()),
+               arg.ShortKey.data(),
+               static_cast<int>(arg.LongKey.size()),
+               arg.LongKey.data());
+        length += (5 + arg.ShortKey.size() + arg.LongKey.size());
+    } else if (!arg.ShortKey.empty() && arg.LongKey.empty()) {
+        printf(" -%.*s", static_cast<int>(arg.ShortKey.size()), arg.ShortKey.data());
+        length += (2 + arg.ShortKey.size());
+    } else if (arg.ShortKey.empty() && !arg.LongKey.empty()) {
+        printf(" --%.*s", static_cast<int>(arg.ShortKey.size()), arg.ShortKey.data());
+        length += (3 + arg.LongKey.size());
+    } else {
+        printf(" ?\n");
+        return;
+    }
+
+    if (arg.Type != ArgTypes::Flag) {
+        if (arg.Argument.empty()) {
+            printf(" argument");
+            length += 9;
+        } else {
+            printf(" %.*s", static_cast<int>(arg.Argument.size()), arg.Argument.data());
+            length += (1 + arg.Argument.size());
+        }
+    }
+
+    if (arg.Description.empty()) {
+        printf("\n");
+        return;
+    }
+
+    if (DESCRIPTION_INDENT == 0 || length >= (DESCRIPTION_INDENT - 1)) {
+        length = 0;
+        printf("\n%*s", static_cast<int>(DESCRIPTION_INDENT), "");
+    } else {
+        printf("%*s", static_cast<int>(DESCRIPTION_INDENT - length), "");
+    }
+
+    std::string_view rest = arg.Description;
+    while (!rest.empty()) {
+        if (rest.size() <= AFTER_INDENT_LINE_LENGTH) {
+            printf("%.*s\n", static_cast<int>(rest.size()), rest.data());
+            return;
+        }
+
+        std::string_view tmp = rest.substr(0, AFTER_INDENT_LINE_LENGTH + 1);
+        size_t pos = tmp.find_last_of(' ');
+        if (pos == std::string_view::npos) {
+            // no space at all, just split at current position...
+            printf("%.*s", static_cast<int>(AFTER_INDENT_LINE_LENGTH), rest.data());
+            printf("\n%*s", static_cast<int>(DESCRIPTION_INDENT), "");
+            rest = rest.substr(AFTER_INDENT_LINE_LENGTH);
+        } else {
+            // split at space
+            printf("%.*s", static_cast<int>(pos), rest.data());
+            printf("\n%*s", static_cast<int>(DESCRIPTION_INDENT), "");
+            rest = rest.substr(pos + 1);
+        }
+    }
+}
+
+void Args::PrintUsage() const {
+    printf("Usage: %.*s [options] %.*s\n\n",
+           static_cast<int>(ProgramName.size()),
+           ProgramName.data(),
+           static_cast<int>(FreeArgs.size()),
+           FreeArgs.data());
+    if (Description.size() > 0) {
+        printf("%.*s\n\n", static_cast<int>(Description.size()), Description.data());
+    }
+    if (Arguments.size() > 0) {
+        printf("Options:\n");
+        for (const Arg* const arg : Arguments) {
+            if (arg == nullptr) {
+                printf(" ?\n");
+            } else {
+                PrintArg(*arg);
+            }
+        }
+        printf("\n");
     }
 }
 } // namespace HyoutaUtils
