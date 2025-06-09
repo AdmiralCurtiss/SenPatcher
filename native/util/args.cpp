@@ -337,7 +337,7 @@ static void PrintArg(const Arg& arg) {
         printf(" -%.*s", static_cast<int>(arg.ShortKey.size()), arg.ShortKey.data());
         length += (2 + arg.ShortKey.size());
     } else if (arg.ShortKey.empty() && !arg.LongKey.empty()) {
-        printf(" --%.*s", static_cast<int>(arg.ShortKey.size()), arg.ShortKey.data());
+        printf(" --%.*s", static_cast<int>(arg.LongKey.size()), arg.LongKey.data());
         length += (3 + arg.LongKey.size());
     } else {
         printf(" ?\n");
