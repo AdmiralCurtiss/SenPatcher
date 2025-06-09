@@ -1,19 +1,37 @@
 #include "p3a_repack_main.h"
 
+#include <array>
 #include <cstdio>
-#include <filesystem>
 #include <limits>
 #include <string_view>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "p3a/packjson.h"
+#include "util/args.h"
 #include "util/file.h"
 
 namespace SenTools {
 int P3A_Repack_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(
+    static constexpr HyoutaUtils::Arg arg_output{.Type = HyoutaUtils::ArgTypes::String,
+                                                 .ShortKey = "o",
+                                                 .LongKey = "output",
+                                                 .Argument = "FILENAME",
+                                                 .Description =
+                                                     "The output filename. Must be given."};
+    static constexpr HyoutaUtils::Arg arg_threads{
+        .Type = HyoutaUtils::ArgTypes::UInt64,
+        .ShortKey = "t",
+        .LongKey = "threads",
+        .Argument = "THREADCOUNT",
+        .Description =
+            "Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection."};
+    static constexpr HyoutaUtils::Arg arg_no_deduplicate{.Type = HyoutaUtils::ArgTypes::Flag,
+                                                         .LongKey = "no-deduplicate",
+                                                         .Description = "Skip file deduplication."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 3> args_array{
+        {&arg_output, &arg_threads, &arg_no_deduplicate}};
+    static constexpr HyoutaUtils::Args args(
+        "sentools " P3A_Repack_Name,
+        "__p3a.json",
         P3A_Repack_ShortDescription
         "\n\n"
         "This re-packages a previously extracted achive and keeps all the metadata "
@@ -22,55 +40,42 @@ int P3A_Repack_Function(int argc, char** argv) {
         "To use this, extract with the -j option, then point this program at the __p3a.json that "
         "was generated during the archive extraction. You can also modify this file for some "
         "advanced packing features that are not available through the standard directory packing "
-        "interface.");
-
-    parser.usage("sentools " P3A_Repack_Name " [options] __p3a.json");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("FILENAME")
-        .help("The output filename. Must be given.");
-    parser.add_option("-t", "--threads")
-        .type(optparse::DataType::Int)
-        .dest("threads")
-        .metavar("THREADCOUNT")
-        .set_default(0)
-        .help("Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection.");
-    parser.add_option("--no-deduplicate")
-        .action(optparse::ActionType::StoreTrue)
-        .dest("no-deduplicate")
-        .set_default(false)
-        .help("Skip file deduplication.");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input directory given."
-                                      : "More than 1 input directory given.");
+        "interface.",
+        args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    auto* output_option = options.get("output");
+
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input file given."
+                                                 : "More than 1 input file given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    auto* output_option = options.TryGetString(&arg_output);
     if (output_option == nullptr) {
-        parser.error("No output filename given.");
+        printf("Argument error: %s\n\n\n", "No output filename given.");
+        args.PrintUsage();
         return -1;
     }
 
-    bool noDeduplicate = false;
-    auto* noDeduplicate_option = options.get("no-deduplicate");
-    if (noDeduplicate_option != nullptr) {
-        noDeduplicate = noDeduplicate_option->flag();
-    }
+    std::string_view source(options.FreeArguments[0]);
+    std::string_view target(*output_option);
 
-    std::string_view source(args[0]);
-    std::string_view target(output_option->first_string());
+    bool noDeduplicate = options.IsFlagSet(&arg_no_deduplicate);
 
-    auto* threads_option = options.get("threads");
+    auto* threads_option = options.TryGetUInt64(&arg_threads);
     size_t threadCount = 0;
     if (threads_option != nullptr) {
-        int64_t argThreadCount = threads_option->first_integer();
-        if (argThreadCount > 0
-            && static_cast<uint64_t>(argThreadCount) <= std::numeric_limits<size_t>::max()) {
-            threadCount = static_cast<size_t>(argThreadCount);
+        if (*threads_option <= std::numeric_limits<size_t>::max()) {
+            threadCount = static_cast<size_t>(*threads_option);
         }
     }
 
