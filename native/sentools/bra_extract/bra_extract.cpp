@@ -12,12 +12,11 @@
 
 #include "zlib/zlib.h"
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
+#include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/memread.h"
@@ -119,36 +118,47 @@ int BRA_Extract_Function(int argc, char** argv) {
     using HyoutaUtils::EndianUtils::FromEndian;
     static constexpr auto LE = HyoutaUtils::EndianUtils::Endianness::LittleEndian;
 
-    optparse::OptionParser parser;
-    parser.description(BRA_Extract_ShortDescription);
-
-    parser.usage("sentools " BRA_Extract_Name " [options] archive.bra");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("DIRECTORY")
-        .help(
+    static constexpr HyoutaUtils::Arg arg_output{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .ShortKey = "o",
+        .LongKey = "output",
+        .Argument = "DIRECTORY",
+        .Description =
             "The output directory to extract to. Will be derived from input filename if not "
-            "given.");
-    parser.add_option("-j", "--json")
-        .dest("json")
-        .action(optparse::ActionType::StoreTrue)
-        .help(
+            "given."};
+    static constexpr HyoutaUtils::Arg arg_json{
+        .Type = HyoutaUtils::ArgTypes::Flag,
+        .ShortKey = "j",
+        .LongKey = "json",
+        .Description =
             "If set, a __bra.json will be generated that contains information about the files in "
-            "the archive.");
+            "the archive."};
+    static constexpr auto args_array = {&arg_output, &arg_json};
+    static constexpr HyoutaUtils::Args args(
+        "sentools " BRA_Extract_Name, "archive.bra", BRA_Extract_ShortDescription, args_array);
 
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    const bool generateJson = options["json"].flag();
-    std::string_view source(args[0]);
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input file given."
+                                                 : "More than 1 input file given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    const bool generateJson = options.IsFlagSet(&arg_json);
+    std::string_view source(options.FreeArguments[0]);
     std::string_view target;
     std::string tmp;
-    if (auto* output_option = options.get("output")) {
-        target = std::string_view(output_option->first_string());
+    if (const auto* output_option = options.TryGetString(&arg_output)) {
+        target = *output_option;
     } else {
         tmp = std::string(source);
         tmp += ".ex";
