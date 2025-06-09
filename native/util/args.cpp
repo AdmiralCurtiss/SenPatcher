@@ -278,12 +278,53 @@ const EvaluatedArg* EvaluatedArgs::FindFromArg(const Arg* arg) const {
     }
 }
 
-static void PrintArg(const Arg& arg) {
-    static constexpr size_t DESCRIPTION_INDENT = 20;
-    static constexpr size_t MAX_LINE_LENGTH = 79;
-    static_assert(MAX_LINE_LENGTH > DESCRIPTION_INDENT);
-    static constexpr size_t AFTER_INDENT_LINE_LENGTH = MAX_LINE_LENGTH - DESCRIPTION_INDENT;
+static constexpr size_t DESCRIPTION_INDENT = 20;
+static constexpr size_t MAX_LINE_LENGTH = 79;
+static_assert(MAX_LINE_LENGTH > DESCRIPTION_INDENT);
+static constexpr size_t AFTER_INDENT_LINE_LENGTH = MAX_LINE_LENGTH - DESCRIPTION_INDENT;
 
+static void PrintLineSplitted(std::string_view description, size_t line_length, size_t indent) {
+    std::string_view rest = description;
+    while (!rest.empty()) {
+        size_t pos;
+        if (rest.size() <= line_length) {
+            pos = rest.find('\n');
+            if (pos != std::string_view::npos) {
+                // newline must always be handled explicitly because of the indent
+                printf("%.*s", static_cast<int>(pos), rest.data());
+                printf("\n%*s", static_cast<int>(indent), "");
+                rest = rest.substr(pos + 1);
+                continue;
+            }
+            printf("%.*s", static_cast<int>(rest.size()), rest.data());
+            break;
+        }
+
+        std::string_view tmp = rest.substr(0, line_length + 1);
+        pos = tmp.find('\n');
+        if (pos != std::string_view::npos) {
+            // newline must always be handled explicitly because of the indent
+            printf("%.*s", static_cast<int>(pos), rest.data());
+            printf("\n%*s", static_cast<int>(indent), "");
+            rest = rest.substr(pos + 1);
+            continue;
+        }
+        pos = tmp.rfind(' ');
+        if (pos == std::string_view::npos) {
+            // no space at all, just split at current position...
+            printf("%.*s", static_cast<int>(line_length), rest.data());
+            printf("\n%*s", static_cast<int>(indent), "");
+            rest = rest.substr(line_length);
+        } else {
+            // split at space
+            printf("%.*s", static_cast<int>(pos), rest.data());
+            printf("\n%*s", static_cast<int>(indent), "");
+            rest = rest.substr(pos + 1);
+        }
+    }
+}
+
+static void PrintArg(const Arg& arg) {
     size_t length = 0;
     if (!arg.ShortKey.empty() && !arg.LongKey.empty()) {
         printf(" -%.*s/--%.*s",
@@ -325,27 +366,8 @@ static void PrintArg(const Arg& arg) {
         printf("%*s", static_cast<int>(DESCRIPTION_INDENT - length), "");
     }
 
-    std::string_view rest = arg.Description;
-    while (!rest.empty()) {
-        if (rest.size() <= AFTER_INDENT_LINE_LENGTH) {
-            printf("%.*s\n", static_cast<int>(rest.size()), rest.data());
-            return;
-        }
-
-        std::string_view tmp = rest.substr(0, AFTER_INDENT_LINE_LENGTH + 1);
-        size_t pos = tmp.find_last_of(' ');
-        if (pos == std::string_view::npos) {
-            // no space at all, just split at current position...
-            printf("%.*s", static_cast<int>(AFTER_INDENT_LINE_LENGTH), rest.data());
-            printf("\n%*s", static_cast<int>(DESCRIPTION_INDENT), "");
-            rest = rest.substr(AFTER_INDENT_LINE_LENGTH);
-        } else {
-            // split at space
-            printf("%.*s", static_cast<int>(pos), rest.data());
-            printf("\n%*s", static_cast<int>(DESCRIPTION_INDENT), "");
-            rest = rest.substr(pos + 1);
-        }
-    }
+    PrintLineSplitted(arg.Description, AFTER_INDENT_LINE_LENGTH, DESCRIPTION_INDENT);
+    printf("\n");
 }
 
 void Args::PrintUsage() const {
@@ -355,7 +377,9 @@ void Args::PrintUsage() const {
            static_cast<int>(FreeArgs.size()),
            FreeArgs.data());
     if (Description.size() > 0) {
-        printf("%.*s\n\n", static_cast<int>(Description.size()), Description.data());
+        PrintLineSplitted(Description, MAX_LINE_LENGTH, 0);
+        printf("\n");
+        printf("\n");
     }
     if (Arguments.size() > 0) {
         printf("Options:\n");
