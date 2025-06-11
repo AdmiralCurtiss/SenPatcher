@@ -27,8 +27,8 @@ int P3A_Pack_Function(int argc, char** argv) {
         .LongKey = "compression",
         .Argument = "TYPE",
         .Description =
-            "Which compression to use for the files packed into the archive. "
-            "Options are: 'auto', 'none, 'lz4', 'zstd'."};
+            "Which compression to use for the files packed into the archive.\n"
+            "Options are: 'auto', 'none', 'lz4', 'zstd'."};
     static constexpr HyoutaUtils::Arg arg_threads{
         .Type = HyoutaUtils::ArgTypes::UInt64,
         .ShortKey = "t",
