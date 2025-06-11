@@ -1,18 +1,18 @@
 #include "daybreak_save_convert.h"
 #include "daybreak_save_convert_main.h"
 
+#include <array>
 #include <cstdio>
 #include <memory>
 #include <string>
 #include <string_view>
-
-#include "cpp-optparse/OptionParser.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
 #include "sentools/save_checksum_fix/save_checksum_fix.h"
+#include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/memread.h"
@@ -20,29 +20,40 @@
 
 namespace SenTools {
 int Daybreak_Save_Convert_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(Daybreak_Save_Convert_ShortDescription);
-
-    parser.usage("sentools " Daybreak_Save_Convert_Name " [options] save000");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("FILENAME")
-        .help("The output directory to write the converted files to.");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input directory given."
-                                      : "More than 1 input directory given.");
+    static constexpr HyoutaUtils::Arg arg_output{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .ShortKey = "o",
+        .LongKey = "output",
+        .Argument = "FILENAME",
+        .Description = "The output directory to write the converted files to."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 1> args_array{{&arg_output}};
+    static constexpr HyoutaUtils::Args args("sentools " Daybreak_Save_Convert_Name,
+                                            "save000",
+                                            Daybreak_Save_Convert_ShortDescription,
+                                            args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    std::string_view source(args[0]);
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input directory given."
+                                                 : "More than 1 input directory given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    std::string_view source(options.FreeArguments[0]);
     std::string_view target;
-    if (auto* output_option = options.get("output")) {
-        target = std::string_view(output_option->first_string());
+    if (auto* output_option = options.TryGetString(&arg_output)) {
+        target = std::string_view(*output_option);
     } else {
-        parser.error("No output directory given.");
+        printf("Argument error: %s\n\n\n", "No output directory given.");
+        args.PrintUsage();
         return -1;
     }
 

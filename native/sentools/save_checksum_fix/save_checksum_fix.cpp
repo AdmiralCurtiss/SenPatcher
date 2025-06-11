@@ -1,13 +1,13 @@
 #include "save_checksum_fix.h"
 #include "save_checksum_fix_main.h"
 
+#include <array>
 #include <cstdio>
 #include <memory>
 #include <string>
 #include <string_view>
 
-#include "cpp-optparse/OptionParser.h"
-
+#include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/hash/crc32.h"
@@ -18,26 +18,38 @@
 
 namespace SenTools {
 int Save_Checksum_Fix_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(Save_Checksum_Fix_ShortDescription);
-
-    parser.usage("sentools " Save_Checksum_Fix_Name " [options] file.dat");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("FILENAME")
-        .help("The output file to write the fixed file to. Will fix file in-place if not given.");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
+    static constexpr HyoutaUtils::Arg arg_output{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .ShortKey = "o",
+        .LongKey = "output",
+        .Argument = "FILENAME",
+        .Description =
+            "The output file to write the fixed file to. Will fix file in-place if not given."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 1> args_array{{&arg_output}};
+    static constexpr HyoutaUtils::Args args("sentools " Save_Checksum_Fix_Name,
+                                            "file.bin",
+                                            Save_Checksum_Fix_ShortDescription,
+                                            args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    std::string_view source(args[0]);
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input file given."
+                                                 : "More than 1 input file given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    std::string_view source(options.FreeArguments[0]);
     std::string_view target;
-    if (auto* output_option = options.get("output")) {
-        target = std::string_view(output_option->first_string());
+    if (auto* output_option = options.TryGetString(&arg_output)) {
+        target = std::string_view(*output_option);
     } else {
         target = source;
     }
