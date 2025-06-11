@@ -9,8 +9,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "dirtree/dirtree_cs1.h"
 #include "dirtree/dirtree_cs2.h"
 #include "dirtree/dirtree_cs3.h"
@@ -20,6 +18,7 @@
 #include "dirtree/entry.h"
 #include "dirtree/tree.h"
 #include "game_verify_main.h"
+#include "util/args.h"
 #include "util/file.h"
 #include "util/hash/sha1.h"
 #include "util/text.h"
@@ -926,18 +925,26 @@ namespace SenTools {
 int Game_Verify_Function(int argc, char** argv) {
     using namespace SenTools::GameVerify;
 
-    optparse::OptionParser parser;
-    parser.description(Game_Verify_ShortDescription);
-    parser.usage("sentools " Game_Verify_Name " [options] directory");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input directory given."
-                                      : "More than 1 input directory given.");
+    static constexpr HyoutaUtils::Args args("sentools " Game_Verify_Name,
+                                            "directory",
+                                            Game_Verify_ShortDescription,
+                                            std::span<const HyoutaUtils::Arg* const>());
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
-    const auto gamepath = HyoutaUtils::IO::FilesystemPathFromUtf8(args[0]);
+
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input directory given."
+                                                 : "More than 1 input directory given.");
+        args.PrintUsage();
+        return -1;
+    }
+    const auto gamepath = HyoutaUtils::IO::FilesystemPathFromUtf8(options.FreeArguments[0]);
 
     const bool couldBeCS1 = IdentifyGame(SenLib::Sen1::GetDirTree(), gamepath);
     const bool couldBeCS2 = IdentifyGame(SenLib::Sen2::GetDirTree(), gamepath);
