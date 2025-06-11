@@ -1,15 +1,15 @@
 #include "sen2/file_fixes.h"
 
 #include <array>
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <string_view>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "modload/loaded_mods.h"
 #include "modload/loaded_pka.h"
 
+#include "util/args.h"
 #include "util/logger.h"
 #include "util/text.h"
 
@@ -25,15 +25,26 @@ static constexpr std::array<std::string_view, 2> s_PkaGroupPrefixes{
     {"data/asset/d3d11/", "data/asset/d3d11_us/"}};
 
 int InternalMain(int argc, char** argv) {
-    optparse::OptionParser parser;
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
+    static constexpr HyoutaUtils::Args args("cs2test",
+                                            std::string_view(),
+                                            std::string_view(),
+                                            std::span<const HyoutaUtils::Arg* const>());
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
+        return -1;
+    }
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input directory given."
+                                                 : "More than 1 input directory given.");
+        args.PrintUsage();
         return -1;
     }
 
-    std::string baseDirUtf8 = args[0];
+    std::string_view baseDirUtf8 = options.FreeArguments[0];
     HyoutaUtils::Logger logger;
     SenLib::ModLoad::LoadedP3AData vanillaP3As;
     SenLib::ModLoad::LoadedPkaData vanillaPKAs;

@@ -2,14 +2,14 @@
 #include "tx/file_fixes_sw.h"
 
 #include <array>
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <string_view>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "modload/loaded_mods.h"
 #include "modload/loaded_pka.h"
+#include "util/args.h"
 #include "util/file.h"
 #include "util/logger.h"
 #include "util/text.h"
@@ -26,28 +26,40 @@ static constexpr std::array<std::string_view, 2> s_PkaGroupPrefixes{{"", ""}};
 static constexpr std::array<std::string_view, 2> s_PkaNames{{"assets_jp", "assets"}};
 
 int InternalMain(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.add_option("--switch")
-        .dest("switch")
-        .metavar("DIRECTORY")
-        .help("Directory of the Switch assets for creating a Switch -> PC localization port.");
-    parser.add_option("--jp")
-        .dest("jp")
-        .action(optparse::ActionType::StoreTrue)
-        .help("Run as if the game was running in Japanese mode.");
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
+    static constexpr HyoutaUtils::Arg arg_switch{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .LongKey = "switch",
+        .Argument = "DIRECTORY",
+        .Description =
+            "Directory of the Switch assets for creating a Switch -> PC localization port."};
+    static constexpr HyoutaUtils::Arg arg_jp{
+        .Type = HyoutaUtils::ArgTypes::Flag,
+        .LongKey = "jp",
+        .Description = "Run as if the game was running in Japanese mode."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 2> args_array{{&arg_switch, &arg_jp}};
+    static constexpr HyoutaUtils::Args args(
+        "txtest", std::string_view(), std::string_view(), args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
+        return -1;
+    }
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input directory given."
+                                                 : "More than 1 input directory given.");
+        args.PrintUsage();
         return -1;
     }
 
-    std::string baseDirUtf8 = args[0];
-    bool useJapaneseLanguage = options["jp"].flag();
+    std::string_view baseDirUtf8 = options.FreeArguments[0];
+    bool useJapaneseLanguage = options.IsFlagSet(&arg_jp);
     std::string baseDirSwitch;
     bool generateSwitchScripts = false;
-    if (auto* switch_option = options.get("switch")) {
-        baseDirSwitch = switch_option->first_string();
+    if (auto* switch_option = options.TryGetString(&arg_switch)) {
+        baseDirSwitch = std::string(*switch_option);
         generateSwitchScripts = true;
         while (baseDirSwitch.ends_with('/')
 #ifdef BUILD_FOR_WINDOWS

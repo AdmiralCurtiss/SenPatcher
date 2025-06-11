@@ -1065,8 +1065,8 @@ if (SENPATCHER_BUILD_CS1TEST)
 	add_executable(cs1test)
 	target_sources(cs1test PRIVATE
 		sen1/main_cs1_test.cpp
-		cpp-optparse/OptionParser.cpp
-		cpp-optparse/OptionParser.h
+		util/args.cpp
+		util/args.h
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
@@ -1150,8 +1150,8 @@ if (SENPATCHER_BUILD_CS2TEST)
 	add_executable(cs2test)
 	target_sources(cs2test PRIVATE
 		sen2/main_cs2_test.cpp
-		cpp-optparse/OptionParser.cpp
-		cpp-optparse/OptionParser.h
+		util/args.cpp
+		util/args.h
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
@@ -1244,8 +1244,8 @@ if (SENPATCHER_BUILD_TXTEST)
 		tx/bra_extract.cpp
 		tx/bra_extract.h
 		tx/main_tx_test.cpp
-		cpp-optparse/OptionParser.cpp
-		cpp-optparse/OptionParser.h
+		util/args.cpp
+		util/args.h
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
@@ -1467,8 +1467,8 @@ if (SENPATCHER_BUILD_CS3TEST)
 	add_executable(cs3test)
 	target_sources(cs3test PRIVATE
 		sen3/main_cs3_test.cpp
-		cpp-optparse/OptionParser.cpp
-		cpp-optparse/OptionParser.h
+		util/args.cpp
+		util/args.h
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
@@ -1557,8 +1557,8 @@ if (SENPATCHER_BUILD_CS4TEST)
 	add_executable(cs4test)
 	target_sources(cs4test PRIVATE
 		sen4/main_cs4_test.cpp
-		cpp-optparse/OptionParser.cpp
-		cpp-optparse/OptionParser.h
+		util/args.cpp
+		util/args.h
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
@@ -1641,8 +1641,8 @@ if (SENPATCHER_BUILD_REVTEST)
 	add_executable(reverietest)
 	target_sources(reverietest PRIVATE
 		sen5/main_reverie_test.cpp
-		cpp-optparse/OptionParser.cpp
-		cpp-optparse/OptionParser.h
+		util/args.cpp
+		util/args.h
 
 		modload/loaded_mods.cpp
 		modload/loaded_mods.h
