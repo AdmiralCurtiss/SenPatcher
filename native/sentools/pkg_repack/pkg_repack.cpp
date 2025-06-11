@@ -12,14 +12,13 @@
 #include <string_view>
 #include <vector>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 
 #include "pkg_repack_main.h"
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
+#include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/hash/sha256.h"
@@ -68,8 +67,16 @@ static std::optional<bool> JsonReadBool(T& json, const char* key) {
 }
 
 int PKG_Repack_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(
+    static constexpr HyoutaUtils::Arg arg_output{.Type = HyoutaUtils::ArgTypes::String,
+                                                 .ShortKey = "o",
+                                                 .LongKey = "output",
+                                                 .Argument = "FILENAME",
+                                                 .Description =
+                                                     "The output filename. Must be given."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 1> args_array{{&arg_output}};
+    static constexpr HyoutaUtils::Args args(
+        "sentools " PKG_Repack_Name,
+        "__pkg.json",
         PKG_Repack_ShortDescription
         "\n\n"
         "This re-packages a previously extracted achive and keeps all the metadata "
@@ -78,30 +85,33 @@ int PKG_Repack_Function(int argc, char** argv) {
         "To use this, extract with the -j option, then point this program at the __pkg.json that "
         "was generated during the archive extraction. You can also modify this file for some "
         "advanced packing features that are not available through the standard directory packing "
-        "interface.");
-
-    parser.usage("sentools " PKG_Repack_Name " [options] __pkg.json");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("FILENAME")
-        .help("The output filename. Must be given.");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input directory given."
-                                      : "More than 1 input directory given.");
+        "interface.",
+        args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    auto* output_option = options.get("output");
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input file given."
+                                                 : "More than 1 input file given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    auto* output_option = options.TryGetString(&arg_output);
     if (output_option == nullptr) {
-        parser.error("No output filename given.");
+        printf("Argument error: %s\n\n\n", "No output filename given.");
+        args.PrintUsage();
         return -1;
     }
 
-    std::string_view source(args[0]);
-    std::string_view target(output_option->first_string());
+    std::string_view source(options.FreeArguments[0]);
+    std::string_view target(*output_option);
 
     auto result = RepackPkg(source, target);
     if (result.IsError()) {

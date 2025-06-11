@@ -1,14 +1,13 @@
 #include "pkg_extract.h"
 #include "pkg_extract_main.h"
 
+#include <array>
 #include <cstdio>
 #include <filesystem>
 #include <format>
 #include <memory>
 #include <string>
 #include <string_view>
-
-#include "cpp-optparse/OptionParser.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
@@ -18,58 +17,71 @@
 #include "sen/pka_to_pkg.h"
 #include "sen/pkg.h"
 #include "sen/pkg_extract.h"
+#include "util/args.h"
 #include "util/file.h"
 
 namespace SenTools {
 int PKG_Extract_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(PKG_Extract_ShortDescription);
-
-    parser.usage("sentools " PKG_Extract_Name " [options] archive.pkg");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("DIRECTORY")
-        .help(
+    static constexpr HyoutaUtils::Arg arg_output{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .ShortKey = "o",
+        .LongKey = "output",
+        .Argument = "DIRECTORY",
+        .Description =
             "The output directory to extract to. Will be derived from input filename if not "
-            "given.");
-    parser.add_option("-j", "--json")
-        .dest("json")
-        .action(optparse::ActionType::StoreTrue)
-        .help(
+            "given."};
+    static constexpr HyoutaUtils::Arg arg_json{
+        .Type = HyoutaUtils::ArgTypes::Flag,
+        .ShortKey = "j",
+        .LongKey = "json",
+        .Description =
             "If set, a __pkg.json will be generated that contains information about the files in "
             "the archive. This file can be used to repack the archive with the PKG.Repack option "
-            "while preserving compression types and file order within the archive.");
-    parser.add_option("--referenced-pka")
-        .dest("referenced-pka")
-        .action(optparse::ActionType::Append)
-        .metavar("PKA")
-        .help(
+            "while preserving compression types and file order within the archive."};
+    static constexpr HyoutaUtils::Arg arg_ref_pka{
+        .Type = HyoutaUtils::ArgTypes::StringArray,
+        .LongKey = "referenced-pka",
+        .Argument = "PKA",
+        .Description =
             "Referenced pka file that could contain file data, see the --as-pka-reference option "
             "in PKA.Extract for details. Option can be provided multiple times. This is a "
-            "nonstandard feature that the vanilla game does not handle.");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
+            "nonstandard feature that the vanilla game does not handle."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 3> args_array{
+        {&arg_output, &arg_json, &arg_ref_pka}};
+    static constexpr HyoutaUtils::Args args(
+        "sentools " PKG_Extract_Name, "archive.pkg", PKG_Extract_ShortDescription, args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    const bool generateJson = options["json"].flag();
-    std::string_view source(args[0]);
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input file given."
+                                                 : "More than 1 input file given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+
+    const bool generateJson = options.IsFlagSet(&arg_json);
+    std::string_view source(options.FreeArguments[0]);
     std::string_view target;
     std::string tmp;
-    if (auto* output_option = options.get("output")) {
-        target = std::string_view(output_option->first_string());
+    if (auto* output_option = options.TryGetString(&arg_output)) {
+        target = std::string_view(*output_option);
     } else {
         tmp = std::string(source);
         tmp += ".ex";
         target = tmp;
     }
 
-    std::span<const std::string> referencedPkaPaths;
-    if (auto* referenced_pka_option = options.get("referenced-pka")) {
-        referencedPkaPaths = referenced_pka_option->strings();
+    std::span<const std::string_view> referencedPkaPaths;
+    if (auto* referenced_pka_option = options.TryGetStringArray(&arg_ref_pka)) {
+        referencedPkaPaths = *referenced_pka_option;
     }
 
     auto result = ExtractPkg(source, target, referencedPkaPaths, generateJson);
@@ -84,7 +96,7 @@ int PKG_Extract_Function(int argc, char** argv) {
 HyoutaUtils::Result<ExtractPkgResult, std::string>
     ExtractPkg(std::string_view source,
                std::string_view target,
-               std::span<const std::string> referencedPkaPaths,
+               std::span<const std::string_view> referencedPkaPaths,
                bool generateJson) {
     std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
     HyoutaUtils::IO::File infile(std::string_view(source), HyoutaUtils::IO::OpenMode::Read);
@@ -109,7 +121,7 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
         referencedPkas.reserve(referencedPkaPaths.size());
         for (const auto& referencedPkaPath : referencedPkaPaths) {
             auto& refPka = referencedPkas.emplace_back();
-            refPka.PkaFile.Open(std::filesystem::path(referencedPkaPath),
+            refPka.PkaFile.Open(std::string_view(referencedPkaPath),
                                 HyoutaUtils::IO::OpenMode::Read);
             if (!refPka.PkaFile.IsOpen()) {
                 return std::string("Error opening referenced pka.");
@@ -205,6 +217,7 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
         const size_t pkgFilenameLength = (pkgFilenameFirstNull == std::u8string_view::npos)
                                              ? pkgName.size()
                                              : pkgFilenameFirstNull;
+        // FIXME
         HyoutaUtils::IO::File outfile(targetpath / pkgNameSv.substr(0, pkgFilenameLength),
                                       HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
@@ -231,6 +244,7 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
     json.EndObject();
 
     if (generateJson) {
+        // FIXME
         HyoutaUtils::IO::File f2(targetpath / L"__pkg.json", HyoutaUtils::IO::OpenMode::Write);
         if (!f2.IsOpen()) {
             return std::string("Failed to open __pkg.json.");

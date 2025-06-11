@@ -9,53 +9,63 @@
 #include <string_view>
 #include <vector>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
+#include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/text.h"
 
 namespace SenTools {
 int PKG_Pack_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(PKG_Pack_ShortDescription);
-
-    parser.usage("sentools " PKG_Pack_Name " [options] directory");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("FILENAME")
-        .help("The output filename. Must be given.");
-    parser.add_option("-c", "--compression")
-        .dest("compression")
-        .metavar("TYPE")
-        .help(
+    static constexpr HyoutaUtils::Arg arg_output{.Type = HyoutaUtils::ArgTypes::String,
+                                                 .ShortKey = "o",
+                                                 .LongKey = "output",
+                                                 .Argument = "FILENAME",
+                                                 .Description =
+                                                     "The output filename. Must be given."};
+    static constexpr HyoutaUtils::Arg arg_compression{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .ShortKey = "c",
+        .LongKey = "compression",
+        .Argument = "TYPE",
+        .Description =
             "Which compression to use for the files packed into the archive. Note that lz4 and "
-            "zstd are not supported by all games!")
-        .choices({"none", "type1", "lz4", "zstd"})
-        .set_default("none");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input directory given."
-                                      : "More than 1 input directory given.");
+            "zstd are not supported by all games!\n"
+            "Options are: 'none', 'type1', 'lz4', 'zstd'."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 2> args_array{
+        {&arg_output, &arg_compression}};
+    static constexpr HyoutaUtils::Args args(
+        "sentools " PKG_Pack_Name, "directory", PKG_Pack_ShortDescription, args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    auto* output_option = options.get("output");
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input directory given."
+                                                 : "More than 1 input directory given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    auto* output_option = options.TryGetString(&arg_output);
     if (output_option == nullptr) {
-        parser.error("No output filename given.");
+        printf("Argument error: %s\n\n\n", "No output filename given.");
+        args.PrintUsage();
         return -1;
     }
 
-    std::string_view source(args[0]);
-    std::string_view target(output_option->first_string());
+    std::string_view source(options.FreeArguments[0]);
+    std::string_view target(*output_option);
 
     uint32_t flags = 0;
-    if (auto* compression_option = options.get("compression")) {
-        const auto& compressionString = compression_option->first_string();
+    if (auto* compression_option = options.TryGetString(&arg_compression)) {
+        const auto& compressionString = *compression_option;
         if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
             flags = 0;
         } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("type1", compressionString)) {
@@ -65,7 +75,8 @@ int PKG_Pack_Function(int argc, char** argv) {
         } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("zstd", compressionString)) {
             flags = 0x10;
         } else {
-            parser.error("Invalid compression type.");
+            printf("Argument error: %s\n\n\n", "Invalid compression type.");
+            args.PrintUsage();
             return -1;
         }
     }
