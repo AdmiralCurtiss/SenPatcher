@@ -1,41 +1,52 @@
 #include "type1_decompress.h"
 #include "type1_decompress_main.h"
 
+#include <array>
 #include <cstdio>
 #include <memory>
 #include <string>
 #include <string_view>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "sen/pkg_extract.h"
+#include "util/args.h"
 #include "util/file.h"
 #include "util/memread.h"
 
 namespace SenTools {
 int Type1_Decompress_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(Type1_Decompress_ShortDescription);
-
-    parser.usage("sentools " Type1_Decompress_Name " [options] file.bin");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("FILENAME")
-        .help(
-            "The output file to decompress to. Will be derived from input filename if not given.");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
+    static constexpr HyoutaUtils::Arg arg_output{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .ShortKey = "o",
+        .LongKey = "output",
+        .Argument = "FILENAME",
+        .Description =
+            "The output file to decompress to. Will be derived from input filename if not given."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 1> args_array{{&arg_output}};
+    static constexpr HyoutaUtils::Args args("sentools " Type1_Decompress_Name,
+                                            "file.bin",
+                                            Type1_Decompress_ShortDescription,
+                                            args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    std::string_view source(args[0]);
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input file given."
+                                                 : "More than 1 input file given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    std::string_view source(options.FreeArguments[0]);
     std::string_view target;
     std::string tmp;
-    if (auto* output_option = options.get("output")) {
-        target = std::string_view(output_option->first_string());
+    if (auto* output_option = options.TryGetString(&arg_output)) {
+        target = std::string_view(*output_option);
     } else {
         tmp = std::string(source);
         tmp += ".dec";
