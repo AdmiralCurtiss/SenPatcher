@@ -65,11 +65,6 @@ Public domain
 The LZMA SDK is public domain
 https://www.7-zip.org/sdk.html
 
-== native/cpp-optparse ==
-Licensed under the MIT License
-Copyright (c) 2010 Johannes Weißl
-See the native/cpp-optparse/LICENSE for details.
-
 == native/gtest ==
 Licensed under a BSD 3-Clause license
 Copyright 2008, Google Inc. All rights reserved.

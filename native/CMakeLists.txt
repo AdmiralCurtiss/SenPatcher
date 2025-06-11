@@ -474,9 +474,6 @@ if (SENPATCHER_BUILD_TOOLS)
 		dirtree/generated/internal_dirtree_reverie.h
 		dirtree/generated/internal_dirtree_tx.h
 
-		cpp-optparse/OptionParser.cpp
-		cpp-optparse/OptionParser.h
-
 		${SOURCES_LZ4}
 		${SOURCES_LZMA_BASE}
 		${SOURCES_LZMA_COMPRESSION}
