@@ -21,13 +21,12 @@
 #include <thread>
 #include <vector>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "sen/pka.h"
 #include "sen/pka_to_pkg.h"
 #include "sen/pkg.h"
 #include "sen/pkg_compress.h"
 #include "sen/pkg_extract.h"
+#include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/hash/sha256.h"
@@ -928,51 +927,63 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
 }
 
 int PKA_Pack_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(PKA_Pack_ShortDescription);
-
-    parser.usage("sentools " PKA_Pack_Name " [options] directory");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("FILENAME")
-        .help("The output filename. Must be given.");
-    parser.add_option("--referenced-pka")
-        .dest("referenced-pka")
-        .action(optparse::ActionType::Append)
-        .metavar("PKA")
-        .help(
+    static constexpr HyoutaUtils::Arg arg_output{.Type = HyoutaUtils::ArgTypes::String,
+                                                 .ShortKey = "o",
+                                                 .LongKey = "output",
+                                                 .Argument = "FILENAME",
+                                                 .Description =
+                                                     "The output filename. Must be given."};
+    static constexpr HyoutaUtils::Arg arg_ref_pka{
+        .Type = HyoutaUtils::ArgTypes::StringArray,
+        .LongKey = "referenced-pka",
+        .Argument = "PKA",
+        .Description =
             "Existing pka file that already contains files. Files contained in that pka will not "
             "be packed into this pka. The referenced pka will be necessary to extract data later. "
             "Option can be provided multiple times. This is a nonstandard feature that the vanilla "
-            "game does not handle.");
-    parser.add_option("--recompress")
-        .dest("recompress")
-        .metavar("TYPE")
-        .help("Recompress all files before packing them into the pka.")
-        .choices({"none", "type1", "lz4", "zstd"});
-    parser.add_option("-t", "--threads")
-        .type(optparse::DataType::Int)
-        .dest("threads")
-        .metavar("THREADCOUNT")
-        .set_default(0)
-        .help("Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection.");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() == 0) {
-        parser.error("No input directory given.");
+            "game does not handle."};
+    static constexpr HyoutaUtils::Arg arg_recompress{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .LongKey = "recompress",
+        .Argument = "TYPE",
+        .Description =
+            "Recompress all files before packing them into the pka.\n"
+            "Options are: 'none', 'type1', 'lz4', 'zstd'."};
+    static constexpr HyoutaUtils::Arg arg_threads{
+        .Type = HyoutaUtils::ArgTypes::UInt64,
+        .ShortKey = "t",
+        .LongKey = "threads",
+        .Argument = "THREADCOUNT",
+        .Description =
+            "Use THREADCOUNT threads for compression. Use 0 (default) for automatic detection."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 4> args_array{
+        {&arg_output, &arg_ref_pka, &arg_recompress, &arg_threads}};
+    static constexpr HyoutaUtils::Args args(
+        "sentools " PKA_Pack_Name, "directory", PKA_Pack_ShortDescription, args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    auto* output_option = options.get("output");
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() == 0) {
+        printf("Argument error: %s\n\n\n", "No input directory given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    auto* output_option = options.TryGetString(&arg_output);
     if (output_option == nullptr) {
-        parser.error("No output filename given.");
+        printf("Argument error: %s\n\n\n", "No output filename given.");
+        args.PrintUsage();
         return -1;
     }
 
     std::optional<uint32_t> recompressFlags = std::nullopt;
-    if (auto* recompress_option = options.get("recompress")) {
-        const auto& compressionString = recompress_option->first_string();
+    if (auto* recompress_option = options.TryGetString(&arg_recompress)) {
+        const auto& compressionString = *recompress_option;
         if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("none", compressionString)) {
             recompressFlags = static_cast<uint32_t>(0);
         } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("type1", compressionString)) {
@@ -982,34 +993,37 @@ int PKA_Pack_Function(int argc, char** argv) {
         } else if (HyoutaUtils::TextUtils::CaseInsensitiveEquals("zstd", compressionString)) {
             recompressFlags = static_cast<uint32_t>(0x10);
         } else {
-            parser.error("Invalid compression type.");
+            printf("Argument error: %s\n\n\n", "Invalid compression type.");
+            args.PrintUsage();
             return -1;
         }
     }
 
-    auto* threads_option = options.get("threads");
+    auto* threads_option = options.TryGetUInt64(&arg_threads);
     size_t desiredThreadCount = 0;
     if (threads_option != nullptr) {
-        int64_t argThreadCount = threads_option->first_integer();
-        if (argThreadCount > 0
-            && static_cast<uint64_t>(argThreadCount) <= std::numeric_limits<size_t>::max()) {
+        uint64_t argThreadCount = *threads_option;
+        if (argThreadCount <= std::numeric_limits<size_t>::max()) {
             desiredThreadCount = static_cast<size_t>(argThreadCount);
         }
     }
 
-    std::string_view target(output_option->first_string());
-    std::span<const std::string> referencedPkaPaths;
-    if (auto* referenced_pka_option = options.get("referenced-pka")) {
-        referencedPkaPaths = referenced_pka_option->strings();
+    std::string_view target(*output_option);
+    std::span<const std::string_view> referencedPkaPaths;
+    if (auto* referenced_pka_option = options.TryGetStringArray(&arg_ref_pka)) {
+        referencedPkaPaths = *referenced_pka_option;
     }
 
     std::vector<PackPkaPkgInfo> sourcePkgs;
-    for (size_t i = 0; i < args.size(); ++i) {
-        std::filesystem::path rootDir = HyoutaUtils::IO::FilesystemPathFromUtf8(args[i]);
+    for (size_t i = 0; i < options.FreeArguments.size(); ++i) {
+        std::filesystem::path rootDir =
+            HyoutaUtils::IO::FilesystemPathFromUtf8(options.FreeArguments[i]);
         std::error_code ec;
         std::filesystem::directory_iterator iterator(rootDir, ec);
         if (ec) {
-            printf("Failed to iterate over contents of %s\n", args[i].c_str());
+            printf("Failed to iterate over contents of %.*s\n",
+                   static_cast<int>(options.FreeArguments[i].size()),
+                   options.FreeArguments[i].data());
             return -1;
         }
         while (iterator != std::filesystem::directory_iterator()) {
@@ -1056,7 +1070,9 @@ int PKA_Pack_Function(int argc, char** argv) {
 
             iterator.increment(ec);
             if (ec) {
-                printf("Failed to iterate over contents of %s\n", args[i].c_str());
+                printf("Failed to iterate over contents of %.*s\n",
+                       static_cast<int>(options.FreeArguments[i].size()),
+                       options.FreeArguments[i].data());
                 return -1;
             }
         }
@@ -1075,7 +1091,7 @@ int PKA_Pack_Function(int argc, char** argv) {
 HyoutaUtils::Result<PackPkaResult, std::string>
     PackPka(std::string_view target,
             std::span<const PackPkaPkgInfo> sourcePkgs,
-            std::span<const std::string> existingPkaPaths,
+            std::span<const std::string_view> existingPkaPaths,
             std::optional<uint32_t> recompressFlags,
             size_t desiredThreadCount) {
     using HyoutaUtils::EndianUtils::ToEndian;
@@ -1089,7 +1105,7 @@ HyoutaUtils::Result<PackPkaResult, std::string>
     std::vector<SenLib::ReferencedPka> existingPkas;
     {
         existingPkas.reserve(existingPkaPaths.size());
-        for (const std::string& existingPkaPath : existingPkaPaths) {
+        for (const std::string_view& existingPkaPath : existingPkaPaths) {
             auto& existingPka = existingPkas.emplace_back();
             existingPka.PkaFile.Open(std::string_view(existingPkaPath),
                                      HyoutaUtils::IO::OpenMode::Read);

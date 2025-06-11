@@ -16,6 +16,6 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
                SenTools::TaskReporting* taskReporting,
                std::string_view source,
                std::string_view target,
-               std::span<const std::string> referencedPkaPaths,
+               std::span<const std::string_view> referencedPkaPaths,
                bool extractAsPkaReferenceStub);
 } // namespace SenTools

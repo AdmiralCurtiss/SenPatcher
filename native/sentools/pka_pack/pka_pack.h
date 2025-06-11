@@ -20,7 +20,7 @@ struct PackPkaPkgInfo {
 HyoutaUtils::Result<PackPkaResult, std::string>
     PackPka(std::string_view target,
             std::span<const PackPkaPkgInfo> sourcePkgs,
-            std::span<const std::string> referencedPkaPaths,
+            std::span<const std::string_view> referencedPkaPaths,
             std::optional<uint32_t> recompressFlags,
             size_t desiredThreadCount);
 } // namespace SenTools

@@ -1,6 +1,7 @@
 #include "pka_extract.h"
 #include "pka_extract_main.h"
 
+#include <array>
 #include <cstdio>
 #include <filesystem>
 #include <format>
@@ -8,14 +9,13 @@
 #include <string>
 #include <string_view>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "sen/pka.h"
 #include "sen/pka_to_pkg.h"
 #include "sen/pkg.h"
 #include "sentools/task_cancellation.h"
 #include "sentools/task_reporting.h"
 #include "sentools/task_reporting_dummy.h"
+#include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/memread.h"
@@ -23,60 +23,72 @@
 
 namespace SenTools {
 int PKA_Extract_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(
+    static constexpr HyoutaUtils::Arg arg_output{
+        .Type = HyoutaUtils::ArgTypes::String,
+        .ShortKey = "o",
+        .LongKey = "output",
+        .Argument = "DIRECTORY",
+        .Description =
+            "The output directory to extract to. Will be derived from input filename if not "
+            "given."};
+    static constexpr HyoutaUtils::Arg arg_ref_pka{
+        .Type = HyoutaUtils::ArgTypes::StringArray,
+        .LongKey = "referenced-pka",
+        .Argument = "PKA",
+        .Description =
+            "Referenced pka file that could also contain files, see the corresponding option in "
+            "PKA.Pack for details. Option can be provided multiple times. This is a nonstandard "
+            "feature that the vanilla game does not handle."};
+    static constexpr HyoutaUtils::Arg arg_as_pka_ref{
+        .Type = HyoutaUtils::ArgTypes::Flag,
+        .LongKey = "as-pka-reference",
+        .Description =
+            "Generate pkg files that only contain the file hashes, not the actual file data. The "
+            "pka file(s) will be needed to actually extract the data later."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 3> args_array{
+        {&arg_output, &arg_ref_pka, &arg_as_pka_ref}};
+    static constexpr HyoutaUtils::Args args(
+        "sentools " PKA_Extract_Name,
+        "assets.pka",
         PKA_Extract_ShortDescription
         "\n\n"
         "Note that this will duplicate every file that is stored in more than one pkg into every "
         "single of those pkg files. The extracted files will likely be much bigger than the input "
-        "pka, so make sure you have enough disk space available.");
-
-    parser.usage("sentools " PKA_Extract_Name " [options] assets.pka");
-    parser.add_option("-o", "--output")
-        .dest("output")
-        .metavar("DIRECTORY")
-        .help(
-            "The output directory to extract to. Will be derived from input filename if not "
-            "given.");
-    parser.add_option("--referenced-pka")
-        .dest("referenced-pka")
-        .action(optparse::ActionType::Append)
-        .metavar("PKA")
-        .help(
-            "Referenced pka file that could also contain files, see the corresponding option in "
-            "PKA.Pack for details. Option can be provided multiple times. This is a nonstandard "
-            "feature that the vanilla game does not handle.");
-    parser.add_option("--as-pka-reference")
-        .dest("as-pka-reference")
-        .action(optparse::ActionType::StoreTrue)
-        .help(
-            "Generate pkg files that only contain the file hashes, not the actual file data. The "
-            "pka file(s) will be needed to actually extract the data later.");
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
+        "pka, so make sure you have enough disk space available.",
+        args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    std::string_view source(args[0]);
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input file given."
+                                                 : "More than 1 input file given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    std::string_view source(options.FreeArguments[0]);
     std::string_view target;
     std::string tmp;
-    if (auto* output_option = options.get("output")) {
-        target = std::string_view(output_option->first_string());
+    if (auto* output_option = options.TryGetString(&arg_output)) {
+        target = std::string_view(*output_option);
     } else {
         tmp = std::string(source);
         tmp += ".ex";
         target = tmp;
     }
 
-    std::span<const std::string> referencedPkaPaths;
-    if (auto* referenced_pka_option = options.get("referenced-pka")) {
-        referencedPkaPaths = referenced_pka_option->strings();
+    std::span<const std::string_view> referencedPkaPaths;
+    if (auto* referenced_pka_option = options.TryGetStringArray(&arg_ref_pka)) {
+        referencedPkaPaths = *referenced_pka_option;
     }
 
-    const bool asPkaRef = options["as-pka-reference"].flag();
+    const bool asPkaRef = options.IsFlagSet(&arg_as_pka_ref);
 
     SenTools::TaskCancellation taskCancellation;
     SenTools::TaskReportingDummy taskReporting;
@@ -95,7 +107,7 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
                SenTools::TaskReporting* taskReporting,
                std::string_view source,
                std::string_view target,
-               std::span<const std::string> referencedPkaPaths,
+               std::span<const std::string_view> referencedPkaPaths,
                bool extractAsPkaReferenceStub) {
     HyoutaUtils::IO::File infile(source, HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
@@ -110,7 +122,7 @@ HyoutaUtils::Result<ExtractPkaResult, std::string>
     std::vector<SenLib::ReferencedPka> referencedPkas;
     {
         referencedPkas.reserve(referencedPkaPaths.size());
-        for (const std::string& referencedPkaPath : referencedPkaPaths) {
+        for (const std::string_view& referencedPkaPath : referencedPkaPaths) {
             if (taskCancellation->IsCancellationRequested()) {
                 return ExtractPkaResult::Cancelled;
             }
