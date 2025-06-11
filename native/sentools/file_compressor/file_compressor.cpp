@@ -12,9 +12,8 @@
 #include <string>
 #include <string_view>
 
-#include "cpp-optparse/OptionParser.h"
-
 #include "sen/decompress_helper.h"
+#include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
 #include "util/hash/crc32.h"
@@ -456,63 +455,59 @@ static std::optional<std::vector<char>> Compress(FileCompressorLzmaProps& result
 } // namespace
 
 int FileCompressor_Function(int argc, char** argv) {
-    optparse::OptionParser parser;
-    parser.description(FileCompressor_ShortDescription);
-
-    parser.usage("sentools " FileCompressor_Name " [options] file.bin");
-    parser.add_option("--filter")
-        .dest("filter")
-        .metavar("FILTER")
-        .type(optparse::DataType::String)
-        .set_default("None")
-        .help(
-            "Options:"
-            "\n - None"
-            "\n - Delta2LE_0x30Lead"
-            "\n - Delta4LE_0x30Lead"
-            "\n - Delta2LE_Deinterleaved_0x30Lead");
-    parser.add_option("--exhaustion")
-        .dest("exhaustion")
-        .metavar("EXHAUSTION")
-        .type(optparse::DataType::String)
-        .set_default("Standard")
-        .help(
-            "Options:"
-            "\n - Standard"
-            "\n - SemiExhaustive"
-            "\n - Exhaustive");
-    parser.add_option("--mindict")
-        .dest("mindict")
-        .metavar("MINDICT")
-        .type(optparse::DataType::Int)
-        .set_default(-1);
-    parser.add_option("--maxdict")
-        .dest("maxdict")
-        .metavar("MAXDICT")
-        .type(optparse::DataType::Int)
-        .set_default(-1);
-    parser.add_option("--decompress")
-        .dest("decompress")
-        .action(optparse::ActionType::StoreTrue)
-        .set_default(false);
-
-    const auto& options = parser.parse_args(argc, argv);
-    const auto& args = parser.args();
-    if (args.size() != 1) {
-        parser.error(args.size() == 0 ? "No input file given." : "More than 1 input file given.");
+    static constexpr HyoutaUtils::Arg arg_filter{.Type = HyoutaUtils::ArgTypes::String,
+                                                 .LongKey = "filter",
+                                                 .Argument = "FILTER",
+                                                 .Description =
+                                                     "Options:"
+                                                     "\n - None"
+                                                     "\n - Delta2LE_0x30Lead"
+                                                     "\n - Delta4LE_0x30Lead"
+                                                     "\n - Delta2LE_Deinterleaved_0x30Lead"};
+    static constexpr HyoutaUtils::Arg arg_exhaustion{.Type = HyoutaUtils::ArgTypes::String,
+                                                     .LongKey = "exhaustion",
+                                                     .Argument = "EXHAUSTION",
+                                                     .Description =
+                                                         "Options:"
+                                                         "\n - Standard"
+                                                         "\n - SemiExhaustive"
+                                                         "\n - Exhaustive."};
+    static constexpr HyoutaUtils::Arg arg_mindict{
+        .Type = HyoutaUtils::ArgTypes::Int64, .LongKey = "mindict", .Argument = "MINDICT"};
+    static constexpr HyoutaUtils::Arg arg_maxdict{
+        .Type = HyoutaUtils::ArgTypes::Int64, .LongKey = "maxdict", .Argument = "MAXDICT"};
+    static constexpr HyoutaUtils::Arg arg_decompress{.Type = HyoutaUtils::ArgTypes::Flag,
+                                                     .LongKey = "decompress"};
+    static constexpr std::array<const HyoutaUtils::Arg*, 5> args_array{
+        {&arg_filter, &arg_exhaustion, &arg_mindict, &arg_maxdict, &arg_decompress}};
+    static constexpr HyoutaUtils::Args args(
+        "sentools " FileCompressor_Name, "file.bin", FileCompressor_ShortDescription, args_array);
+    auto parseResult = args.Parse(argc, argv);
+    if (parseResult.IsError()) {
+        printf("Argument error: %s\n\n\n", parseResult.GetErrorValue().c_str());
+        args.PrintUsage();
         return -1;
     }
 
-    const std::string& inpath = args[0];
+    const auto& options = parseResult.GetSuccessValue();
+    if (options.FreeArguments.size() != 1) {
+        printf("Argument error: %s\n\n\n",
+               options.FreeArguments.size() == 0 ? "No input file given."
+                                                 : "More than 1 input file given.");
+        args.PrintUsage();
+        return -1;
+    }
+
+    const std::string_view& inpath = options.FreeArguments[0];
     Prefilter filter = Prefilter::None;
     Exhaustion exhaustion = Exhaustion::Standard;
-    bool decompress = false;
+    bool decompress = options.IsFlagSet(&arg_decompress);
     int64_t mindict = -1;
     int64_t maxdict = -1;
 
     using HyoutaUtils::TextUtils::CaseInsensitiveEquals;
-    if (auto* filter_option = options.get("filter")) {
-        std::string str = filter_option->first_string();
+    if (auto* filter_option = options.TryGetString(&arg_filter)) {
+        const auto& str = *filter_option;
         if (CaseInsensitiveEquals("None", str)) {
             filter = Prefilter::None;
         } else if (CaseInsensitiveEquals("Delta2LE_0x30Lead", str)) {
@@ -522,12 +517,12 @@ int FileCompressor_Function(int argc, char** argv) {
         } else if (CaseInsensitiveEquals("Delta2LE_Deinterleaved_0x30Lead", str)) {
             filter = Prefilter::Delta2LE_Deinterleaved_0x30Lead;
         } else {
-            printf("Invalid filter: %s\n", str.c_str());
+            printf("Invalid filter: %.*s\n", static_cast<int>(str.size()), str.data());
             return -1;
         }
     }
-    if (auto* exhaustion_option = options.get("exhaustion")) {
-        std::string str = exhaustion_option->first_string();
+    if (auto* exhaustion_option = options.TryGetString(&arg_exhaustion)) {
+        const auto& str = *exhaustion_option;
         if (CaseInsensitiveEquals("Standard", str)) {
             exhaustion = Exhaustion::Standard;
         } else if (CaseInsensitiveEquals("SemiExhaustive", str)) {
@@ -535,18 +530,15 @@ int FileCompressor_Function(int argc, char** argv) {
         } else if (CaseInsensitiveEquals("Exhaustive", str)) {
             exhaustion = Exhaustion::Exhaustive;
         } else {
-            printf("Invalid exhaustion: %s\n", str.c_str());
+            printf("Invalid exhaustion: %.*s\n", static_cast<int>(str.size()), str.data());
             return -1;
         }
     }
-    if (auto* mindict_option = options.get("mindict")) {
-        mindict = mindict_option->first_integer();
+    if (auto* mindict_option = options.TryGetInt64(&arg_mindict)) {
+        mindict = *mindict_option;
     }
-    if (auto* maxdict_option = options.get("maxdict")) {
-        maxdict = maxdict_option->first_integer();
-    }
-    if (auto* decompress_option = options.get("decompress")) {
-        decompress = decompress_option->flag();
+    if (auto* maxdict_option = options.TryGetInt64(&arg_maxdict)) {
+        maxdict = *maxdict_option;
     }
 
     HyoutaUtils::IO::File infile(std::string_view(inpath), HyoutaUtils::IO::OpenMode::Read);
@@ -575,7 +567,8 @@ int FileCompressor_Function(int argc, char** argv) {
     }
 
     if (decompress) {
-        std::string outpath = inpath + ".dec";
+        std::string outpath(inpath);
+        outpath.append(".dec");
         auto decompressed = SenLib::DecompressFromBuffer(buffer.get(), bufferSize);
         if (!decompressed) {
             printf("Failed to decompress\n");
