@@ -98,7 +98,6 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
                std::string_view target,
                std::span<const std::string_view> referencedPkaPaths,
                bool generateJson) {
-    std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
     HyoutaUtils::IO::File infile(std::string_view(source), HyoutaUtils::IO::OpenMode::Read);
     if (!infile.IsOpen()) {
         return std::string("Failed to open input file.");
@@ -139,6 +138,7 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
     }
 
     {
+        std::filesystem::path targetpath = HyoutaUtils::IO::FilesystemPathFromUtf8(target);
         std::error_code ec;
         std::filesystem::create_directories(targetpath, ec);
         if (ec) {
@@ -210,28 +210,23 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
             return std::format("Failed to extract file {} from pkg.", i);
         }
 
-        const auto& pkgName = pkgFile.Filename;
-        std::u8string_view pkgNameSv(reinterpret_cast<const char8_t*>(pkgName.data()),
-                                     pkgName.size());
-        const size_t pkgFilenameFirstNull = pkgNameSv.find_first_of(u8'\0');
-        const size_t pkgFilenameLength = (pkgFilenameFirstNull == std::u8string_view::npos)
-                                             ? pkgName.size()
-                                             : pkgFilenameFirstNull;
-        // FIXME
-        HyoutaUtils::IO::File outfile(targetpath / pkgNameSv.substr(0, pkgFilenameLength),
+        std::string_view pkgNameSv = HyoutaUtils::TextUtils::StripToNull(pkgFile.Filename);
+        std::string targetFilename(target);
+        HyoutaUtils::IO::AppendPathElement(targetFilename, pkgNameSv);
+        HyoutaUtils::IO::File outfile(std::string_view(targetFilename),
                                       HyoutaUtils::IO::OpenMode::Write);
         if (!outfile.IsOpen()) {
-            return std::string("Failed to open output file.");
+            return std::format("Failed to open output file at '{}'.", targetFilename);
         }
 
         if (outfile.Write(buffer.get(), uncompressedSize) != uncompressedSize) {
-            return std::string("Failed to write to output file.");
+            return std::format("Failed to write to output file at '{}'.", targetFilename);
         }
 
         json.Key("NameInArchive");
-        json.String(pkgFile.Filename.data(), pkgFilenameLength);
+        json.String(pkgNameSv.data(), pkgNameSv.size());
         json.Key("PathOnDisk");
-        json.String(pkgFile.Filename.data(), pkgFilenameLength);
+        json.String(pkgNameSv.data(), pkgNameSv.size());
         json.Key("Flags");
         json.Uint(flags);
         if (isPkaRef) {
@@ -244,8 +239,10 @@ HyoutaUtils::Result<ExtractPkgResult, std::string>
     json.EndObject();
 
     if (generateJson) {
-        // FIXME
-        HyoutaUtils::IO::File f2(targetpath / L"__pkg.json", HyoutaUtils::IO::OpenMode::Write);
+        std::string targetFilename(target);
+        HyoutaUtils::IO::AppendPathElement(targetFilename, "__pkg.json");
+        HyoutaUtils::IO::File f2(std::string_view(targetFilename),
+                                 HyoutaUtils::IO::OpenMode::Write);
         if (!f2.IsOpen()) {
             return std::string("Failed to open __pkg.json.");
         }
