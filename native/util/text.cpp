@@ -21,7 +21,7 @@
 namespace HyoutaUtils::TextUtils {
 #ifdef BUILD_FOR_WINDOWS
 static std::optional<std::string>
-    WStringToCodepage(const wchar_t* data, size_t length, UINT codepage) {
+    WStringToCodepage(const wchar_t* data, size_t length, UINT codepage) noexcept {
     if (length == 0) {
         return std::string();
     }
@@ -42,7 +42,11 @@ static std::optional<std::string>
     }
 
     std::string result;
-    result.resize(static_cast<size_t>(requiredBytes));
+    try {
+        result.resize(static_cast<size_t>(requiredBytes));
+    } catch (...) {
+        return std::nullopt;
+    }
     const auto convertedBytes = WideCharToMultiByte(codepage,
                                                     flags,
                                                     data,
@@ -59,7 +63,8 @@ static std::optional<std::string>
 }
 
 template<typename T>
-static std::optional<T> CodepageToString16(const char* data, size_t length, UINT codepage) {
+static std::optional<T>
+    CodepageToString16(const char* data, size_t length, UINT codepage) noexcept {
     static_assert(sizeof(typename T::value_type) == 2);
 
     if (length == 0) {
@@ -77,7 +82,11 @@ static std::optional<T> CodepageToString16(const char* data, size_t length, UINT
     }
 
     T wstr;
-    wstr.resize(static_cast<size_t>(requiredBytes));
+    try {
+        wstr.resize(static_cast<size_t>(requiredBytes));
+    } catch (...) {
+        return std::nullopt;
+    }
     const auto convertedBytes = MultiByteToWideChar(codepage,
                                                     MB_ERR_INVALID_CHARS,
                                                     data,
@@ -94,7 +103,7 @@ static std::optional<T> CodepageToString16(const char* data, size_t length, UINT
 static std::optional<std::string> ConvertString(const char* data,
                                                 size_t length,
                                                 const char* sourceEncoding,
-                                                const char* targetEncoding) {
+                                                const char* targetEncoding) noexcept {
     if (length == 0) {
         return std::string();
     }
@@ -126,7 +135,11 @@ static std::optional<std::string> ConvertString(const char* data,
         if (rv == ((size_t)-1) && errno != E2BIG) {
             return std::nullopt;
         }
-        result.append(buffer.data(), out);
+        try {
+            result.append(buffer.data(), out);
+        } catch (...) {
+            return std::nullopt;
+        }
         if (in == next) {
             break;
         }
@@ -141,7 +154,7 @@ static std::optional<std::string> ConvertString(const char* data,
 }
 #endif
 
-std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) {
+std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, CP_UTF8);
 #else
@@ -149,7 +162,7 @@ std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) {
 #endif
 }
 
-std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) {
+std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     return CodepageToString16<std::u16string>(data, length, CP_UTF8);
 #else
@@ -158,17 +171,21 @@ std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) {
         return std::nullopt;
     }
     std::u16string str16;
-    str16.reserve(str->size() / 2);
-    for (size_t i = 0; i < str->size(); i += 2) {
-        const char16_t c =
-            char16_t(uint16_t(uint8_t((*str)[i])) | (uint16_t(uint8_t((*str)[i + 1])) << 8));
-        str16.push_back(c);
+    try {
+        str16.reserve(str->size() / 2);
+        for (size_t i = 0; i < str->size(); i += 2) {
+            const char16_t c =
+                char16_t(uint16_t(uint8_t((*str)[i])) | (uint16_t(uint8_t((*str)[i + 1])) << 8));
+            str16.push_back(c);
+        }
+    } catch (...) {
+        return std::nullopt;
     }
     return str16;
 #endif
 }
 
-std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length) {
+std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, 932);
 #else
@@ -180,7 +197,7 @@ std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length) 
 #endif
 }
 
-std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length) {
+std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     return CodepageToString16<std::u16string>(data, length, 932);
 #else
@@ -193,24 +210,24 @@ std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length) {
 }
 
 #ifdef BUILD_FOR_WINDOWS
-std::optional<std::string> WStringToUtf8(const wchar_t* data, size_t length) {
+std::optional<std::string> WStringToUtf8(const wchar_t* data, size_t length) noexcept {
     return WStringToCodepage(data, length, CP_UTF8);
 }
 
-std::optional<std::wstring> Utf8ToWString(const char* data, size_t length) {
+std::optional<std::wstring> Utf8ToWString(const char* data, size_t length) noexcept {
     return CodepageToString16<std::wstring>(data, length, CP_UTF8);
 }
 
-std::optional<std::string> WStringToShiftJis(const wchar_t* data, size_t length) {
+std::optional<std::string> WStringToShiftJis(const wchar_t* data, size_t length) noexcept {
     return WStringToCodepage(data, length, 932);
 }
 
-std::optional<std::wstring> ShiftJisToWString(const char* data, size_t length) {
+std::optional<std::wstring> ShiftJisToWString(const char* data, size_t length) noexcept {
     return CodepageToString16<std::wstring>(data, length, 932);
 }
 #endif
 
-std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length) {
+std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     auto wstr = ShiftJisToWString(data, length);
     if (!wstr) {
@@ -222,7 +239,7 @@ std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length) {
 #endif
 }
 
-std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length) {
+std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     auto wstr = Utf8ToWString(data, length);
     if (!wstr) {
@@ -235,11 +252,11 @@ std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length) {
 }
 
 #ifdef BUILD_FOR_WINDOWS
-std::optional<std::wstring> AnsiCodePageToWString(const char* data, size_t length) {
+std::optional<std::wstring> AnsiCodePageToWString(const char* data, size_t length) noexcept {
     return CodepageToString16<std::wstring>(data, length, GetACP());
 }
 
-std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length) {
+std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length) noexcept {
     auto wstr = AnsiCodePageToWString(data, length);
     if (!wstr) {
         return std::nullopt;
@@ -247,11 +264,11 @@ std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length) {
     return WStringToUtf8(wstr->data(), wstr->size());
 }
 
-std::optional<std::wstring> OemCodePageToWString(const char* data, size_t length) {
+std::optional<std::wstring> OemCodePageToWString(const char* data, size_t length) noexcept {
     return CodepageToString16<std::wstring>(data, length, GetOEMCP());
 }
 
-std::optional<std::string> OemCodePageToUtf8(const char* data, size_t length) {
+std::optional<std::string> OemCodePageToUtf8(const char* data, size_t length) noexcept {
     auto wstr = OemCodePageToWString(data, length);
     if (!wstr) {
         return std::nullopt;
@@ -348,11 +365,11 @@ std::string UInt32ToString(uint32_t value) {
     return std::string(std::string_view(str.data(), ptr));
 }
 
-static bool IsWhitespace(char c) {
+static bool IsWhitespace(char c) noexcept {
     return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v';
 }
 
-std::string_view Trim(std::string_view sv) {
+std::string_view Trim(std::string_view sv) noexcept {
     while (!sv.empty() && IsWhitespace(sv.front())) {
         sv.remove_prefix(1);
     }
@@ -401,7 +418,7 @@ std::string Join(const std::vector<std::string_view>& svs, std::string_view join
     return result;
 }
 
-bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
+bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) noexcept {
     if (lhs.size() != rhs.size()) {
         return false;
     }
@@ -415,7 +432,7 @@ bool CaseInsensitiveEquals(std::string_view lhs, std::string_view rhs) {
     return true;
 }
 
-int CaseInsensitiveCompare(std::string_view lhs, std::string_view rhs) {
+int CaseInsensitiveCompare(std::string_view lhs, std::string_view rhs) noexcept {
     const size_t shorter = std::min(lhs.size(), rhs.size());
     for (size_t i = 0; i < shorter; ++i) {
         const uint8_t cl = static_cast<uint8_t>(
@@ -494,7 +511,7 @@ static size_t FindLastMatchNoAsterik(std::string_view string,
 template<typename CharMatchF>
 static bool GlobMatchesTemplate(std::string_view string,
                                 std::string_view glob,
-                                const CharMatchF& charMatchFunc) {
+                                const CharMatchF& charMatchFunc) noexcept {
     std::string_view restString = string;
     std::string_view restGlob = glob;
 
@@ -580,12 +597,12 @@ static bool GlobMatchesTemplate(std::string_view string,
     }
 }
 
-bool GlobMatches(std::string_view string, std::string_view glob) {
+bool GlobMatches(std::string_view string, std::string_view glob) noexcept {
     return GlobMatchesTemplate(
         string, glob, [](const char lhs, const char rhs) { return lhs == rhs; });
 }
 
-bool CaseInsensitiveGlobMatches(std::string_view string, std::string_view glob) {
+bool CaseInsensitiveGlobMatches(std::string_view string, std::string_view glob) noexcept {
     return GlobMatchesTemplate(string, glob, [](const char lhs, const char rhs) {
         const char cl = (lhs >= 'A' && lhs <= 'Z') ? (lhs + ('a' - 'A')) : lhs;
         const char cr = (rhs >= 'A' && rhs <= 'Z') ? (rhs + ('a' - 'A')) : rhs;
