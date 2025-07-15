@@ -419,6 +419,27 @@ TEST_F(FileUtilsTest, WriteFile) {
                         std::span<const char>(tmp.data() + 16, 28));
         EXPECT_EQ(uint64_t(44), f.GetPosition());
     }
+
+    // Test OpenWithTempFilename()
+    {
+        HyoutaUtils::IO::File f;
+        f.OpenWithTempFilename("FileUtilsTestDir/tempname.bin", HyoutaUtils::IO::OpenMode::Write);
+        ASSERT_TRUE(f.IsOpen());
+        EXPECT_EQ(randomData.size(), f.Write(randomData.data(), randomData.size()));
+        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/tempname.bin"));
+        EXPECT_TRUE(f.Rename("FileUtilsTestDir/tempname.bin"));
+        EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/tempname.bin"));
+    }
+    {
+        HyoutaUtils::IO::File f("FileUtilsTestDir/tempname.bin", HyoutaUtils::IO::OpenMode::Read);
+        ASSERT_TRUE(f.IsOpen());
+        std::array<char, 100> tmp{};
+        ASSERT_TRUE(tmp.size() >= randomData.size());
+        EXPECT_EQ(randomData.size(), f.Read(tmp.data(), tmp.size()));
+        ExpectEqualSpan(std::span<const char>(randomData.data(), randomData.size()),
+                        std::span<const char>(tmp.data(), randomData.size()));
+        EXPECT_EQ(uint64_t(randomData.size()), f.GetPosition());
+    }
 }
 
 TEST_F(FileUtilsTest, FilesystemFunctions) {
