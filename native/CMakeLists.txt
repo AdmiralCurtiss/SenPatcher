@@ -586,7 +586,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		target_include_directories(sentools
 			PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/imgui" "${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends"
 		)
-		target_compile_definitions(sentools PUBLIC SENTOOLS_WITH_IMGUI)
+		target_compile_definitions(sentools PUBLIC SENTOOLS_WITH_IMGUI IMGUI_USE_WCHAR32)
 
 		if (WIN32)
 			# on Windows we just use DX11 for this, all the Cold Steel games run on DX11

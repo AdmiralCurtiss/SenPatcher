@@ -377,6 +377,18 @@ std::vector<std::string_view> Split(std::string_view sv, std::string_view splitP
     }
 }
 
+std::string Join(const std::vector<std::string>& svs, std::string_view joinPattern) {
+    std::string result;
+    if (!svs.empty()) {
+        result.append(svs[0]);
+        for (size_t i = 1; i < svs.size(); ++i) {
+            result.append(joinPattern);
+            result.append(svs[i]);
+        }
+    }
+    return result;
+}
+
 std::string Join(const std::vector<std::string_view>& svs, std::string_view joinPattern) {
     std::string result;
     if (!svs.empty()) {

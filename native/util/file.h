@@ -75,19 +75,23 @@ private:
 #endif
 };
 
+bool Exists(std::string_view p) noexcept;
 bool FileExists(std::string_view p) noexcept;
 std::optional<uint64_t> GetFilesize(std::string_view p) noexcept;
 bool DirectoryExists(std::string_view p) noexcept;
 bool CreateDirectory(std::string_view p) noexcept;
 bool CopyFile(std::string_view source, std::string_view target, bool overwrite = true) noexcept;
+bool Move(std::string_view source, std::string_view target, bool overwrite = true) noexcept;
 bool DeleteFile(std::string_view path) noexcept;
 bool DeleteDirectory(std::string_view path) noexcept; // must be empty
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+bool Exists(const std::filesystem::path& p) noexcept;
 bool FileExists(const std::filesystem::path& p) noexcept;
 std::optional<uint64_t> GetFilesize(const std::filesystem::path& p) noexcept;
 bool DirectoryExists(const std::filesystem::path& p) noexcept;
 bool CreateDirectory(const std::filesystem::path& p) noexcept;
+bool DeleteFile(const std::filesystem::path& p) noexcept;
 bool DeleteDirectory(const std::filesystem::path& p) noexcept; // must be empty
 
 std::filesystem::path FilesystemPathFromUtf8(std::string_view path);
@@ -108,6 +112,21 @@ SplitPathData SplitPath(std::string_view path);
 // Effectively a fancy "path += '/' + filename" that works correctly if 'path' already ends with a
 // separator and uses backslash on Windows.
 void AppendPathElement(std::string& path, std::string_view filename);
+
+// Returns everything but the filename of the given path. Effectively SplitPath(path).Directory
+std::string_view GetDirectoryName(std::string_view path);
+
+// Returns filename of the given path. Effectively SplitPath(path).Filename
+std::string_view GetFileName(std::string_view path);
+
+// Returns filename of the given path without extension.
+std::string_view GetFileNameWithoutExtension(std::string_view path);
+
+// Returns the extension of the given path. This will include the dot.
+std::string_view GetExtension(std::string_view path);
+
+// Makes the given path absolute.
+std::string GetAbsolutePath(std::string_view path);
 
 // Simulates an atomic file write.
 // More specifically, opens a temp file, writes to it, then renames that temp file to the given path

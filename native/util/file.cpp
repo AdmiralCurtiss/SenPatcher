@@ -188,6 +188,7 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
             size_t extraCharsAppended = 0;
             size_t loopIndex = 0;
             do {
+                errno = 0;
                 int fd = open(s.c_str(),
                               O_CREAT | O_EXCL | O_WRONLY,
                               S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
@@ -358,7 +359,7 @@ std::optional<uint64_t> File::GetLength() noexcept {
     if (fd == -1) {
         return std::nullopt;
     }
-    struct stat buf {};
+    struct stat buf{};
     if (fstat(fd, &buf) != 0) {
         return std::nullopt;
     }
@@ -506,7 +507,7 @@ bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t ws
         == nullptr) {
         return false;
     }
-    std::memset(alignedBuffer, 0, allocationLength);
+    std::memset(alignedBuffer, 0, structLength);
     FILE_RENAME_INFO* info = new (alignedBuffer) FILE_RENAME_INFO;
     auto infoGuard = HyoutaUtils::MakeScopeGuard([&info]() { info->~FILE_RENAME_INFO(); });
     info->ReplaceIfExists = TRUE;
@@ -514,7 +515,7 @@ bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t ws
     info->FileNameLength = static_cast<DWORD>(wstr_len * sizeof(wchar_t));
     std::memcpy(info->FileName, wstr_data, wstr_len * sizeof(wchar_t));
     if (SetFileInformationByHandle(
-            filehandle, FileRenameInfo, info, static_cast<DWORD>(allocationLength))
+            filehandle, FileRenameInfo, info, static_cast<DWORD>(structLength))
         != 0) {
         return true;
     }
@@ -562,6 +563,47 @@ void* File::ReleaseHandle() noexcept {
 }
 
 #ifdef BUILD_FOR_WINDOWS
+static bool AnyExistsWindows(const wchar_t* path) {
+    const auto attributes = GetFileAttributesW(path);
+    if (attributes == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+    return true;
+}
+#else
+static bool AnyExistsLinux(const char* path) {
+    struct stat buf{};
+    if (stat(path, &buf) != 0) {
+        return false;
+    }
+    return true;
+}
+#endif
+
+bool Exists(std::string_view p) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
+    if (!wstr) {
+        return false;
+    }
+    return AnyExistsWindows(wstr->data());
+#else
+    std::string s(p);
+    return AnyExistsLinux(s.c_str());
+#endif
+}
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+bool Exists(const std::filesystem::path& p) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return AnyExistsWindows(p.native().data());
+#else
+    return AnyExistsLinux(p.c_str());
+#endif
+}
+#endif
+
+#ifdef BUILD_FOR_WINDOWS
 static bool FileExistsWindows(const wchar_t* path) {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
@@ -571,7 +613,7 @@ static bool FileExistsWindows(const wchar_t* path) {
 }
 #else
 static bool FileExistsLinux(const char* path) {
-    struct stat buf {};
+    struct stat buf{};
     if (stat(path, &buf) != 0) {
         return false;
     }
@@ -621,7 +663,7 @@ static std::optional<uint64_t> GetFilesizeWindows(const wchar_t* path) {
 }
 #else
 static std::optional<uint64_t> GetFilesizeLinux(const char* path) {
-    struct stat buf {};
+    struct stat buf{};
     if (stat(path, &buf) != 0) {
         return std::nullopt;
     }
@@ -665,7 +707,7 @@ static bool DirectoryExistsWindows(const wchar_t* path) {
 }
 #else
 static bool DirectoryExistsLinux(const char* path) {
-    struct stat buf {};
+    struct stat buf{};
     if (stat(path, &buf) != 0) {
         return false;
     }
@@ -701,7 +743,13 @@ bool DirectoryExists(const std::filesystem::path& p) noexcept {
 
 #ifdef BUILD_FOR_WINDOWS
 static bool CreateDirectoryWindows(const wchar_t* path) {
-    return CreateDirectoryW(path, nullptr);
+    if (CreateDirectoryW(path, nullptr)) {
+        return true;
+    }
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        return true;
+    }
+    return false;
 }
 #else
 static bool CreateDirectoryLinux(const char* path) {
@@ -802,16 +850,43 @@ bool CopyFile(std::string_view source, std::string_view target, bool overwrite) 
 #endif
 }
 
+#if defined(BUILD_FOR_WINDOWS) && defined(MoveFile)
+#undef MoveFile
+#endif
+bool Move(std::string_view source, std::string_view target, bool overwrite) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    auto wsource = HyoutaUtils::TextUtils::Utf8ToWString(source.data(), source.size());
+    if (!wsource) {
+        return false;
+    }
+    auto wtarget = HyoutaUtils::TextUtils::Utf8ToWString(target.data(), target.size());
+    if (!wtarget) {
+        return false;
+    }
+    return MoveFileExW(wsource->c_str(),
+                       wtarget->c_str(),
+                       static_cast<DWORD>(MOVEFILE_COPY_ALLOWED
+                                          | (overwrite ? MOVEFILE_REPLACE_EXISTING : 0)))
+           != 0;
+#else
+    std::string sourcePath(source);
+    std::string targetPath(target);
+    int result = renameat2(AT_FDCWD,
+                           sourcePath.c_str(),
+                           AT_FDCWD,
+                           targetPath.c_str(),
+                           overwrite ? 0u : RENAME_NOREPLACE);
+    return result == 0;
+#endif
+}
+
 #if defined(BUILD_FOR_WINDOWS) && defined(DeleteFile)
 #undef DeleteFile
 #endif
-bool DeleteFile(std::string_view path) noexcept {
-#ifdef BUILD_FOR_WINDOWS
-    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(path.data(), path.size());
-    if (!wstr) {
-        return false;
-    }
-    if (DeleteFileW(wstr->c_str()) != 0) {
+
+#if defined(BUILD_FOR_WINDOWS)
+bool DeleteFileWindows(const wchar_t* path) noexcept {
+    if (DeleteFileW(path) != 0) {
         return true;
     }
     if (GetLastError() != ERROR_ACCESS_DENIED) {
@@ -821,7 +896,7 @@ bool DeleteFile(std::string_view path) noexcept {
     // DeleteFileW() fails on read-only files.
     // Check if this is the case, remove the attribute, and retry.
     WIN32_FILE_ATTRIBUTE_DATA data{};
-    const auto rv = GetFileAttributesExW(wstr->c_str(), GetFileExInfoStandard, &data);
+    const auto rv = GetFileAttributesExW(path, GetFileExInfoStandard, &data);
     if (rv == 0) {
         return false;
     }
@@ -833,16 +908,40 @@ bool DeleteFile(std::string_view path) noexcept {
         // not read-only
         return false;
     }
-    if (SetFileAttributesW(wstr->c_str(), data.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY) == 0) {
+    if (SetFileAttributesW(path, data.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY) == 0) {
         return false;
     }
-    return DeleteFileW(wstr->c_str()) != 0;
+    return DeleteFileW(path) != 0;
+}
+#else
+bool DeleteFileLinux(const char* path) noexcept {
+    int result = unlink(path);
+    return result == 0;
+}
+#endif
+
+bool DeleteFile(std::string_view path) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(path.data(), path.size());
+    if (!wstr) {
+        return false;
+    }
+    return DeleteFileWindows(wstr->c_str());
 #else
     std::string p(path);
-    int result = unlink(p.c_str());
-    return result == 0;
+    return DeleteFileLinux(p.c_str());
 #endif
 }
+
+#ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
+bool DeleteFile(const std::filesystem::path& p) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return DeleteFileWindows(p.c_str());
+#else
+    return DeleteFileLinux(p.c_str());
+#endif
+}
+#endif
 
 bool DeleteDirectory(std::string_view path) noexcept {
 #ifdef BUILD_FOR_WINDOWS
@@ -945,6 +1044,59 @@ void AppendPathElement(std::string& path, std::string_view filename) {
 #endif
     }
     path.append(filename);
+}
+
+std::string_view GetDirectoryName(std::string_view path) {
+    return SplitPath(path).Directory;
+}
+
+std::string_view GetFileName(std::string_view path) {
+    return SplitPath(path).Filename;
+}
+
+std::string_view GetFileNameWithoutExtension(std::string_view path) {
+    std::string_view name = GetFileName(path);
+    size_t pos = name.rfind('.');
+    if (pos == std::string_view::npos) {
+        return name;
+    }
+    return name.substr(0, pos);
+}
+
+std::string_view GetExtension(std::string_view path) {
+    std::string_view name = GetFileName(path);
+    size_t pos = name.rfind('.');
+    if (pos == std::string_view::npos) {
+        return std::string_view();
+    }
+    return name.substr(pos);
+}
+
+std::string GetAbsolutePath(std::string_view path) {
+    std::string result;
+#ifdef BUILD_FOR_WINDOWS
+    auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(path.data(), path.size());
+    if (!wstr) {
+        return result;
+    }
+    DWORD length = GetFullPathNameW(wstr->c_str(), 0, nullptr, nullptr);
+    if (length <= 1) {
+        return result;
+    }
+    DWORD length2;
+    std::unique_ptr<wchar_t[]> wresult;
+    do {
+        length2 = length;
+        wresult = std::make_unique_for_overwrite<wchar_t[]>(length + 1);
+        length = GetFullPathNameW(wstr->c_str(), length + 1, wresult.get(), nullptr);
+    } while (length > length2);
+    auto utf8 = HyoutaUtils::TextUtils::WStringToUtf8(wresult.get(), length);
+    if (!utf8) {
+        return result;
+    }
+    result = std::move(*utf8);
+#endif
+    return result;
 }
 
 bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noexcept {
