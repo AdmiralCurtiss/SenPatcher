@@ -49,7 +49,11 @@ public:
     // given filename after writes are done. This makes the target file replacement atomic.
     bool OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept;
 
+#ifdef BUILD_FOR_WINDOWS
     void* ReleaseHandle() noexcept;
+#else
+    int ReleaseHandle() noexcept;
+#endif
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
     File(const std::filesystem::path& p, OpenMode mode) noexcept;
@@ -68,9 +72,11 @@ private:
     explicit File(void* handle) noexcept;
 #endif
 
+#ifdef BUILD_FOR_WINDOWS
     void* Filehandle;
-
-#ifndef BUILD_FOR_WINDOWS
+#else
+    int Filehandle;
+    bool IsWritable = false;
     std::string Path;
 #endif
 };

@@ -32,7 +32,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define INVALID_HANDLE_VALUE nullptr
+#define INVALID_HANDLE_VALUE (-1)
 #define DWORD unsigned int
 #endif
 
@@ -61,10 +61,14 @@ File File::FromHandle(void* handle) noexcept {
 File::File(File&& other) noexcept
   : Filehandle(other.Filehandle)
 #ifndef BUILD_FOR_WINDOWS
+  , IsWritable(other.IsWritable)
   , Path(std::move(other.Path))
 #endif
 {
     other.Filehandle = INVALID_HANDLE_VALUE;
+#ifndef BUILD_FOR_WINDOWS
+    other.IsWritable = false;
+#endif
 }
 
 File& File::operator=(File&& other) noexcept {
@@ -72,6 +76,8 @@ File& File::operator=(File&& other) noexcept {
     this->Filehandle = other.Filehandle;
     other.Filehandle = INVALID_HANDLE_VALUE;
 #ifndef BUILD_FOR_WINDOWS
+    this->IsWritable = other.IsWritable;
+    other.IsWritable = false;
     this->Path = std::move(other.Path);
 #endif
     return *this;
@@ -80,6 +86,19 @@ File& File::operator=(File&& other) noexcept {
 File::~File() noexcept {
     Close();
 }
+
+#ifndef BUILD_FOR_WINDOWS
+static bool IsFdRegularFile(int fd) {
+    struct stat buf{};
+    if (fstat(fd, &buf) != 0) {
+        return false;
+    }
+    if (S_ISREG(buf.st_mode)) {
+        return true;
+    }
+    return false;
+}
+#endif
 
 bool File::Open(std::string_view p, OpenMode mode) noexcept {
     Close();
@@ -99,7 +118,11 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
                                      nullptr);
 #else
             std::string s(p);
-            Filehandle = fopen(s.c_str(), "rb");
+            Filehandle = open(s.c_str(), O_RDONLY | O_CLOEXEC);
+            if (Filehandle != INVALID_HANDLE_VALUE && !IsFdRegularFile(Filehandle)) {
+                close(Filehandle);
+                Filehandle = INVALID_HANDLE_VALUE;
+            }
             if (Filehandle != INVALID_HANDLE_VALUE) {
                 Path = std::move(s);
             }
@@ -121,8 +144,11 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
                                      nullptr);
 #else
             std::string s(p);
-            Filehandle = fopen(s.c_str(), "wb");
+            Filehandle = open(s.c_str(),
+                              O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC,
+                              S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
             if (Filehandle != INVALID_HANDLE_VALUE) {
+                IsWritable = true;
                 Path = std::move(s);
             }
 #endif
@@ -192,12 +218,8 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
                 int fd = open(s.c_str(),
                               O_CREAT | O_EXCL | O_WRONLY,
                               S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-                if (fd != -1) {
-                    Filehandle = fdopen(fd, "w");
-                    if (Filehandle == INVALID_HANDLE_VALUE) {
-                        close(fd);
-                        return false;
-                    }
+                if (fd != INVALID_HANDLE_VALUE) {
+                    Filehandle = fd;
                     break;
                 }
                 if (errno != EEXIST) {
@@ -221,6 +243,7 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
             } while (true);
 
             Path = std::move(s);
+            IsWritable = true;
             return true;
 #endif
         }
@@ -243,7 +266,11 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
                                      nullptr);
 #else
             std::string s(p);
-            Filehandle = fopen(s.c_str(), "rb");
+            Filehandle = open(s.c_str(), O_RDONLY | O_CLOEXEC);
+            if (Filehandle != INVALID_HANDLE_VALUE && !IsFdRegularFile(Filehandle)) {
+                close(Filehandle);
+                Filehandle = INVALID_HANDLE_VALUE;
+            }
             if (Filehandle != INVALID_HANDLE_VALUE) {
                 Path = std::move(s);
             }
@@ -261,8 +288,11 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
                                      nullptr);
 #else
             std::string s(p);
-            Filehandle = fopen(s.c_str(), "wb");
+            Filehandle = open(s.c_str(),
+                              O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC,
+                              S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
             if (Filehandle != INVALID_HANDLE_VALUE) {
+                IsWritable = true;
                 Path = std::move(s);
             }
 #endif
@@ -282,10 +312,11 @@ void File::Close() noexcept {
 #ifdef BUILD_FOR_WINDOWS
         CloseHandle(Filehandle);
 #else
-        fclose((FILE*)Filehandle);
+        close(Filehandle);
 #endif
         Filehandle = INVALID_HANDLE_VALUE;
 #ifndef BUILD_FOR_WINDOWS
+        IsWritable = false;
         Path.clear();
 #endif
     }
@@ -301,7 +332,7 @@ std::optional<uint64_t> File::GetPosition() noexcept {
         return static_cast<uint64_t>(position.QuadPart);
     }
 #else
-    off_t offset = ftello((FILE*)Filehandle);
+    off64_t offset = lseek64(Filehandle, 0, SEEK_CUR);
     if (offset >= 0) {
         return static_cast<uint64_t>(offset);
     }
@@ -332,15 +363,15 @@ bool File::SetPosition(int64_t position, SetPositionMode mode) noexcept {
         return true;
     }
 #else
-    int origin;
+    int whence;
     switch (mode) {
-        case SetPositionMode::Begin: origin = SEEK_SET; break;
-        case SetPositionMode::Current: origin = SEEK_CUR; break;
-        case SetPositionMode::End: origin = SEEK_END; break;
+        case SetPositionMode::Begin: whence = SEEK_SET; break;
+        case SetPositionMode::Current: whence = SEEK_CUR; break;
+        case SetPositionMode::End: whence = SEEK_END; break;
         default: return false;
     }
-    int result = fseeko((FILE*)Filehandle, (off_t)position, origin);
-    if (result == 0) {
+    off64_t result = lseek64(Filehandle, static_cast<off64_t>(position), whence);
+    if (result != static_cast<off64_t>(-1)) {
         return true;
     }
 #endif
@@ -355,12 +386,8 @@ std::optional<uint64_t> File::GetLength() noexcept {
         return static_cast<uint64_t>(size.QuadPart);
     }
 #else
-    int fd = fileno((FILE*)Filehandle);
-    if (fd == -1) {
-        return std::nullopt;
-    }
     struct stat buf{};
-    if (fstat(fd, &buf) != 0) {
+    if (fstat(Filehandle, &buf) != 0) {
         return std::nullopt;
     }
     if (S_ISREG(buf.st_mode)) {
@@ -377,14 +404,19 @@ size_t File::Read(void* data, size_t length) noexcept {
     size_t totalRead = 0;
     size_t rest = length;
     while (rest > 0) {
-        DWORD blockSize = rest > 0xffff'0000 ? 0xffff'0000 : static_cast<DWORD>(rest);
         DWORD blockRead = 0;
 #ifdef BUILD_FOR_WINDOWS
+        DWORD blockSize = rest > 0xffff'0000 ? 0xffff'0000 : static_cast<DWORD>(rest);
         if (ReadFile(Filehandle, buffer, blockSize, &blockRead, nullptr) == 0) {
             return totalRead;
         }
 #else
-        blockRead = (DWORD)fread(buffer, 1, blockSize, (FILE*)Filehandle);
+        size_t blockSize = rest > 0x7fff'f000 ? 0x7fff'f000 : rest;
+        ssize_t readResult = read(Filehandle, buffer, blockSize);
+        if (readResult < 0) {
+            return totalRead;
+        }
+        blockRead = static_cast<DWORD>(readResult);
 #endif
         if (blockRead == 0) {
             return totalRead;
@@ -404,14 +436,19 @@ size_t File::Write(const void* data, size_t length) noexcept {
     size_t totalWritten = 0;
     size_t rest = length;
     while (rest > 0) {
-        DWORD blockSize = rest > 0xffff'0000 ? 0xffff'0000 : static_cast<DWORD>(rest);
         DWORD blockWritten = 0;
 #ifdef BUILD_FOR_WINDOWS
+        DWORD blockSize = rest > 0xffff'0000 ? 0xffff'0000 : static_cast<DWORD>(rest);
         if (WriteFile(Filehandle, buffer, blockSize, &blockWritten, nullptr) == 0) {
             return totalWritten;
         }
 #else
-        blockWritten = (DWORD)fwrite(buffer, 1, blockSize, (FILE*)Filehandle);
+        size_t blockSize = rest > 0x7fff'f000 ? 0x7fff'f000 : rest;
+        ssize_t writeResult = write(Filehandle, buffer, blockSize);
+        if (writeResult < 0) {
+            return totalWritten;
+        }
+        blockWritten = static_cast<DWORD>(writeResult);
 #endif
         if (blockWritten == 0) {
             return totalWritten;
@@ -441,7 +478,11 @@ uint64_t File::Write(File& source, uint64_t length) noexcept {
             return totalWritten;
         }
 #else
-        blockRead = (DWORD)fread(buffer.data(), 1, blockSize, (FILE*)source.Filehandle);
+        ssize_t readResult = read(source.Filehandle, buffer.data(), blockSize);
+        if (readResult < 0) {
+            return totalWritten;
+        }
+        blockRead = static_cast<DWORD>(readResult);
 #endif
         if (blockRead == 0) {
             return totalWritten;
@@ -453,7 +494,11 @@ uint64_t File::Write(File& source, uint64_t length) noexcept {
             return totalWritten;
         }
 #else
-        blockWritten = (DWORD)fwrite(buffer.data(), 1, blockRead, (FILE*)Filehandle);
+        ssize_t writeResult = write(Filehandle, buffer.data(), blockRead);
+        if (writeResult < 0) {
+            return totalWritten;
+        }
+        blockWritten = static_cast<DWORD>(writeResult);
 #endif
         if (blockWritten != blockRead) {
             return (totalWritten + blockWritten);
@@ -475,8 +520,12 @@ bool File::Delete() noexcept {
         return true;
     }
 #else
+    if (!IsWritable) {
+        return false;
+    }
     int result = unlink(Path.c_str());
     if (result == 0) {
+        Path.clear();
         return true;
     }
 #endif
@@ -533,9 +582,16 @@ bool File::Rename(const std::string_view p) noexcept {
     }
     return RenameInternalWindows(Filehandle, wstr->data(), wstr->size());
 #else
+    if (!IsWritable) {
+        return false;
+    }
     std::string newName(p);
     int result = rename(Path.c_str(), newName.c_str());
-    return result == 0;
+    if (result == 0) {
+        Path = std::move(newName);
+        return true;
+    }
+    return false;
 #endif
 }
 
@@ -547,20 +603,33 @@ bool File::Rename(const std::filesystem::path& p) noexcept {
     const auto& wstr = p.native();
     return RenameInternalWindows(Filehandle, wstr.data(), wstr.size());
 #else
+    if (!IsWritable) {
+        return false;
+    }
     int result = rename(Path.c_str(), p.c_str());
-    return result == 0;
+    if (result == 0) {
+        Path = std::string(p.c_str());
+        return true;
+    }
+    return false;
 #endif
 }
 #endif
 
+#ifdef BUILD_FOR_WINDOWS
 void* File::ReleaseHandle() noexcept {
     void* h = Filehandle;
     Filehandle = INVALID_HANDLE_VALUE;
-#ifndef BUILD_FOR_WINDOWS
-    Path.clear();
-#endif
     return h;
 }
+#else
+int File::ReleaseHandle() noexcept {
+    int h = Filehandle;
+    Filehandle = INVALID_HANDLE_VALUE;
+    Path.clear();
+    return h;
+}
+#endif
 
 #ifdef BUILD_FOR_WINDOWS
 static bool AnyExistsWindows(const wchar_t* path) {
