@@ -390,6 +390,35 @@ TEST_F(FileUtilsTest, WriteFile) {
         EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
         EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
     }
+
+    // Test the file-copying Write() overload
+    {
+        HyoutaUtils::IO::File f("FileUtilsTestDir/write.bin", HyoutaUtils::IO::OpenMode::Write);
+        ASSERT_TRUE(f.IsOpen());
+        HyoutaUtils::IO::File f2("FileUtilsTestDir/file16.bin", HyoutaUtils::IO::OpenMode::Read);
+        ASSERT_TRUE(f2.IsOpen());
+        HyoutaUtils::IO::File f3("FileUtilsTestDir/file128.bin", HyoutaUtils::IO::OpenMode::Read);
+        ASSERT_TRUE(f3.IsOpen());
+        EXPECT_EQ(uint64_t(16), f.Write(f2, 16));
+        EXPECT_TRUE(f3.SetPosition(100));
+        EXPECT_EQ(uint64_t(28), f.Write(f3, 32));
+        EXPECT_EQ(uint64_t(44), f.GetLength());
+    }
+    {
+        HyoutaUtils::IO::File f("FileUtilsTestDir/write.bin", HyoutaUtils::IO::OpenMode::Read);
+        ASSERT_TRUE(f.IsOpen());
+        std::array<char, 100> tmp{};
+        EXPECT_EQ(44, f.Read(tmp.data(), tmp.size()));
+        const std::vector<char> refData1 = MakeRandomData(1, 128);
+        ASSERT_EQ(128, refData1.size());
+        const std::vector<char> refData2 = MakeRandomData(2, 16);
+        ASSERT_EQ(16, refData2.size());
+        ExpectEqualSpan(std::span<const char>(refData2.data(), 16),
+                        std::span<const char>(tmp.data(), 16));
+        ExpectEqualSpan(std::span<const char>(refData1.data() + 100, 28),
+                        std::span<const char>(tmp.data() + 16, 28));
+        EXPECT_EQ(uint64_t(44), f.GetPosition());
+    }
 }
 
 TEST_F(FileUtilsTest, FilesystemFunctions) {
