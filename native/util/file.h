@@ -111,7 +111,7 @@ struct SplitPathData {
     std::string_view Directory;
     std::string_view Filename;
 };
-SplitPathData SplitPath(std::string_view path);
+SplitPathData SplitPath(std::string_view path) noexcept;
 
 // Inverse of the above: Given a path and a filename, appends the filename to the path.
 // This does *not* resolve absolute paths. 'filename' should be a single element, not a full path.
@@ -120,16 +120,16 @@ SplitPathData SplitPath(std::string_view path);
 void AppendPathElement(std::string& path, std::string_view filename);
 
 // Returns everything but the filename of the given path. Effectively SplitPath(path).Directory
-std::string_view GetDirectoryName(std::string_view path);
+std::string_view GetDirectoryName(std::string_view path) noexcept;
 
 // Returns filename of the given path. Effectively SplitPath(path).Filename
-std::string_view GetFileName(std::string_view path);
+std::string_view GetFileName(std::string_view path) noexcept;
 
 // Returns filename of the given path without extension.
-std::string_view GetFileNameWithoutExtension(std::string_view path);
+std::string_view GetFileNameWithoutExtension(std::string_view path) noexcept;
 
 // Returns the extension of the given path. This will include the dot.
-std::string_view GetExtension(std::string_view path);
+std::string_view GetExtension(std::string_view path) noexcept;
 
 // Makes the given path absolute.
 std::string GetAbsolutePath(std::string_view path);

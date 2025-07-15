@@ -14,6 +14,7 @@
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
 #include <filesystem>
+#include <stdexcept>
 #endif
 
 #include "util/scope.h"
@@ -88,7 +89,7 @@ File::~File() noexcept {
 }
 
 #ifndef BUILD_FOR_WINDOWS
-static bool IsFdRegularFile(int fd) {
+static bool IsFdRegularFile(int fd) noexcept {
     struct stat buf{};
     if (fstat(fd, &buf) != 0) {
         return false;
@@ -172,7 +173,11 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
             if (!s) {
                 return false;
             }
-            s->append(L".tmp");
+            try {
+                s->append(L".tmp");
+            } catch (...) {
+                return false;
+            }
             size_t extraCharsAppended = 0;
             size_t loopIndex = 0;
             do {
@@ -192,18 +197,22 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
 
                 // file exists, try next
                 // TODO: might be better to RNG something here, or use a timestamp or something?
-                for (size_t i = 0; i < extraCharsAppended; ++i) {
-                    s->pop_back();
+                try {
+                    for (size_t i = 0; i < extraCharsAppended; ++i) {
+                        s->pop_back();
+                    }
+                    extraCharsAppended = 0;
+                    size_t x = loopIndex;
+                    do {
+                        // this counts from the wrong side but whatever...
+                        s->push_back(L'0' + (x % 10));
+                        x = (x / 10);
+                        ++extraCharsAppended;
+                    } while (x > 0);
+                    ++loopIndex;
+                } catch (...) {
+                    return false;
                 }
-                extraCharsAppended = 0;
-                size_t x = loopIndex;
-                do {
-                    // this counts from the wrong side but whatever...
-                    s->push_back(L'0' + (x % 10));
-                    x = (x / 10);
-                    ++extraCharsAppended;
-                } while (x > 0);
-                ++loopIndex;
             } while (true);
             return true;
 #else
@@ -534,7 +543,7 @@ bool File::Delete() noexcept {
 }
 
 #ifdef BUILD_FOR_WINDOWS
-bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t wstr_len) {
+bool RenameInternalWindows(void* filehandle, const wchar_t* wstr_data, size_t wstr_len) noexcept {
     // This struct has a very odd definition, because its size is dynamic, so we must do something
     // like this...
     if (wstr_len > 32771) {
@@ -632,7 +641,7 @@ int File::ReleaseHandle() noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
-static bool AnyExistsWindows(const wchar_t* path) {
+static bool AnyExistsWindows(const wchar_t* path) noexcept {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
         return false;
@@ -640,7 +649,7 @@ static bool AnyExistsWindows(const wchar_t* path) {
     return true;
 }
 #else
-static bool AnyExistsLinux(const char* path) {
+static bool AnyExistsLinux(const char* path) noexcept {
     struct stat buf{};
     if (stat(path, &buf) != 0) {
         return false;
@@ -673,7 +682,7 @@ bool Exists(const std::filesystem::path& p) noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
-static bool FileExistsWindows(const wchar_t* path) {
+static bool FileExistsWindows(const wchar_t* path) noexcept {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
         return false;
@@ -681,7 +690,7 @@ static bool FileExistsWindows(const wchar_t* path) {
     return (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
 }
 #else
-static bool FileExistsLinux(const char* path) {
+static bool FileExistsLinux(const char* path) noexcept {
     struct stat buf{};
     if (stat(path, &buf) != 0) {
         return false;
@@ -717,7 +726,7 @@ bool FileExists(const std::filesystem::path& p) noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
-static std::optional<uint64_t> GetFilesizeWindows(const wchar_t* path) {
+static std::optional<uint64_t> GetFilesizeWindows(const wchar_t* path) noexcept {
     WIN32_FILE_ATTRIBUTE_DATA data{};
     const auto rv = GetFileAttributesExW(path, GetFileExInfoStandard, &data);
     if (rv == 0) {
@@ -731,7 +740,7 @@ static std::optional<uint64_t> GetFilesizeWindows(const wchar_t* path) {
     return std::nullopt;
 }
 #else
-static std::optional<uint64_t> GetFilesizeLinux(const char* path) {
+static std::optional<uint64_t> GetFilesizeLinux(const char* path) noexcept {
     struct stat buf{};
     if (stat(path, &buf) != 0) {
         return std::nullopt;
@@ -767,7 +776,7 @@ std::optional<uint64_t> GetFilesize(const std::filesystem::path& p) noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
-static bool DirectoryExistsWindows(const wchar_t* path) {
+static bool DirectoryExistsWindows(const wchar_t* path) noexcept {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
         return false;
@@ -775,7 +784,7 @@ static bool DirectoryExistsWindows(const wchar_t* path) {
     return (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
 #else
-static bool DirectoryExistsLinux(const char* path) {
+static bool DirectoryExistsLinux(const char* path) noexcept {
     struct stat buf{};
     if (stat(path, &buf) != 0) {
         return false;
@@ -811,7 +820,7 @@ bool DirectoryExists(const std::filesystem::path& p) noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
-static bool CreateDirectoryWindows(const wchar_t* path) {
+static bool CreateDirectoryWindows(const wchar_t* path) noexcept {
     if (CreateDirectoryW(path, nullptr)) {
         return true;
     }
@@ -824,7 +833,7 @@ static bool CreateDirectoryWindows(const wchar_t* path) {
     return false;
 }
 #else
-static bool CreateDirectoryLinux(const char* path) {
+static bool CreateDirectoryLinux(const char* path) noexcept {
     if (DirectoryExistsLinux(path)) {
         return true;
     }
@@ -1074,15 +1083,15 @@ std::string FilesystemPathToUtf8(const std::filesystem::path& p) {
     if (utf8) {
         return *utf8;
     }
-    assert(0); // this should never happen
-    return std::string();
+    // this can happen if the memory allocation failed, I guess we just throw?
+    throw std::runtime_error("failed to convert path to UTF8");
 #else
     return p.native();
 #endif
 }
 #endif
 
-SplitPathData SplitPath(std::string_view path) {
+SplitPathData SplitPath(std::string_view path) noexcept {
     size_t lastPathSep = path.find_last_of(
 #ifdef BUILD_FOR_WINDOWS
         "\\/"
@@ -1126,15 +1135,15 @@ void AppendPathElement(std::string& path, std::string_view filename) {
     path.append(filename);
 }
 
-std::string_view GetDirectoryName(std::string_view path) {
+std::string_view GetDirectoryName(std::string_view path) noexcept {
     return SplitPath(path).Directory;
 }
 
-std::string_view GetFileName(std::string_view path) {
+std::string_view GetFileName(std::string_view path) noexcept {
     return SplitPath(path).Filename;
 }
 
-std::string_view GetFileNameWithoutExtension(std::string_view path) {
+std::string_view GetFileNameWithoutExtension(std::string_view path) noexcept {
     std::string_view name = GetFileName(path);
     size_t pos = name.rfind('.');
     if (pos == std::string_view::npos) {
@@ -1143,7 +1152,7 @@ std::string_view GetFileNameWithoutExtension(std::string_view path) {
     return name.substr(0, pos);
 }
 
-std::string_view GetExtension(std::string_view path) {
+std::string_view GetExtension(std::string_view path) noexcept {
     std::string_view name = GetFileName(path);
     size_t pos = name.rfind('.');
     if (pos == std::string_view::npos) {
