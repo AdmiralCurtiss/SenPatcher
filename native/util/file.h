@@ -144,6 +144,6 @@ bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noe
 #ifdef BUILD_FOR_WINDOWS
 // Gets the logical drives on this computer; that is, stuff like "C:\" and "D:\".
 // This concept only exists on Windows, so no Linux implementation is provided.
-std::vector<std::string> GetLogicalDrives() noexcept;
+std::vector<std::string> GetLogicalDrives();
 #endif
 } // namespace HyoutaUtils::IO

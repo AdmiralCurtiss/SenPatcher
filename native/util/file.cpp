@@ -1205,7 +1205,7 @@ bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noe
 }
 
 #ifdef BUILD_FOR_WINDOWS
-std::vector<std::string> GetLogicalDrives() noexcept {
+std::vector<std::string> GetLogicalDrives() {
     std::vector<std::string> result;
     DWORD bufferSize = GetLogicalDriveStringsW(0, nullptr);
     if (bufferSize == 0) {
