@@ -747,7 +747,10 @@ static bool CreateDirectoryWindows(const wchar_t* path) {
         return true;
     }
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        return true;
+        // this is returned even if the thing at path is a file,
+        // so we need to check if it's really a directory
+        // FIXME: is there a way to do this atomically?
+        return DirectoryExistsWindows(path);
     }
     return false;
 }
@@ -1021,7 +1024,15 @@ SplitPathData SplitPath(std::string_view path) {
 
     SplitPathData result;
     if (lastPathSep != std::string_view::npos) {
-        result.Directory = path.substr(0, lastPathSep);
+#ifdef BUILD_FOR_WINDOWS
+        const bool isRootDir =
+            (lastPathSep == 2
+             && ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'))
+             && path[1] == ':');
+#else
+        const bool isRootDir = (lastPathSep == 0);
+#endif
+        result.Directory = path.substr(0, lastPathSep + (isRootDir ? 1 : 0));
         result.Filename = path.substr(lastPathSep + 1);
     } else {
         result.Filename = path;

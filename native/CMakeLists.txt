@@ -1742,6 +1742,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/xorshift.h
 
 		test/args_test.cpp
+		test/file_test.cpp
 		test/ini_test.cpp
 		test/number_test.cpp
 		test/p3a_lookup_test.cpp
