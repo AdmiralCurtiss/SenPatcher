@@ -77,6 +77,8 @@ private:
 #else
     int Filehandle;
     bool IsWritable = false;
+    // true if the file was created with O_TMPFILE and does not have a path on disk yet
+    bool IsUnlinked = false;
     std::string Path;
 #endif
 };

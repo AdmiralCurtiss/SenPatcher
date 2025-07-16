@@ -65,12 +65,14 @@ File::File(File&& other) noexcept
   : Filehandle(other.Filehandle)
 #ifndef BUILD_FOR_WINDOWS
   , IsWritable(other.IsWritable)
+  , IsUnlinked(other.IsUnlinked)
   , Path(std::move(other.Path))
 #endif
 {
     other.Filehandle = INVALID_HANDLE_VALUE;
 #ifndef BUILD_FOR_WINDOWS
     other.IsWritable = false;
+    other.IsUnlinked = false;
 #endif
 }
 
@@ -81,6 +83,8 @@ File& File::operator=(File&& other) noexcept {
 #ifndef BUILD_FOR_WINDOWS
     this->IsWritable = other.IsWritable;
     other.IsWritable = false;
+    this->IsUnlinked = other.IsUnlinked;
+    other.IsUnlinked = false;
     this->Path = std::move(other.Path);
 #endif
     return *this;
@@ -228,9 +232,35 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
             } while (true);
             return true;
 #else
-            // TODO: Apparently on modern Linux you can do this much neater with
-            // open(O_TMPFILE) + linkat(), but we'd need to use fd instead of a FILE*
+            // try O_TMPFILE first
             std::string s;
+            try {
+                s.assign(p);
+                while (!s.ends_with('/')) {
+                    s.pop_back();
+                }
+                if (s.ends_with('/')) {
+                    s.pop_back();
+                }
+                if (s.empty()) {
+                    s.push_back('.');
+                }
+            } catch (...) {
+                return false;
+            }
+            {
+                int fd = open(s.c_str(),
+                              O_TMPFILE | O_WRONLY,
+                              S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+                if (fd != -1) {
+                    Filehandle = fd;
+                    IsWritable = true;
+                    IsUnlinked = true;
+                    return true;
+                }
+            }
+
+
             try {
                 s.assign(p);
                 s.append(".tmp");
@@ -242,7 +272,7 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
             do {
                 errno = 0;
                 int fd = open(s.c_str(),
-                              O_CREAT | O_EXCL | O_WRONLY,
+                              O_CREAT | O_EXCL | O_WRONLY | O_CLOEXEC,
                               S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                 if (fd != INVALID_HANDLE_VALUE) {
                     Filehandle = fd;
@@ -357,6 +387,7 @@ void File::Close() noexcept {
         Filehandle = INVALID_HANDLE_VALUE;
 #ifndef BUILD_FOR_WINDOWS
         IsWritable = false;
+        IsUnlinked = false;
         Path.clear();
 #endif
     }
@@ -560,6 +591,9 @@ bool File::Delete() noexcept {
         return true;
     }
 #else
+    if (IsUnlinked) {
+        return true;
+    }
     if (!IsWritable) {
         return false;
     }
@@ -631,8 +665,18 @@ bool File::Rename(const std::string_view p) noexcept {
     } catch (...) {
         return false;
     }
-    int result = rename(Path.c_str(), newName.c_str());
-    if (result == 0) {
+    bool success;
+    if (IsUnlinked) {
+        int result = linkat(Filehandle, "", AT_FDCWD, newName.c_str(), AT_EMPTY_PATH);
+        success = (result == 0);
+        if (success) {
+            IsUnlinked = false;
+        }
+    } else {
+        int result = rename(Path.c_str(), newName.c_str());
+        success = (result == 0);
+    }
+    if (success) {
         Path = std::move(newName);
         return true;
     }
@@ -648,21 +692,7 @@ bool File::Rename(const std::filesystem::path& p) noexcept {
     const auto& wstr = p.native();
     return RenameInternalWindows(Filehandle, wstr.data(), wstr.size());
 #else
-    if (!IsWritable) {
-        return false;
-    }
-    std::string newName;
-    try {
-        newName.assign(p.native());
-    } catch (...) {
-        return false;
-    }
-    int result = rename(Path.c_str(), newName.c_str());
-    if (result == 0) {
-        Path = std::move(newName);
-        return true;
-    }
-    return false;
+    return Rename(std::string_view(p.native()));
 #endif
 }
 #endif
