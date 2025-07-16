@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -119,7 +120,12 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
                                      FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
 #else
-            std::string s(p);
+            std::string s;
+            try {
+                s.assign(p);
+            } catch (...) {
+                return false;
+            }
             Filehandle = open(s.c_str(), O_RDONLY | O_CLOEXEC);
             if (Filehandle != INVALID_HANDLE_VALUE && !IsFdRegularFile(Filehandle)) {
                 close(Filehandle);
@@ -145,7 +151,12 @@ bool File::Open(std::string_view p, OpenMode mode) noexcept {
                                      FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
 #else
-            std::string s(p);
+            std::string s;
+            try {
+                s.assign(p);
+            } catch (...) {
+                return false;
+            }
             Filehandle = open(s.c_str(),
                               O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC,
                               S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
@@ -219,8 +230,13 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
 #else
             // TODO: Apparently on modern Linux you can do this much neater with
             // open(O_TMPFILE) + linkat(), but we'd need to use fd instead of a FILE*
-            std::string s(p);
-            s.append(".tmp");
+            std::string s;
+            try {
+                s.assign(p);
+                s.append(".tmp");
+            } catch (...) {
+                return false;
+            }
             size_t extraCharsAppended = 0;
             size_t loopIndex = 0;
             do {
@@ -238,18 +254,22 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
 
                 // file exists, try next
                 // TODO: might be better to RNG something here, or use a timestamp or something?
-                for (size_t i = 0; i < extraCharsAppended; ++i) {
-                    s.pop_back();
+                try {
+                    for (size_t i = 0; i < extraCharsAppended; ++i) {
+                        s.pop_back();
+                    }
+                    extraCharsAppended = 0;
+                    size_t x = loopIndex;
+                    do {
+                        // this counts from the wrong side but whatever...
+                        s.push_back('0' + (x % 10));
+                        x = (x / 10);
+                        ++extraCharsAppended;
+                    } while (x > 0);
+                    ++loopIndex;
+                } catch (...) {
+                    return false;
                 }
-                extraCharsAppended = 0;
-                size_t x = loopIndex;
-                do {
-                    // this counts from the wrong side but whatever...
-                    s.push_back('0' + (x % 10));
-                    x = (x / 10);
-                    ++extraCharsAppended;
-                } while (x > 0);
-                ++loopIndex;
             } while (true);
 
             Path = std::move(s);
@@ -275,7 +295,12 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
                                      FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
 #else
-            std::string s(p);
+            std::string s;
+            try {
+                s.assign(p);
+            } catch (...) {
+                return false;
+            }
             Filehandle = open(s.c_str(), O_RDONLY | O_CLOEXEC);
             if (Filehandle != INVALID_HANDLE_VALUE && !IsFdRegularFile(Filehandle)) {
                 close(Filehandle);
@@ -297,7 +322,12 @@ bool File::Open(const std::filesystem::path& p, OpenMode mode) noexcept {
                                      FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
 #else
-            std::string s(p);
+            std::string s;
+            try {
+                s.assign(p);
+            } catch (...) {
+                return false;
+            }
             Filehandle = open(s.c_str(),
                               O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC,
                               S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
@@ -595,7 +625,12 @@ bool File::Rename(const std::string_view p) noexcept {
     if (!IsWritable) {
         return false;
     }
-    std::string newName(p);
+    std::string newName;
+    try {
+        newName.assign(p);
+    } catch (...) {
+        return false;
+    }
     int result = rename(Path.c_str(), newName.c_str());
     if (result == 0) {
         Path = std::move(newName);
@@ -616,9 +651,15 @@ bool File::Rename(const std::filesystem::path& p) noexcept {
     if (!IsWritable) {
         return false;
     }
-    int result = rename(Path.c_str(), p.c_str());
+    std::string newName;
+    try {
+        newName.assign(p.native());
+    } catch (...) {
+        return false;
+    }
+    int result = rename(Path.c_str(), newName.c_str());
     if (result == 0) {
-        Path = std::string(p.c_str());
+        Path = std::move(newName);
         return true;
     }
     return false;
@@ -667,7 +708,12 @@ bool Exists(std::string_view p) noexcept {
     }
     return AnyExistsWindows(wstr->data());
 #else
-    std::string s(p);
+    std::string s;
+    try {
+        s.assign(p);
+    } catch (...) {
+        return false;
+    }
     return AnyExistsLinux(s.c_str());
 #endif
 }
@@ -711,7 +757,12 @@ bool FileExists(std::string_view p) noexcept {
     }
     return FileExistsWindows(wstr->data());
 #else
-    std::string s(p);
+    std::string s;
+    try {
+        s.assign(p);
+    } catch (...) {
+        return false;
+    }
     return FileExistsLinux(s.c_str());
 #endif
 }
@@ -761,7 +812,12 @@ std::optional<uint64_t> GetFilesize(std::string_view p) noexcept {
     }
     return GetFilesizeWindows(wstr->data());
 #else
-    std::string s(p);
+    std::string s;
+    try {
+        s.assign(p);
+    } catch (...) {
+        return std::nullopt;
+    }
     return GetFilesizeLinux(s.c_str());
 #endif
 }
@@ -805,7 +861,12 @@ bool DirectoryExists(std::string_view p) noexcept {
     }
     return DirectoryExistsWindows(wstr->data());
 #else
-    std::string s(p);
+    std::string s;
+    try {
+        s.assign(p);
+    } catch (...) {
+        return false;
+    }
     return DirectoryExistsLinux(s.c_str());
 #endif
 }
@@ -854,7 +915,12 @@ bool CreateDirectory(std::string_view p) noexcept {
     }
     return CreateDirectoryWindows(wstr->data());
 #else
-    std::string s(p);
+    std::string s;
+    try {
+        s.assign(p);
+    } catch (...) {
+        return false;
+    }
     return CreateDirectoryLinux(s.c_str());
 #endif
 }
@@ -890,8 +956,14 @@ bool CopyFile(std::string_view source, std::string_view target, bool overwrite) 
                        static_cast<DWORD>(overwrite ? 0 : COPY_FILE_FAIL_IF_EXISTS))
            != 0;
 #else
-    std::string sourcePath(source);
-    std::string targetPath(target);
+    std::string sourcePath;
+    std::string targetPath;
+    try {
+        sourcePath.assign(source);
+        targetPath.assign(target);
+    } catch (...) {
+        return false;
+    }
 
     // try to link() first, that will succeed in many cases
     errno = 0;
@@ -951,8 +1023,14 @@ bool Move(std::string_view source, std::string_view target, bool overwrite) noex
                                           | (overwrite ? MOVEFILE_REPLACE_EXISTING : 0)))
            != 0;
 #else
-    std::string sourcePath(source);
-    std::string targetPath(target);
+    std::string sourcePath;
+    std::string targetPath;
+    try {
+        sourcePath.assign(source);
+        targetPath.assign(target);
+    } catch (...) {
+        return false;
+    }
     int result = renameat2(AT_FDCWD,
                            sourcePath.c_str(),
                            AT_FDCWD,
@@ -1010,8 +1088,13 @@ bool DeleteFile(std::string_view path) noexcept {
     }
     return DeleteFileWindows(wstr->c_str());
 #else
-    std::string p(path);
-    return DeleteFileLinux(p.c_str());
+    std::string s;
+    try {
+        s.assign(path);
+    } catch (...) {
+        return false;
+    }
+    return DeleteFileLinux(s.c_str());
 #endif
 }
 
@@ -1033,8 +1116,13 @@ bool DeleteDirectory(std::string_view path) noexcept {
     }
     return RemoveDirectoryW(wstr->c_str()) != 0;
 #else
-    std::string p(path);
-    int result = rmdir(p.c_str());
+    std::string s;
+    try {
+        s.assign(path);
+    } catch (...) {
+        return false;
+    }
+    int result = rmdir(s.c_str());
     return result == 0;
 #endif
 }
