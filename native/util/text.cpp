@@ -128,6 +128,7 @@ static std::optional<std::string> ConvertString(const char* data,
         char* in = next;
         char* out = buffer.data();
         size_t outfree = buffer.size();
+        errno = 0;
         size_t rv = iconv(cd, &in, &rest, &out, &outfree);
         if (out == buffer.data()) {
             break;
