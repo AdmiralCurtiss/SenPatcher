@@ -236,7 +236,7 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
             std::string s;
             try {
                 s.assign(p);
-                while (!s.ends_with('/')) {
+                while (s.size() > 0 && s.back() != '/') {
                     s.pop_back();
                 }
                 if (s.ends_with('/')) {
