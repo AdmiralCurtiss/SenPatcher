@@ -534,6 +534,9 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
         HyoutaUtils::IO::Move("FileUtilsTestDir/subdir", "FileUtilsTestDir/movedir", false));
     EXPECT_FALSE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir"));
     EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
+
+// now we get into very system-specific stuff that may or may not work depening on the OS...
+#ifdef BUILD_FOR_WINDOWS
     // moving onto an existing directory fails, regardless of the flag
     EXPECT_FALSE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/movedir", "FileUtilsTestDir/newdir", false));
@@ -568,6 +571,16 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
     HyoutaUtils::IO::Move("FileUtilsTestDir/move.bin", "FileUtilsTestDir/move.bin", true);
     EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
     EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin/file0.bin"));
+#else
+    // just get the directory into a compatible state for the stuff below...
+    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
+    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
+    EXPECT_TRUE(HyoutaUtils::IO::DeleteFile("FileUtilsTestDir/move.bin"));
+    EXPECT_TRUE(
+        HyoutaUtils::IO::Move("FileUtilsTestDir/movedir", "FileUtilsTestDir/move.bin", true));
+    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/movedir"));
+#endif
 
     // DeleteDirectory() can only delete empty directories, nothing else
     EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/empty"));
