@@ -970,11 +970,32 @@ bool CopyFile(std::string_view source, std::string_view target, bool overwrite) 
     if (link(sourcePath.c_str(), targetPath.c_str()) == 0) {
         return true;
     }
-    if (errno == EEXIST) {
+    if (errno == EEXIST && !overwrite) {
+        return false;
+    }
+
+    // link() failed, now it gets complicated.
+    // to prevent file loss we first need to check whether the two paths refer to the same file,
+    // because if yes everything we'll try will have catastrophic results
+    struct stat sourceBuf{};
+    if (stat(sourcePath.c_str(), &sourceBuf) != 0) {
+        // source doesn't exist or is inaccessible
+        return false;
+    }
+    struct stat targetBuf{};
+    if (stat(targetPath.c_str(), &targetBuf) == 0) {
+        // target exists
         if (!overwrite) {
             return false;
         }
-        // we do want to overwrite, so delete the file and try again
+
+        // is this the same file as source?
+        if (sourceBuf.st_dev == targetBuf.st_dev && sourceBuf.st_ino == targetBuf.st_ino) {
+            // yes, bail
+            return false;
+        }
+
+        // delete the old file and retry the link
         if (unlink(targetPath.c_str()) != 0) {
             return false;
         }
