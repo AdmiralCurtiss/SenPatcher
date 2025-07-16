@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -1184,6 +1185,56 @@ std::string GetAbsolutePath(std::string_view path) {
         return result;
     }
     result = std::move(*utf8);
+#else
+    if (path.starts_with('/')) {
+        // already absolute
+        result.assign(path);
+        return result;
+    }
+
+    // unfortunately there are no abstract pathname handling facilities on Linux.
+    // only realpath() exists, but that requires the target object to exist on disk.
+    // so we'll just do the same thing that std::filesystem::absolute() does, which
+    // is just concatenating the cwd with the relative path...
+    char* cwd = nullptr;
+    const auto build_result = [&]() {
+        size_t cwdlen = strlen(cwd);
+        bool needsExtraPathSep = (cwdlen == 0 || cwd[cwdlen - 1] != '/');
+        size_t length = cwdlen + path.size() + (needsExtraPathSep ? size_t(1) : size_t(0));
+        result.resize(length);
+        if (cwdlen > 0) {
+            std::memcpy(result.data(), cwd, cwdlen);
+        }
+        if (needsExtraPathSep) {
+            result[cwdlen] = '/';
+            std::memcpy(result.data() + cwdlen + size_t(1), path.data(), path.size());
+        } else {
+            std::memcpy(result.data() + cwdlen, path.data(), path.size());
+        }
+    };
+
+    std::array<char, 1024> stackBuffer;
+    cwd = getcwd(stackBuffer.data(), stackBuffer.size());
+    if (cwd != nullptr) {
+        build_result();
+    } else {
+        // POSIX doesn't deign to tell us how large the buffer it actually wants is,
+        // so just retry until it succeeds...
+        std::vector<char> heapBuffer;
+        heapBuffer.resize(stackBuffer.size() * 2);
+        while (true) {
+            cwd = getcwd(heapBuffer.data(), heapBuffer.size());
+            if (cwd != nullptr) {
+                build_result();
+                break;
+            }
+            if (heapBuffer.size() >= 0x1000'0000u) {
+                // sanity break in case something goes really wrong...
+                break;
+            }
+            heapBuffer.resize(heapBuffer.size() * 2);
+        }
+    }
 #endif
     return result;
 }
