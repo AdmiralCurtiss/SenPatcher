@@ -14,6 +14,7 @@
 #include "daybreak_save_convert/daybreak_save_convert_main.h"
 #include "dirtree_create/dirtree_create_main.h"
 #include "file_compressor/file_compressor_main.h"
+#include "file_fix_template_generator/file_fix_template_generator_main.h"
 #include "game_verify/game_verify_main.h"
 #include "p3a_extract/p3a_extract_main.h"
 #include "p3a_pack/p3a_pack_main.h"
@@ -97,6 +98,10 @@ static constexpr auto CliTools = {
     CliTool{.Name = FileCompressor_Name,
             .ShortDescription = FileCompressor_ShortDescription,
             .Function = FileCompressor_Function,
+            .Hidden = true},
+    CliTool{.Name = File_Fix_Template_Generator_Name,
+            .ShortDescription = File_Fix_Template_Generator_ShortDescription,
+            .Function = File_Fix_Template_Generator_Function,
             .Hidden = true},
 };
 } // namespace SenTools

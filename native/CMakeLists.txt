@@ -344,6 +344,8 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/dirtree_create/dirtree_create_main.h
 		sentools/file_compressor/file_compressor.cpp
 		sentools/file_compressor/file_compressor_main.h
+		sentools/file_fix_template_generator/file_fix_template_generator.cpp
+		sentools/file_fix_template_generator/file_fix_template_generator_main.h
 		sentools/game_verify/game_verify.cpp
 		sentools/game_verify/game_verify.h
 		sentools/game_verify/game_verify_main.h
