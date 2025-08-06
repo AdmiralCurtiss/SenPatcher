@@ -110,6 +110,16 @@ void IniWriter::SetInt(std::string_view sectionName, std::string_view keyName, i
     SetString(sectionName, keyName, std::to_string(intValue));
 }
 
+void IniWriter::SetInt64(std::string_view sectionName, std::string_view keyName, int64_t intValue) {
+    SetString(sectionName, keyName, std::to_string(intValue));
+}
+
+void IniWriter::SetUInt64(std::string_view sectionName,
+                          std::string_view keyName,
+                          uint64_t intValue) {
+    SetString(sectionName, keyName, std::to_string(intValue));
+}
+
 void IniWriter::SetDouble(std::string_view sectionName,
                           std::string_view keyName,
                           double doubleValue) {

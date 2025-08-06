@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <span>
 #include <string>
@@ -50,6 +51,8 @@ struct IniWriter {
 
     void SetBool(std::string_view sectionName, std::string_view keyName, bool boolValue);
     void SetInt(std::string_view sectionName, std::string_view keyName, int intValue);
+    void SetInt64(std::string_view sectionName, std::string_view keyName, int64_t intValue);
+    void SetUInt64(std::string_view sectionName, std::string_view keyName, uint64_t intValue);
     void SetDouble(std::string_view sectionName, std::string_view keyName, double doubleValue);
     void SetString(std::string_view sectionName,
                    std::string_view keyName,

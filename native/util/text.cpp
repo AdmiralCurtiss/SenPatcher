@@ -456,6 +456,32 @@ int CaseInsensitiveCompare(std::string_view lhs, std::string_view rhs) noexcept 
     return 0;
 }
 
+bool CaseInsensitiveContains(std::string_view haystack, std::string_view needle) noexcept {
+    if (needle.size() > haystack.size()) {
+        return false;
+    }
+    const size_t len = needle.size();
+    const size_t loops = (haystack.size() - needle.size()) + 1;
+    const char* lhs = haystack.data();
+    const char* rhs = needle.data();
+    for (size_t loop = 0; loop < loops; ++loop) {
+        bool matches = true;
+        for (size_t i = 0; i < len; ++i) {
+            const char cl = (lhs[i] >= 'A' && lhs[i] <= 'Z') ? (lhs[i] + ('a' - 'A')) : lhs[i];
+            const char cr = (rhs[i] >= 'A' && rhs[i] <= 'Z') ? (rhs[i] + ('a' - 'A')) : rhs[i];
+            if (cl != cr) {
+                matches = false;
+                break;
+            }
+        }
+        if (matches) {
+            return true;
+        }
+        ++lhs;
+    }
+    return false;
+}
+
 std::string ToLower(std::string_view sv) {
     std::string result;
     result.reserve(sv.size());
