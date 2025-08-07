@@ -267,7 +267,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
         filePath.assign(configuredPath);
         filePath.push_back('/');
         filePath.append(filenameToCheck);
-        if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
             return filePath;
         }
@@ -284,7 +285,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
                     filePath.append(f);
                     filePath.push_back('/');
                     filePath.append(filenameToCheck);
-                    if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                    if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+                        == HyoutaUtils::IO::ExistsResult::DoesExist) {
                         filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
                         return filePath;
                     }
@@ -305,7 +307,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
             filePath.append(f);
             filePath.push_back('/');
             filePath.append(filenameToCheck);
-            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+                == HyoutaUtils::IO::ExistsResult::DoesExist) {
                 filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
                 return filePath;
             }
@@ -318,7 +321,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
             filePath.append(f);
             filePath.push_back('/');
             filePath.append(filenameToCheck);
-            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+                == HyoutaUtils::IO::ExistsResult::DoesExist) {
                 filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
                 return filePath;
             }
@@ -331,7 +335,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
             filePath.append(f);
             filePath.push_back('/');
             filePath.append(filenameToCheck);
-            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+                == HyoutaUtils::IO::ExistsResult::DoesExist) {
                 filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
                 return filePath;
             }
@@ -344,7 +349,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
             filePath.append(f);
             filePath.push_back('/');
             filePath.append(filenameToCheck);
-            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+                == HyoutaUtils::IO::ExistsResult::DoesExist) {
                 filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
                 return filePath;
             }
@@ -372,7 +378,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
             filePath.append(f);
             filePath.push_back('/');
             filePath.append(filenameToCheck);
-            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+                == HyoutaUtils::IO::ExistsResult::DoesExist) {
                 filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
                 return filePath;
             }
@@ -384,7 +391,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
             filePath.append(f);
             filePath.push_back('/');
             filePath.append(filenameToCheck);
-            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+                == HyoutaUtils::IO::ExistsResult::DoesExist) {
                 filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
                 return filePath;
             }
@@ -419,7 +427,8 @@ static std::string FindExistingPath(std::string_view configuredPath,
                             filePath.append(f);
                             filePath.push_back('/');
                             filePath.append(filenameToCheck);
-                            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))) {
+                            if (HyoutaUtils::IO::FileExists(std::string_view(filePath))
+                                == HyoutaUtils::IO::ExistsResult::DoesExist) {
                                 filePath.resize(filePath.size() - (filenameToCheck.size() + 1));
                                 return filePath;
                             }

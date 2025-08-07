@@ -741,10 +741,12 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     // figure out whether we're running in the root game directory or in the bin/x64 subdirectory
     // and get a relative path to the root game directory
     std::string_view baseDirUtf8;
-    if (HyoutaUtils::IO::FileExists(std::string_view("Sen4Launcher.exe"))) {
+    if (HyoutaUtils::IO::FileExists(std::string_view("Sen4Launcher.exe"))
+        == HyoutaUtils::IO::ExistsResult::DoesExist) {
         logger.Log("Root game dir is current dir.\n");
         baseDirUtf8 = ".";
-    } else if (HyoutaUtils::IO::FileExists(std::string_view("../../Sen4Launcher.exe"))) {
+    } else if (HyoutaUtils::IO::FileExists(std::string_view("../../Sen4Launcher.exe"))
+               == HyoutaUtils::IO::ExistsResult::DoesExist) {
         logger.Log("Root game dir is ../..\n");
         baseDirUtf8 = "../..";
     } else {

@@ -90,8 +90,10 @@ static bool VerifyFile(VerifyFileState& state,
                        bool onlyCheckForExistence) {
     if (onlyCheckForExistence) {
         if (state.State == VerifyFileStateEnum::NotChecked) {
-            state.State = HyoutaUtils::IO::FileExists(path) ? VerifyFileStateEnum::FileExists
-                                                            : VerifyFileStateEnum::FileDoesNotExist;
+            state.State =
+                HyoutaUtils::IO::FileExists(path) == HyoutaUtils::IO::ExistsResult::DoesExist
+                    ? VerifyFileStateEnum::FileExists
+                    : VerifyFileStateEnum::FileDoesNotExist;
         }
         return state.State == VerifyFileStateEnum::FileExists;
     }
@@ -162,9 +164,10 @@ struct VerifyDirectoryState {
 };
 static bool VerifyDirectory(VerifyDirectoryState& state, const std::filesystem::path& path) {
     if (state.State == VerifyDirectoryStateEnum::NotChecked) {
-        state.State = HyoutaUtils::IO::DirectoryExists(path)
-                          ? VerifyDirectoryStateEnum::DirectoryExists
-                          : VerifyDirectoryStateEnum::DirectoryDoesNotExist;
+        state.State =
+            HyoutaUtils::IO::DirectoryExists(path) == HyoutaUtils::IO::ExistsResult::DoesExist
+                ? VerifyDirectoryStateEnum::DirectoryExists
+                : VerifyDirectoryStateEnum::DirectoryDoesNotExist;
     }
     return state.State == VerifyDirectoryStateEnum::DirectoryExists;
 }

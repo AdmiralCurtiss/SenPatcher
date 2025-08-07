@@ -13,7 +13,7 @@
 
 namespace SenTools {
 SenPatcherDllIdentificationResult IdentifySenPatcherDll(std::string_view path) {
-    if (!HyoutaUtils::IO::FileExists(path)) {
+    if (HyoutaUtils::IO::FileExists(path) != HyoutaUtils::IO::ExistsResult::DoesExist) {
         SenPatcherDllIdentificationResult result;
         result.Type = SenPatcherDllIdentificationType::FileDoesNotExist;
         return result;

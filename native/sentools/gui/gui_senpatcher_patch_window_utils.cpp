@@ -55,7 +55,8 @@ std::string
                        std::string_view defaultIniString,
                        bool unpatch) {
     if (unpatch) {
-        if (HyoutaUtils::IO::FileExists(std::string_view(gameDllPath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(gameDllPath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             if (!HyoutaUtils::IO::DeleteFile(std::string_view(gameDllPath))) {
                 return std::string("Deleting SenPatcher DLL failed.");
             }

@@ -374,21 +374,34 @@ TEST_F(FileUtilsTest, WriteFile) {
     {
         HyoutaUtils::IO::File f("FileUtilsTestDir/write.bin", HyoutaUtils::IO::OpenMode::Write);
         ASSERT_TRUE(f.IsOpen());
-        EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write.bin"));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
         EXPECT_TRUE(f.Rename("FileUtilsTestDir/write2.bin"));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write.bin"));
-        EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
         EXPECT_TRUE(f.Rename("FileUtilsTestDir/write3.bin"));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write.bin"));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
-        EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
         EXPECT_TRUE(f.Delete());
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write.bin"));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
+        f.Close(); // on Windows the Delete() isn't actually committed until the file is closed
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write2.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/write3.bin"));
     }
 
     // Test the file-copying Write() overload
@@ -426,9 +439,11 @@ TEST_F(FileUtilsTest, WriteFile) {
         f.OpenWithTempFilename("FileUtilsTestDir/tempname.bin", HyoutaUtils::IO::OpenMode::Write);
         ASSERT_TRUE(f.IsOpen());
         EXPECT_EQ(randomData.size(), f.Write(randomData.data(), randomData.size()));
-        EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/tempname.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/tempname.bin"));
         EXPECT_TRUE(f.Rename("FileUtilsTestDir/tempname.bin"));
-        EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/tempname.bin"));
+        EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+                  HyoutaUtils::IO::FileExists("FileUtilsTestDir/tempname.bin"));
     }
     {
         HyoutaUtils::IO::File f("FileUtilsTestDir/tempname.bin", HyoutaUtils::IO::OpenMode::Read);
@@ -443,17 +458,27 @@ TEST_F(FileUtilsTest, WriteFile) {
 }
 
 TEST_F(FileUtilsTest, FilesystemFunctions) {
-    EXPECT_TRUE(HyoutaUtils::IO::Exists("FileUtilsTestDir/file128.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::Exists("FileUtilsTestDir/subdir/file0.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::Exists("FileUtilsTestDir/empty"));
-    EXPECT_TRUE(HyoutaUtils::IO::Exists("FileUtilsTestDir/subdir"));
-    EXPECT_FALSE(HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/file128.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/subdir/file0.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/empty"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/subdir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
 
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/subdir/file0.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/empty"));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/subdir"));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/subdir/file0.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/empty"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/subdir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/nope.bin"));
 
     EXPECT_EQ(uint64_t(128), HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/file128.bin"));
     EXPECT_EQ(uint64_t(0), HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/subdir/file0.bin"));
@@ -461,15 +486,22 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
     EXPECT_EQ(std::nullopt, HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/subdir"));
     EXPECT_EQ(std::nullopt, HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/nope.bin"));
 
-    EXPECT_FALSE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/file128.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir/file0.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/empty"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir"));
-    EXPECT_FALSE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/file128.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir/file0.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/empty"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/nope.bin"));
 
-    EXPECT_FALSE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/newdir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/newdir"));
     EXPECT_TRUE(HyoutaUtils::IO::CreateDirectory("FileUtilsTestDir/newdir"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/newdir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/newdir"));
     // if directory already exists this still returns true
     EXPECT_TRUE(HyoutaUtils::IO::CreateDirectory("FileUtilsTestDir/newdir"));
     // but it will fail if we try to create a directory where a file exists
@@ -511,14 +543,19 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
     EXPECT_FALSE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/nope.bin", "FileUtilsTestDir/nope2.bin", false));
     // we can move a file
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/copy.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/copy.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
     EXPECT_TRUE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/copy.bin", "FileUtilsTestDir/move.bin", false));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/copy.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/copy.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
     // without the overwrite flag a move onto an existing file will fail
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/file16.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/file16.bin"));
     EXPECT_FALSE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/file16.bin", "FileUtilsTestDir/move.bin", false));
     // with the overwrite flag it works
@@ -526,14 +563,19 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
     EXPECT_TRUE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/file16.bin", "FileUtilsTestDir/move.bin", true));
     EXPECT_EQ(uint64_t(16), HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/move.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/file16.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/file16.bin"));
     // we can also move directories
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir"));
-    EXPECT_FALSE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
     EXPECT_TRUE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/subdir", "FileUtilsTestDir/movedir", false));
-    EXPECT_FALSE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
 
 // now we get into very system-specific stuff that may or may not work depening on the OS...
 #ifdef BUILD_FOR_WINDOWS
@@ -543,8 +585,10 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
     EXPECT_FALSE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/movedir", "FileUtilsTestDir/newdir", true));
     // moving a file onto a directory fails
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
     EXPECT_FALSE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/move.bin", "FileUtilsTestDir/movedir", false));
     EXPECT_FALSE(
@@ -554,8 +598,10 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
         HyoutaUtils::IO::Move("FileUtilsTestDir/movedir", "FileUtilsTestDir/move.bin", false));
     EXPECT_TRUE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/movedir", "FileUtilsTestDir/move.bin", true));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/movedir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/movedir"));
     // moving a file onto itself may or may not work, but preserves the data either way
     EXPECT_EQ(uint64_t(128), HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/file128.bin"));
     HyoutaUtils::IO::Move("FileUtilsTestDir/file128.bin", "FileUtilsTestDir/file128.bin", false);
@@ -563,49 +609,73 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
     HyoutaUtils::IO::Move("FileUtilsTestDir/file128.bin", "FileUtilsTestDir/file128.bin", true);
     EXPECT_EQ(uint64_t(128), HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/file128.bin"));
     // moving a directory onto itself may or may not work, but preserves the data either way
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin/file0.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin/file0.bin"));
     HyoutaUtils::IO::Move("FileUtilsTestDir/move.bin", "FileUtilsTestDir/move.bin", false);
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin/file0.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin/file0.bin"));
     HyoutaUtils::IO::Move("FileUtilsTestDir/move.bin", "FileUtilsTestDir/move.bin", true);
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin/file0.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin/file0.bin"));
 #else
     // just get the directory into a compatible state for the stuff below...
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/movedir"));
     EXPECT_TRUE(HyoutaUtils::IO::DeleteFile("FileUtilsTestDir/move.bin"));
     EXPECT_TRUE(
         HyoutaUtils::IO::Move("FileUtilsTestDir/movedir", "FileUtilsTestDir/move.bin", true));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/movedir"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/movedir"));
 #endif
 
     // DeleteDirectory() can only delete empty directories, nothing else
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/empty"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/empty"));
     EXPECT_TRUE(HyoutaUtils::IO::DeleteDirectory("FileUtilsTestDir/empty"));
-    EXPECT_FALSE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/empty"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/empty"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
     EXPECT_FALSE(HyoutaUtils::IO::DeleteDirectory("FileUtilsTestDir/move.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
     EXPECT_FALSE(HyoutaUtils::IO::DeleteDirectory("FileUtilsTestDir/file128.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
     EXPECT_FALSE(HyoutaUtils::IO::DeleteDirectory("FileUtilsTestDir/nope.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
 
     // DeleteFile() can delete files but not directories
-    EXPECT_TRUE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
     EXPECT_TRUE(HyoutaUtils::IO::DeleteFile("FileUtilsTestDir/file128.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
     EXPECT_FALSE(HyoutaUtils::IO::DeleteFile("FileUtilsTestDir/move.bin"));
-    EXPECT_TRUE(HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/move.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
     EXPECT_FALSE(HyoutaUtils::IO::DeleteFile("FileUtilsTestDir/nope.bin"));
-    EXPECT_FALSE(HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
 }
 
 TEST(FileUtils, PathHandling) {

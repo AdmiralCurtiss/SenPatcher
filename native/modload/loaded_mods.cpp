@@ -560,7 +560,8 @@ void LoadModP3As(HyoutaUtils::Logger& logger,
         devPath.push_back('/');
         devPath.append("dev");
         loadedModsData.CheckDevFolderForAssets =
-            HyoutaUtils::IO::DirectoryExists(std::string_view(devPath));
+            HyoutaUtils::IO::DirectoryExists(std::string_view(devPath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist;
     }
 
     size_t p3acount = 0;

@@ -523,7 +523,8 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
 
     // CS1 should always run in the same directory
     std::string_view baseDirUtf8;
-    if (HyoutaUtils::IO::FileExists(std::string_view("Sen1Launcher.exe"))) {
+    if (HyoutaUtils::IO::FileExists(std::string_view("Sen1Launcher.exe"))
+        == HyoutaUtils::IO::ExistsResult::DoesExist) {
         logger.Log("Root game dir is current dir.\n");
         baseDirUtf8 = ".";
     } else {

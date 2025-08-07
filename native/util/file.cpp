@@ -713,28 +713,40 @@ int File::ReleaseHandle() noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
-static bool AnyExistsWindows(const wchar_t* path) noexcept {
+static ExistsResult AnyExistsWindows(const wchar_t* path) noexcept {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
-        return false;
+        DWORD lastError = GetLastError();
+        switch (lastError) {
+            case ERROR_FILE_NOT_FOUND:
+            case ERROR_PATH_NOT_FOUND: return ExistsResult::DoesNotExist;
+            case ERROR_ACCESS_DENIED: return ExistsResult::AccessDenied;
+            default: return ExistsResult::UnspecifiedError;
+        }
     }
-    return true;
+    return ExistsResult::DoesExist;
 }
 #else
-static bool AnyExistsLinux(const char* path) noexcept {
+static ExistsResult AnyExistsLinux(const char* path) noexcept {
     struct stat buf{};
-    if (stat(path, &buf) != 0) {
-        return false;
+    errno = 0;
+    if (fstatat(AT_FDCWD, path, &buf, AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT) != 0) {
+        switch (errno) {
+            case ENOENT:
+            case ENOTDIR: return ExistsResult::DoesNotExist;
+            case EACCES: return ExistsResult::AccessDenied;
+            default: return ExistsResult::UnspecifiedError;
+        }
     }
-    return true;
+    return ExistsResult::DoesExist;
 }
 #endif
 
-bool Exists(std::string_view p) noexcept {
+ExistsResult Exists(std::string_view p) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
     if (!wstr) {
-        return false;
+        return ExistsResult::UnspecifiedError;
     }
     return AnyExistsWindows(wstr->data());
 #else
@@ -742,14 +754,14 @@ bool Exists(std::string_view p) noexcept {
     try {
         s.assign(p);
     } catch (...) {
-        return false;
+        return ExistsResult::UnspecifiedError;
     }
     return AnyExistsLinux(s.c_str());
 #endif
 }
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
-bool Exists(const std::filesystem::path& p) noexcept {
+ExistsResult Exists(const std::filesystem::path& p) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     return AnyExistsWindows(p.native().data());
 #else
@@ -759,31 +771,44 @@ bool Exists(const std::filesystem::path& p) noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
-static bool FileExistsWindows(const wchar_t* path) noexcept {
+static ExistsResult FileExistsWindows(const wchar_t* path) noexcept {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
-        return false;
+        DWORD lastError = GetLastError();
+        switch (lastError) {
+            case ERROR_FILE_NOT_FOUND:
+            case ERROR_PATH_NOT_FOUND: return ExistsResult::DoesNotExist;
+            case ERROR_ACCESS_DENIED: return ExistsResult::AccessDenied;
+            default: return ExistsResult::UnspecifiedError;
+        }
     }
-    return (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+    return ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) ? ExistsResult::DoesExist
+                                                          : ExistsResult::DoesNotExist;
 }
 #else
-static bool FileExistsLinux(const char* path) noexcept {
+static ExistsResult FileExistsLinux(const char* path) noexcept {
     struct stat buf{};
-    if (stat(path, &buf) != 0) {
-        return false;
+    errno = 0;
+    if (fstatat(AT_FDCWD, path, &buf, AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT) != 0) {
+        switch (errno) {
+            case ENOENT:
+            case ENOTDIR: return ExistsResult::DoesNotExist;
+            case EACCES: return ExistsResult::AccessDenied;
+            default: return ExistsResult::UnspecifiedError;
+        }
     }
     if (S_ISREG(buf.st_mode)) {
-        return true;
+        return ExistsResult::DoesExist;
     }
-    return false;
+    return ExistsResult::DoesNotExist;
 }
 #endif
 
-bool FileExists(std::string_view p) noexcept {
+ExistsResult FileExists(std::string_view p) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
     if (!wstr) {
-        return false;
+        return ExistsResult::UnspecifiedError;
     }
     return FileExistsWindows(wstr->data());
 #else
@@ -791,14 +816,14 @@ bool FileExists(std::string_view p) noexcept {
     try {
         s.assign(p);
     } catch (...) {
-        return false;
+        return ExistsResult::UnspecifiedError;
     }
     return FileExistsLinux(s.c_str());
 #endif
 }
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
-bool FileExists(const std::filesystem::path& p) noexcept {
+ExistsResult FileExists(const std::filesystem::path& p) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     return FileExistsWindows(p.native().data());
 #else
@@ -824,7 +849,7 @@ static std::optional<uint64_t> GetFilesizeWindows(const wchar_t* path) noexcept 
 #else
 static std::optional<uint64_t> GetFilesizeLinux(const char* path) noexcept {
     struct stat buf{};
-    if (stat(path, &buf) != 0) {
+    if (fstatat(AT_FDCWD, path, &buf, AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT) != 0) {
         return std::nullopt;
     }
     if (S_ISREG(buf.st_mode)) {
@@ -863,31 +888,44 @@ std::optional<uint64_t> GetFilesize(const std::filesystem::path& p) noexcept {
 #endif
 
 #ifdef BUILD_FOR_WINDOWS
-static bool DirectoryExistsWindows(const wchar_t* path) noexcept {
+static ExistsResult DirectoryExistsWindows(const wchar_t* path) noexcept {
     const auto attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
-        return false;
+        DWORD lastError = GetLastError();
+        switch (lastError) {
+            case ERROR_FILE_NOT_FOUND:
+            case ERROR_PATH_NOT_FOUND: return ExistsResult::DoesNotExist;
+            case ERROR_ACCESS_DENIED: return ExistsResult::AccessDenied;
+            default: return ExistsResult::UnspecifiedError;
+        }
     }
-    return (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+    return ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) ? ExistsResult::DoesExist
+                                                          : ExistsResult::DoesNotExist;
 }
 #else
-static bool DirectoryExistsLinux(const char* path) noexcept {
+static ExistsResult DirectoryExistsLinux(const char* path) noexcept {
     struct stat buf{};
-    if (stat(path, &buf) != 0) {
-        return false;
+    errno = 0;
+    if (fstatat(AT_FDCWD, path, &buf, AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT) != 0) {
+        switch (errno) {
+            case ENOENT:
+            case ENOTDIR: return ExistsResult::DoesNotExist;
+            case EACCES: return ExistsResult::AccessDenied;
+            default: return ExistsResult::UnspecifiedError;
+        }
     }
     if (S_ISDIR(buf.st_mode)) {
-        return true;
+        return ExistsResult::DoesExist;
     }
-    return false;
+    return ExistsResult::DoesNotExist;
 }
 #endif
 
-bool DirectoryExists(std::string_view p) noexcept {
+ExistsResult DirectoryExists(std::string_view p) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     auto wstr = HyoutaUtils::TextUtils::Utf8ToWString(p.data(), p.size());
     if (!wstr) {
-        return false;
+        return ExistsResult::UnspecifiedError;
     }
     return DirectoryExistsWindows(wstr->data());
 #else
@@ -895,14 +933,14 @@ bool DirectoryExists(std::string_view p) noexcept {
     try {
         s.assign(p);
     } catch (...) {
-        return false;
+        return ExistsResult::UnspecifiedError;
     }
     return DirectoryExistsLinux(s.c_str());
 #endif
 }
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
-bool DirectoryExists(const std::filesystem::path& p) noexcept {
+ExistsResult DirectoryExists(const std::filesystem::path& p) noexcept {
 #ifdef BUILD_FOR_WINDOWS
     return DirectoryExistsWindows(p.native().data());
 #else
@@ -920,18 +958,21 @@ static bool CreateDirectoryWindows(const wchar_t* path) noexcept {
         // this is returned even if the thing at path is a file,
         // so we need to check if it's really a directory
         // FIXME: is there a way to do this atomically?
-        return DirectoryExistsWindows(path);
+        return DirectoryExistsWindows(path) == ExistsResult::DoesExist;
     }
     return false;
 }
 #else
 static bool CreateDirectoryLinux(const char* path) noexcept {
-    if (DirectoryExistsLinux(path)) {
+    ExistsResult exists = DirectoryExistsLinux(path);
+    if (exists == ExistsResult::DoesExist) {
         return true;
     }
-    int result = mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO);
-    if (result == 0) {
-        return true;
+    if (exists == ExistsResult::DoesNotExist) {
+        int result = mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO);
+        if (result == 0) {
+            return true;
+        }
     }
     return false;
 }
@@ -1008,14 +1049,26 @@ bool CopyFile(std::string_view source, std::string_view target, bool overwrite) 
     // to prevent file loss we first need to check whether the two paths refer to the same file,
     // because if yes everything we'll try will have catastrophic results
     struct stat sourceBuf{};
-    if (stat(sourcePath.c_str(), &sourceBuf) != 0) {
+    if (fstatat(AT_FDCWD, sourcePath.c_str(), &sourceBuf, AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT)
+        != 0) {
         // source doesn't exist or is inaccessible
         return false;
     }
+    if (!(S_ISREG(sourceBuf.st_mode) || S_ISLNK(sourceBuf.st_mode))) {
+        // source is not a file
+        return false;
+    }
     struct stat targetBuf{};
-    if (stat(targetPath.c_str(), &targetBuf) == 0) {
+    errno = 0;
+    if (fstatat(AT_FDCWD, targetPath.c_str(), &targetBuf, AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT)
+        == 0) {
         // target exists
         if (!overwrite) {
+            return false;
+        }
+
+        if (!(S_ISREG(targetBuf.st_mode) || S_ISLNK(targetBuf.st_mode))) {
+            // target is not a file
             return false;
         }
 
@@ -1031,6 +1084,13 @@ bool CopyFile(std::string_view source, std::string_view target, bool overwrite) 
         }
         if (link(sourcePath.c_str(), targetPath.c_str()) == 0) {
             return true;
+        }
+    } else {
+        // only proceed in regular error cases
+        switch (errno) {
+            case ENOENT:
+            case ENOTDIR: break;
+            default: return false;
         }
     }
 

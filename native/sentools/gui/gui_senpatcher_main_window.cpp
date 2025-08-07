@@ -168,7 +168,10 @@ struct SenPatcherMainWindow::WorkThreadState {
                     question = std::format(
                         "Found a {} with unicode encoding issues:\n{}\n\n"
                         "Would you like SenPatcher to fix this?",
-                        HyoutaUtils::IO::DirectoryExists(path) ? "directory" : "file",
+                        HyoutaUtils::IO::DirectoryExists(path)
+                                == HyoutaUtils::IO::ExistsResult::DoesExist
+                            ? "directory"
+                            : "file",
                         path);
                 } else {
                     question = std::format(

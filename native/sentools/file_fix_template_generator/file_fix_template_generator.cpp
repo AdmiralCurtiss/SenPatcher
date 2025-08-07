@@ -155,7 +155,7 @@ void GenerateTemplateFile(std::string_view outname,
                           const HyoutaUtils::DirTree::Tree& dirtree,
                           const HyoutaUtils::DirTree::Entry& entry,
                           int gameid) {
-    if (HyoutaUtils::IO::Exists(outname)) {
+    if (HyoutaUtils::IO::Exists(outname) != HyoutaUtils::IO::ExistsResult::DoesNotExist) {
         return;
     }
 

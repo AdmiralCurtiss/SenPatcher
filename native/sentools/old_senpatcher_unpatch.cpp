@@ -299,35 +299,41 @@ namespace SenPatcher {
 bool HasOldSenpatcherBackups(std::string_view gamepath, int sengame) {
     std::string senpatcher_rerun_revert_data_path(gamepath);
     senpatcher_rerun_revert_data_path.append("/senpatcher_rerun_revert_data.bin");
-    if (HyoutaUtils::IO::FileExists(std::string_view(senpatcher_rerun_revert_data_path))) {
+    if (HyoutaUtils::IO::FileExists(std::string_view(senpatcher_rerun_revert_data_path))
+        == HyoutaUtils::IO::ExistsResult::DoesExist) {
         return true;
     }
     std::string senpatcher_bkp_path(gamepath);
     senpatcher_bkp_path.append("/senpatcher_bkp");
-    if (HyoutaUtils::IO::DirectoryExists(std::string_view(senpatcher_bkp_path))) {
+    if (HyoutaUtils::IO::DirectoryExists(std::string_view(senpatcher_bkp_path))
+        == HyoutaUtils::IO::ExistsResult::DoesExist) {
         return true;
     }
     if (sengame == 1) {
         std::string ed8exepath(gamepath);
         ed8exepath.append("/ed8.exe.senpatcher.bkp");
-        if (HyoutaUtils::IO::FileExists(std::string_view(ed8exepath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(ed8exepath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             return true;
         }
         std::string ed8jpexepath(gamepath);
         ed8jpexepath.append("/ed8jp.exe.senpatcher.bkp");
-        if (HyoutaUtils::IO::FileExists(std::string_view(ed8jpexepath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(ed8jpexepath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             return true;
         }
     }
     if (sengame == 2) {
         std::string ed82usexepath(gamepath);
         ed82usexepath.append("/bin/Win32/ed8_2_PC_US.exe.senpatcher.bkp");
-        if (HyoutaUtils::IO::FileExists(std::string_view(ed82usexepath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(ed82usexepath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             return true;
         }
         std::string ed82jpexepath(gamepath);
         ed82jpexepath.append("/bin/Win32/ed8_2_PC_JP.exe.senpatcher.bkp");
-        if (HyoutaUtils::IO::FileExists(std::string_view(ed82jpexepath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(ed82jpexepath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             return true;
         }
     }
@@ -432,7 +438,8 @@ bool UnpatchGame(std::string_view gamepath, int sengame) {
     std::vector<FileWithHashAndMaybePath> existingFiles;
     std::string senpatcher_bkp_path(gamepath);
     senpatcher_bkp_path.append("/senpatcher_bkp");
-    if (HyoutaUtils::IO::DirectoryExists(std::string_view(senpatcher_bkp_path))) {
+    if (HyoutaUtils::IO::DirectoryExists(std::string_view(senpatcher_bkp_path))
+        == HyoutaUtils::IO::ExistsResult::DoesExist) {
         std::error_code ec{};
         std::filesystem::directory_iterator iterator(
             HyoutaUtils::IO::FilesystemPathFromUtf8(std::string_view(senpatcher_bkp_path)), ec);
@@ -452,10 +459,12 @@ bool UnpatchGame(std::string_view gamepath, int sengame) {
         std::string ed8jpexepath(gamepath);
         ed8exepath.append("/ed8.exe.senpatcher.bkp");
         ed8jpexepath.append("/ed8jp.exe.senpatcher.bkp");
-        if (HyoutaUtils::IO::FileExists(std::string_view(ed8exepath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(ed8exepath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             CheckFile(existingFiles, unpatchFiles, ed8exepath);
         }
-        if (HyoutaUtils::IO::FileExists(std::string_view(ed8jpexepath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(ed8jpexepath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             CheckFile(existingFiles, unpatchFiles, ed8jpexepath);
         }
     }
@@ -464,16 +473,19 @@ bool UnpatchGame(std::string_view gamepath, int sengame) {
         std::string ed82jpexepath(gamepath);
         ed82usexepath.append("/bin/Win32/ed8_2_PC_US.exe.senpatcher.bkp");
         ed82jpexepath.append("/bin/Win32/ed8_2_PC_JP.exe.senpatcher.bkp");
-        if (HyoutaUtils::IO::FileExists(std::string_view(ed82usexepath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(ed82usexepath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             CheckFile(existingFiles, unpatchFiles, ed82usexepath);
         }
-        if (HyoutaUtils::IO::FileExists(std::string_view(ed82jpexepath))) {
+        if (HyoutaUtils::IO::FileExists(std::string_view(ed82jpexepath))
+            == HyoutaUtils::IO::ExistsResult::DoesExist) {
             CheckFile(existingFiles, unpatchFiles, ed82jpexepath);
         }
     }
     std::string senpatcher_rerun_revert_data_path(gamepath);
     senpatcher_rerun_revert_data_path.append("/senpatcher_rerun_revert_data.bin");
-    if (HyoutaUtils::IO::FileExists(std::string_view(senpatcher_rerun_revert_data_path))) {
+    if (HyoutaUtils::IO::FileExists(std::string_view(senpatcher_rerun_revert_data_path))
+        == HyoutaUtils::IO::ExistsResult::DoesExist) {
         CheckHyoutaArchive(existingFiles, unpatchFiles, senpatcher_rerun_revert_data_path);
     }
 

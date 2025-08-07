@@ -20,6 +20,12 @@ enum class SetPositionMode {
     Current = 1,
     End = 2,
 };
+enum class ExistsResult {
+    DoesExist,
+    DoesNotExist,
+    AccessDenied,
+    UnspecifiedError,
+};
 
 struct File {
 public:
@@ -83,10 +89,10 @@ private:
 #endif
 };
 
-bool Exists(std::string_view p) noexcept;
-bool FileExists(std::string_view p) noexcept;
+ExistsResult Exists(std::string_view p) noexcept;
+ExistsResult FileExists(std::string_view p) noexcept;
 std::optional<uint64_t> GetFilesize(std::string_view p) noexcept;
-bool DirectoryExists(std::string_view p) noexcept;
+ExistsResult DirectoryExists(std::string_view p) noexcept;
 bool CreateDirectory(std::string_view p) noexcept;
 bool CopyFile(std::string_view source, std::string_view target, bool overwrite = true) noexcept;
 bool Move(std::string_view source, std::string_view target, bool overwrite = true) noexcept;
@@ -94,10 +100,10 @@ bool DeleteFile(std::string_view path) noexcept;
 bool DeleteDirectory(std::string_view path) noexcept; // must be empty
 
 #ifdef FILE_WRAPPER_WITH_STD_FILESYSTEM
-bool Exists(const std::filesystem::path& p) noexcept;
-bool FileExists(const std::filesystem::path& p) noexcept;
+ExistsResult Exists(const std::filesystem::path& p) noexcept;
+ExistsResult FileExists(const std::filesystem::path& p) noexcept;
 std::optional<uint64_t> GetFilesize(const std::filesystem::path& p) noexcept;
-bool DirectoryExists(const std::filesystem::path& p) noexcept;
+ExistsResult DirectoryExists(const std::filesystem::path& p) noexcept;
 bool CreateDirectory(const std::filesystem::path& p) noexcept;
 bool DeleteFile(const std::filesystem::path& p) noexcept;
 bool DeleteDirectory(const std::filesystem::path& p) noexcept; // must be empty

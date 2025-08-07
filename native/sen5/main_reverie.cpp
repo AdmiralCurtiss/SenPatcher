@@ -703,10 +703,12 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     char* newPageEnd = newPage + newPageLength;
 
     std::string_view baseDirUtf8;
-    if (HyoutaUtils::IO::DirectoryExists(std::string_view("data"))) {
+    if (HyoutaUtils::IO::DirectoryExists(std::string_view("data"))
+        == HyoutaUtils::IO::ExistsResult::DoesExist) {
         logger.Log("Root game dir is current dir.\n");
         baseDirUtf8 = ".";
-    } else if (HyoutaUtils::IO::DirectoryExists(std::string_view("../../data"))) {
+    } else if (HyoutaUtils::IO::DirectoryExists(std::string_view("../../data"))
+               == HyoutaUtils::IO::ExistsResult::DoesExist) {
         logger.Log("Root game dir is ../..\n");
         baseDirUtf8 = "../..";
     } else {
