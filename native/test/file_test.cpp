@@ -468,6 +468,8 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
               HyoutaUtils::IO::Exists("FileUtilsTestDir/subdir"));
     EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
               HyoutaUtils::IO::Exists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::Exists("FileUtilsTestDir/nodir/nofile.bin"));
 
     EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesExist,
               HyoutaUtils::IO::FileExists("FileUtilsTestDir/file128.bin"));
@@ -479,12 +481,15 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
               HyoutaUtils::IO::FileExists("FileUtilsTestDir/subdir"));
     EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
               HyoutaUtils::IO::FileExists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::FileExists("FileUtilsTestDir/nodir/nofile.bin"));
 
     EXPECT_EQ(uint64_t(128), HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/file128.bin"));
     EXPECT_EQ(uint64_t(0), HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/subdir/file0.bin"));
     EXPECT_EQ(std::nullopt, HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/empty"));
     EXPECT_EQ(std::nullopt, HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/subdir"));
     EXPECT_EQ(std::nullopt, HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(std::nullopt, HyoutaUtils::IO::GetFilesize("FileUtilsTestDir/nodir/nofile.bin"));
 
     EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
               HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/file128.bin"));
@@ -496,6 +501,8 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
               HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/subdir"));
     EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
               HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/nope.bin"));
+    EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
+              HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/nodir/nofile.bin"));
 
     EXPECT_EQ(HyoutaUtils::IO::ExistsResult::DoesNotExist,
               HyoutaUtils::IO::DirectoryExists("FileUtilsTestDir/newdir"));
@@ -506,6 +513,8 @@ TEST_F(FileUtilsTest, FilesystemFunctions) {
     EXPECT_TRUE(HyoutaUtils::IO::CreateDirectory("FileUtilsTestDir/newdir"));
     // but it will fail if we try to create a directory where a file exists
     EXPECT_FALSE(HyoutaUtils::IO::CreateDirectory("FileUtilsTestDir/file128.bin"));
+    // will also fail if we try to create multiple dirs at the same time
+    EXPECT_FALSE(HyoutaUtils::IO::CreateDirectory("FileUtilsTestDir/subdir1/subdir2/subdir3"));
 
     // copying non-existing file doesn't work
     EXPECT_FALSE(HyoutaUtils::IO::CopyFile(
