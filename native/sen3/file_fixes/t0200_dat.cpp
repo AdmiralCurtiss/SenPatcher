@@ -4,6 +4,7 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/file_getter.h"
+#include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 #include "util/vector.h"
 
@@ -25,10 +26,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         auto& bin = file->Data;
+        SenScriptPatcher patcher(bin);
         using namespace HyoutaUtils::Vector;
 
         // Your Majesty's -> Your Highness'
         WriteAt(bin, 0x2506e, {{0x48, 0x69, 0x67, 0x68, 0x6e, 0x65, 0x73, 0x73, 0x27}});
+
+        // "#E_8#M_0#B_0Looked like you were really going out of your\x01way to help all us
+        // students. You're just a\x01stand-up guy, ain't'cha?"
+        // ain't'cha -> ain'tcha for consistency
+        // (EV_01_03_01; chapter 1, 4/15, scene while leaving school)
+        patcher.RemovePartialCommand(0x11bf8, 0x13d, 0x11cb2, 1);
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 

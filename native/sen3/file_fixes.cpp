@@ -41,18 +41,29 @@ DECLARE_STANDARD_FIX(book06_dat)
 DECLARE_STANDARD_FIX(book07_dat)
 DECLARE_STANDARD_FIX(c0000_dat)
 DECLARE_STANDARD_FIX(c0200_dat)
+DECLARE_STANDARD_FIX(c0240_dat)
 DECLARE_STANDARD_FIX(c0250_dat)
 DECLARE_STANDARD_FIX(c0400_dat)
 DECLARE_STANDARD_FIX(c0420_dat)
 DECLARE_STANDARD_FIX(c0430_dat)
+DECLARE_STANDARD_FIX(c0650_dat)
 DECLARE_STANDARD_FIX(c0820_dat)
 DECLARE_STANDARD_FIX(c0830_dat)
+DECLARE_STANDARD_FIX(c2200_dat)
+DECLARE_STANDARD_FIX(c2210_dat)
+DECLARE_STANDARD_FIX(c2400_dat)
 DECLARE_STANDARD_FIX(c2430_dat)
 DECLARE_STANDARD_FIX(c2440_dat)
 DECLARE_STANDARD_FIX(c2610_dat)
+DECLARE_STANDARD_FIX(c2630_dat)
+DECLARE_STANDARD_FIX(c2810_dat)
+DECLARE_STANDARD_FIX(c2830_dat)
+DECLARE_STANDARD_FIX(c2840_dat)
 DECLARE_STANDARD_FIX(c3000_dat)
 DECLARE_STANDARD_FIX(c3010_dat)
+DECLARE_STANDARD_FIX(c3020_dat)
 DECLARE_STANDARD_FIX(c3210_dat)
+DECLARE_STANDARD_FIX(c3600_dat)
 DECLARE_STANDARD_FIX(c3610_dat)
 DECLARE_STANDARD_FIX(f0010_dat)
 DECLARE_STANDARD_FIX(f2000_dat)
@@ -75,6 +86,8 @@ DECLARE_STANDARD_FIX(r3200_dat)
 DECLARE_STANDARD_FIX(r3430_dat)
 DECLARE_STANDARD_FIX(r4200_dat)
 DECLARE_STANDARD_FIX(r4290_dat)
+DECLARE_STANDARD_FIX(r4400_dat)
+DECLARE_STANDARD_FIX(system3_dat)
 DECLARE_STANDARD_FIX(t_item_magic)
 DECLARE_STANDARD_FIX(t_itemhelp)
 DECLARE_STANDARD_FIX(t_jump)
@@ -86,28 +99,58 @@ DECLARE_STANDARD_FIX(t_place)
 DECLARE_STANDARD_FIX(t_vctiming_us)
 DECLARE_STANDARD_FIX(t0000_dat)
 DECLARE_STANDARD_FIX(t0010_dat)
+DECLARE_STANDARD_FIX(t0030_dat)
+DECLARE_STANDARD_FIX(t0050_dat)
 DECLARE_STANDARD_FIX(t0080_dat)
 DECLARE_STANDARD_FIX(t0100_dat)
+DECLARE_STANDARD_FIX(t0110_dat)
 DECLARE_STANDARD_FIX(t0200_dat)
 DECLARE_STANDARD_FIX(t0210_dat)
+DECLARE_STANDARD_FIX(t0240_dat)
 DECLARE_STANDARD_FIX(t0250_dat)
 DECLARE_STANDARD_FIX(t0260_dat)
 DECLARE_STANDARD_FIX(t0400_dat)
 DECLARE_STANDARD_FIX(t0410_dat)
+DECLARE_STANDARD_FIX(t1230_dat)
+DECLARE_STANDARD_FIX(t2000_dat)
 DECLARE_STANDARD_FIX(t3000_dat)
+DECLARE_STANDARD_FIX(t3030_dat)
 DECLARE_STANDARD_FIX(t3200_dat)
+DECLARE_STANDARD_FIX(t3210_dat)
 DECLARE_STANDARD_FIX(t3220_dat)
+DECLARE_STANDARD_FIX(t3230_dat)
 DECLARE_STANDARD_FIX(t3400_dat)
+DECLARE_STANDARD_FIX(t3410_dat)
 DECLARE_STANDARD_FIX(t3510_dat)
 DECLARE_STANDARD_FIX(t3600_dat)
+DECLARE_STANDARD_FIX(t4060_dat)
 DECLARE_STANDARD_FIX(tk_ada_dat)
+DECLARE_STANDARD_FIX(tk_agate_dat)
+DECLARE_STANDARD_FIX(tk_alberich_dat)
+DECLARE_STANDARD_FIX(tk_alisa_dat)
+DECLARE_STANDARD_FIX(tk_ash_dat)
+DECLARE_STANDARD_FIX(tk_common_dat)
+DECLARE_STANDARD_FIX(tk_ferris_dat)
+DECLARE_STANDARD_FIX(tk_fredy_dat)
+DECLARE_STANDARD_FIX(tk_jingo_dat)
+DECLARE_STANDARD_FIX(tk_kurt_dat)
 DECLARE_STANDARD_FIX(tk_linde_dat)
+DECLARE_STANDARD_FIX(tk_luise_dat)
+DECLARE_STANDARD_FIX(tk_maya_dat)
+DECLARE_STANDARD_FIX(tk_musse_dat)
+DECLARE_STANDARD_FIX(tk_pablo_dat)
 DECLARE_STANDARD_FIX(tk_patrick_dat)
+DECLARE_STANDARD_FIX(tk_rosine_dat)
+DECLARE_STANDARD_FIX(tk_schmitt_dat)
+DECLARE_STANDARD_FIX(tk_sharon_dat)
 DECLARE_STANDARD_FIX(tk_stark_dat)
+DECLARE_STANDARD_FIX(tk_tatiana_dat)
 DECLARE_STANDARD_FIX(tk_tovar_dat)
 DECLARE_STANDARD_FIX(tk_zessica_dat)
 DECLARE_STANDARD_FIX(v0010_dat)
+DECLARE_STANDARD_FIX(v0020_dat)
 DECLARE_STANDARD_FIX(v0030_dat)
+DECLARE_STANDARD_FIX(v0040_dat)
 DECLARE_STANDARD_FIX(v0050_dat)
 DECLARE_STANDARD_FIX(voice_opus_ps4_103)
 DECLARE_STANDARD_FIX(voice_opus_v00e0441)
@@ -177,25 +220,36 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
         SenPatcher::InitializeP3AFilename("senpatcher_mod.ini"),
         SenPatcher::P3ACompressionType::None);
 
-    TRY_APPLY(a0417_dat, TryApply(callback, packFiles));
     TRY_APPLY(alchr022_dat, TryApply(callback, packFiles));
+    TRY_APPLY(a0417_dat, TryApply(callback, packFiles));
     TRY_APPLY(book05_dat, TryApply(callback, packFiles));
     TRY_APPLY(book06_dat, TryApply(callback, packFiles));
     TRY_APPLY(book07_dat, TryApply(callback, packFiles));
     TRY_APPLY(c0000_dat, TryApply(callback, packFiles));
     TRY_APPLY(c0200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0240_dat, TryApply(callback, packFiles));
     TRY_APPLY(c0250_dat, TryApply(callback, packFiles));
     TRY_APPLY(c0400_dat, TryApply(callback, packFiles));
     TRY_APPLY(c0420_dat, TryApply(callback, packFiles));
     TRY_APPLY(c0430_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c0650_dat, TryApply(callback, packFiles));
     TRY_APPLY(c0820_dat, TryApply(callback, packFiles));
     TRY_APPLY(c0830_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2210_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2400_dat, TryApply(callback, packFiles));
     TRY_APPLY(c2430_dat, TryApply(callback, packFiles));
     TRY_APPLY(c2440_dat, TryApply(callback, packFiles));
     TRY_APPLY(c2610_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2630_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2810_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2830_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c2840_dat, TryApply(callback, packFiles));
     TRY_APPLY(c3000_dat, TryApply(callback, packFiles));
     TRY_APPLY(c3010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c3020_dat, TryApply(callback, packFiles));
     TRY_APPLY(c3210_dat, TryApply(callback, packFiles));
+    TRY_APPLY(c3600_dat, TryApply(callback, packFiles));
     TRY_APPLY(c3610_dat, TryApply(callback, packFiles));
     TRY_APPLY(f0010_dat, TryApply(callback, packFiles));
     TRY_APPLY(f2000_dat, TryApply(callback, packFiles));
@@ -218,6 +272,8 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(r3430_dat, TryApply(callback, packFiles));
     TRY_APPLY(r4200_dat, TryApply(callback, packFiles));
     TRY_APPLY(r4290_dat, TryApply(callback, packFiles));
+    TRY_APPLY(r4400_dat, TryApply(callback, packFiles));
+    TRY_APPLY(system3_dat, TryApply(callback, packFiles));
     TRY_APPLY(t_item_magic, TryApply(callback, packFiles));
     TRY_APPLY(t_itemhelp, TryApply(callback, packFiles));
     TRY_APPLY(t_jump, TryApply(callback, packFiles));
@@ -230,28 +286,58 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(t_vctiming_us, TryApply(callback, packFiles));
     TRY_APPLY(t0000_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0030_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0050_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0080_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0100_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0110_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0200_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0210_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t0240_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0250_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0260_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0400_dat, TryApply(callback, packFiles));
     TRY_APPLY(t0410_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t1230_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t2000_dat, TryApply(callback, packFiles));
     TRY_APPLY(t3000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3030_dat, TryApply(callback, packFiles));
     TRY_APPLY(t3200_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3210_dat, TryApply(callback, packFiles));
     TRY_APPLY(t3220_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3230_dat, TryApply(callback, packFiles));
     TRY_APPLY(t3400_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t3410_dat, TryApply(callback, packFiles));
     TRY_APPLY(t3510_dat, TryApply(callback, packFiles));
     TRY_APPLY(t3600_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t4060_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_ada_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_agate_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_alberich_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_alisa_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_ash_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_common_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_ferris_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_fredy_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_jingo_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_kurt_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_linde_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_luise_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_maya_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_musse_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_pablo_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_patrick_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_rosine_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_schmitt_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_sharon_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_stark_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_tatiana_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_tovar_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_zessica_dat, TryApply(callback, packFiles));
     TRY_APPLY(v0010_dat, TryApply(callback, packFiles));
+    TRY_APPLY(v0020_dat, TryApply(callback, packFiles));
     TRY_APPLY(v0030_dat, TryApply(callback, packFiles));
+    TRY_APPLY(v0040_dat, TryApply(callback, packFiles));
     TRY_APPLY(v0050_dat, TryApply(callback, packFiles));
     return true;
 }

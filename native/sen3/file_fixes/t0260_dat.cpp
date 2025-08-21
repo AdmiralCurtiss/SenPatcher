@@ -1,4 +1,4 @@
-﻿#include <string_view>
+#include <string_view>
 #include <vector>
 
 #include "p3a/pack.h"
@@ -7,6 +7,8 @@
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 #include "util/vector.h"
+
+#define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_t0260[] =
@@ -63,6 +65,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // switch gender in line from Schmidt
         patcher.ExtendPartialCommand(0x1380a, 0x73, 0x1386e, {{0x73}});
+
+        // "#8KAnd she’ll stay plenty dry\x01cooped up in here."
+        // wrong apostrophe
+        // (chapter 3, 6/10 afternoon, event with Celine/Valimar)
+        patcher.ReplacePartialCommand(0x197a4, 0x3b, 0x197b5, 3, {{'\''}});
+
+        // "#E[A]#M_A#B_0I figure this way, I'll be able brag\x01to Uncle Makarov and all my
+        // friends."
+        // able brag -> able to brag
+        // (7/9 morning, school hangar, talk to Mint after starting the Radio Stars sidequest)
+        patcher.ExtendPartialCommand(0x16761, 0xa8, 0x167de, STR_SPAN("to "));
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 

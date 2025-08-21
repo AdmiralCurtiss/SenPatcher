@@ -27,9 +27,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         auto& bin = file->Data;
         SenScriptPatcher patcher(bin);
 
-        // smart quote fix (chapter 4 festival, horse race track lounge)
-        patcher.ReplacePartialCommand(0x182, 0x33, 0x197, 0x3, {{0x27}});
-        patcher.ReplacePartialCommand(0x182, 0x33, 0x191, 0x3, {{0x27}});
+        // "#kWho's ＂her＂? Someone from the guild?"
+        // Chapter 4 festival, horse race track lounge.
+        // These should be ASCII single quotes, not unicode double quotes.
+        // (chapter 4, 7/17 free time, at the racecourse VIP lounge)
+        patcher.ReplacePartialCommand(0x182, 0x33, 0x197, 0x3, {{'\''}});
+        patcher.ReplacePartialCommand(0x182, 0x33, 0x191, 0x3, {{'\''}});
 
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);

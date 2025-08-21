@@ -57,6 +57,22 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         WriteAt(bin, 0x1b5ee, {{0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x01, 0x46, 0x69, 0x73, 0x68}});
         WriteAt(bin, 0x1d1f9, {{0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x20, 0x46, 0x69, 0x73, 0x68}});
 
+        // "Huh...!?"
+        // !? -> ?!
+        // (chapter 4, 7/17, Ada/Fritz sidequest)
+        // patcher.ReplacePartialCommand(0x14a40, 0x11, 0x14a47, 0x8, "");
+        std::swap(bin[0x14a4d], bin[0x14a4e]);
+
+        // "I-I don't know know about that..."
+        // remove double 'know'
+        // (chapter 4, 7/17, Ada/Fritz sidequest)
+        patcher.RemovePartialCommand(0x1901c, 0x2a, 0x19032, 5);
+
+        // "#KAhh, now thing's are gettin' interesting!"
+        // thing's -> things
+        // (chapter 4, 7/17 free time, initial event for the fishing tournament)
+        patcher.RemovePartialCommand(0x1ae33, 0x34, 0x1ae4a, 1);
+
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;

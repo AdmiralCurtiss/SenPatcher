@@ -25,7 +25,9 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         auto& bin = file->Data;
 
+        // "#kR-Really!?"
         // !? -> ?!
+        // (chapter 4, esmelas garden party, talk to Patrick in second set)
         std::swap(bin[0x2ff], bin[0x300]);
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);

@@ -31,6 +31,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(
             0x2dbe1, 0x81, 0x2dbfc, 0x2, {{0x46, 0x61, 0x74, 0x68, 0x65}});
 
+        // "H-Hey...\x01Granny, you all right!?"
+        // !? -> ?!
+        // patcher.ReplacePartialCommand(0xb80a, 0x29, 0xb811, 0x20, "");
+        std::swap(bin[0xb82f], bin[0xb830]);
+
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;

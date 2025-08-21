@@ -850,18 +850,29 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/book07_dat.cpp
 	sen3/file_fixes/c0000_dat.cpp
 	sen3/file_fixes/c0200_dat.cpp
+	sen3/file_fixes/c0240_dat.cpp
 	sen3/file_fixes/c0250_dat.cpp
 	sen3/file_fixes/c0400_dat.cpp
 	sen3/file_fixes/c0420_dat.cpp
 	sen3/file_fixes/c0430_dat.cpp
+	sen3/file_fixes/c0650_dat.cpp
 	sen3/file_fixes/c0820_dat.cpp
 	sen3/file_fixes/c0830_dat.cpp
+	sen3/file_fixes/c2200_dat.cpp
+	sen3/file_fixes/c2210_dat.cpp
+	sen3/file_fixes/c2400_dat.cpp
 	sen3/file_fixes/c2430_dat.cpp
 	sen3/file_fixes/c2440_dat.cpp
 	sen3/file_fixes/c2610_dat.cpp
+	sen3/file_fixes/c2630_dat.cpp
+	sen3/file_fixes/c2810_dat.cpp
+	sen3/file_fixes/c2830_dat.cpp
+	sen3/file_fixes/c2840_dat.cpp
 	sen3/file_fixes/c3000_dat.cpp
 	sen3/file_fixes/c3010_dat.cpp
+	sen3/file_fixes/c3020_dat.cpp
 	sen3/file_fixes/c3210_dat.cpp
+	sen3/file_fixes/c3600_dat.cpp
 	sen3/file_fixes/c3610_dat.cpp
 	sen3/file_fixes/f0010_dat.cpp
 	sen3/file_fixes/f2000_dat.cpp
@@ -912,6 +923,8 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/r3430_dat.cpp
 	sen3/file_fixes/r4200_dat.cpp
 	sen3/file_fixes/r4290_dat.cpp
+	sen3/file_fixes/r4400_dat.cpp
+	sen3/file_fixes/system3_dat.cpp
 	sen3/file_fixes/t_item_magic.cpp
 	sen3/file_fixes/t_itemhelp.cpp
 	sen3/file_fixes/t_jump.cpp
@@ -924,28 +937,58 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/t_vctiming_us.cpp
 	sen3/file_fixes/t0000_dat.cpp
 	sen3/file_fixes/t0010_dat.cpp
+	sen3/file_fixes/t0030_dat.cpp
+	sen3/file_fixes/t0050_dat.cpp
 	sen3/file_fixes/t0080_dat.cpp
 	sen3/file_fixes/t0100_dat.cpp
+	sen3/file_fixes/t0110_dat.cpp
 	sen3/file_fixes/t0200_dat.cpp
 	sen3/file_fixes/t0210_dat.cpp
+	sen3/file_fixes/t0240_dat.cpp
 	sen3/file_fixes/t0250_dat.cpp
 	sen3/file_fixes/t0260_dat.cpp
 	sen3/file_fixes/t0400_dat.cpp
 	sen3/file_fixes/t0410_dat.cpp
+	sen3/file_fixes/t1230_dat.cpp
+	sen3/file_fixes/t2000_dat.cpp
 	sen3/file_fixes/t3000_dat.cpp
+	sen3/file_fixes/t3030_dat.cpp
 	sen3/file_fixes/t3200_dat.cpp
+	sen3/file_fixes/t3210_dat.cpp
 	sen3/file_fixes/t3220_dat.cpp
+	sen3/file_fixes/t3230_dat.cpp
 	sen3/file_fixes/t3400_dat.cpp
+	sen3/file_fixes/t3410_dat.cpp
 	sen3/file_fixes/t3510_dat.cpp
 	sen3/file_fixes/t3600_dat.cpp
+	sen3/file_fixes/t4060_dat.cpp
 	sen3/file_fixes/tk_ada_dat.cpp
+	sen3/file_fixes/tk_agate_dat.cpp
+	sen3/file_fixes/tk_alberich_dat.cpp
+	sen3/file_fixes/tk_alisa_dat.cpp
+	sen3/file_fixes/tk_ash_dat.cpp
+	sen3/file_fixes/tk_common_dat.cpp
+	sen3/file_fixes/tk_ferris_dat.cpp
+	sen3/file_fixes/tk_fredy_dat.cpp
+	sen3/file_fixes/tk_jingo_dat.cpp
+	sen3/file_fixes/tk_kurt_dat.cpp
 	sen3/file_fixes/tk_linde_dat.cpp
+	sen3/file_fixes/tk_luise_dat.cpp
+	sen3/file_fixes/tk_maya_dat.cpp
+	sen3/file_fixes/tk_musse_dat.cpp
+	sen3/file_fixes/tk_pablo_dat.cpp
 	sen3/file_fixes/tk_patrick_dat.cpp
+	sen3/file_fixes/tk_rosine_dat.cpp
+	sen3/file_fixes/tk_schmitt_dat.cpp
+	sen3/file_fixes/tk_sharon_dat.cpp
 	sen3/file_fixes/tk_stark_dat.cpp
+	sen3/file_fixes/tk_tatiana_dat.cpp
 	sen3/file_fixes/tk_tovar_dat.cpp
 	sen3/file_fixes/tk_zessica_dat.cpp
 	sen3/file_fixes/v0010_dat.cpp
+	sen3/file_fixes/v0020_dat.cpp
 	sen3/file_fixes/v0030_dat.cpp
+	sen3/file_fixes/v0040_dat.cpp
 	sen3/file_fixes/v0050_dat.cpp
 	sen3/file_fixes/voice_opus_ps4_103.cpp
 	sen3/file_fixes/voice_opus_v00e0441.cpp

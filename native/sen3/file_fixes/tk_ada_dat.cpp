@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_ztk_ada[] =
-    "Fix name consistency issues in conversations with Ada.";
+    "Fix name consistency issues and typography errors in conversations with Ada.";
 }
 
 namespace SenLib::Sen3::FileFixes::tk_ada_dat {
@@ -31,10 +31,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // Miss Arseid -> Ms. Arseid (esmelas garden party, after talk with priscilla)
         patcher.ReplacePartialCommand(0x2c0, 0xaf, 0x31a, 0x3, {{0x73, 0x2e}});
 
-        // smart quote fix (same as above for first, unsure for second.
-        // it should be after the 'From A-da to Frit-Z' sidequest but I have no idea where she ends
-        // up standing around there...)
+        // "#kAhem... Anyway, I’m just glad I was able\x01to speak with the empress."
+        // smart quote fix
+        // (esmelas garden party, after talk with priscilla)
         patcher.ReplacePartialCommand(0x2c0, 0xaf, 0x2da, 0x3, {{0x27}});
+
+        // "#kHaha, don’t worry about it. I was just\x01doing my job as an instructor."
+        // smart quote fix
+        // (??? this should be after the ada/fritz sidequest in chapter 4 but i can't find her)
         patcher.ReplacePartialCommand(0x4a6, 0x52, 0x4b8, 0x3, {{0x27}});
 
 

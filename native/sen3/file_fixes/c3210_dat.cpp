@@ -45,6 +45,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
             patcher.ReplaceCommand(0x22d9b, 0xb1, newcommand);
         }
 
+        // "#E[5]#M_A#B_0Allllriiigghht!!!\x01Gooo, Dragon Arrow!!!"
+        // 'alright' should be 'all right' so there should be a space here (lol)
+        // patcher.ReplacePartialCommand(0xe24c, 0x61, 0xe280, 0x2b, "");
+        // (chapter 4, 7/16 morning, NPC dialogue with boy near the south end)
+        bin[0xe288] = ' ';
+
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;

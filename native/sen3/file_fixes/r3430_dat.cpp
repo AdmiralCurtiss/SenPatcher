@@ -46,6 +46,7 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         bin[0x23d2c] = 0x6e;
         bin[0x23d32] = 0x66;
 
+        // "#1P#2U#4SThe Red Constellation !"
         // remove space before !
         patcher.RemovePartialCommand(0xff94, 0x29, 0xffb9, 0x1);
 

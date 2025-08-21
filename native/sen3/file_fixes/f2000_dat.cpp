@@ -31,6 +31,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // switch gender in line from Angelica
         patcher.ExtendPartialCommand(0x46cf, 0x1b0, 0x482b, {{0x73}});
 
+        // "It doesn't matter who turns them in.\x01Each of our groups should be thankful\x01for the
+        // others' assistance."
+        // "others'" -> "other's" since there are only two groups involved
+        // patcher.ReplacePartialCommand(0x7e84, 0x74, 0x7e8b, 0x6b, "");
+        std::swap(bin[0x7ee8], bin[0x7ee9]);
+
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;

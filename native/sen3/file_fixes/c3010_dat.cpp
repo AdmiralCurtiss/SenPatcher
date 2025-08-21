@@ -49,6 +49,12 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
                                             0x54, 0x68, 0x6f, 0x6d, 0x61, 0x73, 0x21,
                                             0x20, 0x46, 0x61, 0x74, 0x68, 0x65}});
 
+        // "Hello, everyone.\x01I didn't except to see you here. "
+        // except -> expect
+        // patcher.ReplacePartialCommand(0x5164, 0x3b, 0x516b, 0x32, "");
+        // (chapter 4, 7/15 afternoon, NPC conversation with Rilke)
+        std::swap(bin[0x5187], bin[0x5189]);
+
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;

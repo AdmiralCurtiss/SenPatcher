@@ -9,7 +9,7 @@
 
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_v0010[] =
-    "Fix terminology consistency issues in Derfflinger Car 1.";
+    "Fix terminology and repeated word in Derfflinger Car 2.";
 }
 
 namespace SenLib::Sen3::FileFixes::v0010_dat {
@@ -30,6 +30,20 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // the Juno Naval Fortress -> Juno Naval Fortress
         patcher.RemovePartialCommand(0x26097, 0xe7, 0x26147, 0x4);
         patcher.RemovePartialCommand(0x262c6, 0x25, 0x262d0, 0x4);
+
+        // "#E_0#M_0#B[3]He was very clear we had absolutely no need\x01to worry about the Bannings
+        // at this time."
+        // this is a weird one. "the Bannings" is really awkward. it's meant to refer to the group
+        // including KeA that is currently locked in Mischelam, I think, but I'm not sure if there's
+        // a good way to phrase that... let's leave it for now...
+        // patcher.ReplacePartialCommand(0x1c7c4, 0x11a, 0x1c80d, 0x5a, "");
+
+        // "#2F#KNo. There are no plans for a full-scale response.\x01Not from from them or the
+        // RMP."
+        // double 'from'
+        // (chapter 3, 6/17, after leaving ordis, before going to raquel)
+        patcher.RemovePartialCommand(0x281c3, 0x183, 0x2820a, 5);
+
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 

@@ -4,6 +4,7 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/file_getter.h"
+#include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 
 extern "C" {
@@ -24,10 +25,17 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         }
 
         auto& bin = file->Data;
+        SenScriptPatcher patcher(bin);
 
         // the port city -> the Port City
         bin[0xcb69] = 0x50;
         bin[0xcb6e] = 0x43;
+
+        // "#2K#FI was under the impression that\x01you’d come with us."
+        // wrong apostrophe
+        // (chapter 3, 6/17, cutscene after returning to Ordis after the Aurochs Coastal Road and
+        // meeting with Millium and Jusis)
+        patcher.ReplacePartialCommand(0xca76, 0x43, 0xcaa5, 3, {{'\''}});
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 

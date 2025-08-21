@@ -7,6 +7,8 @@
 #include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 
+#define STR_SPAN(text) std::span<const char>(text, sizeof(text) - 1)
+
 extern "C" {
 __declspec(dllexport) char SenPatcherFix_1_ztk_stark[] =
     "Fix terminology consistency issues in conversations with Stark.";
@@ -30,6 +32,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
 
         // the Juno Naval Fortress -> Juno Naval Fortress (chapter 3 field exercises day 1, camp)
         patcher.RemovePartialCommand(0x5eb3, 0x152, 0x5f31, 0x4);
+
+        // "This is a lot faster than usual trip.\x01We'll be there in no time."
+        // than usual -> than the usual
+        // (chapter 4, 7/15 train during the trip to Heimdallr)
+        patcher.ExtendPartialCommand(0x990, 0x89, 0x9f1, STR_SPAN("the "));
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
