@@ -95,6 +95,7 @@ DECLARE_STANDARD_FIX(t_mons)
 DECLARE_STANDARD_FIX(t_mstqrt)
 DECLARE_STANDARD_FIX(t_name)
 DECLARE_STANDARD_FIX(t_notecook)
+DECLARE_STANDARD_FIX(t_notemons)
 DECLARE_STANDARD_FIX(t_place)
 DECLARE_STANDARD_FIX(t_vctiming_us)
 DECLARE_STANDARD_FIX(t0000_dat)
@@ -281,6 +282,7 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(t_mstqrt, TryApply(callback, packFiles));
     TRY_APPLY(t_name, TryApply(callback, packFiles));
     TRY_APPLY(t_notecook, TryApply(callback, packFiles));
+    TRY_APPLY(t_notemons, TryApply(callback, packFiles));
     TRY_APPLY(t_place, TryApply(callback, packFiles));
     TRY_APPLY(t_text, TryApply(callback, packFiles, allowSwitchToNightmare));
     TRY_APPLY(t_vctiming_us, TryApply(callback, packFiles));

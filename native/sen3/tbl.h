@@ -193,6 +193,16 @@ struct CookData {
     std::vector<char> ToBinary() const;
 };
 
+struct ChapterData {
+    uint16_t idx;
+    std::array<char, 2> d1;
+    std::string name;
+
+    ChapterData(const char* data, size_t dataLength);
+
+    std::vector<char> ToBinary() const;
+};
+
 struct VoiceTimingData {
     uint16_t Index;
     std::vector<char> Unknown;

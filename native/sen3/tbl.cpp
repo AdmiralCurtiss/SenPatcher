@@ -430,6 +430,25 @@ std::vector<char> CookData::ToBinary() const {
     return rv;
 }
 
+ChapterData::ChapterData(const char* data, size_t dataLength) {
+    HyoutaUtils::Stream::DuplicatableByteArrayStream stream(data, dataLength);
+    idx = stream.ReadUInt16();
+    name = stream.ReadUTF8Nullterm();
+    d1 = stream.ReadArray<2>();
+    assert(dataLength == stream.GetPosition());
+}
+
+std::vector<char> ChapterData::ToBinary() const {
+    std::vector<char> rv;
+    {
+        HyoutaUtils::Stream::MemoryStream ms(rv);
+        ms.WriteUInt16(idx);
+        ms.WriteUTF8Nullterm(name);
+        ms.Write(d1.data(), d1.size());
+    }
+    return rv;
+}
+
 VoiceTimingData::VoiceTimingData(const char* data,
                                  size_t dataLength,
                                  HyoutaUtils::EndianUtils::Endianness e,

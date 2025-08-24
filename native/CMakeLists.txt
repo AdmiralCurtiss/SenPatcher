@@ -932,6 +932,7 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/t_mstqrt.cpp
 	sen3/file_fixes/t_name.cpp
 	sen3/file_fixes/t_notecook.cpp
+	sen3/file_fixes/t_notemons.cpp
 	sen3/file_fixes/t_place.cpp
 	sen3/file_fixes/t_text.cpp
 	sen3/file_fixes/t_vctiming_us.cpp
