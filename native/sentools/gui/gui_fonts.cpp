@@ -30,7 +30,7 @@ void LoadFonts(ImGuiIO& io, GuiState& state) {
     if (cuprum) {
         io.Fonts->AddFontFromMemoryTTF(cuprum->data(),
                                        static_cast<int>(cuprum->size()),
-                                       static_cast<int>(18.0f * state.CurrentDpi),
+                                       static_cast<int>(18),
                                        &config,
                                        io.Fonts->GetGlyphRangesDefault());
         config.MergeMode = true;
@@ -38,7 +38,7 @@ void LoadFonts(ImGuiIO& io, GuiState& state) {
     if (noto) {
         io.Fonts->AddFontFromMemoryTTF(noto->data(),
                                        static_cast<int>(noto->size()),
-                                       static_cast<int>(20.0f * state.CurrentDpi),
+                                       static_cast<int>(20),
                                        &config,
                                        io.Fonts->GetGlyphRangesJapanese());
     }

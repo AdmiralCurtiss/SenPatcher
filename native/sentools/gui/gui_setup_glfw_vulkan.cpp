@@ -506,6 +506,8 @@ int SenTools::RunGuiGlfwVulkan(
     init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
 
+    loadFontsCallback(io, state);
+
     state.CurrentDpi = -1.0f; // init the DPI and style stuff
 
     // Main loop
@@ -559,10 +561,10 @@ int SenTools::RunGuiGlfwVulkan(
             auto& style = ImGui::GetStyle();
             style = ImGuiStyle();
             ImGui::StyleColorsDark(&style);
+            style.FontScaleDpi = newDpi;
             if (newDpi != 1.0f) {
                 style.ScaleAllSizes(newDpi);
             }
-            loadFontsCallback(io, state);
         }
 
         io.ConfigNavSwapGamepadButtons = state.GuiSettings.GamepadSwapConfirmCancel;
