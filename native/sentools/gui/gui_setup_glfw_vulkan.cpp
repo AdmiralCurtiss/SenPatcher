@@ -555,8 +555,6 @@ int SenTools::RunGuiGlfwVulkan(
             newDpi = 1.0f;
         }
         if (newDpi != state.CurrentDpi) {
-            ImGui_ImplVulkan_DestroyFontsTexture();
-
             state.CurrentDpi = newDpi;
             auto& style = ImGui::GetStyle();
             style = ImGuiStyle();
