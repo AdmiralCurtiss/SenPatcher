@@ -10,6 +10,7 @@
 #include "cli_tool.h"
 
 #include "bra_extract/bra_extract_main.h"
+#include "bra_repack/bra_repack_main.h"
 #include "daybreak2_save_convert/daybreak2_save_convert_main.h"
 #include "daybreak_save_convert/daybreak_save_convert_main.h"
 #include "dirtree_create/dirtree_create_main.h"
@@ -71,6 +72,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = BRA_Extract_Name,
             .ShortDescription = BRA_Extract_ShortDescription,
             .Function = BRA_Extract_Function},
+    CliTool{.Name = BRA_Repack_Name,
+            .ShortDescription = BRA_Repack_ShortDescription,
+            .Function = BRA_Repack_Function},
     CliTool{.Name = Type1_Decompress_Name,
             .ShortDescription = Type1_Decompress_ShortDescription,
             .Function = Type1_Decompress_Function},
