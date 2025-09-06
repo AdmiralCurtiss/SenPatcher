@@ -1042,7 +1042,7 @@ int DirTree_Create_Function(int argc, char** argv) {
                 source.push_back(stringTable[i]);
             }
         } else {
-            printf("Invalid output format\n", outputFilename.c_str());
+            printf("Invalid output format\n");
             return -1;
         }
 
