@@ -23,6 +23,7 @@
 #include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
+#include "util/hash/crc32.h"
 #include "util/memwrite.h"
 #include "util/scope.h"
 #include "util/text.h"
@@ -32,7 +33,10 @@ namespace SenTools {
 static bool DeflateToFile(const char* buffer,
                           size_t length,
                           HyoutaUtils::IO::File& outfile,
-                          int level = 9) {
+                          int level = 9,
+                          int windowBits = 15,
+                          int memLevel = 9,
+                          int strategy = Z_DEFAULT_STRATEGY) {
     // adapted from https://zlib.net/zpipe.c which is public domain
     static constexpr size_t CHUNK = 16384;
 
@@ -46,7 +50,7 @@ static bool DeflateToFile(const char* buffer,
     strm.zalloc = Z_NULL;
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
-    ret = deflateInit2(&strm, level, Z_DEFLATED, -15, 9, Z_DEFAULT_STRATEGY);
+    ret = deflateInit2(&strm, level, Z_DEFLATED, -windowBits, memLevel, strategy);
     if (ret != Z_OK) {
         return false;
     }
@@ -256,10 +260,6 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
                 if (!unknown1) {
                     return std::string("JSON error: 'Unknown1' missing or invalid");
                 }
-                const auto unknown2 = JsonReadUInt32(file, "Unknown2");
-                if (!unknown2) {
-                    return std::string("JSON error: 'Unknown2' missing or invalid");
-                }
                 const auto unknown3 = JsonReadUInt32(file, "Unknown3");
                 if (!unknown3) {
                     return std::string("JSON error: 'Unknown3' missing or invalid");
@@ -320,6 +320,11 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
                     return std::string("Failed to write to output file");
                 }
 
+                crc_t crc = crc_init();
+                crc = crc_update(crc, uncompressedData.get(), *uncompressedLength);
+                crc = crc_finalize(crc);
+                const uint32_t checksum = static_cast<uint32_t>(crc);
+
                 if (*compressionType != 0) {
                     if (!DeflateToFile(uncompressedData.get(), *uncompressedLength, outfile, 9)) {
                         return std::string("Failed to compress");
@@ -344,7 +349,7 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
 
                 // fill in fileinfo
                 fi.Unknown1 = *unknown1;
-                fi.Unknown2 = *unknown2;
+                fi.UncompressedCrc32 = checksum;
                 fi.CompressedSize = static_cast<uint32_t>(compressedLengthIncludingHeader);
                 fi.UncompressedSize = static_cast<uint32_t>(*uncompressedLength);
                 fi.PathLength = HyoutaUtils::AlignUp(sjis->size(), 2);
@@ -352,7 +357,7 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
                 fi.DataPosition = *fileheaderPos;
                 fi.FileHeader_UncompressedSize = fi.UncompressedSize;
                 fi.FileHeader_CompressedSize = (fi.CompressedSize - 0x10);
-                fi.FileHeader_Unknown2 = *unknown2;
+                fi.FileHeader_UncompressedCrc32 = checksum;
                 fi.FileHeader_CompressionType = *compressionType;
                 fi.FileHeader_Unknown4 = *unknown4;
                 fi.FileHeader_Unknown5 = *unknown5;
@@ -364,7 +369,7 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
                 }
                 WriteUInt32(&fileheader[0x0], ToEndian(fi.FileHeader_UncompressedSize, LE));
                 WriteUInt32(&fileheader[0x4], ToEndian(fi.FileHeader_CompressedSize, LE));
-                WriteUInt32(&fileheader[0x8], ToEndian(fi.FileHeader_Unknown2, LE));
+                WriteUInt32(&fileheader[0x8], ToEndian(fi.FileHeader_UncompressedCrc32, LE));
                 WriteUInt8(&fileheader[0xc], fi.FileHeader_CompressionType);
                 WriteUInt8(&fileheader[0xd], fi.FileHeader_Unknown4);
                 WriteUInt16(&fileheader[0xe], ToEndian(fi.FileHeader_Unknown5, LE));
@@ -395,7 +400,7 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
 
         std::array<char, 0x18 + 0x60> filefooter{};
         WriteUInt32(&filefooter[0x00], ToEndian(fi.Unknown1, LE));
-        WriteUInt32(&filefooter[0x04], ToEndian(fi.Unknown2, LE));
+        WriteUInt32(&filefooter[0x04], ToEndian(fi.UncompressedCrc32, LE));
         WriteUInt32(&filefooter[0x08], ToEndian(fi.CompressedSize, LE));
         WriteUInt32(&filefooter[0x0c], ToEndian(fi.UncompressedSize, LE));
         WriteUInt16(&filefooter[0x10], ToEndian(fi.PathLength, LE));

@@ -20,7 +20,9 @@
 #include "util/args.h"
 #include "util/endian.h"
 #include "util/file.h"
+#include "util/hash/crc32.h"
 #include "util/memread.h"
+#include "util/scope.h"
 #include "util/text.h"
 
 namespace {
@@ -33,7 +35,10 @@ static std::string_view StripToNull(std::string_view sv) {
     return sv;
 }
 
-static bool InflateToFile(const char* buffer, size_t length, HyoutaUtils::IO::File& outfile) {
+static bool InflateToFile(const char* buffer,
+                          size_t length,
+                          HyoutaUtils::IO::File& outfile,
+                          uint32_t& out_crc32) {
     // adapted from https://zlib.net/zpipe.c which is public domain
     static constexpr size_t CHUNK = 16384;
 
@@ -51,10 +56,12 @@ static bool InflateToFile(const char* buffer, size_t length, HyoutaUtils::IO::Fi
     ret = inflateInit2(&strm, -15);
     if (ret != Z_OK)
         return false;
+    auto cleanupScope = HyoutaUtils::MakeScopeGuard([&]() { (void)inflateEnd(&strm); });
 
     /* decompress until deflate stream ends or end of file */
     size_t bytesLeft = length;
     const char* in = buffer;
+    crc_t uncompressed_crc = crc_init();
     do {
         strm.avail_in =
             static_cast<uInt>(std::min(bytesLeft, size_t(1) << ((sizeof(uInt) * 8) - 1)));
@@ -74,21 +81,24 @@ static bool InflateToFile(const char* buffer, size_t length, HyoutaUtils::IO::Fi
             switch (ret) {
                 case Z_NEED_DICT: ret = Z_DATA_ERROR; [[fallthrough]];
                 case Z_DATA_ERROR:
-                case Z_MEM_ERROR: (void)inflateEnd(&strm); return false;
+                case Z_MEM_ERROR: return false;
             }
             have = CHUNK - strm.avail_out;
+            uncompressed_crc = crc_update(uncompressed_crc, out, have);
             if (outfile.Write(out, have) != have) {
-                (void)inflateEnd(&strm);
                 return false;
             }
         } while (strm.avail_out == 0);
 
         /* done when inflate() says it's done */
     } while (ret != Z_STREAM_END);
+    if (ret != Z_STREAM_END) {
+        return false;
+    }
 
-    /* clean up and return */
-    (void)inflateEnd(&strm);
-    return ret == Z_STREAM_END ? true : false;
+    uncompressed_crc = crc_finalize(uncompressed_crc);
+    out_crc32 = static_cast<uint32_t>(uncompressed_crc);
+    return true;
 }
 } // namespace
 
@@ -205,7 +215,8 @@ int BRA_Extract_Function(int argc, char** argv) {
             }
 
             const uint32_t unknown1 = FromEndian(ReadUInt32(&footerMemory[offset]), LE);
-            const uint32_t unknown2 = FromEndian(ReadUInt32(&footerMemory[offset + 0x4]), LE);
+            const uint32_t uncompressedCrc32 =
+                FromEndian(ReadUInt32(&footerMemory[offset + 0x4]), LE);
             const uint32_t compressedSize = FromEndian(ReadUInt32(&footerMemory[offset + 0x8]), LE);
             const uint32_t uncompressedSize =
                 FromEndian(ReadUInt32(&footerMemory[offset + 0xc]), LE);
@@ -222,11 +233,12 @@ int BRA_Extract_Function(int argc, char** argv) {
             offset += pathLength;
 
             // note: the game itself reserves a struct of 0x70 bytes for the file entries, and only
-            // keeps Unknown2, CompressedSize, UncompressedSize, DataPosition, and the file path up
-            // to the first null (which is blindly assumed to fit into 0x60 bytes...); see 0x40eeaa
+            // keeps UncompressedCrc32, CompressedSize, UncompressedSize, DataPosition, and the file
+            // path up to the first null (which is blindly assumed to fit into 0x60 bytes...);
+            // see 0x40eeaa
             auto& fileInfo = fileInfos[i];
             fileInfo.Unknown1 = unknown1;
-            fileInfo.Unknown2 = unknown2;
+            fileInfo.UncompressedCrc32 = uncompressedCrc32;
             fileInfo.CompressedSize = compressedSize;
             fileInfo.UncompressedSize = uncompressedSize;
             fileInfo.PathLength = pathLength;
@@ -308,7 +320,7 @@ int BRA_Extract_Function(int argc, char** argv) {
         // type? see 0x41190a, deflate decompression loop at 0x4119c7
         fileInfo.FileHeader_UncompressedSize = FromEndian(ReadUInt32(&buffer[0x0]), LE);
         fileInfo.FileHeader_CompressedSize = FromEndian(ReadUInt32(&buffer[0x4]), LE);
-        fileInfo.FileHeader_Unknown2 = FromEndian(ReadUInt32(&buffer[0x8]), LE);
+        fileInfo.FileHeader_UncompressedCrc32 = FromEndian(ReadUInt32(&buffer[0x8]), LE);
         fileInfo.FileHeader_CompressionType = ReadUInt8(&buffer[0xc]);
         fileInfo.FileHeader_Unknown4 = ReadUInt8(&buffer[0xd]);
         fileInfo.FileHeader_Unknown5 = FromEndian(ReadUInt16(&buffer[0xe]), LE);
@@ -331,7 +343,12 @@ int BRA_Extract_Function(int argc, char** argv) {
                 "header.\n",
                 pathUtf8->c_str());
         }
+        if (fileInfo.FileHeader_UncompressedCrc32 != fileInfo.UncompressedCrc32) {
+            printf("WARNING: File '%s': Checksum mismatch between BRA header and file header.\n",
+                   pathUtf8->c_str());
+        }
 
+        uint32_t checksum;
         if (fileInfo.FileHeader_CompressionType == 0) {
             if ((fileInfo.CompressedSize - 0x10) != fileInfo.UncompressedSize) {
                 printf(
@@ -345,8 +362,15 @@ int BRA_Extract_Function(int argc, char** argv) {
                 printf("Failed to write to output file.\n");
                 return -1;
             }
+
+            crc_t uncompressed_crc = crc_init();
+            uncompressed_crc =
+                crc_update(uncompressed_crc, buffer.get() + 0x10, fileInfo.CompressedSize - 0x10);
+            uncompressed_crc = crc_finalize(uncompressed_crc);
+            checksum = static_cast<uint32_t>(uncompressed_crc);
         } else {
-            if (!InflateToFile(buffer.get() + 0x10, fileInfo.CompressedSize - 0x10, outfile)) {
+            if (!InflateToFile(
+                    buffer.get() + 0x10, fileInfo.CompressedSize - 0x10, outfile, checksum)) {
                 printf("Failed to decompress to output file.\n");
                 return -1;
             }
@@ -357,14 +381,16 @@ int BRA_Extract_Function(int argc, char** argv) {
             }
         }
 
+        if (checksum != fileInfo.UncompressedCrc32) {
+            printf("WARNING: File '%s': Checksum is incorrect.\n", pathUtf8->c_str());
+        }
+
         json.Key("PathOnDisk");
         json.String(pathUtf8->data(), pathUtf8->size(), true);
         json.Key("CompressionType");
         json.Uint(fileInfo.FileHeader_CompressionType);
         json.Key("Unknown1");
         json.Uint(fileInfo.Unknown1);
-        json.Key("Unknown2");
-        json.Uint(fileInfo.Unknown2);
         json.Key("Unknown3");
         json.Uint(fileInfo.Unknown3);
         json.Key("Unknown4");

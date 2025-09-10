@@ -7,7 +7,7 @@ namespace SenTools {
 struct BraFileInfo {
     // from the BRA footer
     uint32_t Unknown1 = 0;
-    uint32_t Unknown2 = 0;
+    uint32_t UncompressedCrc32 = 0;
     uint32_t CompressedSize = 0;
     uint32_t UncompressedSize = 0;
     uint16_t PathLength = 0; // seems to be 2-byte aligned
@@ -17,7 +17,7 @@ struct BraFileInfo {
     // from the first 0x10 bytes of the individual file
     uint32_t FileHeader_UncompressedSize = 0;
     uint32_t FileHeader_CompressedSize = 0;
-    uint32_t FileHeader_Unknown2 = 0; // same as Unknown2 in the footer
+    uint32_t FileHeader_UncompressedCrc32 = 0;
     uint8_t FileHeader_CompressionType = 0;
     uint8_t FileHeader_Unknown4 = 0;
     uint16_t FileHeader_Unknown5 = 0;
