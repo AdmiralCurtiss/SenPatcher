@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>
+#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -205,6 +206,11 @@ int BRA_Extract_Function(int argc, char** argv) {
         return -1;
     }
 
+    // try to reconstruct enough data so that the uninitialized bytes after the nullterminator of a
+    // filename can be regenerated when repacking the bra using the json
+    std::array<char, 0x60> originalFilenameBuffer{};
+    size_t longestFilenameSeen = 0;
+
     auto fileInfos = std::make_unique<BraFileInfo[]>(fileCount);
     size_t realFileCount = 0;
     {
@@ -229,8 +235,31 @@ int BRA_Extract_Function(int argc, char** argv) {
                 break;
             }
 
-            const std::string_view path(&footerMemory[offset], pathLength);
+            const std::string_view unstrippedPath(&footerMemory[offset], pathLength);
+            const std::string_view path = StripToNull(unstrippedPath);
             offset += pathLength;
+
+            if (longestFilenameSeen < unstrippedPath.size()) {
+                for (size_t p = path.size(); p < unstrippedPath.size(); ++p) {
+                    if (p < originalFilenameBuffer.size()) {
+                        originalFilenameBuffer[p] = unstrippedPath[p];
+                    }
+                }
+                longestFilenameSeen = unstrippedPath.size();
+            }
+
+            // {
+            //     std::string footer;
+            //     for (size_t xx = 0; xx < 0x18; ++xx) {
+            //         std::format_to(std::back_inserter(footer),
+            //                        "{:02x} ",
+            //                        footerMemory[(offset - (0x18 + pathLength)) + xx]);
+            //         if ((xx % 4) == 3) {
+            //             footer += " ";
+            //         }
+            //     }
+            //     printf("%s  %.*s\n", footer.c_str(), (int)path.size(), path.data());
+            // }
 
             // note: the game itself reserves a struct of 0x70 bytes for the file entries, and only
             // keeps UncompressedCrc32, CompressedSize, UncompressedSize, DataPosition, and the file
@@ -363,11 +392,8 @@ int BRA_Extract_Function(int argc, char** argv) {
                 return -1;
             }
 
-            crc_t uncompressed_crc = crc_init();
-            uncompressed_crc =
-                crc_update(uncompressed_crc, buffer.get() + 0x10, fileInfo.CompressedSize - 0x10);
-            uncompressed_crc = crc_finalize(uncompressed_crc);
-            checksum = static_cast<uint32_t>(uncompressed_crc);
+            // uncompressed files have their checksum set to 0, for some reason
+            checksum = static_cast<uint32_t>(0);
         } else {
             if (!InflateToFile(
                     buffer.get() + 0x10, fileInfo.CompressedSize - 0x10, outfile, checksum)) {
@@ -400,6 +426,16 @@ int BRA_Extract_Function(int argc, char** argv) {
         json.EndObject();
     }
     json.EndArray();
+    if (std::any_of(originalFilenameBuffer.begin(), originalFilenameBuffer.end(), [](char c) {
+            return c != 0;
+        })) {
+        json.Key("FilenameBufferInitialization");
+        json.StartArray();
+        for (size_t i = 0; i < originalFilenameBuffer.size(); ++i) {
+            json.Uint(static_cast<uint8_t>(originalFilenameBuffer[i]));
+        }
+        json.EndArray();
+    }
     json.EndObject();
 
     if (generateJson) {

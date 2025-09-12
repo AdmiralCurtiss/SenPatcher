@@ -133,6 +133,37 @@ static std::optional<bool> JsonReadBool(T& json, const char* key) {
     return std::nullopt;
 }
 
+template<size_t len, typename T>
+static std::optional<std::array<char, len>> JsonReadByteArrayZeroPadded(T& json, const char* key) {
+    auto it = json.FindMember(key);
+    if (it == json.MemberEnd()) {
+        return std::nullopt;
+    }
+    auto& j = it->value;
+    if (j.IsArray()) {
+        size_t idx = 0;
+        std::array<char, len> arr{};
+        for (const auto& j2 : j.GetArray()) {
+            if (idx >= len) {
+                break;
+            }
+            if (j2.IsUint()) {
+                const auto i = j2.GetUint();
+                if (i > 255) {
+                    return std::nullopt;
+                }
+                arr[idx] = static_cast<uint8_t>(static_cast<uint32_t>(i));
+            } else {
+                return std::nullopt;
+            }
+            ++idx;
+        }
+        return arr;
+    }
+    return std::nullopt;
+}
+
+
 int BRA_Repack_Function(int argc, char** argv) {
     static constexpr HyoutaUtils::Arg arg_output{.Type = HyoutaUtils::ArgTypes::String,
                                                  .ShortKey = "o",
@@ -320,16 +351,18 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
                     return std::string("Failed to write to output file");
                 }
 
-                crc_t crc = crc_init();
-                crc = crc_update(crc, uncompressedData.get(), *uncompressedLength);
-                crc = crc_finalize(crc);
-                const uint32_t checksum = static_cast<uint32_t>(crc);
-
+                uint32_t checksum;
                 if (*compressionType != 0) {
+                    crc_t crc = crc_init();
+                    crc = crc_update(crc, uncompressedData.get(), *uncompressedLength);
+                    crc = crc_finalize(crc);
+                    checksum = static_cast<uint32_t>(crc);
                     if (!DeflateToFile(uncompressedData.get(), *uncompressedLength, outfile, 9)) {
                         return std::string("Failed to compress");
                     }
                 } else {
+                    // uncompressed files have their checksum set to 0, for some reason
+                    checksum = static_cast<uint32_t>(0);
                     if (outfile.Write(uncompressedData.get(), *uncompressedLength)
                         != *uncompressedLength) {
                         return std::string("Failed to write to output file");
@@ -352,7 +385,7 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
                 fi.UncompressedCrc32 = checksum;
                 fi.CompressedSize = static_cast<uint32_t>(compressedLengthIncludingHeader);
                 fi.UncompressedSize = static_cast<uint32_t>(*uncompressedLength);
-                fi.PathLength = HyoutaUtils::AlignUp(sjis->size(), 2);
+                fi.PathLength = HyoutaUtils::AlignUp(sjis->size(), 4);
                 fi.Unknown3 = *unknown3;
                 fi.DataPosition = *fileheaderPos;
                 fi.FileHeader_UncompressedSize = fi.UncompressedSize;
@@ -393,12 +426,20 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
     }
 
     // write file footers
+    // note that we intentionally reuse and don't zero the buffer, the official packing tool clearly
+    // does too because the bytes after the filename are sticky across entries...
+    std::array<char, 0x18 + 0x60> filefooter{};
+    {
+        auto arr = JsonReadByteArrayZeroPadded<0x60>(root, "FilenameBufferInitialization");
+        if (arr) {
+            std::memcpy(filefooter.data() + 0x18, arr->data(), arr->size());
+        }
+    }
     for (const SenTools::BraFileInfo& fi : fileinfos) {
         if (fi.PathLength > 0x60) {
             return std::string("Internal error");
         }
 
-        std::array<char, 0x18 + 0x60> filefooter{};
         WriteUInt32(&filefooter[0x00], ToEndian(fi.Unknown1, LE));
         WriteUInt32(&filefooter[0x04], ToEndian(fi.UncompressedCrc32, LE));
         WriteUInt32(&filefooter[0x08], ToEndian(fi.CompressedSize, LE));
@@ -406,8 +447,15 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
         WriteUInt16(&filefooter[0x10], ToEndian(fi.PathLength, LE));
         WriteUInt16(&filefooter[0x12], ToEndian(fi.Unknown3, LE));
         WriteUInt32(&filefooter[0x14], ToEndian(fi.DataPosition, LE));
-        HyoutaUtils::TextUtils::WriteToFixedLengthBuffer(
-            filefooter.data() + 0x18, 0x60, fi.Path, true);
+        const size_t l = (0x60 < fi.Path.size() ? 0x60 : fi.Path.size());
+        size_t i = 0;
+        while (i < l) {
+            filefooter[0x18 + i] = fi.Path[i];
+            ++i;
+        }
+        if (i < fi.PathLength) {
+            filefooter[0x18 + i] = '\0';
+        }
         size_t filefooterLength = 0x18 + fi.PathLength;
         if (outfile.Write(filefooter.data(), filefooterLength) != filefooterLength) {
             return std::string("Failed to write to output file");

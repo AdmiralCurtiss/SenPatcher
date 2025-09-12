@@ -10,7 +10,7 @@ struct BraFileInfo {
     uint32_t UncompressedCrc32 = 0;
     uint32_t CompressedSize = 0;
     uint32_t UncompressedSize = 0;
-    uint16_t PathLength = 0; // seems to be 2-byte aligned
+    uint16_t PathLength = 0; // seems to be 4-byte aligned
     uint16_t Unknown3 = 0;
     uint32_t DataPosition = 0;
 
