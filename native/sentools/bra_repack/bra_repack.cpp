@@ -12,6 +12,13 @@
 #include <string_view>
 #include <vector>
 
+// For bit-exact recompressing of the original game files. Modern zlib produces different compressed
+// streams. This is slightly modified to produce the desired streams and to not contain conflicting
+// symbols with the actual zlib we also use in this executable.
+extern "C" {
+#include "zlib-0.95/zlib.h"
+}
+
 #include "zlib/zlib.h"
 
 #include "rapidjson/document.h"
@@ -88,6 +95,81 @@ static bool DeflateToFile(const char* buffer,
 
     /* clean up and return */
     (void)deflateEnd(&strm);
+    return true;
+}
+
+namespace {
+struct BraZStreamDeleter {
+    void operator()(TXBRA_z_stream* strm) {
+        if (strm) {
+            (void)TXBRA_deflateEnd(strm);
+        }
+    }
+};
+} // namespace
+using BraZStreamUniquePtr = std::unique_ptr<TXBRA_z_stream, BraZStreamDeleter>;
+
+static bool DeflateToFileOriginalBraMatching(BraZStreamUniquePtr& state,
+                                             const char* buffer,
+                                             size_t length,
+                                             HyoutaUtils::IO::File& outfile) {
+    // adapted from https://zlib.net/zpipe.c which is public domain
+    static constexpr size_t CHUNK = 16384;
+
+    int ret;
+    int flush;
+    unsigned have;
+    unsigned char out[CHUNK];
+
+    /* allocate deflate state */
+    if (!state) {
+        state.reset(new TXBRA_z_stream{});
+        state->zalloc = TXBRA_Z_NULL;
+        state->zfree = TXBRA_Z_NULL;
+        state->opaque = TXBRA_Z_NULL;
+        ret = TXBRA_deflateInit2(state.get(), 8, 8, -16, 9, 0);
+        if (ret != TXBRA_Z_OK) {
+            state.reset();
+            return false;
+        }
+    } else {
+        ret = TXBRA_deflateReset(state.get());
+        if (ret != TXBRA_Z_OK) {
+            state.reset();
+            return false;
+        }
+    }
+    TXBRA_z_stream& strm = *state;
+
+    /* compress until end of file */
+    const char* next = buffer;
+    size_t rest = length;
+    do {
+        uint32_t blockSize = rest > 0x4000u ? 0x4000u : static_cast<uint32_t>(rest);
+        strm.avail_in = blockSize;
+        flush = (blockSize == rest) ? TXBRA_Z_FINISH : TXBRA_Z_NO_FLUSH;
+        strm.next_in = const_cast<TXBRA_Byte*>(reinterpret_cast<const TXBRA_Byte*>(next));
+
+        /* run deflate() on input until output buffer not full, finish
+           compression if all of source has been read in */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = TXBRA_deflate(&strm, flush);   /* no bad return value */
+            assert(ret != TXBRA_Z_STREAM_ERROR); /* state not clobbered */
+            have = CHUNK - strm.avail_out;
+            if (outfile.Write(out, have) != have) {
+                return false;
+            }
+        } while (strm.avail_out == 0);
+        assert(strm.avail_in == 0); /* all input will be used */
+
+        next += blockSize;
+        rest -= blockSize;
+
+        /* done when last data in file processed */
+    } while (flush != TXBRA_Z_FINISH);
+    assert(ret == TXBRA_Z_STREAM_END); /* stream will be complete */
     return true;
 }
 
@@ -269,6 +351,20 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
         return std::string("Failed to write to output file");
     }
 
+    bool matchOriginalGameCompression = false;
+    {
+        auto matchJson = root.FindMember("MatchOriginalGameCompression");
+        if (matchJson != root.MemberEnd()) {
+            if (matchJson->value.IsBool()) {
+                matchOriginalGameCompression = matchJson->value.GetBool();
+            } else {
+                return std::format("Invalid value provided at '{}', must be boolean.",
+                                   "MatchOriginalGameCompression");
+            }
+        }
+    }
+
+    BraZStreamUniquePtr matchOriginalGameCompressionState;
     std::vector<SenTools::BraFileInfo> fileinfos;
     const auto files = root.FindMember("Files");
     if (files != root.MemberEnd() && files->value.IsArray()) {
@@ -357,7 +453,18 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
                     crc = crc_update(crc, uncompressedData.get(), *uncompressedLength);
                     crc = crc_finalize(crc);
                     checksum = static_cast<uint32_t>(crc);
-                    if (!DeflateToFile(uncompressedData.get(), *uncompressedLength, outfile, 9)) {
+                    bool compressionSuccess = false;
+                    if (matchOriginalGameCompression) {
+                        compressionSuccess =
+                            DeflateToFileOriginalBraMatching(matchOriginalGameCompressionState,
+                                                             uncompressedData.get(),
+                                                             *uncompressedLength,
+                                                             outfile);
+                    } else {
+                        compressionSuccess =
+                            DeflateToFile(uncompressedData.get(), *uncompressedLength, outfile, 9);
+                    }
+                    if (!compressionSuccess) {
                         return std::string("Failed to compress");
                     }
                 } else {
@@ -419,6 +526,7 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
     } else {
         return std::string("JSON error: 'Files' not found or not an array");
     }
+    matchOriginalGameCompressionState.reset();
 
     const auto footerPos = outfile.GetPosition();
     if (!footerPos) {

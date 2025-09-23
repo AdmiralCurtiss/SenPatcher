@@ -337,6 +337,14 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/bra_repack/bra_repack.cpp
 		sentools/bra_repack/bra_repack.h
 		sentools/bra_repack/bra_repack_main.h
+		sentools/bra_repack/zlib-0.95/adler32.c
+		sentools/bra_repack/zlib-0.95/deflate.c
+		sentools/bra_repack/zlib-0.95/trees.c
+		sentools/bra_repack/zlib-0.95/zutil.c
+		sentools/bra_repack/zlib-0.95/deflate.h
+		sentools/bra_repack/zlib-0.95/zconf.h
+		sentools/bra_repack/zlib-0.95/zlib.h
+		sentools/bra_repack/zlib-0.95/zutil.h
 		sentools/daybreak_save_convert/daybreak_save_convert.cpp
 		sentools/daybreak_save_convert/daybreak_save_convert.h
 		sentools/daybreak_save_convert/daybreak_save_convert_main.h
