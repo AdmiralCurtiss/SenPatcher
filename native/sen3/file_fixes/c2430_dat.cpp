@@ -56,6 +56,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         patcher.ReplacePartialCommand(
             0xa155, 0x135, 0xa1aa, 0x3, {{0x49, 0x6d, 0x70, 0x65, 0x72, 0x69}});
 
+        // Elliott -> Elliot
+        // in several scenes here
+        patcher.RemovePartialCommand(0xbe1a, 0x4b, 0xbe2c, 1); // EV_04_81_04
+        patcher.RemovePartialCommand(0x14d79, 0x4b, 0x14d8b, 1); // EV_04_85_00
+        patcher.RemovePartialCommand(0x21d3a, 0x4b, 0x21d4c, 1); // EV_04_89_00
+        patcher.RemovePartialCommand(0x2ebd4, 0x4f, 0x2ebea, 1); // SB_04_07_12
+        patcher.RemovePartialCommand(0x367c0, 0x4f, 0x367d6, 1); // SB_04_08_08
+
 
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
