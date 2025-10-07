@@ -803,11 +803,59 @@ TEST(FileUtils, PathHandling) {
         EXPECT_TRUE(a.ends_with("\\somedir\\a.bin"));
     }
 #else
+    // FIXME: Do all of these cases make sense? What does Windows do here?
     {
-        // on linux we doesn't resolve the '..' in the middle...
-        auto a = HyoutaUtils::IO::GetAbsolutePath("somedir/a.bin");
+        auto a = HyoutaUtils::IO::GetAbsolutePath("somedir/fake/../a.bin");
         EXPECT_TRUE(a.starts_with("/"));
         EXPECT_TRUE(a.ends_with("/somedir/a.bin"));
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("///handles//consecutive////pathseps/////");
+        EXPECT_EQ(a, "/handles/consecutive/pathseps/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/nop/./path/./element");
+        EXPECT_EQ(a, "/nop/path/element");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/");
+        EXPECT_EQ(a, "/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a");
+        EXPECT_EQ(a, "/a");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/");
+        EXPECT_EQ(a, "/a/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/.");
+        EXPECT_EQ(a, "/a/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/..");
+        EXPECT_EQ(a, "/a/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../");
+        EXPECT_EQ(a, "/a/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../.");
+        EXPECT_EQ(a, "/a/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../../../..");
+        EXPECT_EQ(a, "/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../../../../");
+        EXPECT_EQ(a, "/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../../../../c");
+        EXPECT_EQ(a, "/c");
     }
 #endif
 }

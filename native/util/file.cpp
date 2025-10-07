@@ -1385,53 +1385,89 @@ std::string GetAbsolutePath(std::string_view path) {
     }
     result = std::move(*utf8);
 #else
-    if (path.starts_with('/')) {
-        // already absolute
-        result.assign(path);
-        return result;
+    std::string_view p = path;
+    if (!p.starts_with('/')) {
+        // relative path in 'p', we need to get the working dir
+        std::array<char, 1024> stackBuffer;
+        char* cwd = getcwd(stackBuffer.data(), stackBuffer.size());
+        if (cwd == nullptr) {
+            // POSIX doesn't deign to tell us how large the buffer it actually wants is,
+            // so just retry until it succeeds...
+            std::vector<char> heapBuffer;
+            heapBuffer.resize(stackBuffer.size() * 2);
+            while (true) {
+                cwd = getcwd(heapBuffer.data(), heapBuffer.size());
+                if (cwd != nullptr) {
+                    break;
+                }
+                if (heapBuffer.size() >= 0x1000'0000u) {
+                    // sanity exit in case something goes really wrong...
+                    return result;
+                }
+                heapBuffer.resize(heapBuffer.size() * 2);
+            }
+        }
+        if (cwd[0] != '/') {
+            // did not get a valid path
+            return result;
+        }
+        result.assign(cwd);
+        while (result.back() == '/') {
+            result.pop_back();
+        }
+        result.push_back('/');
+    } else {
+        // absolute (but possibly not normalized) path in 'p'
+        result.assign("/");
+        while (p.starts_with('/')) {
+            // drop consecutive path separators
+            p = p.substr(1);
+        }
     }
 
-    // unfortunately there are no abstract pathname handling facilities on Linux.
-    // only realpath() exists, but that requires the target object to exist on disk.
-    // so we'll just do the same thing that std::filesystem::absolute() does, which
-    // is just concatenating the cwd with the relative path...
-    char* cwd = nullptr;
-    const auto build_result = [&]() {
-        size_t cwdlen = strlen(cwd);
-        bool needsExtraPathSep = (cwdlen == 0 || cwd[cwdlen - 1] != '/');
-        size_t length = cwdlen + path.size() + (needsExtraPathSep ? size_t(1) : size_t(0));
-        result.resize(length);
-        if (cwdlen > 0) {
-            std::memcpy(result.data(), cwd, cwdlen);
-        }
-        if (needsExtraPathSep) {
-            result[cwdlen] = '/';
-            std::memcpy(result.data() + cwdlen + size_t(1), path.data(), path.size());
-        } else {
-            std::memcpy(result.data() + cwdlen, path.data(), path.size());
-        }
-    };
+    // we now have the start of an absolute path in 'result' and a relative path in 'p'
+    // now we just go through all path elements of 'p' and append them onto 'result'
+    while (true) {
+        assert(result.size() >= 1);
+        assert(result.front() == '/');
+        assert(result.back() == '/');
 
-    std::array<char, 1024> stackBuffer;
-    cwd = getcwd(stackBuffer.data(), stackBuffer.size());
-    if (cwd != nullptr) {
-        build_result();
-    } else {
-        // POSIX doesn't deign to tell us how large the buffer it actually wants is,
-        // so just retry until it succeeds...
-        std::vector<char> heapBuffer;
-        heapBuffer.resize(stackBuffer.size() * 2);
-        while (true) {
-            cwd = getcwd(heapBuffer.data(), heapBuffer.size());
-            if (cwd != nullptr) {
-                build_result();
+        const size_t idx = p.find_first_of('/');
+        std::string_view element;
+        if (idx == std::string::npos) {
+            // last path element
+            element = p;
+        } else {
+            element = p.substr(0, idx);
+            p = p.substr(idx + 1);
+            while (p.starts_with('/')) {
+                // drop consecutive path separators
+                p = p.substr(1);
+            }
+        }
+
+        if (element == ".") {
+            // nop element, don't do anything
+            if (idx == std::string::npos) {
                 break;
             }
-            if (heapBuffer.size() >= 0x1000'0000u) {
-                // sanity break in case something goes really wrong...
+        } else if (element == "..") {
+            // go up once, unless we're at root
+            if (result.size() > 1) {
+                const size_t next =
+                    std::string_view(result).substr(0, result.size() - 1).find_last_of('/');
+                result.resize(next + 1);
+            }
+            if (idx == std::string::npos) {
                 break;
             }
-            heapBuffer.resize(heapBuffer.size() * 2);
+        } else {
+            // append the element
+            result.append(element);
+            if (idx == std::string::npos) {
+                break;
+            }
+            result.push_back('/');
         }
     }
 #endif

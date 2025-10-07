@@ -140,6 +140,8 @@ std::string_view GetFileNameWithoutExtension(std::string_view path) noexcept;
 std::string_view GetExtension(std::string_view path) noexcept;
 
 // Makes the given path absolute.
+// This will not resolve links or check whether the path exists at all, it's purely string-based.
+// Returns an empty string on failure (broken input path or failure to get working dir).
 std::string GetAbsolutePath(std::string_view path);
 
 // Simulates an atomic file write.
