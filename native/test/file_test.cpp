@@ -802,6 +802,55 @@ TEST(FileUtils, PathHandling) {
         EXPECT_TRUE(a.substr(0, 3).ends_with(":\\"));
         EXPECT_TRUE(a.ends_with("\\somedir\\a.bin"));
     }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath(
+            "x:\\\\\\handles\\\\consecutive\\\\\\\\pathseps\\\\\\\\\\");
+        EXPECT_EQ(a, "x:\\handles\\consecutive\\pathseps\\");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\nop\\.\\path\\.\\element");
+        EXPECT_EQ(a, "x:\\nop\\path\\element");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\");
+        EXPECT_EQ(a, "x:\\");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a");
+        EXPECT_EQ(a, "x:\\a");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\");
+        EXPECT_EQ(a, "x:\\a\\");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\.");
+        EXPECT_EQ(a, "x:\\a");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\b\\..");
+        EXPECT_EQ(a, "x:\\a");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\b\\..\\");
+        EXPECT_EQ(a, "x:\\a\\");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\b\\..\\.");
+        EXPECT_EQ(a, "x:\\a");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\b\\..\\..\\..\\..");
+        EXPECT_EQ(a, "x:\\");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\b\\..\\..\\..\\..\\");
+        EXPECT_EQ(a, "x:\\");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\b\\..\\..\\..\\..\\c");
+        EXPECT_EQ(a, "x:\\c");
+    }
 #else
     // FIXME: Do all of these cases make sense? What does Windows do here?
     {
