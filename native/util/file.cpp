@@ -1430,7 +1430,6 @@ std::string GetAbsolutePath(std::string_view path) {
     while (true) {
         assert(result.size() >= 1);
         assert(result.front() == '/');
-        assert(result.back() == '/');
 
         const size_t idx = p.find_first_of('/');
         std::string_view element;
@@ -1448,26 +1447,23 @@ std::string GetAbsolutePath(std::string_view path) {
 
         if (element == ".") {
             // nop element, don't do anything
-            if (idx == std::string::npos) {
-                break;
-            }
         } else if (element == "..") {
             // go up once, unless we're at root
             if (result.size() > 1) {
                 const size_t next =
                     std::string_view(result).substr(0, result.size() - 1).find_last_of('/');
-                result.resize(next + 1);
-            }
-            if (idx == std::string::npos) {
-                break;
+                result.resize(next == static_cast<size_t>(0) ? static_cast<size_t>(1) : next);
             }
         } else {
             // append the element
-            result.append(element);
-            if (idx == std::string::npos) {
-                break;
+            if (result.back() != '/') {
+                result.push_back('/');
             }
-            result.push_back('/');
+            result.append(element);
+        }
+
+        if (idx == std::string::npos) {
+            break;
         }
     }
 #endif

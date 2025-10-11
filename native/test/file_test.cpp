@@ -880,11 +880,11 @@ TEST(FileUtils, PathHandling) {
     }
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("/a/.");
-        EXPECT_EQ(a, "/a/");
+        EXPECT_EQ(a, "/a");
     }
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/..");
-        EXPECT_EQ(a, "/a/");
+        EXPECT_EQ(a, "/a");
     }
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../");
@@ -892,7 +892,7 @@ TEST(FileUtils, PathHandling) {
     }
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../.");
-        EXPECT_EQ(a, "/a/");
+        EXPECT_EQ(a, "/a");
     }
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../../../..");
@@ -900,6 +900,10 @@ TEST(FileUtils, PathHandling) {
     }
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../../../../");
+        EXPECT_EQ(a, "/");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("/a/b/../../../../.");
         EXPECT_EQ(a, "/");
     }
     {
