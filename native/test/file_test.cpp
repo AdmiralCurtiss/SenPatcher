@@ -803,6 +803,41 @@ TEST(FileUtils, PathHandling) {
         EXPECT_TRUE(a.ends_with("\\somedir\\a.bin"));
     }
     {
+        // empty path remains empty
+        auto a = HyoutaUtils::IO::GetAbsolutePath("");
+        EXPECT_EQ(a, "");
+    }
+    {
+        // a single dot returns the working dir without trailing path sep, *even in the root*
+        // ie this returns 'C:', not 'C:\'
+        auto a = HyoutaUtils::IO::GetAbsolutePath(".");
+        EXPECT_TRUE(a.substr(0, 2).ends_with(":"));
+        EXPECT_TRUE(!a.ends_with("\\"));
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("a");
+        EXPECT_TRUE(a.substr(0, 3).ends_with(":\\"));
+        EXPECT_TRUE(a.ends_with("\\a"));
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("a\\");
+        EXPECT_TRUE(a.substr(0, 3).ends_with(":\\"));
+        EXPECT_TRUE(a.ends_with("\\a\\"));
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("a\\.");
+        EXPECT_TRUE(a.substr(0, 3).ends_with(":\\"));
+        EXPECT_TRUE(a.ends_with("\\a"));
+    }
+    {
+        // logically this is the same as the single dot,
+        // but it actually returns as 'C:\' in the root instead of 'C:'
+        auto a = HyoutaUtils::IO::GetAbsolutePath("a\\..");
+        EXPECT_TRUE(a.substr(0, 3).ends_with(":\\"));
+        EXPECT_TRUE(a.size() == 3 || !a.ends_with("\\"));
+    }
+
+    {
         auto a = HyoutaUtils::IO::GetAbsolutePath(
             "x:\\\\\\handles\\\\consecutive\\\\\\\\pathseps\\\\\\\\\\");
         EXPECT_EQ(a, "x:\\handles\\consecutive\\pathseps\\");
@@ -845,6 +880,10 @@ TEST(FileUtils, PathHandling) {
     }
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\b\\..\\..\\..\\..\\");
+        EXPECT_EQ(a, "x:\\");
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("x:\\a\\b\\..\\..\\..\\..\\.");
         EXPECT_EQ(a, "x:\\");
     }
     {
