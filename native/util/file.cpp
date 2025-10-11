@@ -1385,6 +1385,9 @@ std::string GetAbsolutePath(std::string_view path) {
     }
     result = std::move(*utf8);
 #else
+    if (path.empty()) {
+        return result;
+    }
     std::string_view p = path;
     if (!p.starts_with('/')) {
         // relative path in 'p', we need to get the working dir
@@ -1412,10 +1415,12 @@ std::string GetAbsolutePath(std::string_view path) {
             return result;
         }
         result.assign(cwd);
-        while (result.back() == '/') {
+        while (result.ends_with('/')) {
             result.pop_back();
         }
-        result.push_back('/');
+        if (result.empty()) {
+            result.push_back('/');
+        }
     } else {
         // absolute (but possibly not normalized) path in 'p'
         result.assign("/");

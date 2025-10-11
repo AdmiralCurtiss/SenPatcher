@@ -891,12 +891,45 @@ TEST(FileUtils, PathHandling) {
         EXPECT_EQ(a, "x:\\c");
     }
 #else
-    // FIXME: Do all of these cases make sense? What does Windows do here?
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("somedir/fake/../a.bin");
         EXPECT_TRUE(a.starts_with("/"));
         EXPECT_TRUE(a.ends_with("/somedir/a.bin"));
     }
+    {
+        // empty path remains empty
+        auto a = HyoutaUtils::IO::GetAbsolutePath("");
+        EXPECT_EQ(a, "");
+    }
+    {
+        // a single dot returns the working dir without trailing path sep
+        // unlike Windows we don't have any special case for the root here,
+        // as that wouldn't work with how Linux paths are
+        auto a = HyoutaUtils::IO::GetAbsolutePath(".");
+        EXPECT_TRUE(a.starts_with("/"));
+        EXPECT_TRUE(a.size() == 1 || !a.ends_with("/"));
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("a");
+        EXPECT_TRUE(a.starts_with("/"));
+        EXPECT_TRUE(a.ends_with("/a"));
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("a/");
+        EXPECT_TRUE(a.starts_with("/"));
+        EXPECT_TRUE(a.ends_with("/a/"));
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("a/.");
+        EXPECT_TRUE(a.starts_with("/"));
+        EXPECT_TRUE(a.ends_with("/a"));
+    }
+    {
+        auto a = HyoutaUtils::IO::GetAbsolutePath("a/..");
+        EXPECT_TRUE(a.starts_with("/"));
+        EXPECT_TRUE(a.size() == 1 || !a.ends_with("/"));
+    }
+
     {
         auto a = HyoutaUtils::IO::GetAbsolutePath("///handles//consecutive////pathseps/////");
         EXPECT_EQ(a, "/handles/consecutive/pathseps/");
