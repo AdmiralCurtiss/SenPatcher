@@ -607,11 +607,11 @@ bool File::Delete() noexcept {
         return true;
     }
 #else
-    if (IsUnlinked) {
-        return true;
-    }
     if (!IsWritable) {
         return false;
+    }
+    if (IsUnlinked || Path.empty()) {
+        return true;
     }
     int result = unlink(Path.c_str());
     if (result == 0) {
@@ -673,6 +673,9 @@ bool File::Rename(const std::string_view p) noexcept {
     return RenameInternalWindows(Filehandle, wstr->data(), wstr->size());
 #else
     if (!IsWritable) {
+        return false;
+    }
+    if (!IsUnlinked && Path.empty()) {
         return false;
     }
     std::string newName;
