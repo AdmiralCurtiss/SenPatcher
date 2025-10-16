@@ -232,8 +232,13 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
             } while (true);
             return true;
 #else
-            // try O_TMPFILE first
             std::string s;
+
+            // As it turns out, I completely missed one major issue of this method: linkat() cannot
+            // replace an existing file. This makes this path completely useless for the atomic file
+            // replace case. Too bad. Maybe this will be possible in the future?
+#if 0
+            // try O_TMPFILE first
             try {
                 s.assign(p);
                 while (s.size() > 0 && s.back() != '/') {
@@ -259,7 +264,7 @@ bool File::OpenWithTempFilename(std::string_view p, OpenMode mode) noexcept {
                     return true;
                 }
             }
-
+#endif
 
             try {
                 s.assign(p);
