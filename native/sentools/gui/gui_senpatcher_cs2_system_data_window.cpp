@@ -54,6 +54,10 @@ struct SenPatcherCS2SystemDataWindow::WorkThreadState {
                   Result = std::string("Failed to write output file.");
                   return;
               }
+              if (!f.Flush()) {
+                  Result = std::string("Failed to flush output file.");
+                  return;
+              }
               if (!f.Rename(std::string_view(FilePath))) {
                   Result = std::string("Failed to rename output file.");
                   return;

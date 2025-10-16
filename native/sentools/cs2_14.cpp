@@ -584,22 +584,27 @@ TryPatchCs2Version14Result TryPatchCs2Version14(std::string_view path,
             return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
 
-        if (newfile_exe_jp.IsOpen() && !newfile_exe_jp.Rename(std::string_view(path_exe_jp))) {
+        if (newfile_exe_jp.IsOpen()
+            && !(newfile_exe_jp.Flush() && newfile_exe_jp.Rename(std::string_view(path_exe_jp)))) {
             return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
-        if (newfile_exe_us.IsOpen() && !newfile_exe_us.Rename(std::string_view(path_exe_us))) {
+        if (newfile_exe_us.IsOpen()
+            && !(newfile_exe_us.Flush() && newfile_exe_us.Rename(std::string_view(path_exe_us)))) {
             return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_t1001_jp.IsOpen()
-            && !newfile_t1001_jp.Rename(std::string_view(path_t1001_jp))) {
+            && !(newfile_t1001_jp.Flush()
+                 && newfile_t1001_jp.Rename(std::string_view(path_t1001_jp)))) {
             return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_t1001_us.IsOpen()
-            && !newfile_t1001_us.Rename(std::string_view(path_t1001_us))) {
+            && !(newfile_t1001_us.Flush()
+                 && newfile_t1001_us.Rename(std::string_view(path_t1001_us)))) {
             return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
         if (newfile_asm_file.IsOpen()
-            && !newfile_asm_file.Rename(std::string_view(path_asm_file))) {
+            && !(newfile_asm_file.Flush()
+                 && newfile_asm_file.Rename(std::string_view(path_asm_file)))) {
             return TryPatchCs2Version14Result::WritingNewFilesFailed;
         }
     }

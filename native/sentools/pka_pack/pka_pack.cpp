@@ -1212,11 +1212,13 @@ HyoutaUtils::Result<PackPkaResult, std::string>
         != pkaConstructionData->PkaHeaderLength) {
         return std::string("Failed to write corrected header to output file.");
     }
-
-    outfileGuard.Dispose();
+    if (!outfile.Flush()) {
+        return std::string("Failed to flush output file.");
+    }
     if (!outfile.Rename(target)) {
         return std::string("Failed to rename output file to correct filename.");
     }
+    outfileGuard.Dispose();
 
     return PackPkaResult::Success;
 }

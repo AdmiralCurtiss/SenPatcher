@@ -581,6 +581,9 @@ HyoutaUtils::Result<RepackBraResult, std::string> RepackBra(std::string_view sou
     if (outfile.Write(header.data(), header.size()) != header.size()) {
         return std::string("Failed to write to output file");
     }
+    if (!outfile.Flush()) {
+        return std::string("Failed to flush output file");
+    }
     if (!outfile.Rename(target)) {
         return std::string("Failed to rename output file");
     }

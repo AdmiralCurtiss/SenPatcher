@@ -624,7 +624,11 @@ bool CreateSwitchScriptArchive(HyoutaUtils::Logger& logger,
         newArchive.Delete();
         return false;
     }
-
+    if (!newArchive.Flush()) {
+        logger.Log("Flushing failed.\n");
+        newArchive.Delete();
+        return false;
+    }
     if (!newArchive.Rename(std::string_view(fullArchivePath))) {
         logger.Log("Renaming failed.\n");
         newArchive.Delete();

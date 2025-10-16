@@ -179,6 +179,11 @@ int P3A_Pack_Function(int argc, char** argv) {
         targetFile.Delete();
         return -1;
     }
+    if (!targetFile.Flush()) {
+        printf("Flushing file failed.\n");
+        targetFile.Delete();
+        return -1;
+    }
     if (!targetFile.Rename(target)) {
         printf("Renaming temp file failed.\n");
         targetFile.Delete();

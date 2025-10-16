@@ -233,6 +233,9 @@ HyoutaUtils::Result<SaveChecksumFixResult, std::string>
     if (outfile.Write(saveMemory, szlen) != szlen) {
         return std::string("Failed to write to output file.");
     }
+    if (!outfile.Flush()) {
+        return std::string("Failed to flush output file.");
+    }
     if (!outfile.Rename(target)) {
         return std::string("Failed to rename output file.");
     }

@@ -142,7 +142,7 @@ bool CreateArchiveIfNeeded(
         return false;
     }
 
-    if (!newArchive.Rename(std::string_view(fullArchivePath))) {
+    if (!(newArchive.Flush() && newArchive.Rename(std::string_view(fullArchivePath)))) {
         logger.Log("Renaming failed.\n");
         newArchive.Delete();
         return false;
@@ -197,7 +197,7 @@ bool CreateVideoIfNeeded(HyoutaUtils::Logger& logger,
         return false;
     }
 
-    if (!f.Rename(std::string_view(fullVideoPath))) {
+    if (!(f.Flush() && f.Rename(std::string_view(fullVideoPath)))) {
         logger.Log("Rename failed.\n");
         f.Delete();
         return false;
