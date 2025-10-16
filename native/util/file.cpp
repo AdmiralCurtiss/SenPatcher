@@ -581,6 +581,22 @@ uint64_t File::Write(File& source, uint64_t length) noexcept {
     return totalWritten;
 }
 
+bool File::Flush() noexcept {
+    assert(IsOpen());
+
+#ifdef BUILD_FOR_WINDOWS
+    if (FlushFileBuffers(Filehandle) != 0) {
+        return true;
+    }
+#else
+    if (fdatasync(Filehandle) == 0) {
+        return true;
+    }
+#endif
+
+    return false;
+}
+
 bool File::Delete() noexcept {
     assert(IsOpen());
 
@@ -1482,6 +1498,9 @@ bool WriteFileAtomic(std::string_view path, const void* data, size_t length) noe
     }
     auto outfileScope = HyoutaUtils::MakeDisposableScopeGuard([&]() { outfile.Delete(); });
     if (outfile.Write(data, length) != length) {
+        return false;
+    }
+    if (!outfile.Flush()) {
         return false;
     }
     if (!outfile.Rename(path)) {
