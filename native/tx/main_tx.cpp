@@ -811,6 +811,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     bool fixBgmResume = true;
     bool allowCustomDlcMultiuse = true;
     bool disableCameraAutoCenter = false;
+    int overrideMSAA = -1;
 
     {
         std::string settingsFilePath;
@@ -840,6 +841,27 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                                 b = false;
                             } else {
                                 logger.Log("Patch ");
+                                logger.Log(key);
+                                logger.Log(" not found in ini, leaving default.\n");
+                            }
+                        }
+                    };
+                const auto check_integer =
+                    [&](std::string_view section, std::string_view key, int& i) {
+                        const auto* kvp = ini.FindValue(section, key);
+                        if (kvp) {
+                            int intval = 0;
+                            const auto [_, ec] = std::from_chars(
+                                kvp->Value.data(), kvp->Value.data() + kvp->Value.size(), intval);
+                            if (ec == std::errc()) {
+                                logger.Log("Value ");
+                                logger.Log(key);
+                                logger.Log(" set to ");
+                                logger.LogInt(intval);
+                                logger.Log(".\n");
+                                i = intval;
+                            } else {
+                                logger.Log("Value ");
                                 logger.Log(key);
                                 logger.Log(" not found in ini, leaving default.\n");
                             }
@@ -898,6 +920,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
                 check_boolean("TX", "FixBgmResume", fixBgmResume);
                 check_boolean("TX", "AllowCustomDlcMultiuse", allowCustomDlcMultiuse);
                 check_boolean("TX", "DisableCameraAutoCenter", disableCameraAutoCenter);
+                check_integer("TX", "OverrideMSAA", overrideMSAA);
 
                 // read valid DLC bitfields from the ini
                 {
@@ -1073,6 +1096,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger,
     }
     if (disableCameraAutoCenter) {
         PatchDisableCameraAutoCenter(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (overrideMSAA >= 0) {
+        PatchMSAA(patchExecData, overrideMSAA);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 

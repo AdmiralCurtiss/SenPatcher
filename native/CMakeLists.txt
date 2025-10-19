@@ -77,6 +77,9 @@ else()
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd5026")
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd5027")
 
+		# function X selected for automatic inline expansion. these are useless unless you're debugging inlining...
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/wd4711")
+
 		# be standards-conforming
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/permissive-")
 
@@ -1492,6 +1495,7 @@ if (SENPATCHER_BUILD_TXHOOK)
 		tx/exe_patch_enable_wav.cpp
 		tx/exe_patch_force_mg04_uvs.cpp
 		tx/exe_patch_increase_dlc_count.cpp
+		tx/exe_patch_msaa.cpp
 		tx/exe_patch_override_language.cpp
 		tx/exe_patch_show_mouse_cursor.cpp
 		tx/exe_patch_skip_movies.cpp
