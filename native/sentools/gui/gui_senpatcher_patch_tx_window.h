@@ -39,6 +39,8 @@ struct SenPatcherPatchTXWindow : public SenTools::GUI::Window {
         bool CheckBoxEnableBackgroundControllerInput = false;
         bool CheckBoxDisableCamAutoCenter = false;
         bool CheckBoxFixBgmResume = true;
+        bool EnableMSAAOverride = false;
+        int MSAAOverrideValue = -1;
         float NumericUpDownTurboFactor = 2.0f;
     };
 

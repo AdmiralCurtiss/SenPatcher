@@ -30,6 +30,7 @@ static constexpr size_t IniLength = sizeof(IniData);
 static constexpr const char* TURBO_FACTORS[] = {"2", "3", "4", "5", "6"};
 static constexpr const char* GAME_LANGUAGES[] = {"Japanese / \xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E",
                                                  "English / \xE8\x8B\xB1\xE8\xAA\x9E"};
+static constexpr const char* MSAA_OVERRIDES[] = {"1x", "2x", "4x", "8x", "16x"};
 
 static constexpr char RELATIVE_DLL_PATH[] = "/DINPUT8.dll";
 static constexpr char RELATIVE_INI_PATH[] = "/senpatcher_settings.ini";
@@ -51,6 +52,8 @@ static void WriteToIni(const SenPatcherPatchTXWindow::Settings& settings,
         "TX", "EnableBackgroundControllerInput", settings.CheckBoxEnableBackgroundControllerInput);
     writer.SetBool("TX", "DisableCameraAutoCenter", settings.CheckBoxDisableCamAutoCenter);
     writer.SetBool("TX", "FixBgmResume", settings.CheckBoxFixBgmResume);
+    writer.SetInt(
+        "TX", "OverrideMSAA", settings.EnableMSAAOverride ? settings.MSAAOverrideValue : -1);
 }
 
 struct SenPatcherPatchTXWindow::WorkThreadState {
@@ -134,6 +137,17 @@ SenPatcherPatchTXWindow::SenPatcherPatchTXWindow(GuiState& state,
                 }
             }
         };
+        const auto check_integer = [&](std::string_view section, std::string_view key, int& i) {
+            const auto* kvp = ini.FindValue(section, key);
+            if (kvp) {
+                int intval = 0;
+                const auto [_, ec] = std::from_chars(
+                    kvp->Value.data(), kvp->Value.data() + kvp->Value.size(), intval);
+                if (ec == std::errc()) {
+                    i = intval;
+                }
+            }
+        };
         const auto check_float = [&](std::string_view section, std::string_view key, float& f) {
             const auto* kvp = ini.FindValue(section, key);
             if (kvp) {
@@ -167,6 +181,8 @@ SenPatcherPatchTXWindow::SenPatcherPatchTXWindow(GuiState& state,
                       GameSettings.CheckBoxEnableBackgroundControllerInput);
         check_boolean("TX", "DisableCameraAutoCenter", GameSettings.CheckBoxDisableCamAutoCenter);
         check_boolean("TX", "FixBgmResume", GameSettings.CheckBoxFixBgmResume);
+        check_integer("TX", "OverrideMSAA", GameSettings.MSAAOverrideValue);
+        GameSettings.EnableMSAAOverride = (GameSettings.MSAAOverrideValue >= 0);
 
         float factor = 2.0f;
         check_float("TX", "TurboModeFactor", factor);
@@ -259,6 +275,39 @@ bool SenPatcherPatchTXWindow::RenderFrame(GuiState& state) {
         ImGui::Checkbox("Skip startup logos", &GameSettings.CheckBoxSkipLogos);
         ImGui::Checkbox("Skip all movies", &GameSettings.CheckBoxSkipMovies);
         ImGui::Checkbox("Fix music resuming bug", &GameSettings.CheckBoxFixBgmResume);
+
+        ImGui::Checkbox("Override MSAA sample count", &GameSettings.EnableMSAAOverride);
+        ImGui::SameLine();
+        {
+            auto scope = HyoutaUtils::MakeDisposableScopeGuard([&]() { ImGui::EndDisabled(); });
+            if (!GameSettings.EnableMSAAOverride) {
+                ImGui::BeginDisabled();
+            } else {
+                scope.Dispose();
+            }
+            const int msaaOverride = GameSettings.MSAAOverrideValue;
+            const int msaaIndex = msaaOverride == 16  ? 4
+                                  : msaaOverride == 8 ? 3
+                                  : msaaOverride == 4 ? 2
+                                  : msaaOverride == 2 ? 1
+                                                      : 0;
+            if (ImGui::BeginCombo("##MsaaCombobox",
+                                  MSAA_OVERRIDES[msaaIndex],
+                                  ImGuiComboFlags_WidthFitPreview
+                                      | ImGuiComboFlags_HeightLargest)) {
+                for (int n = 0; n < IM_ARRAYSIZE(MSAA_OVERRIDES); ++n) {
+                    const bool is_selected = (GameSettings.MSAAOverrideValue == (1 << n));
+                    if (ImGui::Selectable(MSAA_OVERRIDES[n], is_selected)) {
+                        GameSettings.MSAAOverrideValue = (1 << n);
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
+
         ImGui::Checkbox("Disable camera auto-centering",
                         &GameSettings.CheckBoxDisableCamAutoCenter);
 
