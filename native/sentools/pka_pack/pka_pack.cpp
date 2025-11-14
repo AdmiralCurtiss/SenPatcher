@@ -888,6 +888,13 @@ static bool WriteToPkaMultithreaded(HyoutaUtils::IO::File& outfile,
                 }
             }
         }
+
+        // poke all threads that are still waiting,
+        // since they might now be waiting for a work packet that will never come
+        {
+            std::unique_lock lock(fileDataToCompressMutex);
+            fileDataToCompressDataAvailableCondVar.notify_all();
+        }
     });
 
     // file writer thread

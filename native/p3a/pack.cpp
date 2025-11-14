@@ -643,7 +643,7 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
                 {
                     std::unique_lock lock(fileDataToCompressMutex);
                     fileDataToCompressQueue.emplace_back(std::move(data));
-                    fileDataToCompressCondVar.notify_all();
+                    fileDataToCompressCondVar.notify_one();
                 }
             } else {
                 // can be written as-is to target file, so push to writer thread directly
@@ -667,6 +667,13 @@ static bool MultithreadedWriteP3AFiles(HyoutaUtils::IO::File& file,
                     fileDataToWriteCondVar.notify_all();
                 }
             }
+        }
+
+        // poke all threads that are still waiting,
+        // since they might now be waiting for a work packet that will never come
+        {
+            std::unique_lock lock(fileDataToCompressMutex);
+            fileDataToCompressCondVar.notify_all();
         }
     });
 
