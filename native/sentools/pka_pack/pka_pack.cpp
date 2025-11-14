@@ -382,9 +382,14 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
                 return;
             }
 
+            const bool isLastPkg = (i == pkgPackFiles.size() - 1);
             auto& pkg = pkgPackFiles[i];
             auto& files = pkg.Files;
             for (size_t j = 0; j < files.size(); ++j) {
+                if (encounteredError.load(std::memory_order_relaxed)) {
+                    return;
+                }
+
                 auto& f = files[j];
                 auto compressedData = ReadPkgFile(pkg, f);
                 if (!compressedData) {
@@ -404,7 +409,8 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
                     workQueueDataAvailableCondVar.notify_one();
 
                     // no need to wait after last push
-                    if (i != (pkgPackFiles.size() - 1)) {
+                    const bool isLastFile = (isLastPkg && (j == files.size() - 1));
+                    if (isLastFile) {
                         // stall until some threads have consumed data to avoid massively filling
                         // memory
                         workQueueShouldPushMoreCondVar.wait(lock, [&] {
@@ -413,6 +419,13 @@ static bool CalculateHashForPkgFilesMultithreaded(std::vector<PkgPackArchive>& p
                     }
                 }
             }
+        }
+
+        // poke all threads that are still waiting,
+        // since they might now be waiting for a work packet that will never come
+        {
+            std::unique_lock lock(workQueueMutex);
+            workQueueDataAvailableCondVar.notify_all();
         }
     });
 
