@@ -48,11 +48,8 @@ static std::optional<uint64_t> ReadUInt64(T& json, const char* key) {
         return std::nullopt;
     }
     auto& j = it->value;
-    if (j.IsInt64()) {
-        const auto i = j.GetInt64();
-        if (i < 0) {
-            return std::nullopt;
-        }
+    if (j.IsUint64()) {
+        const auto i = j.GetUint64();
         return static_cast<uint64_t>(i);
     }
     return std::nullopt;
