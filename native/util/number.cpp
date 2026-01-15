@@ -109,4 +109,16 @@ std::optional<float> ParseFloat(std::string_view str) {
 std::optional<double> ParseDouble(std::string_view str) {
     return ParseFloatingPoint<double>(str);
 }
+
+uint64_t FindGreatestCommonDivisor(uint64_t num1, uint64_t num2) {
+    // euclid's algorithm
+    uint64_t b = num1 < num2 ? num1 : num2;
+    uint64_t a = num1 < num2 ? num2 : num1;
+    while (b != 0) {
+        uint64_t h = a % b;
+        a = b;
+        b = h;
+    }
+    return a;
+}
 } // namespace HyoutaUtils::NumberUtils

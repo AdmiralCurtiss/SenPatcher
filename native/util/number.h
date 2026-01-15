@@ -22,4 +22,6 @@ std::optional<std::size_t> ParseSizeT(std::string_view str);
 
 std::optional<float> ParseFloat(std::string_view str);
 std::optional<double> ParseDouble(std::string_view str);
+
+uint64_t FindGreatestCommonDivisor(uint64_t num1, uint64_t num2);
 } // namespace HyoutaUtils::NumberUtils

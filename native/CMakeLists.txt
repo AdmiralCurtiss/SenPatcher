@@ -430,6 +430,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/system.h
 		util/text.cpp
 		util/text.h
+		util/ticker.h
 		util/vector.cpp
 		util/vector.h
 
@@ -1802,6 +1803,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/args.h
 		util/text.cpp
 		util/text.h
+		util/ticker.h
 		util/xorshift.h
 
 		test/args_test.cpp
@@ -1815,6 +1817,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		test/text_case_test.cpp
 		test/text_encoding_test.cpp
 		test/text_glob_test.cpp
+		test/ticker_test.cpp
 	)
 	target_compile_definitions(tests
 		PUBLIC ${DEFINES_ZSTD}
