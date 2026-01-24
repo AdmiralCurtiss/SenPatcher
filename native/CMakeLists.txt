@@ -22,6 +22,21 @@ option(SENPATCHER_BUILD_GTESTS "build tests" ON)
 
 option(SENPATCHER_WITH_IMGUI "enable imgui GUI for tools" ON)
 
+if (MSVC)
+	# set the cmake default linker options to something closer to what MSVC projects have, especially for release builds
+	# note that "/DEBUG" is always set, because it just means "generate symbols"
+	add_link_options(
+		/DEBUG
+		$<$<NOT:$<CONFIG:DEBUG>>:/OPT:REF>
+		$<$<NOT:$<CONFIG:DEBUG>>:/SAFESEH:NO>
+		$<$<NOT:$<CONFIG:DEBUG>>:/INCREMENTAL:NO>
+		$<$<NOT:$<CONFIG:DEBUG>>:/OPT:ICF>
+		$<$<CONFIG:DEBUG>:/OPT:NOREF>
+		$<$<CONFIG:DEBUG>:/INCREMENTAL>
+		$<$<CONFIG:DEBUG>:/OPT:NOICF>
+	)
+endif()
+
 if (DEFINED SENPATCHER_BUILDFLAGS OR DEFINED SENPATCHER_BUILDFLAGS_RELEASE OR DEFINED SENPATCHER_BUILDFLAGS_DEBUG)
 	# user has explicitly set buildflags
 	separate_arguments(SENPATCHER_BUILDFLAGS_INTERNAL NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS}")
@@ -29,6 +44,11 @@ if (DEFINED SENPATCHER_BUILDFLAGS OR DEFINED SENPATCHER_BUILDFLAGS_RELEASE OR DE
 	separate_arguments(SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG NATIVE_COMMAND "${SENPATCHER_BUILDFLAGS_DEBUG}")
 else()
 	if (MSVC)
+		# standard win32 build defines
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/DWIN32")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/D_WINDOWS")
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/DNDEBUG")
+
 		# we want utf8 as our execution charset
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/utf-8")
 
@@ -89,20 +109,48 @@ else()
 		# generate .pdb files
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/Zi")
 
+		# wchar_t is a native type
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/Zc:wchar_t")
+
+		# remove unreferenced functions or data
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/Zc:inline")
+
+		# sane for loop scoping rules
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/Zc:forScope")
+		
+		# default win32 calling convention rules
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL "/Gd")
 
 		# for debug build:
+
+		# enable buffer security check
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG "/GS")
 
 		# disable optimizations
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG "/Od")
 
+		# disable frame-pointer omission
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG "/Oy-")
+
+		# enable run-time error checks
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_DEBUG "/RTC1")
 
 		# for release build:
+
+		# disable buffer security check
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/GS-")
+
+		# enable function-level linking
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/Gy")
 
 		# optimize as fast code
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/O2")
 
-		# remove unreferenced functions or data
-		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/Zc:inline")
+		# enable frame-pointer omission
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/Oy")
+
+		# generate intrinsic functions
+		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/Oi")
 
 		# handle the intel JCC performance erratum
 		list(APPEND SENPATCHER_BUILDFLAGS_INTERNAL_RELEASE "/QIntel-jcc-erratum")
