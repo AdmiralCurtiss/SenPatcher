@@ -115,6 +115,7 @@ DECLARE_STANDARD_FIX(t0410_dat)
 DECLARE_STANDARD_FIX(t1020_dat)
 DECLARE_STANDARD_FIX(t1230_dat)
 DECLARE_STANDARD_FIX(t2000_dat)
+DECLARE_STANDARD_FIX(t2030_dat)
 DECLARE_STANDARD_FIX(t2070_dat)
 DECLARE_STANDARD_FIX(t3000_dat)
 DECLARE_STANDARD_FIX(t3030_dat)
@@ -305,6 +306,7 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(t1020_dat, TryApply(callback, packFiles));
     TRY_APPLY(t1230_dat, TryApply(callback, packFiles));
     TRY_APPLY(t2000_dat, TryApply(callback, packFiles));
+    TRY_APPLY(t2030_dat, TryApply(callback, packFiles));
     TRY_APPLY(t2070_dat, TryApply(callback, packFiles));
     TRY_APPLY(t3000_dat, TryApply(callback, packFiles));
     TRY_APPLY(t3030_dat, TryApply(callback, packFiles));

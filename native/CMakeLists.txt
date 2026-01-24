@@ -968,6 +968,7 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/t1020_dat.cpp
 	sen3/file_fixes/t1230_dat.cpp
 	sen3/file_fixes/t2000_dat.cpp
+	sen3/file_fixes/t2030_dat.cpp
 	sen3/file_fixes/t2070_dat.cpp
 	sen3/file_fixes/t3000_dat.cpp
 	sen3/file_fixes/t3030_dat.cpp
