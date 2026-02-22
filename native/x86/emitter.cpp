@@ -39,17 +39,82 @@ void Emit_MOV_R32_IMM32(char*& address, R32 dst, uint32_t imm, size_t desiredEnc
     }
 }
 
-void Emit_MOV_R32_PtrR32PlusOffset8(char*& address, R32 dst, R32 src, int8_t offset) {
-    int op = 0x40;
-    op |= (static_cast<int>(src) & 0x7);
-    op |= ((static_cast<int>(dst) & 0x7) << 3);
-
-    *address++ = static_cast<char>(0x8b);
-    *address++ = static_cast<char>(op);
-    if (src == R32::ESP) {
-        *address++ = static_cast<char>(0x24);
+void Emit_MOV_R32_DwordPtr(char*& address, R32 dst, void* src) {
+    if (dst == R32::EAX) {
+        *address++ = static_cast<char>(0xa1);
+    } else {
+        *address++ = static_cast<char>(0x8b);
+        *address++ = static_cast<char>(0x05 | ((static_cast<int>(dst) & 0x7) << 3));
     }
-    *address++ = static_cast<char>(offset);
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_MOV_DwordPtr_R32(char*& address, void* dst, R32 src) {
+    if (src == R32::EAX) {
+        *address++ = static_cast<char>(0xa3);
+    } else {
+        *address++ = static_cast<char>(0x89);
+        *address++ = static_cast<char>(0x05 | ((static_cast<int>(src) & 0x7) << 3));
+    }
+    std::memcpy(address, &dst, 4);
+    address += 4;
+}
+
+void Emit_MOV_R32_DwordPtrR32PlusOffset(char*& address, R32 dst, R32 src, int32_t offset) {
+    if (offset >= -128 && offset <= 127) {
+        int op = 0x40;
+        op |= (static_cast<int>(src) & 0x7);
+        op |= ((static_cast<int>(dst) & 0x7) << 3);
+
+        *address++ = static_cast<char>(0x8b);
+        *address++ = static_cast<char>(op);
+        if (src == R32::ESP) {
+            *address++ = static_cast<char>(0x24);
+        }
+        *address++ = static_cast<char>(offset);
+    } else {
+        int op = 0x80;
+        op |= (static_cast<int>(src) & 0x7);
+        op |= ((static_cast<int>(dst) & 0x7) << 3);
+
+        *address++ = static_cast<char>(0x8b);
+        *address++ = static_cast<char>(op);
+        if (src == R32::ESP) {
+            *address++ = static_cast<char>(0x24);
+        }
+        *address++ = static_cast<char>(offset);
+        std::memcpy(address, &offset, 4);
+        address += 4;
+    }
+}
+
+void Emit_MOV_DwordPtrR32PlusOffset_R32(char*& address, R32 dst, int32_t offset, R32 src) {
+    if (offset >= -128 && offset <= 127) {
+        int op = 0x40;
+        op |= (static_cast<int>(dst) & 0x7);
+        op |= ((static_cast<int>(src) & 0x7) << 3);
+
+        *address++ = static_cast<char>(0x89);
+        *address++ = static_cast<char>(op);
+        if (dst == R32::ESP) {
+            *address++ = static_cast<char>(0x24);
+        }
+        *address++ = static_cast<char>(offset);
+    } else {
+        int op = 0x80;
+        op |= (static_cast<int>(dst) & 0x7);
+        op |= ((static_cast<int>(src) & 0x7) << 3);
+
+        *address++ = static_cast<char>(0x89);
+        *address++ = static_cast<char>(op);
+        if (dst == R32::ESP) {
+            *address++ = static_cast<char>(0x24);
+        }
+        *address++ = static_cast<char>(offset);
+        std::memcpy(address, &offset, 4);
+        address += 4;
+    }
 }
 
 void Emit_MOV_R8_IMM8(char*& address, R8 dst, uint8_t imm) {
@@ -153,6 +218,23 @@ void Emit_CMP_R32_R32(char*& address, R32 dst, R32 src) {
     Emit_Instr2Byte_R32_R32(address, dst, src, static_cast<char>(0x3b));
 }
 
+void Emit_CMP_R32_IMM32(char*& address, R32 dst, int32_t imm) {
+    if (imm >= -0x80 && imm <= 0x7f) {
+        *address++ = static_cast<char>(0x83);
+        *address++ = static_cast<char>(0xf8 | (static_cast<int>(dst) & 0x7));
+        *address++ = static_cast<char>(static_cast<int8_t>(imm));
+    } else if (dst == R32::EAX) {
+        *address++ = static_cast<char>(0x3d);
+        std::memcpy(address, &imm, 4);
+        address += 4;
+    } else {
+        *address++ = static_cast<char>(0x81);
+        *address++ = static_cast<char>(0xf8 | (static_cast<int>(dst) & 0x7));
+        std::memcpy(address, &imm, 4);
+        address += 4;
+    }
+}
+
 void Emit_CMP_R8_R8(char*& address, R8 dst, R8 src) {
     Emit_Instr2Byte_R8_R8(address, dst, src, static_cast<char>(0x3a));
 }
@@ -212,6 +294,79 @@ void Emit_SUB_R32_IMM32(char*& address, R32 dst, int32_t imm) {
         std::memcpy(address, &imm, 4);
         address += 4;
     }
+}
+
+void Emit_FLD_DwordPtr(char*& address, const void* src) {
+    *address++ = static_cast<char>(0xd9);
+    *address++ = static_cast<char>(0x05);
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_FLD_DwordPtrR32PlusOffset(char*& address, R32 src, int32_t offset) {
+    if (offset >= -128 && offset <= 127) {
+        *address++ = static_cast<char>(0xd9);
+        *address++ = static_cast<char>(0x40 | (static_cast<int>(src) & 0x7));
+        if (src == R32::ESP) {
+            *address++ = static_cast<char>(0x24);
+        }
+        *address++ = static_cast<char>(static_cast<int8_t>(offset));
+    } else {
+        *address++ = static_cast<char>(0xd9);
+        *address++ = static_cast<char>(0x80 | (static_cast<int>(src) & 0x7));
+        if (src == R32::ESP) {
+            *address++ = static_cast<char>(0x24);
+        }
+        std::memcpy(address, &offset, 4);
+        address += 4;
+    }
+}
+
+void Emit_FILD_DwordPtrR32PlusOffset(char*& address, R32 src, int32_t offset) {
+    if (offset >= -128 && offset <= 127) {
+        *address++ = static_cast<char>(0xdb);
+        *address++ = static_cast<char>(0x40 | (static_cast<int>(src) & 0x7));
+        if (src == R32::ESP) {
+            *address++ = static_cast<char>(0x24);
+        }
+        *address++ = static_cast<char>(static_cast<int8_t>(offset));
+    } else {
+        *address++ = static_cast<char>(0xdb);
+        *address++ = static_cast<char>(0x80 | (static_cast<int>(src) & 0x7));
+        if (src == R32::ESP) {
+            *address++ = static_cast<char>(0x24);
+        }
+        std::memcpy(address, &offset, 4);
+        address += 4;
+    }
+}
+
+void Emit_FADD_DwordPtr(char*& address, const void* src) {
+    *address++ = static_cast<char>(0xd8);
+    *address++ = static_cast<char>(0x05);
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_FSUB_DwordPtr(char*& address, const void* src) {
+    *address++ = static_cast<char>(0xd8);
+    *address++ = static_cast<char>(0x25);
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_FMUL_DwordPtr(char*& address, const void* src) {
+    *address++ = static_cast<char>(0xd8);
+    *address++ = static_cast<char>(0x0d);
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_FDIV_DwordPtr(char*& address, const void* src) {
+    *address++ = static_cast<char>(0xd8);
+    *address++ = static_cast<char>(0x35);
+    std::memcpy(address, &src, 4);
+    address += 4;
 }
 
 void BranchHelper1Byte::SetTarget(char* target) {

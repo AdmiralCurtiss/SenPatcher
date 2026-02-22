@@ -30,7 +30,7 @@ void InjectAtFFileOpen(PatchExecData& execData, void* ffileOpenForwarder) {
     ffile_open_forwarder.SetTarget(static_cast<char*>(ffileOpenForwarder));
 
     // call forwarder
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::EBP, 8);
+    Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::EDX, R32::EBP, 8);
     Emit_MOV_R32_R32(codespace, R32::ECX, R32::ESI);
     ffile_open_forwarder.WriteJump(codespace, JumpCondition::CALL);
 
@@ -74,8 +74,8 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
     ffile_get_size_forwarder.SetTarget(static_cast<char*>(ffileGetFilesizeForwarder));
 
     // call forwarder
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::ESP, 4);
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::ESP, 12);
+    Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::ECX, R32::ESP, 4);
+    Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::EDX, R32::ESP, 12);
     ffile_get_size_forwarder.WriteJump(codespace, JumpCondition::CALL);
 
     // check result

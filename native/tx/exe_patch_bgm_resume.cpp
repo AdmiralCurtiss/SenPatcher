@@ -92,7 +92,7 @@ void PatchBgmResume(PatchExecData& execData) {
         const auto& overwrittenInstructions = injectResult.OverwrittenInstructions;
         std::memcpy(codespace, overwrittenInstructions.data(), overwrittenInstructions.size());
         codespace += overwrittenInstructions.size();
-        Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::EBP, 0xc);
+        Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::EDX, R32::EBP, 0xc);
         jump_back.WriteJump(codespace, JumpCondition::JMP);
     }
     {
@@ -256,7 +256,7 @@ void PatchBgmResume(PatchExecData& execData) {
         Emit_PUSH_R32(codespace, R32::ECX);
         Emit_PUSH_R32(codespace, R32::EDX);
         Emit_MOV_R32_R32(codespace, R32::EDX, R32::EAX);
-        Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::EBP, 0x8);
+        Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::ECX, R32::EBP, 0x8);
         dump_func.WriteJump(codespace, JumpCondition::CALL);
         Emit_POP_R32(codespace, R32::EDX);
         Emit_POP_R32(codespace, R32::ECX);

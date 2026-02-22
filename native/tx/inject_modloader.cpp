@@ -107,8 +107,8 @@ void InjectAtFFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFor
     ffile_get_size_forwarder.SetTarget(static_cast<char*>(ffileGetFilesizeForwarder));
 
     // call forwarder
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::ESP, 4);
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::ESP, 12);
+    Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::ECX, R32::ESP, 4);
+    Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::EDX, R32::ESP, 12);
     ffile_get_size_forwarder.WriteJump(codespace, JumpCondition::CALL);
 
     // check result
@@ -213,7 +213,7 @@ void InjectAtPrFileOpen(PatchExecData& execData, void* prFileOpenForwarder) {
     Emit_PUSH_R32(codespace, R32::EAX);
 
     // call forwarder
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::EBP, 8);
+    Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::EDX, R32::EBP, 8);
     Emit_MOV_R32_R32(codespace, R32::ECX, R32::ESP);
     prfile_open_forwarder.WriteJump(codespace, JumpCondition::CALL);
 
@@ -279,7 +279,7 @@ void InjectAtPrFileExists(PatchExecData& execData, void* ffileGetFilesizeForward
 
     // call forwarder
     Emit_PUSH_R32(codespace, R32::ECX); // store this pointer
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::ESP, 8);
+    Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::ECX, R32::ESP, 8);
     Emit_XOR_R32_R32(codespace, R32::EDX, R32::EDX);
     ffile_get_size_forwarder.WriteJump(codespace, JumpCondition::CALL);
     Emit_POP_R32(codespace, R32::ECX); // restore this pointer
@@ -325,7 +325,7 @@ void InjectAtPrFileGetFilesize(PatchExecData& execData, void* ffileGetFilesizeFo
     // call forwarder
     Emit_PUSH_R32(codespace, R32::ECX);    // store this pointer
     WriteInstruction16(codespace, 0x6a00); // push 0 ; create stack space for returned filesize
-    Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::ECX, R32::ESP, 12);
+    Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::ECX, R32::ESP, 12);
     Emit_MOV_R32_R32(codespace, R32::EDX, R32::ESP);
     ffile_get_size_forwarder.WriteJump(codespace, JumpCondition::CALL);
     Emit_POP_R32(codespace, R32::EDX); // move returned filesize into edx
@@ -418,7 +418,7 @@ void InjectDebugCodeForPrFileLifetime(PatchExecData& execData) {
         log_func.SetTarget(static_cast<char*>(logOpenedPrFileFunc));
 
         Emit_PUSH_R32(codespace, R32::EAX);
-        Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::EBP, 8);
+        Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::EDX, R32::EBP, 8);
         Emit_MOV_R32_R32(codespace, R32::ECX, R32::EAX);
         log_func.WriteJump(codespace, JumpCondition::CALL);
         Emit_POP_R32(codespace, R32::EAX);

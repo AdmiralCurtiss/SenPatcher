@@ -914,7 +914,7 @@ void PatchTurboAndButtonMappings(PatchExecData& execData,
         checkNewButtons.SetTarget(static_cast<char*>(checkNewButtonsFunc));
 
         // call our new button check function
-        Emit_MOV_R32_PtrR32PlusOffset8(codespace, R32::EDX, R32::EBP, 0xc);
+        Emit_MOV_R32_DwordPtrR32PlusOffset(codespace, R32::EDX, R32::EBP, 0xc);
         Emit_MOV_R32_R32(codespace, R32::ECX, R32::EDI);
         checkNewButtons.WriteJump(codespace, JumpCondition::CALL);
 
