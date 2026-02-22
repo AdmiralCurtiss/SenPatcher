@@ -1220,6 +1220,7 @@ if (SENPATCHER_BUILD_CS1HOOK)
 		x86/page_unprotect.h
 
 		sen1/exe_patch.h
+		sen1/exe_patch_add_camera_sensitivity.cpp
 		sen1/exe_patch_add_senpatcher_version_to_title.cpp
 		sen1/exe_patch_deglobalize_mutexes.cpp
 		sen1/exe_patch_disable_mouse_capture.cpp

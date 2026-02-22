@@ -546,6 +546,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     bool allowR2NotebookShortcut = false;
     int turboModeButton = 7;
     bool fixBgmEnqueue = true;
+    int cameraSensitivity = 3;
 
     {
         std::string settingsFilePath;
@@ -615,6 +616,7 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
                 check_boolean("CS1", "AlwaysUseNotebookR2", allowR2NotebookShortcut);
                 check_integer("CS1", "TurboModeButton", turboModeButton);
                 check_boolean("CS1", "FixBgmEnqueue", fixBgmEnqueue);
+                check_integer("CS1", "CameraSensitivity", cameraSensitivity);
             }
         }
     }
@@ -699,6 +701,10 @@ static void* SetupHacks(HyoutaUtils::Logger& logger) {
     }
     if (fixBgmEnqueue) {
         PatchMusicQueueing(patchExecData);
+        Align16CodePage(logger, patchExecData.Codespace);
+    }
+    if (cameraSensitivity >= 0) {
+        PatchAddCameraSensitivity(patchExecData, cameraSensitivity);
         Align16CodePage(logger, patchExecData.Codespace);
     }
 

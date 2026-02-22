@@ -51,4 +51,5 @@ void PatchFixArtsSupportCutin(PatchExecData& execData);
 void PatchForce0Kerning(PatchExecData& execData);
 void PatchForceXInput(PatchExecData& execData);
 void PatchMusicQueueing(PatchExecData& execData);
+void PatchAddCameraSensitivity(PatchExecData& execData, int sensitivity);
 } // namespace SenLib::Sen1
