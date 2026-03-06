@@ -1306,6 +1306,7 @@ if (SENPATCHER_BUILD_CS2HOOK)
 		x86/page_unprotect.h
 
 		sen2/exe_patch.h
+		sen2/exe_patch_add_camera_sensitivity.cpp
 		sen2/exe_patch_add_cs2_to_title_bar.cpp
 		sen2/exe_patch_add_senpatcher_version_to_title.cpp
 		sen2/exe_patch_deglobalize_mutexes.cpp

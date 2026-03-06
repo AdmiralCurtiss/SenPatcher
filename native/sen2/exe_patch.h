@@ -54,4 +54,5 @@ void PatchFixArtsSupportCutin(PatchExecData& execData);
 void PatchForce0Kerning(PatchExecData& execData);
 void PatchAddNullCheckBattleScopeCrashMaybe(PatchExecData& execData);
 void PatchForceXInput(PatchExecData& execData);
+void PatchAddCameraSensitivity(PatchExecData& execData, int sensitivity);
 } // namespace SenLib::Sen2
