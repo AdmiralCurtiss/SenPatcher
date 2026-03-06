@@ -35,6 +35,16 @@ enum class R32 {
     ESI = 6,
     EDI = 7,
 };
+enum class XMM {
+    XMM0 = 0,
+    XMM1 = 1,
+    XMM2 = 2,
+    XMM3 = 3,
+    XMM4 = 4,
+    XMM5 = 5,
+    XMM6 = 6,
+    XMM7 = 7,
+};
 enum class JumpCondition {
     JA = 0x7,
     JAE = 0x3,
@@ -108,6 +118,17 @@ void Emit_FADD_DwordPtr(char*& address, const void* src);
 void Emit_FSUB_DwordPtr(char*& address, const void* src);
 void Emit_FMUL_DwordPtr(char*& address, const void* src);
 void Emit_FDIV_DwordPtr(char*& address, const void* src);
+void Emit_MOVSS_XMM_XMM(char*& address, XMM dst, XMM src);
+void Emit_MOVSS_XMM_DwordPtr(char*& address, XMM dst, const void* src);
+void Emit_ADDSS_XMM_XMM(char*& address, XMM dst, XMM src);
+void Emit_ADDSS_XMM_DwordPtr(char*& address, XMM dst, const void* src);
+void Emit_SUBSS_XMM_XMM(char*& address, XMM dst, XMM src);
+void Emit_SUBSS_XMM_DwordPtr(char*& address, XMM dst, const void* src);
+void Emit_MULSS_XMM_XMM(char*& address, XMM dst, XMM src);
+void Emit_MULSS_XMM_DwordPtr(char*& address, XMM dst, const void* src);
+void Emit_DIVSS_XMM_XMM(char*& address, XMM dst, XMM src);
+void Emit_DIVSS_XMM_DwordPtr(char*& address, XMM dst, const void* src);
+void Emit_CVTSI2SS_XMM_R32(char*& address, XMM dst, R32 src);
 
 struct BranchHelper1Byte {
 public:

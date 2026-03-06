@@ -369,6 +369,111 @@ void Emit_FDIV_DwordPtr(char*& address, const void* src) {
     address += 4;
 }
 
+void Emit_MOVSS_XMM_XMM(char*& address, XMM dst, XMM src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x10);
+    int op = 0xc0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+    *address++ = static_cast<char>(op);
+}
+
+void Emit_MOVSS_XMM_DwordPtr(char*& address, XMM dst, const void* src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x10);
+    *address++ = static_cast<char>(0x05 | ((static_cast<int>(dst) & 0x7) << 3));
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_ADDSS_XMM_XMM(char*& address, XMM dst, XMM src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x58);
+    int op = 0xc0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+    *address++ = static_cast<char>(op);
+}
+
+void Emit_ADDSS_XMM_DwordPtr(char*& address, XMM dst, const void* src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x58);
+    *address++ = static_cast<char>(0x05 | ((static_cast<int>(dst) & 0x7) << 3));
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_SUBSS_XMM_XMM(char*& address, XMM dst, XMM src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x5c);
+    int op = 0xc0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+    *address++ = static_cast<char>(op);
+}
+
+void Emit_SUBSS_XMM_DwordPtr(char*& address, XMM dst, const void* src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x5c);
+    *address++ = static_cast<char>(0x05 | ((static_cast<int>(dst) & 0x7) << 3));
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_MULSS_XMM_XMM(char*& address, XMM dst, XMM src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x59);
+    int op = 0xc0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+    *address++ = static_cast<char>(op);
+}
+
+void Emit_MULSS_XMM_DwordPtr(char*& address, XMM dst, const void* src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x59);
+    *address++ = static_cast<char>(0x05 | ((static_cast<int>(dst) & 0x7) << 3));
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_DIVSS_XMM_XMM(char*& address, XMM dst, XMM src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x5e);
+    int op = 0xc0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+    *address++ = static_cast<char>(op);
+}
+
+void Emit_DIVSS_XMM_DwordPtr(char*& address, XMM dst, const void* src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x5e);
+    *address++ = static_cast<char>(0x05 | ((static_cast<int>(dst) & 0x7) << 3));
+    std::memcpy(address, &src, 4);
+    address += 4;
+}
+
+void Emit_CVTSI2SS_XMM_R32(char*& address, XMM dst, R32 src) {
+    *address++ = static_cast<char>(0xf3);
+    *address++ = static_cast<char>(0x0f);
+    *address++ = static_cast<char>(0x2a);
+    int op = 0xc0;
+    op |= (static_cast<int>(src) & 0x7);
+    op |= ((static_cast<int>(dst) & 0x7) << 3);
+    *address++ = static_cast<char>(op);
+}
+
 void BranchHelper1Byte::SetTarget(char* target) {
     assert(Target == nullptr);
     Target = target;
