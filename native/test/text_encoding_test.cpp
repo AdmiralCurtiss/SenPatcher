@@ -31,6 +31,46 @@ static std::u16string U16StrFromBytes(std::span<const char> bytes) {
 
 static void
     TestUtf8Utf16ShiftJis(std::string_view utf8, std::u16string_view utf16, std::string_view sjis) {
+    EXPECT_EQ(utf8.size(), HyoutaUtils::TextUtils::MeasureUtf16ToUtf8(utf16.data(), utf16.size()));
+    EXPECT_EQ(sjis.size(),
+              HyoutaUtils::TextUtils::MeasureUtf16ToShiftJis(utf16.data(), utf16.size()));
+    EXPECT_EQ(utf16.size(), HyoutaUtils::TextUtils::MeasureUtf8ToUtf16(utf8.data(), utf8.size()));
+    EXPECT_EQ(sjis.size(), HyoutaUtils::TextUtils::MeasureUtf8ToShiftJis(utf8.data(), utf8.size()));
+    EXPECT_EQ(utf8.size(), HyoutaUtils::TextUtils::MeasureShiftJisToUtf8(sjis.data(), sjis.size()));
+    EXPECT_EQ(utf16.size(),
+              HyoutaUtils::TextUtils::MeasureShiftJisToUtf16(sjis.data(), sjis.size()));
+
+    std::string utf8_from_utf16(utf8.size(), '\0');
+    std::string utf8_from_sjis(utf8.size(), '\0');
+    std::u16string utf16_from_utf8(utf16.size(), char16_t(0));
+    std::u16string utf16_from_sjis(utf16.size(), char16_t(0));
+    std::string sjis_from_utf8(sjis.size(), '\0');
+    std::string sjis_from_utf16(sjis.size(), '\0');
+    EXPECT_EQ(utf8.size(),
+              HyoutaUtils::TextUtils::ConvertUtf16ToUtf8(
+                  utf8_from_utf16.data(), utf8_from_utf16.size(), utf16.data(), utf16.size()));
+    EXPECT_EQ(sjis.size(),
+              HyoutaUtils::TextUtils::ConvertUtf16ToShiftJis(
+                  sjis_from_utf16.data(), sjis_from_utf16.size(), utf16.data(), utf16.size()));
+    EXPECT_EQ(utf16.size(),
+              HyoutaUtils::TextUtils::ConvertUtf8ToUtf16(
+                  utf16_from_utf8.data(), utf16_from_utf8.size(), utf8.data(), utf8.size()));
+    EXPECT_EQ(sjis.size(),
+              HyoutaUtils::TextUtils::ConvertUtf8ToShiftJis(
+                  sjis_from_utf8.data(), sjis_from_utf8.size(), utf8.data(), utf8.size()));
+    EXPECT_EQ(utf8.size(),
+              HyoutaUtils::TextUtils::ConvertShiftJisToUtf8(
+                  utf8_from_sjis.data(), utf8_from_sjis.size(), sjis.data(), sjis.size()));
+    EXPECT_EQ(utf16.size(),
+              HyoutaUtils::TextUtils::ConvertShiftJisToUtf16(
+                  utf16_from_sjis.data(), utf16_from_sjis.size(), sjis.data(), sjis.size()));
+    EXPECT_EQ(utf8, utf8_from_utf16);
+    EXPECT_EQ(utf8, utf8_from_sjis);
+    EXPECT_EQ(utf16, utf16_from_utf8);
+    EXPECT_EQ(utf16, utf16_from_sjis);
+    EXPECT_EQ(sjis, sjis_from_utf8);
+    EXPECT_EQ(sjis, sjis_from_utf16);
+
     EXPECT_EQ(utf8, HyoutaUtils::TextUtils::Utf16ToUtf8(utf16.data(), utf16.size()));
     EXPECT_EQ(sjis, HyoutaUtils::TextUtils::Utf16ToShiftJis(utf16.data(), utf16.size()));
     EXPECT_EQ(utf16, HyoutaUtils::TextUtils::Utf8ToUtf16(utf8.data(), utf8.size()));
@@ -40,21 +80,70 @@ static void
 }
 
 static void TestUtf8Utf16(std::string_view utf8, std::u16string_view utf16) {
+    EXPECT_EQ(utf8.size(), HyoutaUtils::TextUtils::MeasureUtf16ToUtf8(utf16.data(), utf16.size()));
+    EXPECT_EQ(utf16.size(), HyoutaUtils::TextUtils::MeasureUtf8ToUtf16(utf8.data(), utf8.size()));
+
+    std::string utf8_from_utf16(utf8.size(), '\0');
+    std::u16string utf16_from_utf8(utf16.size(), char16_t(0));
+    EXPECT_EQ(utf8.size(),
+              HyoutaUtils::TextUtils::ConvertUtf16ToUtf8(
+                  utf8_from_utf16.data(), utf8_from_utf16.size(), utf16.data(), utf16.size()));
+    EXPECT_EQ(utf16.size(),
+              HyoutaUtils::TextUtils::ConvertUtf8ToUtf16(
+                  utf16_from_utf8.data(), utf16_from_utf8.size(), utf8.data(), utf8.size()));
+    EXPECT_EQ(utf8, utf8_from_utf16);
+    EXPECT_EQ(utf16, utf16_from_utf8);
+
     EXPECT_EQ(utf8, HyoutaUtils::TextUtils::Utf16ToUtf8(utf16.data(), utf16.size()));
     EXPECT_EQ(utf16, HyoutaUtils::TextUtils::Utf8ToUtf16(utf8.data(), utf8.size()));
 }
 
 static void TestInvalidUtf16(std::u16string_view utf16) {
+    std::array<char, 128> byteBuffer;
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::MeasureUtf16ToUtf8(utf16.data(), utf16.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::MeasureUtf16ToShiftJis(utf16.data(), utf16.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::ConvertUtf16ToUtf8(
+                  byteBuffer.data(), byteBuffer.size(), utf16.data(), utf16.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::ConvertUtf16ToShiftJis(
+                  byteBuffer.data(), byteBuffer.size(), utf16.data(), utf16.size()));
     EXPECT_EQ(std::nullopt, HyoutaUtils::TextUtils::Utf16ToUtf8(utf16.data(), utf16.size()));
     EXPECT_EQ(std::nullopt, HyoutaUtils::TextUtils::Utf16ToShiftJis(utf16.data(), utf16.size()));
 }
 
 static void TestInvalidUtf8(std::string_view utf8) {
+    std::array<char, 128> byteBuffer;
+    std::array<char16_t, 128> c16Buffer;
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::MeasureUtf8ToUtf16(utf8.data(), utf8.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::MeasureUtf8ToShiftJis(utf8.data(), utf8.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::ConvertUtf8ToUtf16(
+                  c16Buffer.data(), c16Buffer.size(), utf8.data(), utf8.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::ConvertUtf8ToShiftJis(
+                  byteBuffer.data(), byteBuffer.size(), utf8.data(), utf8.size()));
     EXPECT_EQ(std::nullopt, HyoutaUtils::TextUtils::Utf8ToUtf16(utf8.data(), utf8.size()));
     EXPECT_EQ(std::nullopt, HyoutaUtils::TextUtils::Utf8ToShiftJis(utf8.data(), utf8.size()));
 }
 
 static void TestInvalidShiftJis(std::string_view sjis) {
+    std::array<char, 128> byteBuffer;
+    std::array<char16_t, 128> c16Buffer;
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::MeasureShiftJisToUtf8(sjis.data(), sjis.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::MeasureShiftJisToUtf16(sjis.data(), sjis.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::ConvertShiftJisToUtf8(
+                  byteBuffer.data(), byteBuffer.size(), sjis.data(), sjis.size()));
+    EXPECT_EQ(HyoutaUtils::TextUtils::INVALID_LENGTH,
+              HyoutaUtils::TextUtils::ConvertShiftJisToUtf16(
+                  c16Buffer.data(), c16Buffer.size(), sjis.data(), sjis.size()));
     EXPECT_EQ(std::nullopt, HyoutaUtils::TextUtils::ShiftJisToUtf8(sjis.data(), sjis.size()));
     EXPECT_EQ(std::nullopt, HyoutaUtils::TextUtils::ShiftJisToUtf16(sjis.data(), sjis.size()));
 }

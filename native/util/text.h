@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -15,6 +16,160 @@ enum class GameTextEncoding {
     UTF8,
     UTF16,
 };
+
+static constexpr size_t INVALID_LENGTH = std::numeric_limits<size_t>::max();
+
+// Returns the number of bytes the UTF8-encoded version of the given UTF16LE-encoded string takes.
+// inputLength is in number of UTF16 code units (one code unit is 16 bits).
+// Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureUtf16ToUtf8(const char16_t* inputData, size_t inputLength) noexcept;
+
+// Returns the number of UTF16 code units (one code unit is 16 bits) the UTF16-encoded version of
+// the given UTF8-encoded string takes. inputLength is in number of bytes.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureUtf8ToUtf16(const char* inputData, size_t inputLength) noexcept;
+
+// Returns the number of bytes the Windows-932-encoded version of the given UTF16LE-encoded string
+// takes. inputLength is in number of UTF16 code units (one code unit is 16 bits).
+// Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureUtf16ToShiftJis(const char16_t* inputData, size_t inputLength) noexcept;
+
+// Returns the number of UTF16 code units (one code unit is 16 bits) the UTF16-encoded version of
+// the given Windows-932-encoded string takes. inputLength is in number of bytes.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureShiftJisToUtf16(const char* inputData, size_t inputLength) noexcept;
+
+// Returns the number of bytes the UTF8-encoded version of the given Windows-932-encoded string
+// takes. inputLength is in number of bytes. Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureShiftJisToUtf8(const char* inputData, size_t inputLength) noexcept;
+
+// Returns the number of bytes the Windows-932-encoded version of the given UTF8-encoded string
+// takes. inputLength is in number of bytes. Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureUtf8ToShiftJis(const char* inputData, size_t inputLength) noexcept;
+
+#ifdef BUILD_FOR_WINDOWS
+// Returns the number of bytes the UTF8-encoded version of the given UTF16LE-encoded string takes.
+// inputLength is in number of UTF16 code units (one code unit is 16 bits).
+// Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureWStringToUtf8(const wchar_t* inputData, size_t inputLength) noexcept;
+
+// Returns the number of UTF16 code units (one code unit is 16 bits) the UTF16-encoded version of
+// the given UTF8-encoded string takes. inputLength is in number of bytes.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureUtf8ToWString(const char* inputData, size_t inputLength) noexcept;
+
+// Returns the number of bytes the Windows-932-encoded version of the given UTF16LE-encoded string
+// takes. inputLength is in number of UTF16 code units (one code unit is 16 bits).
+// Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureWStringToShiftJis(const wchar_t* inputData, size_t inputLength) noexcept;
+
+// Returns the number of UTF16 code units (one code unit is 16 bits) the UTF16-encoded version of
+// the given Windows-932-encoded string takes. inputLength is in number of bytes.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t MeasureShiftJisToWString(const char* inputData, size_t inputLength) noexcept;
+#endif
+
+// Writes the UTF8-encoded version of the given UTF16LE-encoded string into outputData.
+// inputLength is in number of UTF16 code units (one code unit is 16 bits).
+// outputLength is the number of available bytes at outputData.
+// Returns the number of bytes written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertUtf16ToUtf8(char* outputData,
+                          size_t outputLength,
+                          const char16_t* inputData,
+                          size_t inputLength) noexcept;
+
+// Writes the UTF16LE-encoded version of the given UTF8-encoded string into outputData.
+// inputLength is in number of bytes.
+// outputLength is the number of UTF16 code units (one code unit is 16 bits) at outputData.
+// Returns the number of code units written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertUtf8ToUtf16(char16_t* outputData,
+                          size_t outputLength,
+                          const char* inputData,
+                          size_t inputLength) noexcept;
+
+// Writes the Windows-932-encoded version of the given UTF16LE-encoded string into outputData.
+// inputLength is in number of UTF16 code units (one code unit is 16 bits).
+// outputLength is the number of available bytes at outputData.
+// Returns the number of bytes written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertUtf16ToShiftJis(char* outputData,
+                              size_t outputLength,
+                              const char16_t* inputData,
+                              size_t inputLength) noexcept;
+
+// Writes the UTF16LE-encoded version of the given Windows-932-encoded string into outputData.
+// inputLength is in number of bytes.
+// outputLength is the number of UTF16 code units (one code unit is 16 bits) at outputData.
+// Returns the number of code units written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertShiftJisToUtf16(char16_t* outputData,
+                              size_t outputLength,
+                              const char* inputData,
+                              size_t inputLength) noexcept;
+
+// Writes the UTF8-encoded version of the given Windows-932-encoded string into outputData.
+// inputLength is in number of bytes.
+// outputLength is the number of available bytes at outputData.
+// Returns the number of bytes written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertShiftJisToUtf8(char* outputData,
+                             size_t outputLength,
+                             const char* inputData,
+                             size_t inputLength) noexcept;
+
+// Writes the Windows-932-encoded version of the given UTF8-encoded string into outputData.
+// inputLength is in number of bytes.
+// outputLength is the number of available bytes at outputData.
+// Returns the number of bytes written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertUtf8ToShiftJis(char* outputData,
+                             size_t outputLength,
+                             const char* inputData,
+                             size_t inputLength) noexcept;
+
+#ifdef BUILD_FOR_WINDOWS
+// Writes the UTF8-encoded version of the given UTF16LE-encoded string into outputData.
+// inputLength is in number of UTF16 code units (one code unit is 16 bits).
+// outputLength is the number of available bytes at outputData.
+// Returns the number of bytes written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertWStringToUtf8(char* outputData,
+                            size_t outputLength,
+                            const wchar_t* inputData,
+                            size_t inputLength) noexcept;
+
+// Writes the UTF16LE-encoded version of the given UTF8-encoded string into outputData.
+// inputLength is in number of bytes.
+// outputLength is the number of UTF16 code units (one code unit is 16 bits) at outputData.
+// Returns the number of code units written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertUtf8ToWString(wchar_t* outputData,
+                            size_t outputLength,
+                            const char* inputData,
+                            size_t inputLength) noexcept;
+
+// Writes the Windows-932-encoded version of the given UTF16LE-encoded string into outputData.
+// inputLength is in number of UTF16 code units (one code unit is 16 bits).
+// outputLength is the number of available bytes at outputData.
+// Returns the number of bytes written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertWStringToShiftJis(char* outputData,
+                                size_t outputLength,
+                                const wchar_t* inputData,
+                                size_t inputLength) noexcept;
+
+// Writes the UTF16LE-encoded version of the given Windows-932-encoded string into outputData.
+// inputLength is in number of bytes.
+// outputLength is the number of UTF16 code units (one code unit is 16 bits) at outputData.
+// Returns the number of code units written into outputData.
+// Returns INVALID_LENGTH on any kind of failure.
+size_t ConvertShiftJisToWString(wchar_t* outputData,
+                                size_t outputLength,
+                                const char* inputData,
+                                size_t inputLength) noexcept;
+#endif
 
 std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) noexcept;
 std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) noexcept;

@@ -3,11 +3,13 @@
 #include <algorithm>
 #include <array>
 #include <charconv>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "util/scope.h"
 #include "util/vector.h"
 
 #ifdef BUILD_FOR_WINDOWS
@@ -20,14 +22,15 @@
 
 namespace HyoutaUtils::TextUtils {
 #ifdef BUILD_FOR_WINDOWS
-static std::optional<std::string>
-    WStringToCodepage(const wchar_t* data, size_t length, UINT codepage) noexcept {
+static size_t MeasureWStringToCodepage(const wchar_t* data, size_t length, UINT codepage) noexcept {
     if (length == 0) {
-        return std::string();
+        return 0;
     }
-
+    if (data == nullptr) {
+        return INVALID_LENGTH;
+    }
     if (length > INT32_MAX) {
-        return std::nullopt;
+        return INVALID_LENGTH;
     }
 
     BOOL usedDefaultChar = FALSE;
@@ -38,108 +41,290 @@ static std::optional<std::string>
     const auto requiredBytes = WideCharToMultiByte(
         codepage, flags, data, static_cast<int>(length), nullptr, 0, nullptr, usedDefaultCharPtr);
     if (requiredBytes <= 0 || usedDefaultChar != FALSE) {
-        return std::nullopt;
+        return INVALID_LENGTH;
+    }
+    return static_cast<size_t>(requiredBytes);
+}
+
+static size_t MeasureCodepageToWString(const char* data, size_t length, UINT codepage) noexcept {
+    if (length == 0) {
+        return 0;
+    }
+    if (data == nullptr) {
+        return INVALID_LENGTH;
+    }
+    if (length > INT32_MAX) {
+        return INVALID_LENGTH;
     }
 
+    const auto requiredCodeUnits = MultiByteToWideChar(
+        codepage, MB_ERR_INVALID_CHARS, data, static_cast<int>(length), nullptr, 0);
+    if (requiredCodeUnits <= 0) {
+        return INVALID_LENGTH;
+    }
+    return static_cast<size_t>(requiredCodeUnits);
+}
+
+#if 0 // I don't think I actually have enough information for this?
+static size_t MeasureCodepageToCodepage(UINT outputCodepage,
+                                        const char* data,
+                                        size_t length,
+                                        UINT inputCodepage) noexcept {
+    if (length == 0) {
+        return 0;
+    }
+    if (data == nullptr) {
+        return INVALID_LENGTH;
+    }
+    if (length > INT32_MAX) {
+        return INVALID_LENGTH;
+    }
+
+    // this needs to be one in two steps: first to utf16, then to the target codepage
+    size_t totalRequiredBytes = 0;
+    size_t rest = length;
+    const char* current = data;
+    std::array<wchar_t, 2048> buffer;
+    while (true) {
+        const auto writtenCodeUnits = MultiByteToWideChar(inputCodepage,
+                                                          MB_ERR_INVALID_CHARS,
+                                                          current,
+                                                          static_cast<int>(rest),
+                                                          buffer.data(),
+                                                          buffer.size());
+        if (writtenCodeUnits <= 0) {
+            return INVALID_LENGTH;
+        }
+
+        BOOL usedDefaultChar = FALSE;
+        const DWORD flags = (outputCodepage == CP_UTF8) ? static_cast<DWORD>(WC_ERR_INVALID_CHARS)
+                                                        : static_cast<DWORD>(WC_NO_BEST_FIT_CHARS);
+        const LPBOOL usedDefaultCharPtr = (outputCodepage == CP_UTF8) ? nullptr : &usedDefaultChar;
+        const auto requiredBytes = WideCharToMultiByte(outputCodepage,
+                                                       flags,
+                                                       buffer.data(),
+                                                       static_cast<int>(writtenCodeUnits),
+                                                       nullptr,
+                                                       0,
+                                                       nullptr,
+                                                       usedDefaultCharPtr);
+        if (requiredBytes <= 0 || usedDefaultChar != FALSE) {
+            return INVALID_LENGTH;
+        }
+
+        totalRequiredBytes += static_cast<size_t>(requiredBytes);
+        // uuuh do i not have access to this info...?
+        // if (static_cast<size_t>(processedBytes) >= rest) {
+        //    break;
+        // }
+        // rest -= static_cast<size_t>(processedBytes);
+        // current += processedBytes;
+    }
+
+    return totalRequiredBytes;
+}
+#endif
+
+static size_t ConvertWStringToCodepage(char* outputData,
+                                       size_t outputLength,
+                                       UINT outputCodepage,
+                                       const wchar_t* inputData,
+                                       size_t inputLength) noexcept {
+    if (inputLength == 0) {
+        return 0;
+    }
+    if (inputData == nullptr) {
+        return INVALID_LENGTH;
+    }
+    if (inputLength > INT32_MAX) {
+        return INVALID_LENGTH;
+    }
+    if (outputLength > INT32_MAX) {
+        return INVALID_LENGTH;
+    }
+
+    BOOL usedDefaultChar = FALSE;
+    const DWORD flags = (outputCodepage == CP_UTF8) ? static_cast<DWORD>(WC_ERR_INVALID_CHARS)
+                                                    : static_cast<DWORD>(WC_NO_BEST_FIT_CHARS);
+    const LPBOOL usedDefaultCharPtr = (outputCodepage == CP_UTF8) ? nullptr : &usedDefaultChar;
+
+    const auto resultBytes = WideCharToMultiByte(outputCodepage,
+                                                 flags,
+                                                 inputData,
+                                                 static_cast<int>(inputLength),
+                                                 outputData,
+                                                 static_cast<int>(outputLength),
+                                                 nullptr,
+                                                 usedDefaultCharPtr);
+    if (resultBytes <= 0 || usedDefaultChar != FALSE) {
+        return INVALID_LENGTH;
+    }
+    return static_cast<size_t>(resultBytes);
+}
+
+static size_t ConvertCodepageToWString(wchar_t* outputData,
+                                       size_t outputLength,
+                                       const char* inputData,
+                                       size_t inputLength,
+                                       UINT inputCodepage) noexcept {
+    if (inputLength == 0) {
+        return 0;
+    }
+    if (inputData == nullptr) {
+        return INVALID_LENGTH;
+    }
+    if (inputLength > INT32_MAX) {
+        return INVALID_LENGTH;
+    }
+    if (outputLength > INT32_MAX) {
+        return INVALID_LENGTH;
+    }
+
+    const auto resultCodeUnits = MultiByteToWideChar(inputCodepage,
+                                                     MB_ERR_INVALID_CHARS,
+                                                     inputData,
+                                                     static_cast<int>(inputLength),
+                                                     outputData,
+                                                     static_cast<int>(outputLength));
+    if (resultCodeUnits <= 0) {
+        return INVALID_LENGTH;
+    }
+    return static_cast<size_t>(resultCodeUnits);
+}
+
+static size_t MeasureCodepageToCodepage(UINT outputCodepage,
+                                        const char* inputData,
+                                        size_t inputLength,
+                                        UINT inputCodepage) noexcept {
+    const size_t requiredCodeUnits =
+        MeasureCodepageToWString(inputData, inputLength, inputCodepage);
+    if (requiredCodeUnits == INVALID_LENGTH) {
+        return INVALID_LENGTH;
+    }
+
+    std::array<wchar_t, 2048> stackBuffer;
+    std::unique_ptr<wchar_t[]> heapBuffer;
+    wchar_t* buffer;
+    if (requiredCodeUnits <= stackBuffer.size()) {
+        buffer = stackBuffer.data();
+    } else {
+        buffer = new (std::nothrow) wchar_t[requiredCodeUnits];
+        if (!buffer) {
+            return INVALID_LENGTH;
+        }
+        heapBuffer.reset(buffer);
+    }
+
+    const size_t usedCodeUnits =
+        ConvertCodepageToWString(buffer, requiredCodeUnits, inputData, inputLength, inputCodepage);
+    if (usedCodeUnits != requiredCodeUnits) {
+        return INVALID_LENGTH;
+    }
+
+    return MeasureWStringToCodepage(buffer, requiredCodeUnits, outputCodepage);
+}
+
+static size_t ConvertCodepageToCodepage(char* outputData,
+                                        size_t outputLength,
+                                        UINT outputCodepage,
+                                        const char* inputData,
+                                        size_t inputLength,
+                                        UINT inputCodepage) noexcept {
+    const size_t requiredCodeUnits =
+        MeasureCodepageToWString(inputData, inputLength, inputCodepage);
+    if (requiredCodeUnits == INVALID_LENGTH) {
+        return INVALID_LENGTH;
+    }
+
+    std::array<wchar_t, 2048> stackBuffer;
+    std::unique_ptr<wchar_t[]> heapBuffer;
+    wchar_t* buffer;
+    if (requiredCodeUnits <= stackBuffer.size()) {
+        buffer = stackBuffer.data();
+    } else {
+        buffer = new (std::nothrow) wchar_t[requiredCodeUnits];
+        if (!buffer) {
+            return INVALID_LENGTH;
+        }
+        heapBuffer.reset(buffer);
+    }
+
+    const size_t usedCodeUnits =
+        ConvertCodepageToWString(buffer, requiredCodeUnits, inputData, inputLength, inputCodepage);
+    if (usedCodeUnits != requiredCodeUnits) {
+        return INVALID_LENGTH;
+    }
+
+    return ConvertWStringToCodepage(
+        outputData, outputLength, outputCodepage, buffer, requiredCodeUnits);
+}
+
+static std::optional<std::string>
+    WStringToCodepage_StdString(const wchar_t* data, size_t length, UINT codepage) noexcept {
+    const size_t requiredBytes = MeasureWStringToCodepage(data, length, codepage);
+    if (requiredBytes == INVALID_LENGTH) {
+        return std::nullopt;
+    }
     std::string result;
     try {
-        result.resize(static_cast<size_t>(requiredBytes));
+        result.resize(requiredBytes);
     } catch (...) {
         return std::nullopt;
     }
-    const auto convertedBytes = WideCharToMultiByte(codepage,
-                                                    flags,
-                                                    data,
-                                                    static_cast<int>(length),
-                                                    result.data(),
-                                                    requiredBytes,
-                                                    nullptr,
-                                                    usedDefaultCharPtr);
-    if (convertedBytes != requiredBytes || usedDefaultChar != FALSE) {
+    const size_t convertedBytes =
+        ConvertWStringToCodepage(result.data(), requiredBytes, codepage, data, length);
+    if (convertedBytes != requiredBytes) {
         return std::nullopt;
     }
-
     return result;
 }
 
 template<typename T>
 static std::optional<T>
-    CodepageToString16(const char* data, size_t length, UINT codepage) noexcept {
+    CodepageToWString_StdString16(const char* data, size_t length, UINT codepage) noexcept {
     static_assert(sizeof(typename T::value_type) == 2);
-
-    if (length == 0) {
-        return T();
-    }
-
-    if (length > INT32_MAX) {
+    const size_t requiredCodeUnits = MeasureCodepageToWString(data, length, codepage);
+    if (requiredCodeUnits == INVALID_LENGTH) {
         return std::nullopt;
     }
-
-    const auto requiredBytes = MultiByteToWideChar(
-        codepage, MB_ERR_INVALID_CHARS, data, static_cast<int>(length), nullptr, 0);
-    if (requiredBytes <= 0) {
-        return std::nullopt;
-    }
-
-    T wstr;
+    T result;
     try {
-        wstr.resize(static_cast<size_t>(requiredBytes));
+        result.resize(requiredCodeUnits);
     } catch (...) {
         return std::nullopt;
     }
-    const auto convertedBytes = MultiByteToWideChar(codepage,
-                                                    MB_ERR_INVALID_CHARS,
-                                                    data,
-                                                    static_cast<int>(length),
-                                                    (wchar_t*)wstr.data(),
-                                                    requiredBytes);
-    if (convertedBytes != requiredBytes) {
+    const size_t convertedCodeUnits = ConvertCodepageToWString(
+        reinterpret_cast<wchar_t*>(result.data()), requiredCodeUnits, data, length, codepage);
+    if (convertedCodeUnits != requiredCodeUnits) {
         return std::nullopt;
     }
-
-    return wstr;
+    return result;
 }
 #else
-static std::optional<std::string> ConvertString(const char* data,
-                                                size_t length,
-                                                const char* sourceEncoding,
-                                                const char* targetEncoding) noexcept {
-    if (length == 0) {
-        return std::string();
-    }
-
-    iconv_t cd = iconv_open(targetEncoding, sourceEncoding);
-    if (cd == ((iconv_t)-1)) {
-        return std::nullopt;
-    }
-    struct ScopedIconvT {
-        iconv_t cd;
-        ~ScopedIconvT() {
-            iconv_close(cd);
-        }
-    };
-    ScopedIconvT scoped{cd};
-
-    std::string result;
+static size_t MeasureStringConversionWithIconv(const char* inputData,
+                                               size_t inputLength,
+                                               iconv_t* cd) noexcept {
+    size_t result = 0;
     std::array<char, 2048> buffer;
-    size_t rest = length;
-    char* next = const_cast<char*>(data);
+    size_t rest = inputLength;
+    char* next = const_cast<char*>(inputData);
     do {
         char* in = next;
         char* out = buffer.data();
         size_t outfree = buffer.size();
         errno = 0;
-        size_t rv = iconv(cd, &in, &rest, &out, &outfree);
+        size_t rv = iconv(*cd, &in, &rest, &out, &outfree);
+        const int err = errno;
         if (out == buffer.data()) {
             break;
         }
-        if (rv == ((size_t)-1) && errno != E2BIG) {
-            return std::nullopt;
+        if (rv == ((size_t)-1) && err != E2BIG) {
+            return INVALID_LENGTH;
         }
         try {
-            result.append(buffer.data(), out);
+            result += (out - buffer.data());
         } catch (...) {
-            return std::nullopt;
+            return INVALID_LENGTH;
         }
         if (in == next) {
             break;
@@ -148,83 +333,412 @@ static std::optional<std::string> ConvertString(const char* data,
     } while (rest > 0);
 
     if (rest != 0) {
-        return std::nullopt;
+        return INVALID_LENGTH;
     }
 
     return result;
+}
+
+static size_t MeasureStringConversion(const char* outputEncoding,
+                                      const char* inputData,
+                                      size_t inputLength,
+                                      const char* inputEncoding) noexcept {
+    if (inputLength == 0) {
+        return 0;
+    }
+    if (inputData == nullptr) {
+        return INVALID_LENGTH;
+    }
+
+    iconv_t cd = iconv_open(outputEncoding, inputEncoding);
+    if (cd == ((iconv_t)-1)) {
+        return INVALID_LENGTH;
+    }
+    auto scope = HyoutaUtils::MakeScopeGuard([&]() { iconv_close(cd); });
+
+    return MeasureStringConversionWithIconv(inputData, inputLength, &cd);
+}
+
+static size_t ConvertStringWithIconv(char* outputData,
+                                     size_t outputLength,
+                                     const char* inputData,
+                                     size_t inputLength,
+                                     iconv_t* cd) noexcept {
+    char* in = const_cast<char*>(inputData);
+    size_t inRest = inputLength;
+    char* out = outputData;
+    size_t outRest = outputLength;
+    errno = 0;
+    size_t rv = iconv(*cd, &in, &inRest, &out, &outRest);
+    const int err = errno;
+    if (rv == ((size_t)-1)) {
+        return INVALID_LENGTH;
+    }
+    if (err != 0) {
+        return INVALID_LENGTH;
+    }
+    return (out - outputData);
+}
+
+static size_t ConvertString(char* outputData,
+                            size_t outputLength,
+                            const char* outputEncoding,
+                            const char* inputData,
+                            size_t inputLength,
+                            const char* inputEncoding) noexcept {
+    if (inputLength == 0) {
+        return 0;
+    }
+    if (inputData == nullptr) {
+        return INVALID_LENGTH;
+    }
+
+    iconv_t cd = iconv_open(outputEncoding, inputEncoding);
+    if (cd == ((iconv_t)-1)) {
+        return INVALID_LENGTH;
+    }
+    auto scope = HyoutaUtils::MakeScopeGuard([&]() { iconv_close(cd); });
+
+    return ConvertStringWithIconv(outputData, outputLength, inputData, inputLength, &cd);
+}
+
+static std::optional<std::string> ConvertString_StdString(const char* outputEncoding,
+                                                          const char* inputData,
+                                                          size_t inputLength,
+                                                          const char* inputEncoding) noexcept {
+    if (inputLength == 0) {
+        return std::string();
+    }
+    if (inputData == nullptr) {
+        return std::nullopt;
+    }
+
+    iconv_t cd = iconv_open(outputEncoding, inputEncoding);
+    if (cd == ((iconv_t)-1)) {
+        return std::nullopt;
+    }
+    auto scope = HyoutaUtils::MakeScopeGuard([&]() { iconv_close(cd); });
+
+    const size_t requiredBytes = MeasureStringConversionWithIconv(inputData, inputLength, &cd);
+    if (requiredBytes == INVALID_LENGTH) {
+        return std::nullopt;
+    }
+    std::string result;
+    try {
+        result.resize(requiredBytes);
+    } catch (...) {
+        return std::nullopt;
+    }
+    iconv(cd, nullptr, nullptr, nullptr, nullptr); // reset iconv state
+    const size_t convertedBytes =
+        ConvertStringWithIconv(result.data(), requiredBytes, inputData, inputLength, &cd);
+    if (convertedBytes != requiredBytes) {
+        return std::nullopt;
+    }
+    return result;
+}
+
+template<typename T>
+static std::optional<T> ConvertString_StdString16(const char* outputEncoding,
+                                                  const char* inputData,
+                                                  size_t inputLength,
+                                                  const char* inputEncoding) noexcept {
+    static_assert(sizeof(typename T::value_type) == 2);
+    if (inputLength == 0) {
+        return T();
+    }
+    if (inputData == nullptr) {
+        return std::nullopt;
+    }
+
+    iconv_t cd = iconv_open(outputEncoding, inputEncoding);
+    if (cd == ((iconv_t)-1)) {
+        return std::nullopt;
+    }
+    auto scope = HyoutaUtils::MakeScopeGuard([&]() { iconv_close(cd); });
+
+    const size_t requiredBytes = MeasureStringConversionWithIconv(inputData, inputLength, &cd);
+    if (requiredBytes == INVALID_LENGTH) {
+        return std::nullopt;
+    }
+    if ((requiredBytes % 2) != 0) {
+        return std::nullopt;
+    }
+    T result;
+    try {
+        result.resize(requiredBytes / 2);
+    } catch (...) {
+        return std::nullopt;
+    }
+    iconv(cd, nullptr, nullptr, nullptr, nullptr); // reset iconv state
+    const size_t convertedBytes = ConvertStringWithIconv(
+        reinterpret_cast<char*>(result.data()), requiredBytes, inputData, inputLength, &cd);
+    if (convertedBytes != requiredBytes) {
+        return std::nullopt;
+    }
+    return result;
+}
+#endif
+
+size_t MeasureUtf16ToUtf8(const char16_t* inputData, size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return MeasureWStringToCodepage(
+        reinterpret_cast<const wchar_t*>(inputData), inputLength, CP_UTF8);
+#else
+    return MeasureStringConversion(
+        "UTF-8", reinterpret_cast<const char*>(inputData), inputLength * 2, "UTF-16LE");
+#endif
+}
+
+size_t MeasureUtf8ToUtf16(const char* inputData, size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return MeasureCodepageToWString(inputData, inputLength, CP_UTF8);
+#else
+    const size_t result = MeasureStringConversion("UTF-16LE", inputData, inputLength, "UTF-8");
+    if ((result % 2) != 0) {
+        return INVALID_LENGTH;
+    }
+    return result / 2;
+#endif
+}
+
+size_t MeasureUtf16ToShiftJis(const char16_t* inputData, size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return MeasureWStringToCodepage(reinterpret_cast<const wchar_t*>(inputData), inputLength, 932);
+#else
+    return MeasureStringConversion(
+        "CP932", reinterpret_cast<const char*>(inputData), inputLength * 2, "UTF-16LE");
+#endif
+}
+
+size_t MeasureShiftJisToUtf16(const char* inputData, size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return MeasureCodepageToWString(inputData, inputLength, 932);
+#else
+    const size_t result = MeasureStringConversion("UTF-16LE", inputData, inputLength, "CP932");
+    if ((result % 2) != 0) {
+        return INVALID_LENGTH;
+    }
+    return result / 2;
+#endif
+}
+
+size_t MeasureShiftJisToUtf8(const char* inputData, size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return MeasureCodepageToCodepage(CP_UTF8, inputData, inputLength, 932);
+#else
+    return MeasureStringConversion("UTF-8", inputData, inputLength, "CP932");
+#endif
+}
+
+size_t MeasureUtf8ToShiftJis(const char* inputData, size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return MeasureCodepageToCodepage(932, inputData, inputLength, CP_UTF8);
+#else
+    return MeasureStringConversion("CP932", inputData, inputLength, "UTF-8");
+#endif
+}
+
+#ifdef BUILD_FOR_WINDOWS
+size_t MeasureWStringToUtf8(const wchar_t* inputData, size_t inputLength) noexcept {
+    return MeasureWStringToCodepage(inputData, inputLength, CP_UTF8);
+}
+
+size_t MeasureUtf8ToWString(const char* inputData, size_t inputLength) noexcept {
+    return MeasureCodepageToWString(inputData, inputLength, CP_UTF8);
+}
+
+size_t MeasureWStringToShiftJis(const wchar_t* inputData, size_t inputLength) noexcept {
+    return MeasureWStringToCodepage(inputData, inputLength, 932);
+}
+
+size_t MeasureShiftJisToWString(const char* inputData, size_t inputLength) noexcept {
+    return MeasureCodepageToWString(inputData, inputLength, 932);
+}
+#endif
+
+size_t ConvertUtf16ToUtf8(char* outputData,
+                          size_t outputLength,
+                          const char16_t* inputData,
+                          size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return ConvertWStringToCodepage(outputData,
+                                    outputLength,
+                                    CP_UTF8,
+                                    reinterpret_cast<const wchar_t*>(inputData),
+                                    inputLength);
+#else
+    return ConvertString(outputData,
+                         outputLength,
+                         "UTF-8",
+                         reinterpret_cast<const char*>(inputData),
+                         inputLength * 2,
+                         "UTF-16LE");
+#endif
+}
+
+size_t ConvertUtf8ToUtf16(char16_t* outputData,
+                          size_t outputLength,
+                          const char* inputData,
+                          size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return ConvertCodepageToWString(
+        reinterpret_cast<wchar_t*>(outputData), outputLength, inputData, inputLength, CP_UTF8);
+#else
+    size_t result = ConvertString(reinterpret_cast<char*>(outputData),
+                                  outputLength * 2,
+                                  "UTF-16LE",
+                                  inputData,
+                                  inputLength,
+                                  "UTF-8");
+    if ((result % 2) != 0) {
+        return INVALID_LENGTH;
+    }
+    return result / 2;
+#endif
+}
+
+size_t ConvertUtf16ToShiftJis(char* outputData,
+                              size_t outputLength,
+                              const char16_t* inputData,
+                              size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return ConvertWStringToCodepage(
+        outputData, outputLength, 932, reinterpret_cast<const wchar_t*>(inputData), inputLength);
+#else
+    return ConvertString(outputData,
+                         outputLength,
+                         "CP932",
+                         reinterpret_cast<const char*>(inputData),
+                         inputLength * 2,
+                         "UTF-16LE");
+#endif
+}
+
+size_t ConvertShiftJisToUtf16(char16_t* outputData,
+                              size_t outputLength,
+                              const char* inputData,
+                              size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return ConvertCodepageToWString(
+        reinterpret_cast<wchar_t*>(outputData), outputLength, inputData, inputLength, 932);
+#else
+    size_t result = ConvertString(reinterpret_cast<char*>(outputData),
+                                  outputLength * 2,
+                                  "UTF-16LE",
+                                  inputData,
+                                  inputLength,
+                                  "CP932");
+    if ((result % 2) != 0) {
+        return INVALID_LENGTH;
+    }
+    return result / 2;
+#endif
+}
+
+size_t ConvertShiftJisToUtf8(char* outputData,
+                             size_t outputLength,
+                             const char* inputData,
+                             size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return ConvertCodepageToCodepage(
+        outputData, outputLength, CP_UTF8, inputData, inputLength, 932);
+#else
+    return ConvertString(outputData, outputLength, "UTF-8", inputData, inputLength, "CP932");
+#endif
+}
+
+size_t ConvertUtf8ToShiftJis(char* outputData,
+                             size_t outputLength,
+                             const char* inputData,
+                             size_t inputLength) noexcept {
+#ifdef BUILD_FOR_WINDOWS
+    return ConvertCodepageToCodepage(
+        outputData, outputLength, 932, inputData, inputLength, CP_UTF8);
+#else
+    return ConvertString(outputData, outputLength, "CP932", inputData, inputLength, "UTF-8");
+#endif
+}
+
+#ifdef BUILD_FOR_WINDOWS
+size_t ConvertWStringToUtf8(char* outputData,
+                            size_t outputLength,
+                            const wchar_t* inputData,
+                            size_t inputLength) noexcept {
+    return ConvertWStringToCodepage(outputData, outputLength, CP_UTF8, inputData, inputLength);
+}
+
+size_t ConvertUtf8ToWString(wchar_t* outputData,
+                            size_t outputLength,
+                            const char* inputData,
+                            size_t inputLength) noexcept {
+    return ConvertCodepageToWString(outputData, outputLength, inputData, inputLength, CP_UTF8);
+}
+
+size_t ConvertWStringToShiftJis(char* outputData,
+                                size_t outputLength,
+                                const wchar_t* inputData,
+                                size_t inputLength) noexcept {
+    return ConvertWStringToCodepage(outputData, outputLength, 932, inputData, inputLength);
+}
+
+size_t ConvertShiftJisToWString(wchar_t* outputData,
+                                size_t outputLength,
+                                const char* inputData,
+                                size_t inputLength) noexcept {
+    return ConvertCodepageToWString(outputData, outputLength, inputData, inputLength, 932);
 }
 #endif
 
 std::optional<std::string> Utf16ToUtf8(const char16_t* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
-    return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, CP_UTF8);
+    return WStringToCodepage_StdString(reinterpret_cast<const wchar_t*>(data), length, CP_UTF8);
 #else
-    return ConvertString(reinterpret_cast<const char*>(data), length * 2, "UTF-16LE", "UTF-8");
+    return ConvertString_StdString(
+        "UTF-8", reinterpret_cast<const char*>(data), length * 2, "UTF-16LE");
 #endif
 }
 
 std::optional<std::u16string> Utf8ToUtf16(const char* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
-    return CodepageToString16<std::u16string>(data, length, CP_UTF8);
+    return CodepageToWString_StdString16<std::u16string>(data, length, CP_UTF8);
 #else
-    const auto str = ConvertString(data, length, "UTF-8", "UTF-16LE");
-    if (!str || (str->size() % 2) != 0) {
-        return std::nullopt;
-    }
-    std::u16string str16;
-    try {
-        str16.reserve(str->size() / 2);
-        for (size_t i = 0; i < str->size(); i += 2) {
-            const char16_t c =
-                char16_t(uint16_t(uint8_t((*str)[i])) | (uint16_t(uint8_t((*str)[i + 1])) << 8));
-            str16.push_back(c);
-        }
-    } catch (...) {
-        return std::nullopt;
-    }
-    return str16;
+    return ConvertString_StdString16<std::u16string>("UTF-16LE", data, length, "UTF-8");
 #endif
 }
 
 std::optional<std::string> Utf16ToShiftJis(const char16_t* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
-    return WStringToCodepage(reinterpret_cast<const wchar_t*>(data), length, 932);
+    return WStringToCodepage_StdString(reinterpret_cast<const wchar_t*>(data), length, 932);
 #else
-    auto str8 = Utf16ToUtf8(data, length);
-    if (!str8) {
-        return std::nullopt;
-    }
-    return Utf8ToShiftJis(str8->data(), str8->size());
+    return ConvertString_StdString(
+        "CP932", reinterpret_cast<const char*>(data), length * 2, "UTF-16LE");
 #endif
 }
 
 std::optional<std::u16string> ShiftJisToUtf16(const char* data, size_t length) noexcept {
 #ifdef BUILD_FOR_WINDOWS
-    return CodepageToString16<std::u16string>(data, length, 932);
+    return CodepageToWString_StdString16<std::u16string>(data, length, 932);
 #else
-    auto str8 = ShiftJisToUtf8(data, length);
-    if (!str8) {
-        return std::nullopt;
-    }
-    return Utf8ToUtf16(str8->data(), str8->size());
+    return ConvertString_StdString16<std::u16string>("UTF-16LE", data, length, "CP932");
 #endif
 }
 
 #ifdef BUILD_FOR_WINDOWS
 std::optional<std::string> WStringToUtf8(const wchar_t* data, size_t length) noexcept {
-    return WStringToCodepage(data, length, CP_UTF8);
+    return WStringToCodepage_StdString(data, length, CP_UTF8);
 }
 
 std::optional<std::wstring> Utf8ToWString(const char* data, size_t length) noexcept {
-    return CodepageToString16<std::wstring>(data, length, CP_UTF8);
+    return CodepageToWString_StdString16<std::wstring>(data, length, CP_UTF8);
 }
 
 std::optional<std::string> WStringToShiftJis(const wchar_t* data, size_t length) noexcept {
-    return WStringToCodepage(data, length, 932);
+    return WStringToCodepage_StdString(data, length, 932);
 }
 
 std::optional<std::wstring> ShiftJisToWString(const char* data, size_t length) noexcept {
-    return CodepageToString16<std::wstring>(data, length, 932);
+    return CodepageToWString_StdString16<std::wstring>(data, length, 932);
 }
 #endif
 
@@ -236,7 +750,7 @@ std::optional<std::string> ShiftJisToUtf8(const char* data, size_t length) noexc
     }
     return WStringToUtf8(wstr->data(), wstr->size());
 #else
-    return ConvertString(data, length, "CP932", "UTF-8");
+    return ConvertString_StdString("UTF-8", data, length, "CP932");
 #endif
 }
 
@@ -248,13 +762,13 @@ std::optional<std::string> Utf8ToShiftJis(const char* data, size_t length) noexc
     }
     return WStringToShiftJis(wstr->data(), wstr->size());
 #else
-    return ConvertString(data, length, "UTF-8", "CP932");
+    return ConvertString_StdString("CP932", data, length, "UTF-8");
 #endif
 }
 
 #ifdef BUILD_FOR_WINDOWS
 std::optional<std::wstring> AnsiCodePageToWString(const char* data, size_t length) noexcept {
-    return CodepageToString16<std::wstring>(data, length, GetACP());
+    return CodepageToWString_StdString16<std::wstring>(data, length, GetACP());
 }
 
 std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length) noexcept {
@@ -266,7 +780,7 @@ std::optional<std::string> AnsiCodePageToUtf8(const char* data, size_t length) n
 }
 
 std::optional<std::wstring> OemCodePageToWString(const char* data, size_t length) noexcept {
-    return CodepageToString16<std::wstring>(data, length, GetOEMCP());
+    return CodepageToWString_StdString16<std::wstring>(data, length, GetOEMCP());
 }
 
 std::optional<std::string> OemCodePageToUtf8(const char* data, size_t length) noexcept {
