@@ -26,8 +26,10 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
     auto& bin = file->Data;
     SenScriptPatcher patcher(bin);
 
+    // PS4 1.03 change, but this is actually inconsistent with the rest of the script
+    // so leave it as-is
     // Imperial government -> Imperial Government
-    bin[0xfe3b] = 0x47;
+    // bin[0xfe3b] = 0x47;
 
     // "#E_0#M_0#B_0...Guessing it was some some\x01'supporting gauntlet'-type stuff?"
     // 'some some' -> 'some'
