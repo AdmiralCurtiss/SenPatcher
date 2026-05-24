@@ -4,10 +4,12 @@
 #include "p3a/pack.h"
 #include "p3a/structs.h"
 #include "sen/file_getter.h"
+#include "sen/sen_script_patcher.h"
 #include "util/hash/sha1.h"
 
 extern "C" {
-__declspec(dllexport) char SenPatcherFix_1_a0417[] = "Fix capitalization in Chapter 1 Ex. Camp";
+__declspec(dllexport) char SenPatcherFix_1_a0417[] =
+    "Fix minor text errors in Chapter 1 Ex. Camp (early copy)";
 }
 
 namespace SenLib::Sen3::FileFixes::a0417_dat {
@@ -22,9 +24,14 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
     }
 
     auto& bin = file->Data;
+    SenScriptPatcher patcher(bin);
 
     // Imperial government -> Imperial Government
     bin[0xfe3b] = 0x47;
+
+    // "#E_0#M_0#B_0...Guessing it was some some\x01'supporting gauntlet'-type stuff?"
+    // 'some some' -> 'some'
+    patcher.RemovePartialCommand(0x13e2f, 0x61, 0x13e67, 5);
 
     result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 

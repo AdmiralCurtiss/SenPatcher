@@ -978,6 +978,7 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/O_T10OBJ05_pkg.cpp
 	sen3/file_fixes/O_T40OBJ01_pkg.cpp
 	sen3/file_fixes/O_V80TNK00_pkg.cpp
+	sen3/file_fixes/r0090_dat.cpp
 	sen3/file_fixes/r0210_dat.cpp
 	sen3/file_fixes/r2290_dat.cpp
 	sen3/file_fixes/r3000_dat.cpp
