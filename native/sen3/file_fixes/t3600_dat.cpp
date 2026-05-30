@@ -54,6 +54,11 @@ bool TryApply(const SenPatcher::GetCheckedFileCallback& getCheckedFile,
         // (chapter 3, 6/18 festival night, finishing the A Keepsake Lost quest)
         patcher.RemovePartialCommand(0x229e3, 0x35, 0x22a08, 1);
 
+        // "#K#0U#F#0T#2C#2C(We're ready, as well. ♪)"
+        // context problem, Musse is alone here, so "We're" -> "I'm"
+        // (chapter 3, 6/18 morning, during the A Tale of Two Shops sidequest)
+        patcher.ReplacePartialCommand(0x1be82, 0x72, 0x1be9a, 5, {{'I', '\'', 'm'}});
+
         result.emplace_back(std::move(bin), file->Filename, SenPatcher::P3ACompressionType::LZ4);
 
         return true;
