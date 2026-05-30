@@ -1047,6 +1047,7 @@ set(SOURCES_CS3_FIXES
 	sen3/file_fixes/tk_pablo_dat.cpp
 	sen3/file_fixes/tk_patrick_dat.cpp
 	sen3/file_fixes/tk_rosine_dat.cpp
+	sen3/file_fixes/tk_sansan_dat.cpp
 	sen3/file_fixes/tk_schmitt_dat.cpp
 	sen3/file_fixes/tk_sharon_dat.cpp
 	sen3/file_fixes/tk_stark_dat.cpp

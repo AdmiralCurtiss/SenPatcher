@@ -146,6 +146,7 @@ DECLARE_STANDARD_FIX(tk_musse_dat)
 DECLARE_STANDARD_FIX(tk_pablo_dat)
 DECLARE_STANDARD_FIX(tk_patrick_dat)
 DECLARE_STANDARD_FIX(tk_rosine_dat)
+DECLARE_STANDARD_FIX(tk_sansan_dat)
 DECLARE_STANDARD_FIX(tk_schmitt_dat)
 DECLARE_STANDARD_FIX(tk_sharon_dat)
 DECLARE_STANDARD_FIX(tk_stark_dat)
@@ -338,6 +339,7 @@ static bool CollectAssets(HyoutaUtils::Logger& logger,
     TRY_APPLY(tk_pablo_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_patrick_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_rosine_dat, TryApply(callback, packFiles));
+    TRY_APPLY(tk_sansan_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_schmitt_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_sharon_dat, TryApply(callback, packFiles));
     TRY_APPLY(tk_stark_dat, TryApply(callback, packFiles));
