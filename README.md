@@ -189,17 +189,27 @@ Feature Set for Tokyo Xanadu eX+
 Note: Compatible with version 1.08 of the game only.
 
 
-
 Information for people wanting to create file-based mods
 ========================================================
+
+Tools
+-----
+
+SenPatcher comes with a collection of tools that are helpful for modding these games. To use those tools, launch `SenPatcher.exe` from the command line and follow the provided instructions.
+
+A few of these tools can also be accessed from the GUI under the 'Toolbox' option.
+
+
+In-game file replacement
+------------------------
 
 Starting with version 1.0, SenPatcher has support for seamless replacement of files as seen by the game without actually modifying the game's assets directly.
 
 This feature comes in two flavors:
 
-For development, you can create a `dev` directory in the base game directory and put your replacement files in there. Files in this folder will have priority over everything else, so eg. if you want to replace the t_magic table in CS4, you can place your modified copy at `The Legend of Heroes Trails of Cold Steel IV\dev\data\text\dat_en\t_magic.tbl`. This should work for all game files *except* the FMVs and the big `assets.pka`. Note that the `dev` directory must exist when the game is booted in order for this replacement to take effect. You will see a notice on the title screen (next to the version info) if the `dev` folder is active and being scanned.
+For development, you can create a `dev` directory in the base game directory and put your replacement files in there. Files in this folder will have priority over everything else, so eg. if you want to replace the t_magic table in CS4, you can place your modified copy at `The Legend of Heroes Trails of Cold Steel IV\dev\data\text\dat_en\t_magic.tbl`. This should work for all game files *except* the FMVs and the big archives (eg. `assets.pka` and Tokyo Xanadu's `*.bra` files), but you can still replace the individual files contained in those archives with this method. Note that the `dev` directory must exist when the game is booted in order for this replacement to take effect. You will see a notice on the title screen (next to the version info) if the `dev` folder is active and being scanned.
 
-Once you're ready to release your mod into the world, you can pack it into a convenient archive file for distribution. In order to do that, take the included `sentools.exe` and pack the `dev` directory with it, so for example `sentools.exe P3A.Pack "The Legend of Heroes Trails of Cold Steel IV\dev" mymod.p3a`. The generated `mymod.p3a` can be placed in the `mods` directory that is created by SenPatcher, where it will act exactly like the freestanding `dev` directory, replacing the files as seen by the game. (Yes, this is the same file format used by the PH3 Daybreak PC port. You may choose to use their tool instead if you prefer it.)
+Once you're ready to release your mod into the world, you can pack it into a convenient archive file for distribution. In order to do that, take `SenPatcher.exe` and pack the `dev` directory with it, so for example `SenPatcher.exe P3A.Pack "The Legend of Heroes Trails of Cold Steel IV\dev" mymod.p3a`. The generated `mymod.p3a` can be placed in the `mods` directory that is created by SenPatcher, where it will act exactly like the freestanding `dev` directory, replacing the files as seen by the game. (Yes, this is the same file format used by the PH3 Daybreak PC port. You may choose to use their tool instead if you prefer it.)
 
 If there are multiple copies of a single file across multiple mods, only the highest priority one will be seen by the game. The priority list is:
 
@@ -217,6 +227,8 @@ Build Instructions
 To build SenPatcher from source, just invoke cmake on native/CMakeLists.txt and follow the typical CMake build flow.
 
 If you're using Visual Studio 2022, you can use the built-in CMake support by using the "Open a local folder" option and pointing it at the 'native' folder.
+
+Note that if you're building yourself the files will not be named as they are in the release distribution. The built `sentools.exe` is the GUI and tools and is called `SenPatcher.exe` in the release distribution. The individual .dlls must be renamed to match their injection target for them to work (`DINPUT8.dll` or `DSOUND.dll`). You need to build twice, once as 32-bit and once as 64-bit, to get the full set of binaries.
 
 Do *not* use the SenPatcher.sln in the repository root. That will only build the remnants of the old C# GUI, which is almost definitely not what you want.
 
