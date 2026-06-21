@@ -402,6 +402,9 @@ if (SENPATCHER_BUILD_TOOLS)
 		sentools/daybreak2_save_convert/daybreak2_save_convert.cpp
 		sentools/daybreak2_save_convert/daybreak2_save_convert.h
 		sentools/daybreak2_save_convert/daybreak2_save_convert_main.h
+		sentools/dirdat_extract/dirdat_extract.cpp
+		sentools/dirdat_extract/dirdat_extract.h
+		sentools/dirdat_extract/dirdat_extract_main.h
 		sentools/dirtree_create/dirtree_create.cpp
 		sentools/dirtree_create/dirtree_create_main.h
 		sentools/file_compressor/file_compressor.cpp
