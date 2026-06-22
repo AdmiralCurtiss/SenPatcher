@@ -2,6 +2,7 @@
 #include "dirdat_extract_main.h"
 
 #include <array>
+#include <cassert>
 #include <cstdio>
 #include <filesystem>
 #include <format>
@@ -122,23 +123,28 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
         return false;
     }
 
+    uint32_t compressedBytesRead = 0;
     uint32_t decompressedBytesWritten = 0;
     const char* compressedData = decomp->CompressedData;
     char* decompressedData = decomp->DecompressedData;
 
     ++compressedData; // first byte is always 0, just skip it
+    ++compressedBytesRead;
 
     uint8_t bit = 0;
     int bufferedBitCounter = 8;
     uint32_t bufferedBits = static_cast<uint8_t>(*compressedData);
     ++compressedData;
+    ++compressedBytesRead;
 #define GET_BIT(target)                                                      \
     do {                                                                     \
         if (bufferedBitCounter == 0) {                                       \
             const uint32_t lowBits = static_cast<uint8_t>(*compressedData);  \
             ++compressedData;                                                \
+            ++compressedBytesRead;                                           \
             const uint32_t highBits = static_cast<uint8_t>(*compressedData); \
             ++compressedData;                                                \
+            ++compressedBytesRead;                                           \
             bufferedBits = (highBits << 8) | lowBits;                        \
             bufferedBitCounter = 16;                                         \
         }                                                                    \
@@ -162,8 +168,9 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                 // directly copy a byte from the compressed data
                 *decompressedData = *compressedData;
                 ++decompressedData;
-                ++compressedData;
                 ++decompressedBytesWritten;
+                ++compressedData;
+                ++compressedBytesRead;
                 continue;
             }
 
@@ -172,6 +179,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                 // backref with small offset
                 offsetBehind = static_cast<uint8_t>(*compressedData);
                 ++compressedData;
+                ++compressedBytesRead;
                 break;
             }
             {
@@ -179,6 +187,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                 GET_N_BITS(tmp, 5);
                 offsetBehind = (tmp << 8) + static_cast<uint8_t>(*compressedData);
                 ++compressedData;
+                ++compressedBytesRead;
             }
             if (offsetBehind > 1) {
                 // backref with large offset
@@ -186,6 +195,8 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
             }
             if (offsetBehind == 0) {
                 // end of compressed data
+                assert((decomp->CompressedData + compressedBytesRead) == compressedData);
+                assert((decomp->DecompressedData + decompressedBytesWritten) == decompressedData);
                 decomp->CompressedData = compressedData;
                 decomp->DecompressedData = decompressedData;
                 decomp->DecompressedLength += decompressedBytesWritten;
@@ -202,9 +213,11 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                 GET_N_BITS(tmp, 4);
                 lengthRaw = (tmp << 8) + static_cast<uint8_t>(*compressedData);
                 ++compressedData;
+                ++compressedBytesRead;
             }
             const char byteToWrite = *compressedData;
             ++compressedData;
+            ++compressedBytesRead;
             uint32_t length = (lengthRaw + 14);
             while (length > 0) {
                 *decompressedData = byteToWrite;
@@ -237,6 +250,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                         if (bit == 0) {
                             length = static_cast<uint8_t>(*compressedData) + 14;
                             ++compressedData;
+                            ++compressedBytesRead;
                         } else {
                             uint32_t tmp3 = 0;
                             GET_N_BITS(tmp3, 3);
@@ -349,6 +363,8 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
         }
     }
 
+    assert((decomp->CompressedData + compressedBytesRead) == compressedData);
+    assert((decomp->DecompressedData + decompressedBytesWritten) == decompressedData);
     decomp->CompressedData = compressedData;
     decomp->DecompressedData = decompressedData;
     decomp->DecompressedLength += decompressedBytesWritten;
