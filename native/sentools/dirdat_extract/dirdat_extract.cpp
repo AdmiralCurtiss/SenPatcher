@@ -467,6 +467,10 @@ std::optional<size_t> DecompressFile(char* outBuffer,
             return std::nullopt;
         }
         if (p[actualChunkSize - 1] == 0) {
+            if (rest != actualChunkSize) {
+                // did not consume all the compressed bytes, consider this a failure
+                return std::nullopt;
+            }
             return (outBufferSize - tmp.AvailableBytesInDecompressedData);
         }
         rest -= actualChunkSize;
