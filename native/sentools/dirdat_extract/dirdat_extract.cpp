@@ -112,22 +112,41 @@ namespace {
 struct DecompressionStruct {
     char* DecompressedData;
     const char* CompressedData;
-    uint32_t DecompressedLength;
+    size_t AvailableBytesInDecompressedData;
     uint32_t NumberOfCompressedBytes;
 };
 } // namespace
 
-bool DecompressChunk0(DecompressionStruct* decomp) {
-    const uint32_t numberOfCompressedBytes = decomp->NumberOfCompressedBytes;
-    if (numberOfCompressedBytes < 2) {
-        return false;
-    }
+#define CHECK_RANGE_COMPRESSED(n)                                     \
+    do {                                                              \
+        if ((n) > numberOfCompressedBytes                             \
+            || compressedBytesRead > numberOfCompressedBytes - (n)) { \
+            return false;                                             \
+        }                                                             \
+    } while (false)
+#define CHECK_RANGE_DECOMPRESSED(n)                                                 \
+    do {                                                                            \
+        if ((n) > availableBytesInDecompressedData                                  \
+            || decompressedBytesWritten > availableBytesInDecompressedData - (n)) { \
+            return false;                                                           \
+        }                                                                           \
+    } while (false)
+#define CHECK_RANGE_BACKREF(n)                \
+    do {                                      \
+        if ((n) > decompressedBytesWritten) { \
+            return false;                     \
+        }                                     \
+    } while (false)
 
+bool DecompressChunk0(DecompressionStruct* decomp) {
+    const size_t availableBytesInDecompressedData = decomp->AvailableBytesInDecompressedData;
+    const uint32_t numberOfCompressedBytes = decomp->NumberOfCompressedBytes;
     uint32_t compressedBytesRead = 0;
-    uint32_t decompressedBytesWritten = 0;
+    size_t decompressedBytesWritten = 0;
     const char* compressedData = decomp->CompressedData;
     char* decompressedData = decomp->DecompressedData;
 
+    CHECK_RANGE_COMPRESSED(2);
     ++compressedData; // first byte is always 0, just skip it
     ++compressedBytesRead;
 
@@ -139,6 +158,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
 #define GET_BIT(target)                                                      \
     do {                                                                     \
         if (bufferedBitCounter == 0) {                                       \
+            CHECK_RANGE_COMPRESSED(2);                                       \
             const uint32_t lowBits = static_cast<uint8_t>(*compressedData);  \
             ++compressedData;                                                \
             ++compressedBytesRead;                                           \
@@ -166,6 +186,8 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
             GET_BIT(bit);
             if (bit == 0) {
                 // directly copy a byte from the compressed data
+                CHECK_RANGE_COMPRESSED(1);
+                CHECK_RANGE_DECOMPRESSED(1);
                 *decompressedData = *compressedData;
                 ++decompressedData;
                 ++decompressedBytesWritten;
@@ -177,6 +199,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
             GET_BIT(bit);
             if (bit == 0) {
                 // backref with small offset
+                CHECK_RANGE_COMPRESSED(1);
                 offsetBehind = static_cast<uint8_t>(*compressedData);
                 ++compressedData;
                 ++compressedBytesRead;
@@ -185,6 +208,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
             {
                 uint32_t tmp = 0;
                 GET_N_BITS(tmp, 5);
+                CHECK_RANGE_COMPRESSED(1);
                 offsetBehind = (tmp << 8) + static_cast<uint8_t>(*compressedData);
                 ++compressedData;
                 ++compressedBytesRead;
@@ -199,7 +223,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                 assert((decomp->DecompressedData + decompressedBytesWritten) == decompressedData);
                 decomp->CompressedData = compressedData;
                 decomp->DecompressedData = decompressedData;
-                decomp->DecompressedLength += decompressedBytesWritten;
+                decomp->AvailableBytesInDecompressedData -= decompressedBytesWritten;
                 return true;
             }
 
@@ -211,14 +235,17 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
             } else {
                 uint32_t tmp = 0;
                 GET_N_BITS(tmp, 4);
+                CHECK_RANGE_COMPRESSED(1);
                 lengthRaw = (tmp << 8) + static_cast<uint8_t>(*compressedData);
                 ++compressedData;
                 ++compressedBytesRead;
             }
+            CHECK_RANGE_COMPRESSED(1);
             const char byteToWrite = *compressedData;
             ++compressedData;
             ++compressedBytesRead;
             uint32_t length = (lengthRaw + 14);
+            CHECK_RANGE_DECOMPRESSED(length);
             while (length > 0) {
                 *decompressedData = byteToWrite;
                 ++decompressedData;
@@ -228,6 +255,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
         }
 
         // backref, copy a run of bytes from the already decompressed data
+        CHECK_RANGE_BACKREF(offsetBehind);
         const char* copyFrom = decompressedData - offsetBehind;
         uint32_t length;
         GET_BIT(bit);
@@ -248,6 +276,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                     } else {
                         GET_BIT(bit);
                         if (bit == 0) {
+                            CHECK_RANGE_COMPRESSED(1);
                             length = static_cast<uint8_t>(*compressedData) + 14;
                             ++compressedData;
                             ++compressedBytesRead;
@@ -260,6 +289,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                 }
             }
         }
+        CHECK_RANGE_DECOMPRESSED(length);
         while (length > 0) {
             *decompressedData = *copyFrom;
             ++decompressedData;
@@ -274,28 +304,28 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
 }
 
 bool DecompressChunk1(DecompressionStruct* decomp) {
+    const size_t availableBytesInDecompressedData = decomp->AvailableBytesInDecompressedData;
     const uint32_t numberOfCompressedBytes = decomp->NumberOfCompressedBytes;
-    if (numberOfCompressedBytes < 2) {
-        return false;
-    }
-
     uint32_t compressedBytesRead = 0;
-    uint32_t decompressedBytesWritten = 0;
+    size_t decompressedBytesWritten = 0;
     const char* compressedData = decomp->CompressedData;
     char* decompressedData = decomp->DecompressedData;
     while (true) {
         if (numberOfCompressedBytes == compressedBytesRead) {
             break;
         }
+        CHECK_RANGE_COMPRESSED(1);
         const uint8_t type = static_cast<uint8_t>(*compressedData);
         ++compressedData;
         ++compressedBytesRead;
         if ((type & 0x80) != 0) {
             // backref, copy a run of bytes from the already decompressed data
+            CHECK_RANGE_COMPRESSED(1);
             const uint8_t offsetLowBits = static_cast<uint8_t>(*compressedData);
             ++compressedData;
             ++compressedBytesRead;
-            const int offsetBehind = ((type & 0x1f) << 8) | offsetLowBits;
+            const uint32_t offsetBehind = ((type & 0x1f) << 8) | offsetLowBits;
+            CHECK_RANGE_BACKREF(offsetBehind);
             const char* copyFrom = decompressedData - offsetBehind;
             int length = (((type & 0x60) >> 5) + 4);
             if (numberOfCompressedBytes != compressedBytesRead) {
@@ -304,9 +334,18 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
                     length = (length + (nextByte & 0x1f));
                     ++compressedData;
                     ++compressedBytesRead;
+                    if (numberOfCompressedBytes == compressedBytesRead) {
+                        // this is janky... the game only does the range check on the first byte
+                        // read here, but due to the compressed data format this gets terminated by
+                        // the 'more chunks?' marker as long as that one is < 0x60, which is pretty
+                        // much always true as no file has that many chunks. so just pretend this is
+                        // correctly checked for each byte, because in practice it works out...
+                        break;
+                    }
                     nextByte = static_cast<uint8_t>(*compressedData);
                 }
             }
+            CHECK_RANGE_DECOMPRESSED(length);
             while (length > 0) {
                 *decompressedData = *copyFrom;
                 ++decompressedData;
@@ -322,11 +361,14 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
                 length = static_cast<uint32_t>(type & 0x1f);
             } else {
                 // 0 to 8191 bytes
+                CHECK_RANGE_COMPRESSED(1);
                 const uint8_t lengthLowBits = static_cast<uint8_t>(*compressedData);
                 ++compressedData;
                 ++compressedBytesRead;
                 length = static_cast<uint32_t>(((type & 0x1f) << 8) + lengthLowBits);
             }
+            CHECK_RANGE_COMPRESSED(length);
+            CHECK_RANGE_DECOMPRESSED(length);
             while (length > 0) {
                 *decompressedData = *compressedData;
                 ++decompressedData;
@@ -340,12 +382,14 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
             char byteToWrite;
             if ((type & 0x10) == 0) {
                 // write 4 to 19 copies of a single byte
+                CHECK_RANGE_COMPRESSED(1);
                 byteToWrite = *compressedData;
                 ++compressedData;
                 ++compressedBytesRead;
                 length = static_cast<uint32_t>((type & 0xf) + 4);
             } else {
                 // write 4 to 4099 copies of a single byte
+                CHECK_RANGE_COMPRESSED(2);
                 const uint8_t lengthLowBits = static_cast<uint8_t>(*compressedData);
                 ++compressedData;
                 ++compressedBytesRead;
@@ -354,6 +398,7 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
                 ++compressedData;
                 ++compressedBytesRead;
             }
+            CHECK_RANGE_DECOMPRESSED(length);
             while (length > 0) {
                 *decompressedData = byteToWrite;
                 ++decompressedData;
@@ -367,7 +412,7 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
     assert((decomp->DecompressedData + decompressedBytesWritten) == decompressedData);
     decomp->CompressedData = compressedData;
     decomp->DecompressedData = decompressedData;
-    decomp->DecompressedLength += decompressedBytesWritten;
+    decomp->AvailableBytesInDecompressedData -= decompressedBytesWritten;
 
     return true;
 }
@@ -382,7 +427,7 @@ std::optional<size_t> DecompressFile(char* outBuffer,
 
     DecompressionStruct tmp;
     tmp.DecompressedData = outBuffer;
-    tmp.DecompressedLength = 0;
+    tmp.AvailableBytesInDecompressedData = outBufferSize;
 
     // File is compressed in one or more chunks of data. Each chunk can be decompressed
     // independently.
@@ -422,7 +467,7 @@ std::optional<size_t> DecompressFile(char* outBuffer,
             return std::nullopt;
         }
         if (p[actualChunkSize - 1] == 0) {
-            return tmp.DecompressedLength;
+            return (outBufferSize - tmp.AvailableBytesInDecompressedData);
         }
         rest -= actualChunkSize;
         p += actualChunkSize;
