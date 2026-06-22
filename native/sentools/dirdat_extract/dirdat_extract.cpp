@@ -157,20 +157,19 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
     while (true) {
         uint32_t offsetBehind;
         while (true) {
-            while (true) {
-                GET_BIT(bit);
-                if (bit != 0) {
-                    break;
-                }
-
+            GET_BIT(bit);
+            if (bit == 0) {
                 // directly copy a byte from the compressed data
                 *decompressedData = *compressedData;
                 ++decompressedData;
                 ++compressedData;
                 ++decompressedBytesWritten;
+                continue;
             }
+
             GET_BIT(bit);
             if (bit == 0) {
+                // backref with small offset
                 offsetBehind = static_cast<uint8_t>(*compressedData);
                 ++compressedData;
                 break;
@@ -182,6 +181,7 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                 ++compressedData;
             }
             if (offsetBehind > 1) {
+                // backref with large offset
                 break;
             }
             if (offsetBehind == 0) {
@@ -216,63 +216,35 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
 
         // backref, copy a run of bytes from the already decompressed data
         const char* copyFrom = decompressedData - offsetBehind;
-        GET_BIT(bit);
-        if (bit != 0) {
-            uint32_t length = 2;
-            while (length > 0) {
-                *decompressedData = *copyFrom;
-                ++decompressedData;
-                ++decompressedBytesWritten;
-                ++copyFrom;
-                --length;
-            }
-            continue;
-        }
-        GET_BIT(bit);
-        if (bit != 0) {
-            uint32_t length = 3;
-            while (length > 0) {
-                *decompressedData = *copyFrom;
-                ++decompressedData;
-                ++decompressedBytesWritten;
-                ++copyFrom;
-                --length;
-            }
-            continue;
-        }
-        GET_BIT(bit);
-        if (bit != 0) {
-            uint32_t length = 4;
-            while (length > 0) {
-                *decompressedData = *copyFrom;
-                ++decompressedData;
-                ++decompressedBytesWritten;
-                ++copyFrom;
-                --length;
-            }
-            continue;
-        }
-        GET_BIT(bit);
-        if (bit != 0) {
-            uint32_t length = 5;
-            while (length > 0) {
-                *decompressedData = *copyFrom;
-                ++decompressedData;
-                ++decompressedBytesWritten;
-                ++copyFrom;
-                --length;
-            }
-            continue;
-        }
-        GET_BIT(bit);
         uint32_t length;
-        if (bit == 0) {
-            length = static_cast<uint8_t>(*compressedData) + 14;
-            ++compressedData;
+        GET_BIT(bit);
+        if (bit != 0) {
+            length = 2;
         } else {
-            uint32_t tmp3 = 0;
-            GET_N_BITS(tmp3, 3);
-            length = tmp3 + 6;
+            GET_BIT(bit);
+            if (bit != 0) {
+                length = 3;
+            } else {
+                GET_BIT(bit);
+                if (bit != 0) {
+                    length = 4;
+                } else {
+                    GET_BIT(bit);
+                    if (bit != 0) {
+                        length = 5;
+                    } else {
+                        GET_BIT(bit);
+                        if (bit == 0) {
+                            length = static_cast<uint8_t>(*compressedData) + 14;
+                            ++compressedData;
+                        } else {
+                            uint32_t tmp3 = 0;
+                            GET_N_BITS(tmp3, 3);
+                            length = tmp3 + 6;
+                        }
+                    }
+                }
+            }
         }
         while (length > 0) {
             *decompressedData = *copyFrom;
@@ -330,53 +302,44 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
             }
         } else if ((type & 0x40) == 0) {
             // directly copy a run of bytes from the compressed data
+            uint32_t length;
             if ((type & 0x20) == 0) {
                 // 0 to 31 bytes
-                uint32_t length = static_cast<uint32_t>(type & 0x1f);
-                while (length > 0) {
-                    *decompressedData = *compressedData;
-                    ++decompressedData;
-                    ++decompressedBytesWritten;
-                    ++compressedData;
-                    ++compressedBytesRead;
-                    --length;
-                }
+                length = static_cast<uint32_t>(type & 0x1f);
             } else {
                 // 0 to 8191 bytes
                 const uint8_t lengthLowBits = static_cast<uint8_t>(*compressedData);
                 ++compressedData;
                 ++compressedBytesRead;
-                uint32_t length = static_cast<uint32_t>(((type & 0x1f) << 8) + lengthLowBits);
-                while (length > 0) {
-                    *decompressedData = *compressedData;
-                    ++decompressedData;
-                    ++decompressedBytesWritten;
-                    ++compressedData;
-                    ++compressedBytesRead;
-                    --length;
-                }
+                length = static_cast<uint32_t>(((type & 0x1f) << 8) + lengthLowBits);
             }
-        } else if ((type & 0x10) == 0) {
-            // write 4 to 19 copies of a single byte
-            const char byteToWrite = *compressedData;
-            ++compressedData;
-            ++compressedBytesRead;
-            uint32_t length = static_cast<uint32_t>((type & 0xf) + 4);
             while (length > 0) {
-                *decompressedData = byteToWrite;
+                *decompressedData = *compressedData;
                 ++decompressedData;
                 ++decompressedBytesWritten;
+                ++compressedData;
+                ++compressedBytesRead;
                 --length;
             }
         } else {
-            // write 4 to 4099 copies of a single byte
-            const uint8_t lengthLowBits = static_cast<uint8_t>(*compressedData);
-            ++compressedData;
-            ++compressedBytesRead;
-            uint32_t length = static_cast<uint32_t>((((type & 0xf) << 8) | lengthLowBits) + 4);
-            const char byteToWrite = *compressedData;
-            ++compressedData;
-            ++compressedBytesRead;
+            uint32_t length;
+            char byteToWrite;
+            if ((type & 0x10) == 0) {
+                // write 4 to 19 copies of a single byte
+                byteToWrite = *compressedData;
+                ++compressedData;
+                ++compressedBytesRead;
+                length = static_cast<uint32_t>((type & 0xf) + 4);
+            } else {
+                // write 4 to 4099 copies of a single byte
+                const uint8_t lengthLowBits = static_cast<uint8_t>(*compressedData);
+                ++compressedData;
+                ++compressedBytesRead;
+                length = static_cast<uint32_t>((((type & 0xf) << 8) | lengthLowBits) + 4);
+                byteToWrite = *compressedData;
+                ++compressedData;
+                ++compressedBytesRead;
+            }
             while (length > 0) {
                 *decompressedData = byteToWrite;
                 ++decompressedData;
