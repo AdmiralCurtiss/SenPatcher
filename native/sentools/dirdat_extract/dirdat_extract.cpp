@@ -557,17 +557,28 @@ HyoutaUtils::Result<ExtractDirDatResult, std::string> ExtractDirDat(std::string_
             // this is used as the 'invalid entry' marker
             continue;
         }
+
+        // the game itself uses the dirEntry.CompressedSize and dirEntry.OffsetInDat fields, and
+        // everything else seems to be ignored. but check it anyway since it's a useful reference.
         if (dirEntry.CompressedSize != dirEntry.CompressedSizeCopy) {
-            return std::string("Inconsistent compressed size in .dir entry.");
+            printf("Warning: Inconsistent compressed size in .dir entry for %.*s.\n",
+                   static_cast<int>(filename.size()),
+                   filename.data());
         }
         if (dirEntry.OffsetInDat != datEntries[i]) {
-            return std::string("Inconsistent offset between .dir and .dat entries.");
+            printf("Warning: Inconsistent offset between .dir and .dat entries for %.*s.\n",
+                   static_cast<int>(filename.size()),
+                   filename.data());
         }
         if (datEntries[i] > datEntries[i + 1]) {
-            return std::string("Invalid filesize in .dat entry.");
+            printf("Warning: Invalid filesize in .dat entry for %.*s.\n",
+                   static_cast<int>(filename.size()),
+                   filename.data());
         }
         if (datEntries[i + 1] - datEntries[i] != dirEntry.CompressedSize) {
-            return std::string("Invalid filesize in .dat entry.");
+            printf("Warning: Inconsistent filesize between .dir and .dat entries for %.*s.\n",
+                   static_cast<int>(filename.size()),
+                   filename.data());
         }
     }
 
