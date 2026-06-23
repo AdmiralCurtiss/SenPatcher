@@ -417,11 +417,19 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
     return true;
 }
 
+struct ChunkInfo {
+    size_t DecompressedSize;
+    uint32_t ChunkSize;
+    uint8_t CompressionType;
+    uint8_t NextChunkMarker;
+};
+
 std::optional<size_t> DecompressFile(char* outBuffer,
                                      size_t outBufferSize,
                                      const char* inBuffer,
                                      size_t inBufferSize,
-                                     HyoutaUtils::EndianUtils::Endianness endian) {
+                                     HyoutaUtils::EndianUtils::Endianness endian,
+                                     std::vector<ChunkInfo>& outChunkInfos) {
     const char* p = inBuffer;
     size_t rest = inBufferSize;
 
@@ -462,11 +470,19 @@ std::optional<size_t> DecompressFile(char* outBuffer,
         }
         tmp.CompressedData = (p + 2);
         tmp.NumberOfCompressedBytes = (actualChunkSize - 3);
-        const bool success = (p[2] == 0) ? DecompressChunk0(&tmp) : DecompressChunk1(&tmp);
+        const size_t previousAvailableBytes = tmp.AvailableBytesInDecompressedData;
+        const bool isChunk0Type = (p[2] == 0);
+        const bool success = isChunk0Type ? DecompressChunk0(&tmp) : DecompressChunk1(&tmp);
         if (!success) {
             return std::nullopt;
         }
-        if (p[actualChunkSize - 1] == 0) {
+        const uint8_t moreChunksMarker = static_cast<uint8_t>(p[actualChunkSize - 1]);
+        outChunkInfos.emplace_back(ChunkInfo{
+            .DecompressedSize = previousAvailableBytes - tmp.AvailableBytesInDecompressedData,
+            .ChunkSize = actualChunkSize,
+            .CompressionType = static_cast<uint8_t>(isChunk0Type ? 0 : 1),
+            .NextChunkMarker = moreChunksMarker});
+        if (moreChunksMarker == 0) {
             if (rest != actualChunkSize) {
                 // did not consume all the compressed bytes, consider this a failure
                 return std::nullopt;
@@ -594,10 +610,39 @@ HyoutaUtils::Result<ExtractDirDatResult, std::string> ExtractDirDat(std::string_
     // allocate a large buffer and hope everything fits...
     static constexpr size_t bufferSize = 50 * 1024 * 1024;
     auto buffer = std::make_unique_for_overwrite<char[]>(bufferSize);
+
+    rapidjson::StringBuffer jsonbuffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> json(jsonbuffer);
+    json.StartObject();
+
+    json.Key("Files");
+    json.StartArray();
     for (size_t i = 0; i < entryCountDir; ++i) {
         const SingleFileDir dirEntry = dirEntries[i];
+
+        json.StartObject();
+        json.Key("Dir_Unknown1");
+        json.Uint(dirEntry.Unknown1);
+        json.Key("Dir_CompressedSize");
+        json.Uint(dirEntry.CompressedSize);
+        json.Key("Dir_Unknown3");
+        json.Uint(dirEntry.Unknown3);
+        json.Key("Dir_CompressedSizeCopy");
+        json.Uint(dirEntry.CompressedSizeCopy);
+        json.Key("Dir_Unknown5");
+        json.Uint(dirEntry.Unknown5);
+        json.Key("Dir_OffsetInDat");
+        json.Uint(dirEntry.OffsetInDat);
+        json.Key("Dat_OffsetBegin");
+        json.Uint(datEntries[i]);
+        json.Key("Dat_OffsetEnd");
+        json.Uint(datEntries[i + 1]);
+
         const std::string_view filename = HyoutaUtils::TextUtils::StripToNull(dirEntry.Filename);
         if (filename == "/_______.___") {
+            json.Key("NameInArchive");
+            json.String("/_______.___", sizeof("/_______.___") - 1, false);
+            json.EndObject();
             continue;
         }
 
@@ -606,6 +651,11 @@ HyoutaUtils::Result<ExtractDirDatResult, std::string> ExtractDirDat(std::string_
         if (!filenameUtf8.has_value()) {
             return std::string("Invalid filename in archive (not Shift-JIS?).");
         }
+
+        json.Key("NameInArchive");
+        json.String(filenameUtf8->data(), filenameUtf8->size(), true);
+        json.Key("PathOnDisk");
+        json.String(filenameUtf8->data(), filenameUtf8->size(), true);
 
         std::string outpath = std::string(targetPath) + "/" + *filenameUtf8;
         HyoutaUtils::IO::File outfile(std::string_view(outpath), HyoutaUtils::IO::OpenMode::Write);
@@ -616,6 +666,11 @@ HyoutaUtils::Result<ExtractDirDatResult, std::string> ExtractDirDat(std::string_
         const uint32_t offset = dirEntry.OffsetInDat;
         const uint32_t length = dirEntry.CompressedSize;
         if (length == 0) {
+            json.Key("Compressed");
+            json.Bool(false);
+            json.Key("UncompressedSize");
+            json.Uint(0);
+            json.EndObject();
             continue;
         }
 
@@ -632,17 +687,57 @@ HyoutaUtils::Result<ExtractDirDatResult, std::string> ExtractDirDat(std::string_
         // stores whether the file is compressed or not. the game itself just seems to know which
         // files are compressed and which aren't... so we just try to decompress, and if it works
         // great, and if it doesn't we assume uncompressed instead.
-        const auto decompressionResult =
-            DecompressFile(buffer.get(), bufferSize, compressedMemory.get(), length, endian);
+        std::vector<ChunkInfo> chunkInfos;
+        const auto decompressionResult = DecompressFile(
+            buffer.get(), bufferSize, compressedMemory.get(), length, endian, chunkInfos);
         if (decompressionResult) {
+            json.Key("Compressed");
+            json.Bool(true);
+            json.Key("UncompressedSize");
+            json.Uint(*decompressionResult);
+            json.Key("Chunks");
+            json.StartArray();
+            for (const ChunkInfo& ci : chunkInfos) {
+                json.StartObject();
+                json.Key("ChunkSize");
+                json.Uint(ci.ChunkSize);
+                json.Key("CompressionType");
+                json.Uint(ci.CompressionType);
+                json.Key("NextChunkMarker");
+                json.Uint(ci.NextChunkMarker);
+                json.Key("UncompressedSize");
+                json.Uint(ci.DecompressedSize);
+                json.EndObject();
+            }
+            json.EndArray();
             if (outfile.Write(buffer.get(), *decompressionResult) != *decompressionResult) {
                 return std::string("Failed to write decompressed file.");
             }
         } else {
+            json.Key("Compressed");
+            json.Bool(false);
             printf("Decompression of %s failed, assuming uncompressed.\n", filenameUtf8->c_str());
             if (outfile.Write(compressedMemory.get(), length) != length) {
                 return std::string("Failed to write decompressed file.");
             }
+        }
+
+        json.EndObject();
+    }
+    json.EndArray();
+    json.EndObject();
+
+    if (generateJson) {
+        std::string dirJsonPath(std::string(targetPath) + "/__dir.json");
+        HyoutaUtils::IO::File f2(std::string_view(dirJsonPath), HyoutaUtils::IO::OpenMode::Write);
+        if (!f2.IsOpen()) {
+            return std::string("Failed to open __dir.json");
+        }
+
+        const char* jsonstring = jsonbuffer.GetString();
+        const size_t jsonstringsize = jsonbuffer.GetSize();
+        if (f2.Write(jsonstring, jsonstringsize) != jsonstringsize) {
+            return std::string("Failed to write __dir.json");
         }
     }
 
