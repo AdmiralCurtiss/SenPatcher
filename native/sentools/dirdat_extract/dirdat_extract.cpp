@@ -99,7 +99,7 @@ int DirDat_Extract_Function(int argc, char** argv) {
         targetPath = targetPathStorage;
     }
 
-    auto result = ExtractDirDat(sourcePathDir, sourcePathDat, targetPath, generateJson);
+    auto result = DirDat::ExtractDirDat(sourcePathDir, sourcePathDat, targetPath, generateJson);
     if (result.IsError()) {
         printf("%s\n", result.GetErrorValue().c_str());
         return -1;
@@ -107,7 +107,9 @@ int DirDat_Extract_Function(int argc, char** argv) {
 
     return 0;
 }
+} // namespace SenTools
 
+namespace SenTools::DirDat {
 namespace {
 struct DecompressionStruct {
     char* DecompressedData;
@@ -494,19 +496,6 @@ std::optional<size_t> DecompressFile(char* outBuffer,
     }
 }
 
-struct SingleFileDir {
-    std::array<char, 12> Filename;
-    uint32_t Unknown1;
-    uint32_t CompressedSize;
-    uint32_t Unknown3;
-    uint32_t CompressedSizeCopy;
-    uint32_t Unknown5;
-    uint32_t OffsetInDat;
-};
-static_assert(sizeof(SingleFileDir) == 0x24);
-static_assert(offsetof(SingleFileDir, CompressedSize) == 0x10);
-static_assert(offsetof(SingleFileDir, OffsetInDat) == 0x20);
-
 HyoutaUtils::Result<ExtractDirDatResult, std::string> ExtractDirDat(std::string_view sourcePathDir,
                                                                     std::string_view sourcePathDat,
                                                                     std::string_view targetPath,
@@ -743,4 +732,4 @@ HyoutaUtils::Result<ExtractDirDatResult, std::string> ExtractDirDat(std::string_
 
     return ExtractDirDatResult::Success;
 }
-} // namespace SenTools
+} // namespace SenTools::DirDat

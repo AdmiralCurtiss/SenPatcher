@@ -14,6 +14,7 @@
 #include "daybreak2_save_convert/daybreak2_save_convert_main.h"
 #include "daybreak_save_convert/daybreak_save_convert_main.h"
 #include "dirdat_extract/dirdat_extract_main.h"
+#include "dirdat_repack/dirdat_repack_main.h"
 #include "dirtree_create/dirtree_create_main.h"
 #include "file_compressor/file_compressor_main.h"
 #include "file_fix_template_generator/file_fix_template_generator_main.h"
@@ -79,6 +80,9 @@ static constexpr auto CliTools = {
     CliTool{.Name = DirDat_Extract_Name,
             .ShortDescription = DirDat_Extract_ShortDescription,
             .Function = DirDat_Extract_Function},
+    CliTool{.Name = DirDat_Repack_Name,
+            .ShortDescription = DirDat_Repack_ShortDescription,
+            .Function = DirDat_Repack_Function},
     CliTool{.Name = Type1_Decompress_Name,
             .ShortDescription = Type1_Decompress_ShortDescription,
             .Function = Type1_Decompress_Function},
