@@ -184,11 +184,254 @@ size_t CompressedFileBound(size_t uncompressedLength) {
     } while (false)
 
 // returns std::nullopt on failure. otherwise returns length of compressed data.
-std::optional<uint32_t> CompressChunk0(const char* uncompressedData,
-                                       size_t uncompressedChunkLength,
-                                       char* compressedData,
+std::optional<uint32_t> CompressChunk0(const char* uncompressed,
+                                       size_t uncompressedLength,
+                                       char* compressed,
                                        size_t compressedBufferLength) {
-    return std::nullopt; // TODO
+    // note: this is heavily based on the compression function I wrote for Tales of Phantasia,
+    // the formats are pretty similar. see https://github.com/AdmiralCurtiss/topdec
+
+    static constexpr size_t minBackrefLength = 2;
+    static constexpr size_t maxBackrefLength = 269;
+    static constexpr size_t minBackrefOffset = 1;
+    static constexpr size_t maxBackrefOffset = 8191;
+    static constexpr size_t minSameByteLength = 14;
+    static constexpr size_t maxSameByteLength = 4109;
+
+
+    size_t compressedOffset = 0;
+    size_t uncompressedOffset = 0;
+
+    int bitsWritten = 0;
+    size_t commandBitPosition = 0;
+
+#define WRITE_BIT(bit)                                                                           \
+    do {                                                                                         \
+        if (bitsWritten == 0) {                                                                  \
+            CHECK_RANGE_COMPRESSED(2);                                                           \
+            compressed[compressedOffset] = 0;                                                    \
+            commandBitPosition = compressedOffset;                                               \
+            ++compressedOffset;                                                                  \
+            compressed[compressedOffset] = 0;                                                    \
+            ++compressedOffset;                                                                  \
+        }                                                                                        \
+                                                                                                 \
+        assert((bit) == 0 || (bit) == 1);                                                        \
+        if (bitsWritten < 8) {                                                                   \
+            compressed[commandBitPosition] |= static_cast<char>((bit) << bitsWritten);           \
+        } else {                                                                                 \
+            compressed[commandBitPosition + 1] |= static_cast<char>((bit) << (bitsWritten - 8)); \
+        }                                                                                        \
+                                                                                                 \
+        bitsWritten = (bitsWritten + 1) & 15;                                                    \
+    } while (false)
+
+#define WRITE_N_BITS(bits, count)                                \
+    do {                                                         \
+        for (int i = (count) - 1; i >= 0; --i) {                 \
+            const int bit = static_cast<int>(((bits) >> i) & 1); \
+            WRITE_BIT(bit);                                      \
+        }                                                        \
+    } while (false)
+
+#define WRITE_LITERAL()                                                  \
+    do {                                                                 \
+        WRITE_BIT(0);                                                    \
+        CHECK_RANGE_COMPRESSED(1);                                       \
+        compressed[compressedOffset] = uncompressed[uncompressedOffset]; \
+        ++compressedOffset;                                              \
+        ++uncompressedOffset;                                            \
+    } while (false)
+
+    // same byte is triggered by writing a long backref offset of exactly 1
+#define WRITE_SAME_BYTE(count)                                                     \
+    do {                                                                           \
+        WRITE_BIT(1);                                                              \
+        WRITE_BIT(1);                                                              \
+        WRITE_N_BITS(0, 5);                                                        \
+        CHECK_RANGE_COMPRESSED(1);                                                 \
+        compressed[compressedOffset] = 1;                                          \
+        ++compressedOffset;                                                        \
+                                                                                   \
+        assert((count) >= minSameByteLength && (count) <= maxSameByteLength);      \
+        const size_t countToWrite = (count) - minSameByteLength;                   \
+                                                                                   \
+        if (countToWrite <= 0xf) {                                                 \
+            WRITE_BIT(0);                                                          \
+            WRITE_N_BITS(countToWrite, 4);                                         \
+        } else {                                                                   \
+            WRITE_BIT(1);                                                          \
+            WRITE_N_BITS(countToWrite >> 8, 4);                                    \
+            CHECK_RANGE_COMPRESSED(1);                                             \
+            compressed[compressedOffset] = static_cast<char>(countToWrite & 0xff); \
+            ++compressedOffset;                                                    \
+        }                                                                          \
+        CHECK_RANGE_COMPRESSED(1);                                                 \
+        compressed[compressedOffset] = uncompressed[uncompressedOffset];           \
+        ++compressedOffset;                                                        \
+        uncompressedOffset += (count);                                             \
+    } while (false)
+
+    const auto count_same_byte = [&]() -> size_t {
+        size_t count = 0;
+        const char c = uncompressed[uncompressedOffset];
+        for (size_t i = uncompressedOffset; i < uncompressedLength; ++i) {
+            if (uncompressed[i] == c) {
+                ++count;
+            } else {
+                break;
+            }
+        }
+        return count > maxSameByteLength ? maxSameByteLength : count;
+    };
+
+    struct Backref {
+        size_t Length;
+        size_t Position;
+    };
+
+#define WRITE_BACKREF(length, offset)                                                 \
+    do {                                                                              \
+        WRITE_BIT(1);                                                                 \
+                                                                                      \
+        assert((length) >= minBackrefLength && (length) <= maxBackrefLength);         \
+        assert((offset) >= minBackrefOffset && (offset) <= maxBackrefOffset);         \
+                                                                                      \
+        if ((offset) <= 0xff) {                                                       \
+            WRITE_BIT(0);                                                             \
+        } else {                                                                      \
+            WRITE_BIT(1);                                                             \
+            WRITE_N_BITS((offset) >> 8, 5);                                           \
+        }                                                                             \
+        CHECK_RANGE_COMPRESSED(1);                                                    \
+        compressed[compressedOffset] = static_cast<char>((offset) & 0xff);            \
+        ++compressedOffset;                                                           \
+                                                                                      \
+        if ((length) == 2) {                                                          \
+            WRITE_BIT(1);                                                             \
+        } else if ((length) == 3) {                                                   \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(1);                                                             \
+        } else if ((length) == 4) {                                                   \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(1);                                                             \
+        } else if ((length) == 5) {                                                   \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(1);                                                             \
+        } else if ((length) <= 13) {                                                  \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(1);                                                             \
+            WRITE_N_BITS((length) - 6, 3);                                            \
+        } else {                                                                      \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            WRITE_BIT(0);                                                             \
+            CHECK_RANGE_COMPRESSED(1);                                                \
+            compressed[compressedOffset] = static_cast<char>(((length) - 14) & 0xff); \
+            ++compressedOffset;                                                       \
+        }                                                                             \
+                                                                                      \
+        uncompressedOffset += (length);                                               \
+    } while (false)
+
+    const auto find_best_backref = [&]() -> Backref {
+        Backref bestBackref{0, 0};
+
+        if (uncompressedOffset < minBackrefOffset) {
+            return bestBackref; // no backref possible
+        }
+
+        const size_t firstPossibleBackrefPosition =
+            uncompressedOffset < maxBackrefOffset ? 0 : (uncompressedOffset - maxBackrefOffset);
+        const size_t lastPossibleBackrefPosition = uncompressedOffset - 1;
+        const size_t allowedBackrefLength =
+            (uncompressedLength - uncompressedOffset) >= maxBackrefLength
+                ? maxBackrefLength
+                : (uncompressedLength - uncompressedOffset);
+
+        if (allowedBackrefLength < minBackrefLength) {
+            return bestBackref; // no backref possible
+        }
+
+        size_t currentBackrefTest = lastPossibleBackrefPosition;
+        const auto count_backref_from_here = [&]() -> size_t {
+            size_t count = 0;
+            for (size_t i = 0; i < allowedBackrefLength; ++i) {
+                if (uncompressed[currentBackrefTest + i] == uncompressed[uncompressedOffset + i]) {
+                    ++count;
+                } else {
+                    break;
+                }
+            }
+            return count;
+        };
+        while (true) {
+            const size_t length = count_backref_from_here();
+            if (length > bestBackref.Length) {
+                bestBackref.Length = length;
+                bestBackref.Position = currentBackrefTest;
+            }
+            if (length == maxBackrefLength) {
+                break;
+            }
+
+            if (currentBackrefTest == firstPossibleBackrefPosition) {
+                break;
+            }
+            --currentBackrefTest;
+        }
+
+        return bestBackref;
+    };
+
+    // initialize the bit counter logic and writes the type byte
+    WRITE_N_BITS(0, 8);
+
+    while (uncompressedOffset < uncompressedLength) {
+        const size_t sameByteCount = count_same_byte();
+        const Backref bestBackref = find_best_backref();
+        const bool sameByteCountValid = sameByteCount >= minSameByteLength;
+        const bool backrefValid = bestBackref.Length >= minBackrefLength;
+        if (sameByteCountValid && backrefValid) {
+            if (bestBackref.Length >= sameByteCount) {
+                const size_t offset = uncompressedOffset - bestBackref.Position;
+                WRITE_BACKREF(bestBackref.Length, offset);
+            } else {
+                WRITE_SAME_BYTE(sameByteCount);
+            }
+        } else if (sameByteCountValid) {
+            WRITE_SAME_BYTE(sameByteCount);
+        } else if (backrefValid) {
+            const size_t offset = uncompressedOffset - bestBackref.Position;
+            WRITE_BACKREF(bestBackref.Length, offset);
+        } else {
+            WRITE_LITERAL();
+        }
+    }
+
+    // to finish we must write the end-of-file sequence
+    WRITE_BIT(1);
+    WRITE_BIT(1);
+    WRITE_N_BITS(0, 5);
+    CHECK_RANGE_COMPRESSED(1);
+    compressed[compressedOffset] = 0;
+    ++compressedOffset;
+
+    return compressedOffset;
+
+#undef WRITE_BACKREF
+#undef WRITE_SAME_BYTE
+#undef WRITE_LITERAL
+#undef WRITE_N_BITS
+#undef WRITE_BIT
 }
 
 // returns std::nullopt on failure. otherwise returns length of compressed data.
