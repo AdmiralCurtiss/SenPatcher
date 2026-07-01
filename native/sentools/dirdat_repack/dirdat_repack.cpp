@@ -396,22 +396,63 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
     WRITE_N_BITS(0, 8);
 
     while (uncompressedOffset < uncompressedLength) {
+        // we have three options for writing data, pick the one that takes the least bytes.
+        // this is mostly greedy. maybe a non-greedy algorithm could save a few bytes sometimes...?
         const size_t sameByteCount = count_same_byte();
         const Backref bestBackref = find_best_backref();
         const bool sameByteCountValid = sameByteCount >= minSameByteLength;
         const bool backrefValid = bestBackref.Length >= minBackrefLength;
-        if (sameByteCountValid && backrefValid) {
-            if (bestBackref.Length >= sameByteCount) {
-                const size_t offset = uncompressedOffset - bestBackref.Position;
-                WRITE_BACKREF(bestBackref.Length, offset);
-            } else {
-                WRITE_SAME_BYTE(sameByteCount);
-            }
-        } else if (sameByteCountValid) {
-            WRITE_SAME_BYTE(sameByteCount);
-        } else if (backrefValid) {
+
+        // writing a same byte takes:
+        // - 7 bits + 1 byte to enter the mode
+        // - depending on the length,
+        //   - 5 bits for a short length (<= 29)
+        //   - 5 bits and 1 byte for a long length
+        // - 1 byte for the actual byte
+        // const size_t bitsUsedBySameByteCount = (15u + 8u + (sameByteCount <= 29 ? 5u : 13u));
+
+        // writing a backref takes:
+        // - 1 bit to enter the mode
+        // - depending on the offset,
+        //   - 1 bit and 1 byte for a short offset (<= 255)
+        //   - 6 bits and 1 byte for a long offset
+        // - depending on the length,
+        //   - 1 bit for length == 2
+        //   - 2 bits for length == 3
+        //   - 3 bits for length == 4
+        //   - 4 bits for length == 5
+        //   - 8 bits for length <= 13
+        //   - 5 bits and 1 byte for anything above that
+        // const size_t bitsUsedByBackref =
+        //     (1u + (((uncompressedOffset - bestBackref.Position) <= 255) ? 9u : 14u)
+        //      + ((bestBackref.Length == 2)    ? 1u
+        //         : (bestBackref.Length == 3)  ? 2u
+        //         : (bestBackref.Length == 4)  ? 3u
+        //         : (bestBackref.Length == 5)  ? 4u
+        //         : (bestBackref.Length <= 13) ? 8u
+        //                                      : 13u));
+
+        // writing a literal takes 9 bits
+
+        // if you math this out you realize that no matter the offset and lengths, writing a backref
+        // is always better than or equivalent to the same byte sequence. writing a backref is also
+        // always better than writing literals, even for very short backrefs with long offsets.
+
+        // there's one fairly non-intuitive case: a backref of (n-1) bytes can sometimes beat a same
+        // byte sequence of (n) bytes, if the backref has a short offset but the same byte has the
+        // long length: the backref takes 23 bits to encode in that case, but the same byte takes
+        // 36, which actually saves 4 bits to write the backref followed by a literal
+
+        const bool wantBackref =
+            backrefValid
+            && (!sameByteCountValid || bestBackref.Length >= sameByteCount
+                || (bestBackref.Length == (sameByteCount - 1) && sameByteCount > 29u
+                    && (uncompressedOffset - bestBackref.Position) <= 255u));
+        if (wantBackref) {
             const size_t offset = uncompressedOffset - bestBackref.Position;
             WRITE_BACKREF(bestBackref.Length, offset);
+        } else if (sameByteCountValid) {
+            WRITE_SAME_BYTE(sameByteCount);
         } else {
             WRITE_LITERAL();
         }
