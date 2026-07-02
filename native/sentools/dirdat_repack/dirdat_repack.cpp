@@ -481,7 +481,7 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
                                        char* compressed,
                                        size_t compressedBufferLength) {
     static constexpr size_t minBackrefLength = 4;
-    const size_t maxBackrefLength = uncompressedLength; // unbounded
+    static constexpr size_t maxBackrefLength = std::numeric_limits<size_t>::max(); // unbounded
     static constexpr size_t minBackrefOffset = 1;
     static constexpr size_t maxBackrefOffset = 8191;
     static constexpr size_t minSameByteLength = 4;
@@ -656,22 +656,75 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
         return bestBackref;
     };
 
+    // same thing here. this compression can fairly cheaply encode long sequences of literals.
+
+    // writing a same byte takes:
+    // - depending on the length,
+    //   - 1 byte for a short length (<= 19)
+    //   - 2 bytes for a long length
+    // - 1 byte for the byte itself
+    const auto calc_same_byte_encoded_length = [](size_t len) -> size_t {
+        return (len <= 19u) ? 2u : 3u;
+    };
+
+    // writing a backref takes:
+    // - 2 bytes for a short length (<= 7)
+    // - ceil((length - 7) / 31) extra bytes for anything longer than that
+    const auto calc_backref_encoded_length = [](size_t len) -> size_t {
+        if (len <= 7u) {
+            return 2u;
+        }
+        return (((len - 7u) + 30u) / 31u);
+    };
+
+    // writing literals takes:
+    // - depending on the amount of literals,
+    //   - (n + 1) bytes for <= 31 literals
+    //   - (n + 2) bytes above that
+    const auto calc_literals_encoded_length = [](size_t len) -> size_t {
+        return (len <= 31u) ? (len + 1u) : (len + 2u);
+    };
+
     while (uncompressedOffset < uncompressedLength) {
         const size_t sameByteCount = count_same_byte();
         const Backref bestBackref = find_best_backref();
         const bool sameByteCountValid = sameByteCount >= minSameByteLength;
         const bool backrefValid = bestBackref.Length >= minBackrefLength;
+
+        // unlike the other algorithm, this one prefers long same byte sequences over backrefs.
+        // the minimum lengths are picked so that it's always better to interrupt a literal sequence
+        // to write a backref or same byte when possible.
+
         if (stashedLiteralBytes > 0 && (sameByteCountValid || backrefValid)) {
             FLUSH_LITERALS();
         }
-        if (sameByteCountValid && backrefValid) {
-            if (bestBackref.Length >= sameByteCount) {
-                const size_t offset = uncompressedOffset - bestBackref.Position;
-                WRITE_BACKREF(bestBackref.Length, offset);
-            } else {
-                WRITE_SAME_BYTE(sameByteCount);
+
+        const bool wantSameByte = [&]() -> bool {
+            if (!sameByteCountValid) {
+                return false;
             }
-        } else if (sameByteCountValid) {
+            if (!backrefValid) {
+                return true;
+            }
+            if (sameByteCount >= bestBackref.Length) {
+                return true;
+            }
+
+            // it may still be preferable to use the same byte over the backref, just because the
+            // backref has this terrible successive length penality...
+            const size_t restLength = (bestBackref.Length - sameByteCount);
+            const size_t bestBackrefEncodedLength = calc_backref_encoded_length(bestBackref.Length);
+            const size_t sameByteEncodedLength = calc_same_byte_encoded_length(sameByteCount);
+            const size_t restEncodedLength = restLength < minBackrefLength
+                                                 ? calc_literals_encoded_length(restLength)
+                                                 : calc_backref_encoded_length(restLength);
+            if (sameByteEncodedLength + restEncodedLength <= bestBackrefEncodedLength) {
+                return true;
+            }
+            return false;
+        }();
+
+        if (wantSameByte) {
             WRITE_SAME_BYTE(sameByteCount);
         } else if (backrefValid) {
             const size_t offset = uncompressedOffset - bestBackref.Position;
