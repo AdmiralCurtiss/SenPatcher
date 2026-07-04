@@ -26,6 +26,8 @@
 #include "util/text.h"
 
 namespace SenTools {
+static constexpr uint16_t DefaultUncompressedChunkSize = 0xfff0;
+
 int DirDat_Repack_Function(int argc, char** argv) {
     static constexpr HyoutaUtils::Arg arg_output_dir{
         .Type = HyoutaUtils::ArgTypes::String,
@@ -40,6 +42,13 @@ int DirDat_Repack_Function(int argc, char** argv) {
         .Description =
             "The output filename for the .dat file. Will be derived from the .dir file if not "
             "given."};
+    static constexpr HyoutaUtils::Arg arg_max_chunk_size{
+        .Type = HyoutaUtils::ArgTypes::UInt64,
+        .LongKey = "max-chunk-size",
+        .Argument = "SIZE",
+        .Description =
+            "The maximum uncompressed chunk size that should be used. Set to 0 for unlimited. "
+            "Defaults to 0xfff0, which is the value used by the the original game files."};
     static constexpr HyoutaUtils::Arg arg_skip_bit_compression{
         .Type = HyoutaUtils::ArgTypes::Flag,
         .LongKey = "skip-bit-compression",
@@ -48,8 +57,12 @@ int DirDat_Repack_Function(int argc, char** argv) {
         .Type = HyoutaUtils::ArgTypes::Flag,
         .LongKey = "skip-byte-compression",
         .Description = "Don't try to use the bytestream-based compression type for each chunk."};
-    static constexpr std::array<const HyoutaUtils::Arg*, 4> args_array{
-        {&arg_output_dir, &arg_output_dat, &arg_skip_bit_compression, &arg_skip_byte_compression}};
+    static constexpr std::array<const HyoutaUtils::Arg*, 5> args_array{
+        {&arg_output_dir,
+         &arg_output_dat,
+         &arg_max_chunk_size,
+         &arg_skip_bit_compression,
+         &arg_skip_byte_compression}};
     static constexpr HyoutaUtils::Args args(
         "sentools " DirDat_Repack_Name,
         "__dirdat.json",
@@ -87,6 +100,14 @@ int DirDat_Repack_Function(int argc, char** argv) {
     const bool skipBitCompression = options.IsFlagSet(&arg_skip_bit_compression);
     const bool skipByteCompression = options.IsFlagSet(&arg_skip_byte_compression);
 
+    auto* max_chunk_size_option = options.TryGetUInt64(&arg_max_chunk_size);
+    size_t maxChunkSize = DefaultUncompressedChunkSize;
+    if (max_chunk_size_option != nullptr) {
+        if (*max_chunk_size_option <= std::numeric_limits<size_t>::max()) {
+            maxChunkSize = static_cast<size_t>(*max_chunk_size_option);
+        }
+    }
+
     std::string_view sourcePath(options.FreeArguments[0]);
     std::string_view targetPathDir(*output_option_dir);
     std::string_view targetPathDat;
@@ -107,8 +128,12 @@ int DirDat_Repack_Function(int argc, char** argv) {
         targetPathDat = targetPathDatStorage;
     }
 
-    auto result = DirDat::RepackDirDat(
-        sourcePath, targetPathDir, targetPathDat, skipBitCompression, skipByteCompression);
+    auto result = DirDat::RepackDirDat(sourcePath,
+                                       targetPathDir,
+                                       targetPathDat,
+                                       maxChunkSize,
+                                       skipBitCompression,
+                                       skipByteCompression);
     if (result.IsError()) {
         printf("%s\n", result.GetErrorValue().c_str());
         return -1;
@@ -176,16 +201,29 @@ struct SingleFileDirForPacking {
 // annoyingly, with the default uncompressed chunk size of 0xfff0 this results in a compressed
 // chunk size of 0x10003 bytes, which *does not fit*, so if we encounter this we must reduce the
 // input chunk length by 3 bytes. so this results in a bound of...
-static constexpr size_t DefaultUncompressedChunkSize = 0xfff0;
 static constexpr size_t MaxChunkSizeForUncompressable = 0xfff0 - 3;
-size_t CompressedFileBound(size_t uncompressedLength) {
+size_t CompressedFileBound(size_t uncompressedLength, size_t maxChunkSize) {
     if (uncompressedLength == 0) {
         return 6;
     }
-    size_t worstChunkCount = ((uncompressedLength + (MaxChunkSizeForUncompressable - 1))
-                              / MaxChunkSizeForUncompressable);
-    size_t bound = worstChunkCount * 0x10000;
-    return bound;
+    if (maxChunkSize == 0 || maxChunkSize >= MaxChunkSizeForUncompressable) {
+        const size_t worstChunkCount = ((uncompressedLength + (MaxChunkSizeForUncompressable - 1))
+                                        / MaxChunkSizeForUncompressable);
+        const size_t bound = worstChunkCount * 0x10000;
+        return bound;
+    } else {
+        static constexpr size_t maxLiteralLength = 8191;
+        const size_t requiredFullLiterals = maxChunkSize / maxLiteralLength;
+        const size_t lengthOfRemainingLiteral = maxChunkSize % maxLiteralLength;
+        const size_t overheadPerFullLiteral = (maxChunkSize <= 31u ? 1u : 2u);
+        const size_t uncompressedChunkOverhead =
+            (requiredFullLiterals * overheadPerFullLiteral)
+            + (lengthOfRemainingLiteral == 0u ? 0u : (lengthOfRemainingLiteral <= 31u ? 1u : 2u));
+        const size_t lengthOfCompressedChunk = (maxChunkSize + uncompressedChunkOverhead + 3u);
+        const size_t worstChunkCount = ((uncompressedLength + (maxChunkSize - 1)) / maxChunkSize);
+        const size_t bound = worstChunkCount * lengthOfCompressedChunk;
+        return bound;
+    }
 }
 
 #define CHECK_RANGE_COMPRESSED(n)                                                              \
@@ -796,6 +834,7 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
                                      size_t uncompressedLength,
                                      char* compressedData,
                                      size_t compressedBufferLength,
+                                     size_t maxChunkSize,
                                      bool skipBitCompression,
                                      bool skipByteCompression,
                                      HyoutaUtils::EndianUtils::Endianness endian) {
@@ -825,7 +864,7 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
     size_t uncompressedOffset = 0;
     while (uncompressedRest > 0) {
         size_t uncompressedChunkLength =
-            std::min<size_t>(DefaultUncompressedChunkSize, uncompressedRest);
+            maxChunkSize == 0 ? uncompressedRest : std::min<size_t>(maxChunkSize, uncompressedRest);
         uint16_t compressedChunkLength; // this is without the trailing 'more chunks?' marker
         // reserve 2 bytes for the chunk length, 1 byte for the marker
         size_t compressedRest = compressedBufferLength - compressedOffset;
@@ -865,8 +904,10 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
             std::memcpy(
                 compressedData + compressedOffset + 2, tmpBuffer0.data(), *compressedChunkSize0);
         } else {
-            uncompressedChunkLength =
-                std::min<size_t>(MaxChunkSizeForUncompressable, uncompressedRest);
+            uncompressedChunkLength = std::min<size_t>(
+                maxChunkSize == 0 ? MaxChunkSizeForUncompressable
+                                  : std::min<size_t>(maxChunkSize, MaxChunkSizeForUncompressable),
+                uncompressedRest);
             std::optional<uint32_t> compressedChunkSize =
                 WriteUncompressableChunk(uncompressedData + uncompressedOffset,
                                          uncompressedChunkLength,
@@ -894,6 +935,7 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
 HyoutaUtils::Result<RepackDirDatResult, std::string> RepackDirDat(std::string_view sourcePath,
                                                                   std::string_view targetPathDir,
                                                                   std::string_view targetPathDat,
+                                                                  size_t maxChunkSize,
                                                                   bool skipBitCompression,
                                                                   bool skipByteCompression) {
     using namespace HyoutaUtils::MemWrite;
@@ -1086,12 +1128,13 @@ HyoutaUtils::Result<RepackDirDatResult, std::string> RepackDirDat(std::string_vi
 
             uint32_t compressedSize = 0;
             if (fi.ShouldCompress) {
-                size_t bound = CompressedFileBound(*uncompressedLength);
+                size_t bound = CompressedFileBound(*uncompressedLength, maxChunkSize);
                 auto compressedData = std::make_unique<char[]>(bound);
                 const std::optional<uint32_t> compressResult = CompressFile(uncompressedData.get(),
                                                                             *uncompressedLength,
                                                                             compressedData.get(),
                                                                             bound,
+                                                                            maxChunkSize,
                                                                             skipBitCompression,
                                                                             skipByteCompression,
                                                                             endian);
