@@ -40,8 +40,16 @@ int DirDat_Repack_Function(int argc, char** argv) {
         .Description =
             "The output filename for the .dat file. Will be derived from the .dir file if not "
             "given."};
-    static constexpr std::array<const HyoutaUtils::Arg*, 2> args_array{
-        {&arg_output_dir, &arg_output_dat}};
+    static constexpr HyoutaUtils::Arg arg_skip_bit_compression{
+        .Type = HyoutaUtils::ArgTypes::Flag,
+        .LongKey = "skip-bit-compression",
+        .Description = "Don't try to use the bitstream-based compression type for each chunk."};
+    static constexpr HyoutaUtils::Arg arg_skip_byte_compression{
+        .Type = HyoutaUtils::ArgTypes::Flag,
+        .LongKey = "skip-byte-compression",
+        .Description = "Don't try to use the bytestream-based compression type for each chunk."};
+    static constexpr std::array<const HyoutaUtils::Arg*, 4> args_array{
+        {&arg_output_dir, &arg_output_dat, &arg_skip_bit_compression, &arg_skip_byte_compression}};
     static constexpr HyoutaUtils::Args args(
         "sentools " DirDat_Repack_Name,
         "__dirdat.json",
@@ -76,6 +84,9 @@ int DirDat_Repack_Function(int argc, char** argv) {
         return -1;
     }
 
+    const bool skipBitCompression = options.IsFlagSet(&arg_skip_bit_compression);
+    const bool skipByteCompression = options.IsFlagSet(&arg_skip_byte_compression);
+
     std::string_view sourcePath(options.FreeArguments[0]);
     std::string_view targetPathDir(*output_option_dir);
     std::string_view targetPathDat;
@@ -96,7 +107,8 @@ int DirDat_Repack_Function(int argc, char** argv) {
         targetPathDat = targetPathDatStorage;
     }
 
-    auto result = DirDat::RepackDirDat(sourcePath, targetPathDir, targetPathDat);
+    auto result = DirDat::RepackDirDat(
+        sourcePath, targetPathDir, targetPathDat, skipBitCompression, skipByteCompression);
     if (result.IsError()) {
         printf("%s\n", result.GetErrorValue().c_str());
         return -1;
@@ -784,6 +796,8 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
                                      size_t uncompressedLength,
                                      char* compressedData,
                                      size_t compressedBufferLength,
+                                     bool skipBitCompression,
+                                     bool skipByteCompression,
                                      HyoutaUtils::EndianUtils::Endianness endian) {
     using namespace HyoutaUtils::MemWrite;
     using HyoutaUtils::EndianUtils::ToEndian;
@@ -825,15 +839,19 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
         std::array<char, 0xffff - 2> tmpBuffer0;
         std::array<char, 0xffff - 2> tmpBuffer1;
         std::optional<uint32_t> compressedChunkSize0 =
-            CompressChunk0(uncompressedData + uncompressedOffset,
-                           uncompressedChunkLength,
-                           tmpBuffer0.data(),
-                           std::min(tmpBuffer0.size(), spaceForCompressedData));
+            skipBitCompression
+                ? std::nullopt
+                : CompressChunk0(uncompressedData + uncompressedOffset,
+                                 uncompressedChunkLength,
+                                 tmpBuffer0.data(),
+                                 std::min(tmpBuffer0.size(), spaceForCompressedData));
         std::optional<uint32_t> compressedChunkSize1 =
-            CompressChunk1(uncompressedData + uncompressedOffset,
-                           uncompressedChunkLength,
-                           tmpBuffer1.data(),
-                           std::min(tmpBuffer1.size(), spaceForCompressedData));
+            skipByteCompression
+                ? std::nullopt
+                : CompressChunk1(uncompressedData + uncompressedOffset,
+                                 uncompressedChunkLength,
+                                 tmpBuffer1.data(),
+                                 std::min(tmpBuffer1.size(), spaceForCompressedData));
         if (compressedChunkSize1.has_value()
             && (!compressedChunkSize0.has_value()
                 || *compressedChunkSize1 <= *compressedChunkSize0)) {
@@ -865,7 +883,8 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
         uncompressedOffset += uncompressedChunkLength;
         uncompressedRest -= uncompressedChunkLength;
         bool moreChunks = (uncompressedRest > 0);
-        compressedData[compressedOffset] = (moreChunks ? 1 : 0);
+        compressedData[compressedOffset] =
+            (moreChunks ? static_cast<char>(1) : static_cast<char>(0));
         ++compressedOffset;
     }
 
@@ -874,7 +893,9 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
 
 HyoutaUtils::Result<RepackDirDatResult, std::string> RepackDirDat(std::string_view sourcePath,
                                                                   std::string_view targetPathDir,
-                                                                  std::string_view targetPathDat) {
+                                                                  std::string_view targetPathDat,
+                                                                  bool skipBitCompression,
+                                                                  bool skipByteCompression) {
     using namespace HyoutaUtils::MemWrite;
     using HyoutaUtils::EndianUtils::ToEndian;
     static constexpr auto endian = HyoutaUtils::EndianUtils::Endianness::LittleEndian;
@@ -1071,6 +1092,8 @@ HyoutaUtils::Result<RepackDirDatResult, std::string> RepackDirDat(std::string_vi
                                                                             *uncompressedLength,
                                                                             compressedData.get(),
                                                                             bound,
+                                                                            skipBitCompression,
+                                                                            skipByteCompression,
                                                                             endian);
                 if (!compressResult) {
                     return std::format("Failed to compress {}", (char*)fi.Path->u8string().c_str());

@@ -10,5 +10,7 @@ enum class RepackDirDatResult { Success };
 
 HyoutaUtils::Result<RepackDirDatResult, std::string> RepackDirDat(std::string_view sourcePath,
                                                                   std::string_view targetPathDir,
-                                                                  std::string_view targetPathDat);
+                                                                  std::string_view targetPathDat,
+                                                                  bool skipBitCompression,
+                                                                  bool skipByteCompression);
 } // namespace SenTools::DirDat
