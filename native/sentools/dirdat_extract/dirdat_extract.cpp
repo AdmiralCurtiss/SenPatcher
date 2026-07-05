@@ -205,6 +205,9 @@ bool DecompressChunk0(DecompressionStruct* decomp) {
                 offsetBehind = static_cast<uint8_t>(*compressedData);
                 ++compressedData;
                 ++compressedBytesRead;
+                if (offsetBehind == 0) {
+                    return false;
+                }
                 break;
             }
             {
@@ -327,6 +330,9 @@ bool DecompressChunk1(DecompressionStruct* decomp) {
             ++compressedData;
             ++compressedBytesRead;
             const uint32_t offsetBehind = ((type & 0x1f) << 8) | offsetLowBits;
+            if (offsetBehind == 0) {
+                return false;
+            }
             CHECK_RANGE_BACKREF(offsetBehind);
             const char* copyFrom = decompressedData - offsetBehind;
             int length = (((type & 0x60) >> 5) + 4);
