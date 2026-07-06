@@ -237,7 +237,8 @@ size_t CompressedFileBound(size_t uncompressedLength, size_t maxChunkSize) {
 std::optional<uint32_t> CompressChunk0(const char* uncompressed,
                                        size_t uncompressedLength,
                                        char* compressed,
-                                       size_t compressedBufferLength) {
+                                       size_t compressedBufferLength,
+                                       size_t* outUncompressedBytesUsed) {
     // note: this is heavily based on the compression function I wrote for Tales of Phantasia,
     // the formats are pretty similar. see https://github.com/AdmiralCurtiss/topdec
 
@@ -278,8 +279,9 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
 
 #define WRITE_N_BITS(bits, count)                                \
     do {                                                         \
+        const auto ppbits = (bits);                              \
         for (int i = (count) - 1; i >= 0; --i) {                 \
-            const int bit = static_cast<int>(((bits) >> i) & 1); \
+            const int bit = static_cast<int>((ppbits >> i) & 1); \
             WRITE_BIT(bit);                                      \
         }                                                        \
     } while (false)
@@ -338,6 +340,10 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
     struct Backref {
         size_t Length;
         size_t Position;
+    };
+    struct EncodedLength {
+        size_t NumBits;
+        size_t NumBytes;
     };
 
 #define WRITE_BACKREF(length, offset)                                                 \
@@ -445,44 +451,66 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
     // initialize the bit counter logic and writes the type byte
     WRITE_N_BITS(0, 8);
 
+    // we have three options for writing data, pick the one that takes the least bytes.
+    // this is mostly greedy. maybe a non-greedy algorithm could save a few bytes sometimes...?
+
+    // writing a same byte takes:
+    // - 7 bits + 1 byte to enter the mode
+    // - depending on the length,
+    //   - 5 bits for a short length (<= 29)
+    //   - 5 bits and 1 byte for a long length
+    // - 1 byte for the actual byte
+    const auto calc_same_byte_encoded_length = [](size_t len) -> EncodedLength {
+        return EncodedLength{.NumBits = 7u + 5u, .NumBytes = 1u + (len <= 29 ? 0u : 1u) + 1u};
+    };
+
+    // writing a backref takes:
+    // - 1 bit to enter the mode
+    // - depending on the offset,
+    //   - 1 bit and 1 byte for a short offset (<= 255)
+    //   - 6 bits and 1 byte for a long offset
+    // - depending on the length,
+    //   - 1 bit for length == 2
+    //   - 2 bits for length == 3
+    //   - 3 bits for length == 4
+    //   - 4 bits for length == 5
+    //   - 8 bits for length <= 13
+    //   - 5 bits and 1 byte for anything above that
+    const auto calc_backref_encoded_length = [](size_t len, size_t offset) -> EncodedLength {
+        const size_t bitsForOffset = (offset <= 255u ? 1u : 6u);
+        static constexpr size_t bytesForOffset = 1u;
+        const size_t bitsForLength = (len == 2)    ? 1u
+                                     : (len == 3)  ? 2u
+                                     : (len == 4)  ? 3u
+                                     : (len == 5)  ? 4u
+                                     : (len <= 13) ? 8u
+                                                   : 5u;
+        const size_t bytesForLength = (len <= 13) ? 0u : 1u;
+        return EncodedLength{.NumBits = 1u + bitsForOffset + bitsForLength,
+                             .NumBytes = bytesForOffset + bytesForLength};
+    };
+
+    // writing a literal takes 9 bits
+
+    const auto fits_in_remaining_compressed_buffer = [&](const EncodedLength& len) -> bool {
+        // we must include the 'end of compressed data' marker, which takes 7 bits and 1 byte.
+        // first convert the bits into actual bytes written. this is somewhat complicated since
+        // bits are written in groups of 16 and we may be in the middle of a group, so...
+        const size_t bits = 7u + len.NumBits;
+        const size_t freeBits = (16u - bitsWritten) & 15u;
+        const size_t remainingBits = bits <= freeBits ? 0u : (bits - freeBits);
+        const size_t convertedBits = (remainingBits + 15u) / 16u;
+        // the rest is straightforward.
+        const size_t bytes = 1u + len.NumBytes + convertedBits;
+        return !(bytes > compressedBufferLength
+                 || compressedOffset > (compressedBufferLength - bytes));
+    };
+
     while (uncompressedOffset < uncompressedLength) {
-        // we have three options for writing data, pick the one that takes the least bytes.
-        // this is mostly greedy. maybe a non-greedy algorithm could save a few bytes sometimes...?
         const size_t sameByteCount = count_same_byte();
         const Backref bestBackref = find_best_backref();
         const bool sameByteCountValid = sameByteCount >= minSameByteLength;
         const bool backrefValid = bestBackref.Length >= minBackrefLength;
-
-        // writing a same byte takes:
-        // - 7 bits + 1 byte to enter the mode
-        // - depending on the length,
-        //   - 5 bits for a short length (<= 29)
-        //   - 5 bits and 1 byte for a long length
-        // - 1 byte for the actual byte
-        // const size_t bitsUsedBySameByteCount = (15u + 8u + (sameByteCount <= 29 ? 5u : 13u));
-
-        // writing a backref takes:
-        // - 1 bit to enter the mode
-        // - depending on the offset,
-        //   - 1 bit and 1 byte for a short offset (<= 255)
-        //   - 6 bits and 1 byte for a long offset
-        // - depending on the length,
-        //   - 1 bit for length == 2
-        //   - 2 bits for length == 3
-        //   - 3 bits for length == 4
-        //   - 4 bits for length == 5
-        //   - 8 bits for length <= 13
-        //   - 5 bits and 1 byte for anything above that
-        // const size_t bitsUsedByBackref =
-        //     (1u + (((uncompressedOffset - bestBackref.Position) <= 255) ? 9u : 14u)
-        //      + ((bestBackref.Length == 2)    ? 1u
-        //         : (bestBackref.Length == 3)  ? 2u
-        //         : (bestBackref.Length == 4)  ? 3u
-        //         : (bestBackref.Length == 5)  ? 4u
-        //         : (bestBackref.Length <= 13) ? 8u
-        //                                      : 13u));
-
-        // writing a literal takes 9 bits
 
         // if you math this out you realize that no matter the offset and lengths, writing a backref
         // is always better than or equivalent to the same byte sequence. writing a backref is also
@@ -500,10 +528,23 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
                     && (uncompressedOffset - bestBackref.Position) <= 255u));
         if (wantBackref) {
             const size_t offset = uncompressedOffset - bestBackref.Position;
+            const EncodedLength encodedLength =
+                calc_backref_encoded_length(bestBackref.Length, offset);
+            if (!fits_in_remaining_compressed_buffer(encodedLength)) {
+                break;
+            }
             WRITE_BACKREF(bestBackref.Length, offset);
         } else if (sameByteCountValid) {
+            const EncodedLength encodedLength = calc_same_byte_encoded_length(sameByteCount);
+            if (!fits_in_remaining_compressed_buffer(encodedLength)) {
+                break;
+            }
             WRITE_SAME_BYTE(sameByteCount);
         } else {
+            const EncodedLength encodedLength{.NumBits = 1u, .NumBytes = 1u};
+            if (!fits_in_remaining_compressed_buffer(encodedLength)) {
+                break;
+            }
             WRITE_LITERAL();
         }
     }
@@ -516,6 +557,7 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
     compressed[compressedOffset] = 0;
     ++compressedOffset;
 
+    *outUncompressedBytesUsed = uncompressedOffset;
     return compressedOffset;
 
 #undef WRITE_BACKREF
@@ -529,7 +571,8 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
 std::optional<uint32_t> CompressChunk1(const char* uncompressed,
                                        size_t uncompressedLength,
                                        char* compressed,
-                                       size_t compressedBufferLength) {
+                                       size_t compressedBufferLength,
+                                       size_t* outUncompressedBytesUsed) {
     static constexpr size_t minBackrefLength = 4;
     static constexpr size_t maxBackrefLength = std::numeric_limits<size_t>::max(); // unbounded
     static constexpr size_t minBackrefOffset = 1;
@@ -734,6 +777,18 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
     const auto calc_literals_encoded_length = [](size_t len) -> size_t {
         return (len <= 31u) ? (len + 1u) : (len + 2u);
     };
+    const auto calc_literals_encoded_length_multiblock = [](size_t len) -> size_t {
+        const size_t requiredFullLiterals = len / maxLiteralLength;
+        const size_t lengthOfRemainingLiteral = len % maxLiteralLength;
+        const size_t overhead =
+            (requiredFullLiterals * 2u)
+            + (lengthOfRemainingLiteral == 0u ? 0u : (lengthOfRemainingLiteral <= 31u ? 1u : 2u));
+        return (len + overhead);
+    };
+
+    const auto fits_in_remaining_compressed_buffer = [&](size_t len) -> bool {
+        return !(len > compressedBufferLength || compressedOffset > (compressedBufferLength - len));
+    };
 
     while (uncompressedOffset < uncompressedLength) {
         const size_t sameByteCount = count_same_byte();
@@ -775,11 +830,24 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
         }();
 
         if (wantSameByte) {
+            const size_t encodedLength = calc_same_byte_encoded_length(sameByteCount);
+            if (!fits_in_remaining_compressed_buffer(encodedLength)) {
+                break;
+            }
             WRITE_SAME_BYTE(sameByteCount);
         } else if (backrefValid) {
+            const size_t encodedLength = calc_backref_encoded_length(bestBackref.Length);
+            if (!fits_in_remaining_compressed_buffer(encodedLength)) {
+                break;
+            }
             const size_t offset = uncompressedOffset - bestBackref.Position;
             WRITE_BACKREF(bestBackref.Length, offset);
         } else {
+            const size_t encodedLength =
+                calc_literals_encoded_length_multiblock(stashedLiteralBytes + 1u);
+            if (!fits_in_remaining_compressed_buffer(encodedLength)) {
+                break;
+            }
             ++stashedLiteralBytes;
             ++uncompressedOffset;
         }
@@ -788,6 +856,7 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
         FLUSH_LITERALS();
     }
 
+    *outUncompressedBytesUsed = uncompressedOffset;
     return compressedOffset;
 
 #undef WRITE_BACKREF
@@ -877,32 +946,53 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
         // try both algorithms and pick the better compression
         std::array<char, 0xffff - 2> tmpBuffer0;
         std::array<char, 0xffff - 2> tmpBuffer1;
+        size_t outUncompressedBytesUsed0 = 0;
         std::optional<uint32_t> compressedChunkSize0 =
-            skipBitCompression
-                ? std::nullopt
-                : CompressChunk0(uncompressedData + uncompressedOffset,
-                                 uncompressedChunkLength,
-                                 tmpBuffer0.data(),
-                                 std::min(tmpBuffer0.size(), spaceForCompressedData));
+            skipBitCompression ? std::nullopt
+                               : CompressChunk0(uncompressedData + uncompressedOffset,
+                                                uncompressedChunkLength,
+                                                tmpBuffer0.data(),
+                                                std::min(tmpBuffer0.size(), spaceForCompressedData),
+                                                &outUncompressedBytesUsed0);
+        size_t outUncompressedBytesUsed1 = 0;
         std::optional<uint32_t> compressedChunkSize1 =
             skipByteCompression
                 ? std::nullopt
                 : CompressChunk1(uncompressedData + uncompressedOffset,
                                  uncompressedChunkLength,
                                  tmpBuffer1.data(),
-                                 std::min(tmpBuffer1.size(), spaceForCompressedData));
-        if (compressedChunkSize1.has_value()
-            && (!compressedChunkSize0.has_value()
-                || *compressedChunkSize1 <= *compressedChunkSize0)) {
+                                 std::min(tmpBuffer1.size(), spaceForCompressedData),
+                                 &outUncompressedBytesUsed1);
+        const bool wantChunk1 = [&]() -> bool {
+            if (!compressedChunkSize1.has_value()) {
+                return false;
+            }
+            if (!compressedChunkSize0.has_value()) {
+                return true;
+            }
+
+            // typical case where both algorithms take the entire input chunk
+            if (outUncompressedBytesUsed0 == outUncompressedBytesUsed1) {
+                return (*compressedChunkSize1 <= *compressedChunkSize0);
+            }
+
+            // otherwise we're in a situation where we got limited by the maximum compressed
+            // chunk size. take the chunk that consumed the most uncompressed bytes.
+            return (outUncompressedBytesUsed1 >= outUncompressedBytesUsed0);
+        }();
+        size_t uncompressedBytesUsed = 0;
+        if (wantChunk1) {
             assert(*compressedChunkSize1 <= (0xffff - 2));
             compressedChunkLength = *compressedChunkSize1 + 2;
             std::memcpy(
                 compressedData + compressedOffset + 2, tmpBuffer1.data(), *compressedChunkSize1);
+            uncompressedBytesUsed = outUncompressedBytesUsed1;
         } else if (compressedChunkSize0.has_value()) {
             assert(*compressedChunkSize0 <= (0xffff - 2));
             compressedChunkLength = *compressedChunkSize0 + 2;
             std::memcpy(
                 compressedData + compressedOffset + 2, tmpBuffer0.data(), *compressedChunkSize0);
+            uncompressedBytesUsed = outUncompressedBytesUsed0;
         } else {
             uncompressedChunkLength = std::min<size_t>(
                 maxChunkSize == 0 ? MaxChunkSizeForUncompressable
@@ -917,12 +1007,13 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
                 return std::nullopt;
             }
             compressedChunkLength = *compressedChunkSize + 2;
+            uncompressedBytesUsed = uncompressedChunkLength;
         }
 
         WriteUInt16(&compressedData[compressedOffset], ToEndian(compressedChunkLength, endian));
         compressedOffset += compressedChunkLength;
-        uncompressedOffset += uncompressedChunkLength;
-        uncompressedRest -= uncompressedChunkLength;
+        uncompressedOffset += uncompressedBytesUsed;
+        uncompressedRest -= uncompressedBytesUsed;
         bool moreChunks = (uncompressedRest > 0);
         compressedData[compressedOffset] =
             (moreChunks ? static_cast<char>(1) : static_cast<char>(0));
