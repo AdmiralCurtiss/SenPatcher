@@ -383,14 +383,16 @@ std::optional<uint32_t> CompressChunk0(CompressionWorkState& state,
     const auto count_same_byte = [&]() -> size_t {
         size_t count = 0;
         const char c = uncompressed[uncompressedOffset];
-        for (size_t i = uncompressedOffset; i < uncompressedLength; ++i) {
-            if (uncompressed[i] == c) {
+        size_t rest = std::min(maxSameByteLength, uncompressedLength - uncompressedOffset);
+        while (rest > 0) {
+            if (uncompressed[uncompressedOffset + count] == c) {
                 ++count;
             } else {
                 break;
             }
+            --rest;
         }
-        return count > maxSameByteLength ? maxSameByteLength : count;
+        return count;
     };
 
     struct Backref {
@@ -709,14 +711,16 @@ std::optional<uint32_t> CompressChunk1(CompressionWorkState& state,
     const auto count_same_byte = [&]() -> size_t {
         size_t count = 0;
         const char c = uncompressed[uncompressedOffset];
-        for (size_t i = uncompressedOffset; i < uncompressedLength; ++i) {
-            if (uncompressed[i] == c) {
+        size_t rest = std::min(maxSameByteLength, uncompressedLength - uncompressedOffset);
+        while (rest > 0) {
+            if (uncompressed[uncompressedOffset + count] == c) {
                 ++count;
             } else {
                 break;
             }
+            --rest;
         }
-        return count > maxSameByteLength ? maxSameByteLength : count;
+        return count;
     };
 
     struct Backref {
