@@ -193,6 +193,42 @@ struct SingleFileDirForPacking {
     bool ShouldOverrideCompressedSizeCopy = false;
 };
 
+template<size_t Length, typename T>
+struct BackrefLookup {
+    // Length must be power of two
+    static constexpr size_t Mask = Length - 1u;
+    static_assert(Length > 0u && (Length & Mask) == 0u);
+
+    // sort of a ringbuffer and a queue. on every byte we push the current position at the end and
+    // pop from the front the position that just went out of bounds (if any), and at any point we
+    // can iterate over the list of positions. so at any given point we have a compact list of past
+    // offsets that start with the current byte.
+    std::array<T, Length> Buffer;
+    size_t Start = 0u;
+    size_t End = 0u;
+
+    void PushBack(T value) {
+        assert((End - Start) < Length);
+        Buffer[End & Mask] = std::move(value);
+        ++End;
+    }
+
+    void PopFront() {
+        assert(Start < End);
+        ++Start;
+    }
+
+    void Clear() {
+        Start = 0u;
+        End = 0u;
+    }
+};
+struct CompressionWorkState {
+    std::array<char, 0xffff - 2> CompressedBuffer0;
+    std::array<char, 0xffff - 2> CompressedBuffer1;
+    std::array<BackrefLookup<8192, size_t>, 256> BackrefForByte;
+};
+
 // for our bound, we need to consider the case where the data is uncompressable. unfortunately
 // the format does not give us a way to say 'the file is uncompressed' so we must compress it
 // even if that increases the size. the best way to do this is, as far as I can tell:
@@ -233,8 +269,25 @@ size_t CompressedFileBound(size_t uncompressedLength, size_t maxChunkSize) {
         }                                                                                      \
     } while (false)
 
+#define UPDATE_BACKREF_BUFFER(len)                                                          \
+    do {                                                                                    \
+        size_t rest = (len);                                                                \
+        size_t p = uncompressedOffset;                                                      \
+        while (rest > 0) {                                                                  \
+            uint8_t byte = static_cast<uint8_t>(uncompressed[p]);                           \
+            if (p >= maxBackrefOffset) {                                                    \
+                uint8_t oldByte = static_cast<uint8_t>(uncompressed[p - maxBackrefOffset]); \
+                state.BackrefForByte[oldByte].PopFront();                                   \
+            }                                                                               \
+            state.BackrefForByte[byte].PushBack(p);                                         \
+            ++p;                                                                            \
+            --rest;                                                                         \
+        }                                                                                   \
+    } while (false)
+
 // returns std::nullopt on failure. otherwise returns length of compressed data.
-std::optional<uint32_t> CompressChunk0(const char* uncompressed,
+std::optional<uint32_t> CompressChunk0(CompressionWorkState& state,
+                                       const char* uncompressed,
                                        size_t uncompressedLength,
                                        char* compressed,
                                        size_t compressedBufferLength,
@@ -249,6 +302,9 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
     static constexpr size_t minSameByteLength = 14;
     static constexpr size_t maxSameByteLength = 4109;
 
+    for (auto& backrefBuffer : state.BackrefForByte) {
+        backrefBuffer.Clear();
+    }
 
     size_t compressedOffset = 0;
     size_t uncompressedOffset = 0;
@@ -405,9 +461,6 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
             return bestBackref; // no backref possible
         }
 
-        const size_t firstPossibleBackrefPosition =
-            uncompressedOffset < maxBackrefOffset ? 0 : (uncompressedOffset - maxBackrefOffset);
-        const size_t lastPossibleBackrefPosition = uncompressedOffset - 1;
         const size_t allowedBackrefLength =
             (uncompressedLength - uncompressedOffset) >= maxBackrefLength
                 ? maxBackrefLength
@@ -417,10 +470,10 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
             return bestBackref; // no backref possible
         }
 
-        size_t currentBackrefTest = lastPossibleBackrefPosition;
-        const auto count_backref_from_here = [&]() -> size_t {
-            size_t count = 0;
-            for (size_t i = 0; i < allowedBackrefLength; ++i) {
+        const uint8_t byte = static_cast<uint8_t>(uncompressed[uncompressedOffset]);
+        const auto count_backref = [&](size_t currentBackrefTest) -> size_t {
+            size_t count = 1;
+            for (size_t i = 1; i < allowedBackrefLength; ++i) {
                 if (uncompressed[currentBackrefTest + i] == uncompressed[uncompressedOffset + i]) {
                     ++count;
                 } else {
@@ -429,8 +482,11 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
             }
             return count;
         };
-        while (true) {
-            const size_t length = count_backref_from_here();
+        auto& lookup = state.BackrefForByte[byte];
+        for (size_t i = lookup.End; i != lookup.Start; --i) {
+            const size_t currentBackrefTest = lookup.Buffer[(i - 1u) & lookup.Mask];
+            assert(static_cast<uint8_t>(uncompressed[currentBackrefTest]) == byte);
+            const size_t length = count_backref(currentBackrefTest);
             if (length > bestBackref.Length) {
                 bestBackref.Length = length;
                 bestBackref.Position = currentBackrefTest;
@@ -438,11 +494,6 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
             if (length == maxBackrefLength) {
                 break;
             }
-
-            if (currentBackrefTest == firstPossibleBackrefPosition) {
-                break;
-            }
-            --currentBackrefTest;
         }
 
         return bestBackref;
@@ -533,18 +584,21 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
             if (!fits_in_remaining_compressed_buffer(encodedLength)) {
                 break;
             }
+            UPDATE_BACKREF_BUFFER(bestBackref.Length);
             WRITE_BACKREF(bestBackref.Length, offset);
         } else if (sameByteCountValid) {
             const EncodedLength encodedLength = calc_same_byte_encoded_length(sameByteCount);
             if (!fits_in_remaining_compressed_buffer(encodedLength)) {
                 break;
             }
+            UPDATE_BACKREF_BUFFER(sameByteCount);
             WRITE_SAME_BYTE(sameByteCount);
         } else {
             const EncodedLength encodedLength{.NumBits = 1u, .NumBytes = 1u};
             if (!fits_in_remaining_compressed_buffer(encodedLength)) {
                 break;
             }
+            UPDATE_BACKREF_BUFFER(1u);
             WRITE_LITERAL();
         }
     }
@@ -568,7 +622,8 @@ std::optional<uint32_t> CompressChunk0(const char* uncompressed,
 }
 
 // returns std::nullopt on failure. otherwise returns length of compressed data.
-std::optional<uint32_t> CompressChunk1(const char* uncompressed,
+std::optional<uint32_t> CompressChunk1(CompressionWorkState& state,
+                                       const char* uncompressed,
                                        size_t uncompressedLength,
                                        char* compressed,
                                        size_t compressedBufferLength,
@@ -581,6 +636,9 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
     static constexpr size_t maxSameByteLength = 4099;
     static constexpr size_t maxLiteralLength = 8191;
 
+    for (auto& backrefBuffer : state.BackrefForByte) {
+        backrefBuffer.Clear();
+    }
 
     size_t compressedOffset = 0;
     size_t uncompressedOffset = 0;
@@ -706,9 +764,6 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
             return bestBackref; // no backref possible
         }
 
-        const size_t firstPossibleBackrefPosition =
-            uncompressedOffset < maxBackrefOffset ? 0 : (uncompressedOffset - maxBackrefOffset);
-        const size_t lastPossibleBackrefPosition = uncompressedOffset - 1;
         const size_t allowedBackrefLength =
             (uncompressedLength - uncompressedOffset) >= maxBackrefLength
                 ? maxBackrefLength
@@ -718,10 +773,10 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
             return bestBackref; // no backref possible
         }
 
-        size_t currentBackrefTest = lastPossibleBackrefPosition;
-        const auto count_backref_from_here = [&]() -> size_t {
-            size_t count = 0;
-            for (size_t i = 0; i < allowedBackrefLength; ++i) {
+        const uint8_t byte = static_cast<uint8_t>(uncompressed[uncompressedOffset]);
+        const auto count_backref = [&](size_t currentBackrefTest) -> size_t {
+            size_t count = 1;
+            for (size_t i = 1; i < allowedBackrefLength; ++i) {
                 if (uncompressed[currentBackrefTest + i] == uncompressed[uncompressedOffset + i]) {
                     ++count;
                 } else {
@@ -730,8 +785,11 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
             }
             return count;
         };
-        while (true) {
-            const size_t length = count_backref_from_here();
+        auto& lookup = state.BackrefForByte[byte];
+        for (size_t i = lookup.End; i != lookup.Start; --i) {
+            const size_t currentBackrefTest = lookup.Buffer[(i - 1u) & lookup.Mask];
+            assert(static_cast<uint8_t>(uncompressed[currentBackrefTest]) == byte);
+            const size_t length = count_backref(currentBackrefTest);
             if (length > bestBackref.Length) {
                 bestBackref.Length = length;
                 bestBackref.Position = currentBackrefTest;
@@ -739,11 +797,6 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
             if (length == maxBackrefLength) {
                 break;
             }
-
-            if (currentBackrefTest == firstPossibleBackrefPosition) {
-                break;
-            }
-            --currentBackrefTest;
         }
 
         return bestBackref;
@@ -834,6 +887,7 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
             if (!fits_in_remaining_compressed_buffer(encodedLength)) {
                 break;
             }
+            UPDATE_BACKREF_BUFFER(sameByteCount);
             WRITE_SAME_BYTE(sameByteCount);
         } else if (backrefValid) {
             const size_t encodedLength = calc_backref_encoded_length(bestBackref.Length);
@@ -841,6 +895,7 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
                 break;
             }
             const size_t offset = uncompressedOffset - bestBackref.Position;
+            UPDATE_BACKREF_BUFFER(bestBackref.Length);
             WRITE_BACKREF(bestBackref.Length, offset);
         } else {
             const size_t encodedLength =
@@ -848,6 +903,7 @@ std::optional<uint32_t> CompressChunk1(const char* uncompressed,
             if (!fits_in_remaining_compressed_buffer(encodedLength)) {
                 break;
             }
+            UPDATE_BACKREF_BUFFER(1u);
             ++stashedLiteralBytes;
             ++uncompressedOffset;
         }
@@ -899,7 +955,8 @@ std::optional<uint32_t> WriteUncompressableChunk(const char* uncompressedData,
 }
 
 // returns std::nullopt if compression failed. otherwise returns length of compressed data.
-std::optional<uint32_t> CompressFile(const char* uncompressedData,
+std::optional<uint32_t> CompressFile(CompressionWorkState& state,
+                                     const char* uncompressedData,
                                      size_t uncompressedLength,
                                      char* compressedData,
                                      size_t compressedBufferLength,
@@ -944,12 +1001,13 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
         size_t spaceForCompressedData = compressedRest - 3;
 
         // try both algorithms and pick the better compression
-        std::array<char, 0xffff - 2> tmpBuffer0;
-        std::array<char, 0xffff - 2> tmpBuffer1;
+        std::array<char, 0xffff - 2>& tmpBuffer0 = state.CompressedBuffer0;
+        std::array<char, 0xffff - 2>& tmpBuffer1 = state.CompressedBuffer1;
         size_t outUncompressedBytesUsed0 = 0;
         std::optional<uint32_t> compressedChunkSize0 =
             skipBitCompression ? std::nullopt
-                               : CompressChunk0(uncompressedData + uncompressedOffset,
+                               : CompressChunk0(state,
+                                                uncompressedData + uncompressedOffset,
                                                 uncompressedChunkLength,
                                                 tmpBuffer0.data(),
                                                 std::min(tmpBuffer0.size(), spaceForCompressedData),
@@ -958,7 +1016,8 @@ std::optional<uint32_t> CompressFile(const char* uncompressedData,
         std::optional<uint32_t> compressedChunkSize1 =
             skipByteCompression
                 ? std::nullopt
-                : CompressChunk1(uncompressedData + uncompressedOffset,
+                : CompressChunk1(state,
+                                 uncompressedData + uncompressedOffset,
                                  uncompressedChunkLength,
                                  tmpBuffer1.data(),
                                  std::min(tmpBuffer1.size(), spaceForCompressedData),
@@ -1193,6 +1252,7 @@ HyoutaUtils::Result<RepackDirDatResult, std::string> RepackDirDat(std::string_vi
     }
 
     // now actually write the files and the dir header
+    auto compressionState = std::make_unique<CompressionWorkState>();
     uint32_t offsetInDat = datHeader.size() + datOffsets.size();
     for (size_t i = 0; i < fileinfos.size(); ++i) {
         SingleFileDirForPacking& fi = fileinfos[i];
@@ -1221,7 +1281,8 @@ HyoutaUtils::Result<RepackDirDatResult, std::string> RepackDirDat(std::string_vi
             if (fi.ShouldCompress) {
                 size_t bound = CompressedFileBound(*uncompressedLength, maxChunkSize);
                 auto compressedData = std::make_unique<char[]>(bound);
-                const std::optional<uint32_t> compressResult = CompressFile(uncompressedData.get(),
+                const std::optional<uint32_t> compressResult = CompressFile(*compressionState,
+                                                                            uncompressedData.get(),
                                                                             *uncompressedLength,
                                                                             compressedData.get(),
                                                                             bound,
