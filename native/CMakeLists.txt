@@ -21,6 +21,7 @@ option(SENPATCHER_BUILD_TXTEST "build Tokyo Xanadu asset builder executable" OFF
 option(SENPATCHER_BUILD_GTESTS "build tests" ON)
 
 option(SENPATCHER_WITH_IMGUI "enable imgui GUI for tools" ON)
+set(SENPATCHER_WITH_IMGUI OFF)
 
 if (MSVC)
 	# set the cmake default linker options to something closer to what MSVC projects have, especially for release builds
@@ -364,193 +365,193 @@ if (SENPATCHER_BUILD_TOOLS)
 	add_executable(sentools)
 	target_sources(sentools PRIVATE
 		sentools/cli_tool.h
-		sentools/common_paths.cpp
-		sentools/common_paths.h
-		sentools/cs2_14.cpp
-		sentools/cs2_14.h
-		sentools/hyouta_archive.cpp
-		sentools/hyouta_archive.h
+		# sentools/common_paths.cpp
+		# sentools/common_paths.h
+		# sentools/cs2_14.cpp
+		# sentools/cs2_14.h
+		# sentools/hyouta_archive.cpp
+		# sentools/hyouta_archive.h
 		sentools/main_sentools.cpp
-		sentools/old_senpatcher_unpatch.cpp
-		sentools/old_senpatcher_unpatch.h
-		sentools/pe_exe.cpp
-		sentools/pe_exe.h
-		sentools/rom_mapper.cpp
-		sentools/rom_mapper.h
-		sentools/senpatcher_dll_loader.cpp
-		sentools/senpatcher_dll_loader.h
-		sentools/task_cancellation.h
-		sentools/task_reporting.h
-		sentools/task_reporting_dummy.h
-		sentools/task_reporting_from_thread.h
-		sentools/bra_extract/bra_extract.cpp
-		sentools/bra_extract/bra_extract_main.h
-		sentools/bra_repack/bra_repack.cpp
-		sentools/bra_repack/bra_repack.h
-		sentools/bra_repack/bra_repack_main.h
-		sentools/bra_repack/zlib-0.95/adler32.c
-		sentools/bra_repack/zlib-0.95/deflate.c
-		sentools/bra_repack/zlib-0.95/trees.c
-		sentools/bra_repack/zlib-0.95/zutil.c
-		sentools/bra_repack/zlib-0.95/deflate.h
-		sentools/bra_repack/zlib-0.95/zconf.h
-		sentools/bra_repack/zlib-0.95/zlib.h
-		sentools/bra_repack/zlib-0.95/zutil.h
-		sentools/daybreak_save_convert/daybreak_save_convert.cpp
-		sentools/daybreak_save_convert/daybreak_save_convert.h
-		sentools/daybreak_save_convert/daybreak_save_convert_main.h
-		sentools/daybreak2_save_convert/daybreak2_save_convert.cpp
-		sentools/daybreak2_save_convert/daybreak2_save_convert.h
-		sentools/daybreak2_save_convert/daybreak2_save_convert_main.h
+		# sentools/old_senpatcher_unpatch.cpp
+		# sentools/old_senpatcher_unpatch.h
+		# sentools/pe_exe.cpp
+		# sentools/pe_exe.h
+		# sentools/rom_mapper.cpp
+		# sentools/rom_mapper.h
+		# sentools/senpatcher_dll_loader.cpp
+		# sentools/senpatcher_dll_loader.h
+		# sentools/task_cancellation.h
+		# sentools/task_reporting.h
+		# sentools/task_reporting_dummy.h
+		# sentools/task_reporting_from_thread.h
+		# sentools/bra_extract/bra_extract.cpp
+		# sentools/bra_extract/bra_extract_main.h
+		# sentools/bra_repack/bra_repack.cpp
+		# sentools/bra_repack/bra_repack.h
+		# sentools/bra_repack/bra_repack_main.h
+		# sentools/bra_repack/zlib-0.95/adler32.c
+		# sentools/bra_repack/zlib-0.95/deflate.c
+		# sentools/bra_repack/zlib-0.95/trees.c
+		# sentools/bra_repack/zlib-0.95/zutil.c
+		# sentools/bra_repack/zlib-0.95/deflate.h
+		# sentools/bra_repack/zlib-0.95/zconf.h
+		# sentools/bra_repack/zlib-0.95/zlib.h
+		# sentools/bra_repack/zlib-0.95/zutil.h
+		# sentools/daybreak_save_convert/daybreak_save_convert.cpp
+		# sentools/daybreak_save_convert/daybreak_save_convert.h
+		# sentools/daybreak_save_convert/daybreak_save_convert_main.h
+		# sentools/daybreak2_save_convert/daybreak2_save_convert.cpp
+		# sentools/daybreak2_save_convert/daybreak2_save_convert.h
+		# sentools/daybreak2_save_convert/daybreak2_save_convert_main.h
 		sentools/dirdat_extract/dirdat_extract.cpp
 		sentools/dirdat_extract/dirdat_extract.h
 		sentools/dirdat_extract/dirdat_extract_main.h
 		sentools/dirdat_repack/dirdat_repack.cpp
 		sentools/dirdat_repack/dirdat_repack.h
 		sentools/dirdat_repack/dirdat_repack_main.h
-		sentools/dirtree_create/dirtree_create.cpp
-		sentools/dirtree_create/dirtree_create_main.h
-		sentools/file_compressor/file_compressor.cpp
-		sentools/file_compressor/file_compressor_main.h
-		sentools/file_fix_template_generator/file_fix_template_generator.cpp
-		sentools/file_fix_template_generator/file_fix_template_generator_main.h
-		sentools/game_verify/game_verify.cpp
-		sentools/game_verify/game_verify.h
-		sentools/game_verify/game_verify_main.h
-		sentools/p3a_extract/p3a_extract.cpp
-		sentools/p3a_extract/p3a_extract_main.h
-		sentools/p3a_pack/p3a_pack.cpp
-		sentools/p3a_pack/p3a_pack_main.h
-		sentools/p3a_repack/p3a_repack.cpp
-		sentools/p3a_repack/p3a_repack_main.h
-		sentools/pka_extract/pka_extract.cpp
-		sentools/pka_extract/pka_extract.h
-		sentools/pka_extract/pka_extract_main.h
-		sentools/pka_pack/pka_pack.cpp
-		sentools/pka_pack/pka_pack.h
-		sentools/pka_pack/pka_pack_main.h
-		sentools/pkg_extract/pkg_extract.cpp
-		sentools/pkg_extract/pkg_extract.h
-		sentools/pkg_extract/pkg_extract_main.h
-		sentools/pkg_pack/pkg_pack.cpp
-		sentools/pkg_pack/pkg_pack_main.h
-		sentools/pkg_repack/pkg_repack.cpp
-		sentools/pkg_repack/pkg_repack.h
-		sentools/pkg_repack/pkg_repack_main.h
-		sentools/save_checksum_fix/save_checksum_fix.cpp
-		sentools/save_checksum_fix/save_checksum_fix.h
-		sentools/save_checksum_fix/save_checksum_fix_main.h
-		sentools/type1_compress/type1_compress.cpp
-		sentools/type1_compress/type1_compress.h
-		sentools/type1_compress/type1_compress_main.h
-		sentools/type1_decompress/type1_decompress.cpp
-		sentools/type1_decompress/type1_decompress.h
-		sentools/type1_decompress/type1_decompress_main.h
+		# sentools/dirtree_create/dirtree_create.cpp
+		# sentools/dirtree_create/dirtree_create_main.h
+		# sentools/file_compressor/file_compressor.cpp
+		# sentools/file_compressor/file_compressor_main.h
+		# sentools/file_fix_template_generator/file_fix_template_generator.cpp
+		# sentools/file_fix_template_generator/file_fix_template_generator_main.h
+		# sentools/game_verify/game_verify.cpp
+		# sentools/game_verify/game_verify.h
+		# sentools/game_verify/game_verify_main.h
+		# sentools/p3a_extract/p3a_extract.cpp
+		# sentools/p3a_extract/p3a_extract_main.h
+		# sentools/p3a_pack/p3a_pack.cpp
+		# sentools/p3a_pack/p3a_pack_main.h
+		# sentools/p3a_repack/p3a_repack.cpp
+		# sentools/p3a_repack/p3a_repack_main.h
+		# sentools/pka_extract/pka_extract.cpp
+		# sentools/pka_extract/pka_extract.h
+		# sentools/pka_extract/pka_extract_main.h
+		# sentools/pka_pack/pka_pack.cpp
+		# sentools/pka_pack/pka_pack.h
+		# sentools/pka_pack/pka_pack_main.h
+		# sentools/pkg_extract/pkg_extract.cpp
+		# sentools/pkg_extract/pkg_extract.h
+		# sentools/pkg_extract/pkg_extract_main.h
+		# sentools/pkg_pack/pkg_pack.cpp
+		# sentools/pkg_pack/pkg_pack_main.h
+		# sentools/pkg_repack/pkg_repack.cpp
+		# sentools/pkg_repack/pkg_repack.h
+		# sentools/pkg_repack/pkg_repack_main.h
+		# sentools/save_checksum_fix/save_checksum_fix.cpp
+		# sentools/save_checksum_fix/save_checksum_fix.h
+		# sentools/save_checksum_fix/save_checksum_fix_main.h
+		# sentools/type1_compress/type1_compress.cpp
+		# sentools/type1_compress/type1_compress.h
+		# sentools/type1_compress/type1_compress_main.h
+		# sentools/type1_decompress/type1_decompress.cpp
+		# sentools/type1_decompress/type1_decompress.h
+		# sentools/type1_decompress/type1_decompress_main.h
 
-		util/hash/crc32.h
-		util/hash/crc32.c
-		util/hash/md5.h
-		util/hash/sha_x86_extension.cpp
-		util/hash/sha_x86_extension.h
-		util/hash/sha1.h
-		util/hash/sha1.cpp
-		util/hash/sha256.h
-		util/hash/sha256.cpp
-		util/hash/util.h
+		# util/hash/crc32.h
+		# util/hash/crc32.c
+		# util/hash/md5.h
+		# util/hash/sha_x86_extension.cpp
+		# util/hash/sha_x86_extension.h
+		# util/hash/sha1.h
+		# util/hash/sha1.cpp
+		# util/hash/sha256.h
+		# util/hash/sha256.cpp
+		# util/hash/util.h
 		util/align.h
 		util/align.cpp
 		util/args.h
 		util/args.cpp
-		util/bps.h
-		util/bps.cpp
-		util/cpuid.cpp
-		util/cpuid.h
+		# util/bps.h
+		# util/bps.cpp
+		# util/cpuid.cpp
+		# util/cpuid.h
 		util/endian.h
 		util/file.h
 		util/file.cpp
-		util/ini.h
-		util/ini.cpp
-		util/ini_writer.cpp
-		util/ini_writer.h
+		# util/ini.h
+		# util/ini.cpp
+		# util/ini_writer.cpp
+		# util/ini_writer.h
 		util/memread.h
 		util/memwrite.h
 		util/number.cpp
 		util/number.h
 		util/result.h
 		util/scope.h
-		util/stream.cpp
-		util/stream.h
-		util/system.cpp
-		util/system.h
+		# util/stream.cpp
+		# util/stream.h
+		# util/system.cpp
+		# util/system.h
 		util/text.cpp
 		util/text.h
-		util/ticker.h
+		# util/ticker.h
 		util/vector.cpp
 		util/vector.h
 
-		p3a/pack.cpp
-		p3a/pack.h
-		p3a/packfs.cpp
-		p3a/packfs.h
-		p3a/packjson.cpp
-		p3a/packjson.h
-		p3a/structs.h
-		p3a/unpackfs.cpp
-		p3a/unpackfs.h
+		# p3a/pack.cpp
+		# p3a/pack.h
+		# p3a/packfs.cpp
+		# p3a/packfs.h
+		# p3a/packjson.cpp
+		# p3a/packjson.h
+		# p3a/structs.h
+		# p3a/unpackfs.cpp
+		# p3a/unpackfs.h
 
-		sen/decompress_helper.cpp
-		sen/decompress_helper.h
-		sen/pka.cpp
-		sen/pka.h
-		sen/pka_to_pkg.cpp
-		sen/pka_to_pkg.h
-		sen/pkg.cpp
-		sen/pkg.h
-		sen/pkg_compress.cpp
-		sen/pkg_compress.h
-		sen/pkg_extract.cpp
-		sen/pkg_extract.h
-		sen1/system_data.cpp
-		sen1/system_data.h
-		sen2/system_data.cpp
-		sen2/system_data.h
-		sen3/tbl.cpp
-		sen3/tbl.h
-		sen4/tbl.cpp
-		sen4/tbl.h
-		sen5/tbl.cpp
-		sen5/tbl.h
+		# sen/decompress_helper.cpp
+		# sen/decompress_helper.h
+		# sen/pka.cpp
+		# sen/pka.h
+		# sen/pka_to_pkg.cpp
+		# sen/pka_to_pkg.h
+		# sen/pkg.cpp
+		# sen/pkg.h
+		# sen/pkg_compress.cpp
+		# sen/pkg_compress.h
+		# sen/pkg_extract.cpp
+		# sen/pkg_extract.h
+		# sen1/system_data.cpp
+		# sen1/system_data.h
+		# sen2/system_data.cpp
+		# sen2/system_data.h
+		# sen3/tbl.cpp
+		# sen3/tbl.h
+		# sen4/tbl.cpp
+		# sen4/tbl.h
+		# sen5/tbl.cpp
+		# sen5/tbl.h
 
-		dirtree/entry.h
-		dirtree/init_dirtree_from_buffer.cpp
-		dirtree/init_dirtree_from_buffer.h
-		dirtree/tree.h
+		# dirtree/entry.h
+		# dirtree/init_dirtree_from_buffer.cpp
+		# dirtree/init_dirtree_from_buffer.h
+		# dirtree/tree.h
 
-		dirtree/dirtree_cs1.cpp
-		dirtree/dirtree_cs1.h
-		dirtree/dirtree_cs2.cpp
-		dirtree/dirtree_cs2.h
-		dirtree/dirtree_cs3.cpp
-		dirtree/dirtree_cs3.h
-		dirtree/dirtree_cs4.cpp
-		dirtree/dirtree_cs4.h
-		dirtree/dirtree_reverie.cpp
-		dirtree/dirtree_reverie.h
-		dirtree/dirtree_tx.cpp
-		dirtree/dirtree_tx.h
-		dirtree/generated/internal_dirtree_cs1.h
-		dirtree/generated/internal_dirtree_cs2.h
-		dirtree/generated/internal_dirtree_cs3.h
-		dirtree/generated/internal_dirtree_cs4.h
-		dirtree/generated/internal_dirtree_reverie.h
-		dirtree/generated/internal_dirtree_tx.h
+		#dirtree/dirtree_cs1.cpp
+		#dirtree/dirtree_cs1.h
+		#dirtree/dirtree_cs2.cpp
+		#dirtree/dirtree_cs2.h
+		#dirtree/dirtree_cs3.cpp
+		#dirtree/dirtree_cs3.h
+		#dirtree/dirtree_cs4.cpp
+		#dirtree/dirtree_cs4.h
+		#dirtree/dirtree_reverie.cpp
+		#dirtree/dirtree_reverie.h
+		#dirtree/dirtree_tx.cpp
+		#dirtree/dirtree_tx.h
+		#dirtree/generated/internal_dirtree_cs1.h
+		#dirtree/generated/internal_dirtree_cs2.h
+		#dirtree/generated/internal_dirtree_cs3.h
+		#dirtree/generated/internal_dirtree_cs4.h
+		#dirtree/generated/internal_dirtree_reverie.h
+		#dirtree/generated/internal_dirtree_tx.h
 
-		${SOURCES_LZ4}
-		${SOURCES_LZMA_BASE}
-		${SOURCES_LZMA_COMPRESSION}
-		${SOURCES_ZSTD_BASE}
-		${SOURCES_ZSTD_COMPRESSION}
-		${SOURCES_ZSTD_DICTBUILDER}
+		# ${SOURCES_LZ4}
+		# ${SOURCES_LZMA_BASE}
+		# ${SOURCES_LZMA_COMPRESSION}
+		# ${SOURCES_ZSTD_BASE}
+		# ${SOURCES_ZSTD_COMPRESSION}
+		# ${SOURCES_ZSTD_DICTBUILDER}
 		${SOURCES_RAPIDJSON}
 	)
 
@@ -592,7 +593,7 @@ if (SENPATCHER_BUILD_TOOLS)
 	target_include_directories(sentools
 		PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/senpatcher_embeds"
 	)
-	target_link_libraries(sentools PUBLIC zlibstatic)
+	# target_link_libraries(sentools PUBLIC zlibstatic)
 
 	if (SENPATCHER_WITH_IMGUI)
 		target_sources(sentools PRIVATE

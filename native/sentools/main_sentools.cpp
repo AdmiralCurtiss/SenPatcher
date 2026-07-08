@@ -9,27 +9,27 @@
 
 #include "cli_tool.h"
 
-#include "bra_extract/bra_extract_main.h"
-#include "bra_repack/bra_repack_main.h"
-#include "daybreak2_save_convert/daybreak2_save_convert_main.h"
-#include "daybreak_save_convert/daybreak_save_convert_main.h"
+// #include "bra_extract/bra_extract_main.h"
+// #include "bra_repack/bra_repack_main.h"
+// #include "daybreak2_save_convert/daybreak2_save_convert_main.h"
+// #include "daybreak_save_convert/daybreak_save_convert_main.h"
 #include "dirdat_extract/dirdat_extract_main.h"
 #include "dirdat_repack/dirdat_repack_main.h"
-#include "dirtree_create/dirtree_create_main.h"
-#include "file_compressor/file_compressor_main.h"
-#include "file_fix_template_generator/file_fix_template_generator_main.h"
-#include "game_verify/game_verify_main.h"
-#include "p3a_extract/p3a_extract_main.h"
-#include "p3a_pack/p3a_pack_main.h"
-#include "p3a_repack/p3a_repack_main.h"
-#include "pka_extract/pka_extract_main.h"
-#include "pka_pack/pka_pack_main.h"
-#include "pkg_extract/pkg_extract_main.h"
-#include "pkg_pack/pkg_pack_main.h"
-#include "pkg_repack/pkg_repack_main.h"
-#include "save_checksum_fix/save_checksum_fix_main.h"
-#include "type1_compress/type1_compress_main.h"
-#include "type1_decompress/type1_decompress_main.h"
+// #include "dirtree_create/dirtree_create_main.h"
+// #include "file_compressor/file_compressor_main.h"
+// #include "file_fix_template_generator/file_fix_template_generator_main.h"
+// #include "game_verify/game_verify_main.h"
+// #include "p3a_extract/p3a_extract_main.h"
+// #include "p3a_pack/p3a_pack_main.h"
+// #include "p3a_repack/p3a_repack_main.h"
+// #include "pka_extract/pka_extract_main.h"
+// #include "pka_pack/pka_pack_main.h"
+// #include "pkg_extract/pkg_extract_main.h"
+// #include "pkg_pack/pkg_pack_main.h"
+// #include "pkg_repack/pkg_repack_main.h"
+// #include "save_checksum_fix/save_checksum_fix_main.h"
+// #include "type1_compress/type1_compress_main.h"
+// #include "type1_decompress/type1_decompress_main.h"
 
 #ifdef BUILD_FOR_WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -42,79 +42,79 @@
 
 namespace SenTools {
 static constexpr auto CliTools = {
-#ifdef SENTOOLS_WITH_IMGUI
-    CliTool{.Name = "GUI",
-            .ShortDescription = "Start the interactive GUI.",
-            .Function = SenTools::RunGui},
-#endif
-    CliTool{.Name = P3A_Extract_Name,
-            .ShortDescription = P3A_Extract_ShortDescription,
-            .Function = P3A_Extract_Function},
-    CliTool{.Name = P3A_Pack_Name,
-            .ShortDescription = P3A_Pack_ShortDescription,
-            .Function = P3A_Pack_Function},
-    CliTool{.Name = P3A_Repack_Name,
-            .ShortDescription = P3A_Repack_ShortDescription,
-            .Function = P3A_Repack_Function},
-    CliTool{.Name = PKG_Extract_Name,
-            .ShortDescription = PKG_Extract_ShortDescription,
-            .Function = PKG_Extract_Function},
-    CliTool{.Name = PKG_Pack_Name,
-            .ShortDescription = PKG_Pack_ShortDescription,
-            .Function = PKG_Pack_Function},
-    CliTool{.Name = PKG_Repack_Name,
-            .ShortDescription = PKG_Repack_ShortDescription,
-            .Function = PKG_Repack_Function},
-    CliTool{.Name = PKA_Extract_Name,
-            .ShortDescription = PKA_Extract_ShortDescription,
-            .Function = PKA_Extract_Function},
-    CliTool{.Name = PKA_Pack_Name,
-            .ShortDescription = PKA_Pack_ShortDescription,
-            .Function = PKA_Pack_Function},
-    CliTool{.Name = BRA_Extract_Name,
-            .ShortDescription = BRA_Extract_ShortDescription,
-            .Function = BRA_Extract_Function},
-    CliTool{.Name = BRA_Repack_Name,
-            .ShortDescription = BRA_Repack_ShortDescription,
-            .Function = BRA_Repack_Function},
+//#ifdef SENTOOLS_WITH_IMGUI
+//    CliTool{.Name = "GUI",
+//            .ShortDescription = "Start the interactive GUI.",
+//            .Function = SenTools::RunGui},
+//#endif
+//    CliTool{.Name = P3A_Extract_Name,
+//            .ShortDescription = P3A_Extract_ShortDescription,
+//            .Function = P3A_Extract_Function},
+//    CliTool{.Name = P3A_Pack_Name,
+//            .ShortDescription = P3A_Pack_ShortDescription,
+//            .Function = P3A_Pack_Function},
+//    CliTool{.Name = P3A_Repack_Name,
+//            .ShortDescription = P3A_Repack_ShortDescription,
+//            .Function = P3A_Repack_Function},
+//    CliTool{.Name = PKG_Extract_Name,
+//            .ShortDescription = PKG_Extract_ShortDescription,
+//            .Function = PKG_Extract_Function},
+//    CliTool{.Name = PKG_Pack_Name,
+//            .ShortDescription = PKG_Pack_ShortDescription,
+//            .Function = PKG_Pack_Function},
+//    CliTool{.Name = PKG_Repack_Name,
+//            .ShortDescription = PKG_Repack_ShortDescription,
+//            .Function = PKG_Repack_Function},
+//    CliTool{.Name = PKA_Extract_Name,
+//            .ShortDescription = PKA_Extract_ShortDescription,
+//            .Function = PKA_Extract_Function},
+//    CliTool{.Name = PKA_Pack_Name,
+//            .ShortDescription = PKA_Pack_ShortDescription,
+//            .Function = PKA_Pack_Function},
+//    CliTool{.Name = BRA_Extract_Name,
+//            .ShortDescription = BRA_Extract_ShortDescription,
+//            .Function = BRA_Extract_Function},
+//    CliTool{.Name = BRA_Repack_Name,
+//            .ShortDescription = BRA_Repack_ShortDescription,
+//            .Function = BRA_Repack_Function},
     CliTool{.Name = DirDat_Extract_Name,
             .ShortDescription = DirDat_Extract_ShortDescription,
             .Function = DirDat_Extract_Function},
     CliTool{.Name = DirDat_Repack_Name,
             .ShortDescription = DirDat_Repack_ShortDescription,
             .Function = DirDat_Repack_Function},
-    CliTool{.Name = Type1_Decompress_Name,
-            .ShortDescription = Type1_Decompress_ShortDescription,
-            .Function = Type1_Decompress_Function},
-    CliTool{.Name = Type1_Compress_Name,
-            .ShortDescription = Type1_Compress_ShortDescription,
-            .Function = Type1_Compress_Function},
-    CliTool{.Name = Game_Verify_Name,
-            .ShortDescription = Game_Verify_ShortDescription,
-            .Function = Game_Verify_Function},
-    CliTool{.Name = Save_Checksum_Fix_Name,
-            .ShortDescription = Save_Checksum_Fix_ShortDescription,
-            .Function = Save_Checksum_Fix_Function},
-    CliTool{.Name = DirTree_Create_Name,
-            .ShortDescription = DirTree_Create_ShortDescription,
-            .Function = DirTree_Create_Function,
-            .Hidden = true},
-    CliTool{.Name = Daybreak_Save_Convert_Name,
-            .ShortDescription = Daybreak_Save_Convert_ShortDescription,
-            .Function = Daybreak_Save_Convert_Function,
-            .Hidden = true},
-    CliTool{.Name = Daybreak2_Save_Convert_Name,
-            .ShortDescription = Daybreak2_Save_Convert_ShortDescription,
-            .Function = Daybreak2_Save_Convert_Function,
-            .Hidden = true},
-    CliTool{.Name = FileCompressor_Name,
-            .ShortDescription = FileCompressor_ShortDescription,
-            .Function = FileCompressor_Function,
-            .Hidden = true},
-    CliTool{.Name = File_Fix_Template_Generator_Name,
-            .ShortDescription = File_Fix_Template_Generator_ShortDescription,
-            .Function = File_Fix_Template_Generator_Function,
-            .Hidden = true},
+//    CliTool{.Name = Type1_Decompress_Name,
+//            .ShortDescription = Type1_Decompress_ShortDescription,
+//            .Function = Type1_Decompress_Function},
+//    CliTool{.Name = Type1_Compress_Name,
+//            .ShortDescription = Type1_Compress_ShortDescription,
+//            .Function = Type1_Compress_Function},
+//    CliTool{.Name = Game_Verify_Name,
+//            .ShortDescription = Game_Verify_ShortDescription,
+//            .Function = Game_Verify_Function},
+//    CliTool{.Name = Save_Checksum_Fix_Name,
+//            .ShortDescription = Save_Checksum_Fix_ShortDescription,
+//            .Function = Save_Checksum_Fix_Function},
+//    CliTool{.Name = DirTree_Create_Name,
+//            .ShortDescription = DirTree_Create_ShortDescription,
+//            .Function = DirTree_Create_Function,
+//            .Hidden = true},
+//    CliTool{.Name = Daybreak_Save_Convert_Name,
+//            .ShortDescription = Daybreak_Save_Convert_ShortDescription,
+//            .Function = Daybreak_Save_Convert_Function,
+//            .Hidden = true},
+//    CliTool{.Name = Daybreak2_Save_Convert_Name,
+//            .ShortDescription = Daybreak2_Save_Convert_ShortDescription,
+//            .Function = Daybreak2_Save_Convert_Function,
+//            .Hidden = true},
+//    CliTool{.Name = FileCompressor_Name,
+//            .ShortDescription = FileCompressor_ShortDescription,
+//            .Function = FileCompressor_Function,
+//            .Hidden = true},
+//    CliTool{.Name = File_Fix_Template_Generator_Name,
+//            .ShortDescription = File_Fix_Template_Generator_ShortDescription,
+//            .Function = File_Fix_Template_Generator_Function,
+//            .Hidden = true},
 };
 } // namespace SenTools
 
