@@ -1860,6 +1860,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/hash/util.h
 		util/args.cpp
 		util/args.h
+		util/bit.h
 		util/csv.cpp
 		util/csv.h
 		util/text.cpp
@@ -1868,6 +1869,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/xorshift.h
 
 		test/args_test.cpp
+		test/bit_test.cpp
 		test/csv_test.cpp
 		test/file_test.cpp
 		test/ini_test.cpp
