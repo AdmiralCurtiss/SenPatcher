@@ -47,6 +47,10 @@ static bool ParseMemoryInternal(const char* buffer,
     while (true) {
         if (pos == bufferLength) {
             // end of buffer
+            if (pos != rowStart) {
+                values.emplace_back(CsvValue{valueStart, pos - valueStart});
+                rows.emplace_back(CsvRow{.Index = rowIndex, .Length = values.size() - rowIndex});
+            }
             return true;
         }
 
@@ -115,11 +119,8 @@ static bool ParseMemoryInternal(const char* buffer,
                     values.emplace_back(CsvValue{valueStart, pos - valueStart});
                     rows.emplace_back(
                         CsvRow{.Index = rowIndex, .Length = values.size() - rowIndex});
-                    rowIndex = values.size();
                 }
-                rowStart = pos;
-                valueStart = pos;
-                break;
+                return true;
             }
             const char c2 = buffer[pos];
             if (c2 == separator) {
