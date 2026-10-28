@@ -476,6 +476,7 @@ if (SENPATCHER_BUILD_TOOLS)
 		util/memwrite.h
 		util/number.cpp
 		util/number.h
+		util/range.h
 		util/result.h
 		util/scope.h
 		util/stream.cpp
@@ -1863,6 +1864,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		util/bit.h
 		util/csv.cpp
 		util/csv.h
+		util/range.h
 		util/text.cpp
 		util/text.h
 		util/ticker.h
@@ -1875,6 +1877,7 @@ if (SENPATCHER_BUILD_GTESTS)
 		test/ini_test.cpp
 		test/number_test.cpp
 		test/p3a_lookup_test.cpp
+		test/range_test.cpp
 		test/sen_script_patcher_test.cpp
 		test/sha1_test.cpp
 		test/sha256_test.cpp
