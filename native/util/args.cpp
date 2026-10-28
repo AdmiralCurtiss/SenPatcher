@@ -100,7 +100,6 @@ static HyoutaUtils::Result<EvaluatedArgs, std::string>
         std::string_view arg = get_arg(i);
         ++i;
 
-        const Arg* matched = nullptr;
         if (arg.starts_with("--")) {
             std::string_view longArg = arg.substr(2);
             if (longArg.empty()) {
@@ -111,6 +110,7 @@ static HyoutaUtils::Result<EvaluatedArgs, std::string>
                 }
                 break;
             }
+            const Arg* matched = nullptr;
             for (const Arg* a : arguments) {
                 if (a->LongKey == longArg) {
                     matched = a;
@@ -182,6 +182,7 @@ static HyoutaUtils::Result<EvaluatedArgs, std::string>
                 std::string_view ch = shortArg.substr(0, 1);
                 shortArg = shortArg.substr(1);
 
+                const Arg* matched = nullptr;
                 for (const Arg* a : arguments) {
                     if (a->ShortKey == ch) {
                         matched = a;

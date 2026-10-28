@@ -699,4 +699,24 @@ TEST(Args, GeneralTest) {
             printf("%s\n", p.GetErrorValue().c_str());
         }
     }
+    {
+        auto p = args.Parse({{
+            "name",
+            "-x1",
+        }});
+        EXPECT_TRUE(p.IsError());
+        if (p.IsError()) {
+            printf("%s\n", p.GetErrorValue().c_str());
+        }
+    }
+    {
+        auto p = args.Parse({{
+            "name",
+            "-1x",
+        }});
+        EXPECT_TRUE(p.IsError());
+        if (p.IsError()) {
+            printf("%s\n", p.GetErrorValue().c_str());
+        }
+    }
 }
