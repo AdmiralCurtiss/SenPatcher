@@ -564,6 +564,16 @@ TEST(Args, GeneralTest) {
     {
         auto p = args.Parse({{
             "name",
+            "--fake=",
+        }});
+        EXPECT_TRUE(p.IsError());
+        if (p.IsError()) {
+            printf("%s\n", p.GetErrorValue().c_str());
+        }
+    }
+    {
+        auto p = args.Parse({{
+            "name",
             "--fake=blub",
         }});
         EXPECT_TRUE(p.IsError());
@@ -663,6 +673,26 @@ TEST(Args, GeneralTest) {
             "name",
             "-sTest",
             "--str=Text",
+        }});
+        EXPECT_TRUE(p.IsError());
+        if (p.IsError()) {
+            printf("%s\n", p.GetErrorValue().c_str());
+        }
+    }
+    {
+        auto p = args.Parse({{
+            "name",
+            "--flag1=blub",
+        }});
+        EXPECT_TRUE(p.IsError());
+        if (p.IsError()) {
+            printf("%s\n", p.GetErrorValue().c_str());
+        }
+    }
+    {
+        auto p = args.Parse({{
+            "name",
+            "--flag1=",
         }});
         EXPECT_TRUE(p.IsError());
         if (p.IsError()) {

@@ -138,7 +138,7 @@ static HyoutaUtils::Result<EvaluatedArgs, std::string>
                 return std::format("'{}' is not a valid option.", arg);
             }
             if (matched->Type == ArgTypes::Flag) {
-                if (!value.empty()) {
+                if (hasValue) {
                     return std::format("'{}{}' does not take an argument.", "--", longArg);
                 }
                 auto error = insert_arg(matched, true, std::string_view());
