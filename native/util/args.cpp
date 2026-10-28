@@ -135,7 +135,7 @@ static HyoutaUtils::Result<EvaluatedArgs, std::string>
                 }
             }
             if (matched == nullptr) {
-                return std::format("'{}' is not a valid option.", arg);
+                return std::format("'{}{}' is not a valid option.", "--", longArg);
             }
             if (matched->Type == ArgTypes::Flag) {
                 if (hasValue) {
@@ -190,7 +190,7 @@ static HyoutaUtils::Result<EvaluatedArgs, std::string>
                     }
                 }
                 if (matched == nullptr) {
-                    return std::format("'{}' is not a valid option.", arg);
+                    return std::format("'{}{}' is not a valid option.", "-", ch);
                 }
 
                 if (matched->Type == ArgTypes::Flag) {
